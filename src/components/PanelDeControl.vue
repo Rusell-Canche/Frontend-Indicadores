@@ -119,36 +119,7 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'MasterLayout',
-  props: {
-    pageTitle: String,
-    userName: String,
-  },
-  data() {
-    return {
-      showLogoutModal: false,
-    }
-  },
-  methods: {
-    logout() {
-      this.showLogoutModal = true
-    },
-    confirmLogout() {
-      // Lógica para cerrar sesión
-      this.$router.push('/login')
-    },
-  },
-  mounted() {
-    // Inicializar componentes de Bootstrap
-    $('#sidebarToggle').click(() => {
-      $('body').toggleClass('sidebar-toggled')
-      $('.sidebar').toggleClass('toggled')
-    })
-  },
-}
-</script>
+<script></script>
 
 <style scoped>
 /* Estilos de la barra lateral */
