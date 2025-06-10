@@ -62,6 +62,12 @@
 
 <script>
 export default {
+      mounted() {
+    // Si la ruta actual es exactamente '/Plantillas', redirigir a VerPlantillas
+    if (this.$route.path === '/Plantillas') {
+      this.$router.replace('/Plantillas/VerPlantillas')
+    }
+  },
   computed: {
     indicatorStyle() {
       // Calcula el índice según la ruta activa

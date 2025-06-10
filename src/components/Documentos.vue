@@ -62,6 +62,12 @@
 
 <script>
 export default {
+    mounted() {
+    // Si la ruta actual es exactamente '/Documentos', redirigir a CrearDocumentos
+    if (this.$route.path === '/Documentos') {
+      this.$router.replace('/Documentos/CrearDocumentos')
+    }
+  },
   computed: {
     indicatorStyle() {
       // Calcula el índice según la ruta activa

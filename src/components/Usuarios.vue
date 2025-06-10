@@ -62,6 +62,12 @@
 
 <script>
 export default {
+      mounted() {
+    // Si la ruta actual es exactamente '/Usuarios', redirigir a CrearUsuarios
+    if (this.$route.path === '/Usuarios') {
+      this.$router.replace('/Usuarios/CrearUsuarios')
+    }
+  },
   computed: {
     indicatorStyle() {
       // Calcula el índice según la ruta activa
