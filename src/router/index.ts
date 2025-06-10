@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import PanelDeControl from '../components/PanelDeControl.vue'
+import indicador from '../components/indicador.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,6 +15,13 @@ const router = createRouter({
       path: '/PanelDeControl',
       name: 'PanelDeControl',
       component: PanelDeControl,
+      children: [
+        {
+          path: '/indicador',
+          name: '/indicador',
+          component: indicador,
+        },
+      ],
     },
   ],
 })
