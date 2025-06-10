@@ -6,7 +6,7 @@
         <div class="header-left">
           <h1 class="main-title">
             <i class="fas fa-hospital-alt me-3"></i>
-            Sistema de Gestión de Indicadores
+            Documentos
           </h1>
         </div>
       </div>

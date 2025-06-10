@@ -13,6 +13,8 @@ import VerPlantillas from '@/components/VerPlantillas.vue'
 import CrearPlantillas from '@/components/CrearPlantillas.vue'
 import CrearDocumentos from '@/components/CrearDocumentos.vue'
 import VerDocumentos from '@/components/VerDocumentos.vue'
+import VerUsuarios from '@/components/VerUsuarios.vue'
+import CrearUsuarios from '@/components/CrearUsuarios.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -92,6 +94,18 @@ const router = createRouter({
           path: '/Usuarios',
           name: 'Usuarios',
           component: Usuarios,
+          children: [
+            {
+              path: 'VerUsuarios',
+              name: 'VerUsuarios',
+              component: VerUsuarios,
+            },
+            {
+              path: 'CrearUsuarios',
+              name: 'CrearUsuarios',
+              component: CrearUsuarios,
+            },
+          ],
         },
       ],
     },
