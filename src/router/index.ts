@@ -11,6 +11,8 @@ import Usuarios from '../components/Usuarios.vue'
 import Ejes from '../components/Ejes.vue'
 import VerPlantillas from '@/components/VerPlantillas.vue'
 import CrearPlantillas from '@/components/CrearPlantillas.vue'
+import CrearDocumentos from '@/components/CrearDocumentos.vue'
+import VerDocumentos from '@/components/VerDocumentos.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -68,6 +70,18 @@ const router = createRouter({
           path: '/Documentos',
           name: 'Documentos',
           component: Documentos,
+          children: [
+            {
+              path: 'VerDocumentos',
+              name: 'VerDocumentos',
+              component: VerDocumentos,
+            },
+            {
+              path: 'CrearDocumentos',
+              name: 'CrearDocumentos',
+              component: CrearDocumentos,
+            },
+          ],
         },
         {
           path: '/Ejes',
