@@ -24,32 +24,32 @@
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/ejes' }"
-          @click="$router.push('/ejes')"
+          :class="{ active: $route.path === '/Ejes' }"
+          @click="$router.push('/Ejes')"
         >
           <i class="fas fa-arrows-alt-v"></i>
           <span>Ejes</span>
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/plantillas' }"
-          @click="$router.push('/plantillas')"
+          :class="{ active: $route.path === '/Plantillas' }"
+          @click="$router.push('/Plantillas')"
         >
           <i class="fas fa-file"></i>
           <span>Plantillas</span>
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/documentos' }"
-          @click="$router.push('/documentos')"
+          :class="{ active: $route.path === '/Documentos' }"
+          @click="$router.push('/Documentos')"
         >
           <i class="fas fa-file-alt"></i>
           <span>Documentos</span>
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/usuarios' }"
-          @click="$router.push('/usuarios')"
+          :class="{ active: $route.path === '/Usuarios' }"
+          @click="$router.push('/Usuarios')"
         >
           <i class="fas fa-users"></i>
           <span>Usuarios</span>

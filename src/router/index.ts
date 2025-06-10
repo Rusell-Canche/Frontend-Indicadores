@@ -3,6 +3,11 @@ import Login from '../views/Login.vue'
 import PanelDeControl from '../components/PanelDeControl.vue'
 import Indicador from '../components/Indicador.vue'
 import VerIndicadores from '../components/VerIndicadores.vue'
+import Plantillas from '../components/Plantillas.vue'
+import Documentos from '../components/Documentos.vue'
+import Usuarios from '../components/Usuarios.vue'
+import Ejes from '../components/Ejes.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,6 +33,26 @@ const router = createRouter({
               component: VerIndicadores,
                 }
           ],
+        },
+            {
+          path: '/Plantillas',
+          name: 'Plantillas',
+          component: Plantillas,
+        },
+                {
+          path: '/Documentos',
+          name: 'Documentos',
+          component: Documentos,
+        },
+                    {
+          path: '/Ejes',
+          name: 'Ejes',
+          component: Ejes,
+        },
+                {
+          path: '/Usuarios',
+          name: 'Usuarios',
+          component: Usuarios,
         },
       ],
     },
