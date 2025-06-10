@@ -93,8 +93,8 @@
                 <i class="fas fa-chart-pie"></i>
               </div>
               <div class="feature-text">
-                <h3>Análisis de Datos</h3>
-                <p>Visualiza métricas y tendencias</p>
+                <h3>Indicadores</h3>
+                <p>Visualiza Indicadores y Crea</p>
               </div>
             </div>
 
@@ -103,8 +103,8 @@
                 <i class="fas fa-chart-line"></i>
               </div>
               <div class="feature-text">
-                <h3>Indicadores KPI</h3>
-                <p>Monitorea objetivos clave</p>
+                <h3>Plantillas</h3>
+                <p>Realiza Plantillas</p>
               </div>
             </div>
 
