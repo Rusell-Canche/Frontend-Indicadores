@@ -39,6 +39,20 @@
           </a>
         </li>
 
+        <li class="nav-item">
+          <a class="nav-link" href="/ejes">
+            <i class="fas fa-arrows-alt-v"></i>
+            <span>Plantillas</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/ejes">
+            <i class="fas fa-arrows-alt-v"></i>
+            <span>Documentos</span>
+          </a>
+        </li>
+
         <!-- Menú desplegable de usuarios -->
         <li class="nav-item">
           <a
