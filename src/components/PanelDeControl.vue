@@ -16,8 +16,8 @@
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/indicador' }"
-          @click="$router.push('/indicador')"
+          :class="{ active: $route.path === '/Indicador' }"
+          @click="$router.push('/Indicador')"
         >
           <i class="fas fa-tachometer-alt"></i>
           <span>Indicadores</span>
