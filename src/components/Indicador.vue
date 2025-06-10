@@ -74,6 +74,12 @@
 
 <script>
 export default {
+  mounted() {
+    // Si la ruta actual es exactamente '/Indicador', redirigir a ver-indicadores
+    if (this.$route.path === '/Indicador') {
+      this.$router.replace('/Indicador/ver-indicadores')
+    }
+  },
   computed: {
     indicatorStyle() {
       // Calcula el índice según la ruta activa
