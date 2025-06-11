@@ -23,7 +23,7 @@
             <i class="fas fa-chart-line"></i>
           </div>
           <div class="stat-content">
-            <div class="stat-number">0</div>
+            <div class="stat-number">{{ totalIndicadores }}</div>
             <div class="stat-label">Indicadores Activos</div>
           </div>
         </div>
@@ -127,11 +127,13 @@ export default {
       fechaActual: '',
       horaActual: '',
       intervalId: null,
+      totalIndicadores: 0, // Este valor debería ser dinámico, por ahora es un placeholder
     }
   },
   mounted() {
     this.actualizarFechaHora()
     this.intervalId = setInterval(this.actualizarFechaHora, 1000)
+    this.obtenerTotalIndicadores()
   },
   beforeUnmount() {
     if (this.intervalId) {
@@ -154,6 +156,15 @@ export default {
         minute: '2-digit',
         second: '2-digit',
       })
+    },
+    async obtenerTotalIndicadores() {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/indicador/getAll')
+        const data = await response.json()
+        this.totalIndicadores = Array.isArray(data.indicadores) ? data.indicadores.length : 0
+      } catch (e) {
+        this.totalIndicadores = 0
+      }
     },
   },
 }
