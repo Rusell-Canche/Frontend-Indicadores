@@ -38,7 +38,7 @@
               <i class="fas fa-users"></i>
             </div>
             <div class="tab-content-text">
-              <span class="tab-title">Crear Indicadores</span>
+              <span class="tab-title">Cargar Indicadores</span>
               <span class="tab-description">Crea un Indicador desde un Excel</span>
             </div>
           </div>
