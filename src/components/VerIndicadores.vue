@@ -1,172 +1,273 @@
 <template>
-  <div class="container-fluid px-4 py-4">
-    <!-- MODAL DE EDICIÓN MEJORADO -->
-    <div
-      v-if="showEditModal"
-      class="modal-backdrop d-flex align-items-center justify-content-center"
-    >
-      <div class="modal-content shadow-lg rounded-4 overflow-hidden" style="max-width: 600px">
-        <!-- Cabecera -->
-        <div class="modal-header bg-gradient-primary text-white py-3 px-4">
-          <h3 class="modal-title m-0"><i class="bi bi-pencil-square me-2"></i>Editar Indicador</h3>
-          <button
-            @click="closeEditModal"
-            class="btn-close btn-close-white"
-            aria-label="Close"
-          ></button>
-        </div>
-
-        <!-- Cuerpo -->
-        <div class="modal-body px-4 py-3">
-          <!-- Nombre del indicador-->
-          <div class="form-floating mb-3">
-            <input
-              type="text"
-              id="nombre-indicador"
-              v-model="indicadorEditForm.nombreIndicador"
-              class="form-control shadow-sm"
-              placeholder="Nombre del indicador"
-              required
-            />
-            <label for="nombre-indicador"
-              ><i class="bi bi-tag me-2 text-primary"></i>Indicador
-              <span class="text-danger">*</span></label
-            >
-          </div>
-
-          <!-- Proyecto del indicador -->
-          <div class="form-floating mb-3">
-            <select
-              id="proyecto"
-              v-model="indicadorEditForm._idProyecto"
-              class="form-select shadow-sm"
-              required
-            >
-              <option value="1.1.2">1.1.2</option>
-              <option value="1.1.3">1.1.3</option>
-              <option value="1.1.4">1.1.4</option>
-            </select>
-            <label for="proyecto"
-              ><i class="bi bi-folder me-2 text-primary"></i>Proyecto
-              <span class="text-danger">*</span></label
-            >
-          </div>
-
-          <div class="row g-3">
-            <!-- Número -->
-            <div class="col-md-6">
-              <div class="form-floating">
-                <input
-                  type="number"
-                  id="numero"
-                  v-model="indicadorEditForm.numero"
-                  class="form-control shadow-sm"
-                  placeholder="0"
-                />
-                <label for="numero"><i class="bi bi-hash me-2 text-primary"></i>Número</label>
-              </div>
+  <div class="container-fluid py-4">
+    <!-- Modal de edición -->
+    <div v-if="showEditModal" class="medico-modal-backdrop" @click="closeEditModal">
+      <div class="medico-modal-content" @click.stop>
+        <!-- Header del modal -->
+        <div class="medico-modal-header">
+          <div class="modal-header-content">
+            <div class="modal-icon">
+              <i class="fas fa-edit"></i>
             </div>
-
-            <!-- Numerador del indicador -->
-            <div class="col-md-6">
-              <div class="form-floating">
-                <input
-                  type="number"
-                  id="numerador"
-                  v-model="indicadorEditForm.numerador"
-                  class="form-control shadow-sm"
-                  placeholder="0"
-                />
-                <label for="numerador"
-                  ><i class="bi bi-calculator me-2 text-primary"></i>Numerador</label
-                >
-              </div>
+            <div class="modal-title-section">
+              <h3>Editar Indicador</h3>
+              <p class="modal-subtitle">Actualiza la información del indicador seleccionado</p>
             </div>
           </div>
-        </div>
-
-        <!-- Pie -->
-        <div class="modal-footer bg-light d-flex justify-content-end border-0 px-4 py-3">
-          <button @click="closeEditModal" class="btn btn-outline-secondary rounded-pill px-4 me-2">
-            <i class="bi bi-x-circle me-2"></i>Cancelar
+          <button @click="closeEditModal" class="medico-close-button">
+            <i class="fas fa-times"></i>
           </button>
-          <button @click="guardarEdicion" class="btn btn-primary rounded-pill px-4">
-            <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+        </div>
+
+        <!-- Body del modal -->
+        <div class="medico-modal-body">
+          <form @submit.prevent="guardarEdicion">
+            <div class="form-section">
+              <h6 class="section-title">
+                <i class="fas fa-tag me-2"></i>
+                Información del Indicador
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Nombre del Indicador*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-tag"></i>
+                    </span>
+                    <input
+                      v-model="indicadorEditForm.nombreIndicador"
+                      class="form-control"
+                      required
+                      placeholder="Ej: Indicador de calidad"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h6 class="section-title">
+                <i class="fas fa-folder me-2"></i>
+                Configuración del Proyecto
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Proyecto*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-folder"></i>
+                    </span>
+                    <select v-model="indicadorEditForm._idProyecto" class="form-select" required>
+                      <option value="">Seleccione un proyecto</option>
+                      <option value="1.1.2">Proyecto 1.1.2</option>
+                      <option value="1.1.3">Proyecto 1.1.3</option>
+                      <option value="1.1.4">Proyecto 1.1.4</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Número</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-hashtag"></i>
+                    </span>
+                    <input
+                      v-model="indicadorEditForm.numero"
+                      type="number"
+                      class="form-control"
+                      placeholder="Ej: 1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h6 class="section-title">
+                <i class="fas fa-calculator me-2"></i>
+                Valores Numéricos
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Numerador</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-arrow-down"></i>
+                    </span>
+                    <input
+                      v-model="indicadorEditForm.numerador"
+                      type="number"
+                      class="form-control"
+                      placeholder="Ej: 100"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Denominador</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-arrow-up"></i>
+                    </span>
+                    <input
+                      v-model="indicadorEditForm.denominador"
+                      type="number"
+                      class="form-control"
+                      placeholder="Ej: 200"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Footer del modal -->
+        <div class="medico-modal-footer">
+          <button @click="closeEditModal" class="btn btn-cancel">
+            <i class="fas fa-times me-2"></i>
+            Cancelar
+          </button>
+          <button @click="guardarEdicion" class="btn btn-save">
+            <i class="fas fa-save me-2"></i>
+            Actualizar Indicador
           </button>
         </div>
       </div>
     </div>
 
     <!-- Modal para configurar el indicador -->
-    <div
-      v-if="showConfigModal"
-      class="modal-backdrop d-flex align-items-center justify-content-center"
-    >
-      <div class="modal-content shadow-lg rounded-4 overflow-hidden" style="max-width: 600px">
-        <!-- Cabecera -->
-        <div class="modal-header bg-gradient-primary text-white py-3 px-4">
-          <h3 class="modal-title m-0"><i class="bi bi-gear me-2"></i>Configurar Indicador</h3>
-          <button
-            @click="closeConfigModal"
-            class="btn-close btn-close-white"
-            aria-label="Close"
-          ></button>
+    <div v-if="showConfigModal" class="medico-modal-backdrop" @click="closeConfigModal">
+      <div class="medico-modal-content" @click.stop>
+        <!-- Header del modal -->
+        <div class="medico-modal-header">
+          <div class="modal-header-content">
+            <div class="modal-icon">
+              <i class="fas fa-cog"></i>
+            </div>
+            <div class="modal-title-section">
+              <h3>Configurar Indicador</h3>
+              <p class="modal-subtitle">Ajusta los parámetros y configuraciones del indicador</p>
+            </div>
+          </div>
+          <button @click="closeConfigModal" class="medico-close-button">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
 
-        <!-- Cuerpo -->
-        <div class="modal-body px-4 py-3">
-          <p class="text-muted">Aquí puedes configurar el indicador seleccionado.</p>
-          <!-- Aquí puedes agregar los campos necesarios para la configuración -->
+        <!-- Body del modal -->
+        <div class="medico-modal-body">
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-sliders-h me-2"></i>
+              Configuraciones Disponibles
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="config-card">
+                  <div class="config-icon">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <h6>Parámetros de Cálculo</h6>
+                  <p class="text-muted small">Configurar fórmulas y métodos de cálculo</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="config-card">
+                  <div class="config-icon">
+                    <i class="fas fa-bell"></i>
+                  </div>
+                  <h6>Alertas y Notificaciones</h6>
+                  <p class="text-muted small">Establecer umbrales y alertas automáticas</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="config-card">
+                  <div class="config-icon">
+                    <i class="fas fa-calendar"></i>
+                  </div>
+                  <h6>Periodicidad</h6>
+                  <p class="text-muted small">Definir frecuencia de actualización</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="config-card">
+                  <div class="config-icon">
+                    <i class="fas fa-users"></i>
+                  </div>
+                  <h6>Permisos</h6>
+                  <p class="text-muted small">Gestionar accesos y permisos de usuario</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <!-- Pie -->
-        <div class="modal-footer bg-light d-flex justify-content-end border-0 px-4 py-3">
-          <button
-            @click="closeConfigModal"
-            class="btn btn-outline-secondary rounded-pill px-4 me-2"
-          >
-            <i class="bi bi-x-circle me-2"></i>Cancelar
+
+        <!-- Footer del modal -->
+        <div class="medico-modal-footer">
+          <button @click="closeConfigModal" class="btn btn-cancel">
+            <i class="fas fa-times me-2"></i>
+            Cancelar
           </button>
-          <button @click="guardarConfiguracion" class="btn btn-primary rounded-pill px-4">
-            <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+          <button @click="guardarConfiguracion" class="btn btn-save">
+            <i class="fas fa-cog me-2"></i>
+            Aplicar Configuración
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Indicadores -->
-    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-      <div class="card-header bg-gradient-primary-to-secondary text-white p-4 border-0">
-        <div class="d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold"><i class="bi bi-speedometer2 me-2 fs-4"></i>Indicadores</h5>
-          <span
-            class="badge bg-white text-primary rounded-pill px-3 py-2 d-flex align-items-center"
-          >
-            <i class="bi bi-list-check me-1"></i>{{ indicadores.length }} Total
+    <!-- Contenido principal -->
+    <div class="card shadow border-0 rounded-3">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h2 class="card-title h5 text-primary mb-0">
+          <i class="fas fa-chart-bar me-2"></i>Panel de Indicadores
+        </h2>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary rounded-pill px-3 py-2">
+            <i class="fas fa-list-check me-1"></i>{{ indicadores.length }} Total
           </span>
         </div>
       </div>
       <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0 table-striped">
-            <thead class="bg-light">
+          <table class="table modern-table align-middle mb-0">
+            <thead>
               <tr>
-                <th class="text-uppercase ps-4 py-3 fw-bold text-primary">
-                  <i class="bi bi-folder-fill me-2"></i>Proyecto
+                <th class="ps-4">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-folder text-primary me-2"></i>
+                    Proyecto
+                  </div>
                 </th>
-                <th class="text-uppercase py-3 fw-bold text-primary">
-                  <i class="bi bi-hash me-2"></i>No.
+                <th>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-hashtag text-primary me-2"></i>
+                    No.
+                  </div>
                 </th>
-                <th class="text-uppercase py-3 fw-bold text-primary">
-                  <i class="bi bi-tag-fill me-2"></i>Indicador
+                <th>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-tag text-primary me-2"></i>
+                    Indicador
+                  </div>
                 </th>
-                <th class="text-uppercase py-3 fw-bold text-primary">
-                  <i class="bi bi-arrow-up-circle-fill me-2"></i>Denominador
+                <th>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-arrow-up text-success me-2"></i>
+                    Denominador
+                  </div>
                 </th>
-                <th class="text-uppercase py-3 fw-bold text-primary">
-                  <i class="bi bi-arrow-down-circle-fill me-2"></i>Numerador
+                <th>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-arrow-down text-danger me-2"></i>
+                    Numerador
+                  </div>
                 </th>
-                <th class="text-uppercase py-3 fw-bold text-primary text-center" colspan="3">
-                  <i class="bi bi-sliders me-2"></i>Acciones
+                <th class="text-center">
+                  <div class="d-flex align-items-center justify-content-center">
+                    <i class="fas fa-cogs text-primary me-2"></i>
+                    Acciones
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -174,73 +275,86 @@
               <tr
                 v-for="(indicador, index) in paginatedData"
                 :key="indicador._id"
-                class="border-bottom"
+                class="table-row"
               >
-                <td class="ps-4 py-3">
-                  <span
-                    class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2 fw-semibold"
-                  >
-                    {{ indicador._idProyecto }}
-                  </span>
+                <td class="ps-4">
+                  <div class="d-flex align-items-center">
+                    <div class="project-icon me-3">
+                      <i class="fas fa-folder"></i>
+                    </div>
+                    <div>
+                      <div class="fw-semibold text-dark">{{ indicador._idProyecto }}</div>
+                      <small class="text-muted">Proyecto</small>
+                    </div>
+                  </div>
                 </td>
-                <td class="py-3">
-                  <span
-                    class="badge bg-secondary text-white rounded-circle p-2 fw-bold"
-                    style="width: 32px; height: 32px"
-                  >
+                <td>
+                  <div class="number-circle">
                     {{ indicador.numero }}
-                  </span>
-                </td>
-                <td class="py-3">
-                  <div class="fw-medium text-dark">{{ indicador.nombreIndicador }}</div>
-                </td>
-                <td class="py-3">
-                  <div class="d-flex align-items-center">
-                    <div class="me-2 p-2 rounded-circle bg-success-subtle">
-                      <i class="bi bi-arrow-up text-success"></i>
-                    </div>
-                    <span class="text-success fw-bold">{{ indicador.denominador }}</span>
                   </div>
                 </td>
-                <td class="py-3">
-                  <div class="d-flex align-items-center">
-                    <div class="me-2 p-2 rounded-circle bg-danger-subtle">
-                      <i class="bi bi-arrow-down text-danger"></i>
-                    </div>
-                    <span class="text-danger fw-bold">{{ indicador.numerador }}</span>
+                <td>
+                  <div>
+                    <div class="fw-semibold text-dark">{{ indicador.nombreIndicador }}</div>
+                    <small class="text-muted">Indicador principal</small>
                   </div>
                 </td>
-                <td class="py-3">
-                  <button
-                    class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                    @click="configurarIndicador()"
-                  >
-                    <i class="bi bi-pencil-square me-1"></i>configurar
-                  </button>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="metric-icon success me-2">
+                      <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <span class="metric-value text-success fw-bold">{{
+                      indicador.denominador || 0
+                    }}</span>
+                  </div>
                 </td>
-                <td class="py-3">
-                  <button
-                    class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                    @click="editarIndicador(indicador)"
-                  >
-                    <i class="bi bi-pencil-square me-1"></i>Editar
-                  </button>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="metric-icon danger me-2">
+                      <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <span class="metric-value text-danger fw-bold">{{
+                      indicador.numerador || 0
+                    }}</span>
+                  </div>
                 </td>
-                <td class="py-3">
-                  <button
-                    class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                    @click="eliminarIndicador(indicador)"
-                  >
-                    <i class="bi bi-trash me-1"></i>Eliminar
-                  </button>
+                <td>
+                  <div class="d-flex justify-content-center gap-2">
+                    <button
+                      @click="configurarIndicador()"
+                      class="action-btn config-btn"
+                      title="Configurar indicador"
+                    >
+                      <i class="fas fa-cog"></i>
+                    </button>
+                    <button
+                      @click="editarIndicador(indicador)"
+                      class="action-btn edit-btn"
+                      title="Editar indicador"
+                    >
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                      @click="eliminarIndicador(indicador)"
+                      class="action-btn delete-btn"
+                      title="Eliminar indicador"
+                    >
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
               <tr v-if="indicadores.length === 0">
-                <td colspan="7" class="text-center py-5">
-                  <div class="py-4">
-                    <i class="bi bi-database-exclamation display-4 text-muted"></i>
-                    <h5 class="mt-3 fw-semibold text-muted">No hay datos disponibles</h5>
-                    <p class="text-muted">No se encontraron indicadores para mostrar</p>
+                <td colspan="6" class="text-center py-5">
+                  <div class="empty-state">
+                    <div class="empty-icon">
+                      <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h5 class="text-muted mb-2">No hay indicadores registrados</h5>
+                    <p class="text-muted mb-3">
+                      Los indicadores aparecerán aquí una vez que sean creados
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -248,50 +362,59 @@
           </table>
         </div>
       </div>
-      <div class="card-footer bg-white p-4 border-0">
+
+      <!-- Paginación -->
+      <div class="card-footer bg-white border-0 p-4" v-if="totalPages > 1">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-          <div class="text-muted mb-3 mb-md-0 fw-medium">
-            <i class="bi bi-info-circle me-2"></i>Mostrando
-            <span class="fw-bold text-primary">{{ startItem }}-{{ endItem }}</span> de
-            <span class="fw-bold text-primary">{{ indicadores.length }}</span> registros
+          <div class="pagination-info mb-3 mb-md-0">
+            <span class="text-muted">
+              <i class="fas fa-info-circle me-2 text-primary"></i>
+              Mostrando <strong class="text-primary">{{ startItem }}-{{ endItem }}</strong> de
+              <strong class="text-primary">{{ indicadores.length }}</strong> registros
+            </span>
           </div>
           <nav aria-label="Paginación">
-            <ul class="pagination pagination-md justify-content-center mb-0">
-              <li class="page-item me-1" :class="{ disabled: currentPage === 1 }">
+            <ul class="pagination pagination-modern justify-content-center mb-0">
+              <li class="page-item" :class="{ disabled: currentPage === 1 }">
                 <button
-                  class="page-link border-0 rounded-circle shadow-sm"
+                  class="page-link page-nav"
                   @click="prevPage"
                   :disabled="currentPage === 1"
                   aria-label="Anterior"
                 >
-                  <i class="bi bi-chevron-left"></i>
+                  <i class="fas fa-chevron-left"></i>
                 </button>
               </li>
               <li
-                class="page-item mx-1"
+                class="page-item"
                 v-for="page in pages"
                 :key="page"
                 :class="{ active: page === currentPage }"
               >
-                <button
-                  class="page-link border-0 rounded-circle shadow-sm fw-medium"
-                  @click="goToPage(page)"
-                >
+                <button class="page-link page-number" @click="goToPage(page)">
                   {{ page }}
                 </button>
               </li>
-              <li class="page-item ms-1" :class="{ disabled: currentPage === totalPages }">
+              <li class="page-item" :class="{ disabled: currentPage === totalPages }">
                 <button
-                  class="page-link border-0 rounded-circle shadow-sm"
+                  class="page-link page-nav"
                   @click="nextPage"
                   :disabled="currentPage === totalPages"
                   aria-label="Siguiente"
                 >
-                  <i class="bi bi-chevron-right"></i>
+                  <i class="fas fa-chevron-right"></i>
                 </button>
               </li>
             </ul>
           </nav>
+        </div>
+      </div>
+
+      <!-- Footer con información -->
+      <div class="card-footer bg-white text-muted small py-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <span>Total: {{ indicadores.length }} indicadores</span>
+          <span>Última actualización: {{ new Date().toLocaleString() }}</span>
         </div>
       </div>
     </div>
@@ -316,6 +439,7 @@ export default {
         nombreIndicador: '',
         numerador: '',
         numero: '',
+        denominador: '',
         _idProyecto: '',
       },
     }
@@ -498,6 +622,15 @@ export default {
     },
 
     /**
+     * Guarda la configuración del indicador
+     */
+    guardarConfiguracion() {
+      // Aquí iría la lógica para guardar la configuración
+      this.mostrarNotificacion('¡Completado!', 'Configuración aplicada exitosamente', 'success')
+      this.closeConfigModal()
+    },
+
+    /**
      * Activa el modo de edición y carga los datos
      * del indicador seleccionado en indicadorEditForm
      * @param eje - El eje a editar.
@@ -510,6 +643,7 @@ export default {
       this.indicadorEditForm.nombreIndicador = indicador.nombreIndicador
       this.indicadorEditForm.numerador = indicador.numerador
       this.indicadorEditForm.numero = indicador.numero
+      this.indicadorEditForm.denominador = indicador.denominador
       this.indicadorEditForm._idProyecto = indicador._idProyecto
     },
 
@@ -597,6 +731,7 @@ export default {
         nombreIndicador: '',
         numerador: '',
         denominador: '',
+        numero: '',
         _idProyecto: '',
       }
     },
@@ -665,259 +800,753 @@ export default {
 </script>
 
 <style scoped>
-/* ESTILOS MEJORADOS */
-.card {
-  border-radius: 0.75rem;
-  transition: box-shadow 0.3s ease;
-  transform: none !important;
-}
-
-.card:hover {
-  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12) !important;
-}
-
-.bg-gradient-primary-to-secondary {
-  background: linear-gradient(to right, #3b82f6, #2563eb);
-}
-
-.bg-gradient-primary {
-  background: linear-gradient(to right, #3b82f6, #2563eb);
-}
-
-.table {
-  --bs-table-bg: transparent;
-  --bs-table-striped-bg: #f9fafb;
-}
-
-.table thead th {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.5px;
-  color: #3b82f6;
-  white-space: nowrap;
-}
-
-.table td,
-.table th {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  vertical-align: middle;
-}
-
-.table tbody tr {
-  transition: background-color 0.15s ease-in-out;
-}
-
-.table tbody tr:hover {
-  background-color: rgba(59, 130, 246, 0.05) !important;
-}
-
-/* Modal mejorado */
-.modal-backdrop {
+/* Estilos para el modal moderno */
+.medico-modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1050;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(8px);
+  animation: backdropFadeIn 0.3s ease;
 }
 
-.modal-content {
-  background-color: #fff;
-  width: 90%;
-  max-width: 550px;
-  border-radius: 1.25rem;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+.medico-modal-content {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  width: 95%;
+  max-width: 900px;
+  max-height: 90vh;
+  border-radius: 20px;
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
-  animation: modalFadeIn 0.4s ease;
+  position: relative;
+}
+
+.medico-modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+}
+
+.medico-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+}
+
+.medico-modal-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1;
+}
+
+.modal-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.modal-title-section h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modal-subtitle {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+.medico-close-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 1;
+}
+
+.medico-close-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.medico-modal-body {
+  padding: 2rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: white;
+}
+
+.medico-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.medico-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.medico-modal-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 16px 16px 0 0;
+}
+
+.section-title {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.section-title i {
+  color: #667eea;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.modern-input {
+  position: relative;
+}
+
+.modern-input .input-group-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  border-radius: 12px 0 0 12px;
+  width: 50px;
+  justify-content: center;
+}
+
+.modern-input .form-control,
+.modern-input .form-select {
+  border: 2px solid #e9ecef;
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.modern-input .form-control:focus,
+.modern-input .form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  transform: translateY(-1px);
+}
+
+.medico-modal-footer {
+  padding: 1.5rem 2rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.btn-cancel {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-cancel:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+  color: white;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-save::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-save:hover::before {
+  left: 100%;
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  color: white;
+}
+
+/* Tarjetas de configuración */
+.config-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.config-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.config-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  margin: 0 auto 1rem;
+}
+
+.config-card h6 {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Estilos para la tabla y botones */
+.card {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.modern-table {
+  width: 100%;
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.modern-table thead {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.modern-table thead th {
+  font-weight: 600;
+  color: #495057;
+  border: none;
+  padding: 1.25rem 1rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+.modern-table thead th:first-child {
+  border-top-left-radius: 0.75rem;
+}
+
+.modern-table thead th:last-child {
+  border-top-right-radius: 0.75rem;
+}
+
+.modern-table tbody .table-row {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.modern-table tbody .table-row:hover {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.modern-table tbody .table-row:last-child {
+  border-bottom: none;
+}
+
+.modern-table tbody td {
+  padding: 1.25rem 1rem;
+  vertical-align: middle;
   border: none;
 }
 
-@keyframes modalFadeIn {
+/* Iconos de proyecto */
+.project-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Círculo de número */
+.number-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Iconos de métricas */
+.metric-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.metric-icon.success {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #16a34a;
+  border: 2px solid rgba(22, 163, 74, 0.2);
+}
+
+.metric-icon.danger {
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+  color: #dc2626;
+  border: 2px solid rgba(220, 38, 38, 0.2);
+}
+
+.metric-value {
+  font-size: 1rem;
+}
+
+/* Botones de acción modernos */
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform 0.3s ease;
+  z-index: 0;
+}
+
+.action-btn i {
+  position: relative;
+  z-index: 1;
+}
+
+.config-btn {
+  background-color: #e0f2fe;
+  color: #0277bd;
+  border: 2px solid #b3e5fc;
+}
+
+.config-btn::before {
+  background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%);
+}
+
+.config-btn:hover {
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(2, 136, 209, 0.4);
+}
+
+.config-btn:hover::before {
+  transform: scale(1);
+}
+
+.edit-btn {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 2px solid #ffeaa7;
+}
+
+.edit-btn::before {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+
+.edit-btn:hover {
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 193, 7, 0.4);
+}
+
+.edit-btn:hover::before {
+  transform: scale(1);
+}
+
+.delete-btn {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 2px solid #f5c6cb;
+}
+
+.delete-btn::before {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.delete-btn:hover {
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+}
+
+.delete-btn:hover::before {
+  transform: scale(1);
+}
+
+/* Estado vacío mejorado */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: #6c757d;
+}
+
+/* Paginación moderna */
+.pagination-info {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f1f5f9 100%);
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.pagination-modern {
+  gap: 6px;
+}
+
+.pagination-modern .page-link {
+  border: none;
+  min-width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.page-nav {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+}
+
+.page-nav:hover:not(:disabled) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.page-number:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  color: #374151;
+  transform: translateY(-2px);
+}
+
+.pagination-modern .page-item.active .page-link {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: scale(1.05);
+}
+
+.pagination-modern .page-item.disabled .page-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animaciones */
+@keyframes backdropFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-30px) scale(0.95);
   }
+  to {
+    opacity: 1;
+  }
+}
 
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
 
-.modal-header {
-  border-bottom: none;
-  padding: 1.5rem;
-  position: relative;
+@keyframes shimmer {
+  0%,
+  100% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  50% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
 }
 
-.modal-title {
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  font-size: 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.icon-modal {
-  background-color: rgba(255, 255, 255, 0.2);
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 1.2rem;
-}
-
-.form-floating .form-label i {
-  opacity: 0.75;
-}
-
-.form-floating .form-control:focus + .form-label i,
-.form-floating .form-select:focus + .form-label i {
-  color: #3b82f6;
-  opacity: 1;
-}
-
-.form-floating .form-control:focus,
-.form-floating .form-select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
-}
-
-.form-floating .form-control,
-.form-floating .form-select {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  padding-left: 1rem;
-  height: calc(3.5rem + 2px);
-  font-size: 1rem;
-  transition: all 0.25s ease;
-}
-
-.form-floating label {
-  padding-left: 1rem;
-  height: calc(3.5rem + 2px);
-  display: flex;
-  align-items: center;
-}
-
-.btn-guardar {
-  background: linear-gradient(to right, #3b82f6, #2563eb);
-  border: none;
-  box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
-  transition: all 0.3s ease;
-}
-
-.btn-guardar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
-}
-
-/* Scrollbar personalizada */
-.table-responsive::-webkit-scrollbar {
-  height: 8px;
-}
-
-.table-responsive::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.table-responsive::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.table-responsive::-webkit-scrollbar-thumb:hover {
-  background: #a0a0a0;
-}
-
-/* Paginación mejorada */
-.pagination {
-  margin-bottom: 0;
-  gap: 4px;
-}
-
-.page-item .page-link {
-  border: none !important;
-  min-width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #4b5563;
-  background-color: #f3f4f6;
-  border-radius: 50%;
-  font-size: 0.875rem;
-  transition: all 0.2s ease-in-out;
-}
-
-.page-item.active .page-link {
-  background-color: #3b82f6;
-  color: white;
-  font-weight: 600;
-  transform: scale(1.1);
-}
-
-.page-item:not(.active) .page-link:hover {
-  background-color: #e5e7eb;
-  color: #1f2937;
-  transform: translateY(-2px);
-}
-
-.page-item.disabled .page-link {
-  color: #9ca3af;
-  background-color: #f3f4f6;
-  opacity: 0.6;
-}
-
-/* Botones de acción */
-.btn-outline-primary,
-.btn-outline-danger {
-  transition: all 0.2s ease;
-}
-
-.btn-outline-primary:hover {
-  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
-  transform: translateY(-2px);
-}
-
-.btn-outline-danger:hover {
-  box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25);
-  transform: translateY(-2px);
-}
-
-/* Responsividad */
+/* Responsive */
 @media (max-width: 768px) {
-  .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .medico-modal-content {
+    width: 98%;
+    max-height: 95vh;
+    margin: 1rem;
   }
 
-  .table th,
-  .table td {
-    white-space: nowrap;
+  .medico-modal-header {
+    padding: 1.5rem;
   }
 
-  .card-footer {
+  .modal-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .modal-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .modal-title-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .medico-modal-body {
+    padding: 1.5rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .medico-modal-footer {
+    padding: 1rem 1.5rem;
     flex-direction: column;
   }
 
-  .pagination {
-    margin-top: 15px;
+  .btn-cancel,
+  .btn-save {
+    width: 100%;
+    justify-content: center;
   }
 
-  .modal-content {
-    width: 95%;
-    margin: 10px;
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .modern-table thead th {
+    padding: 1rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .modern-table tbody td {
+    padding: 1rem 0.75rem;
+  }
+
+  .project-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+
+  .action-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .medico-modal-header {
+    padding: 1rem;
+  }
+
+  .medico-modal-body {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 0.75rem;
+  }
+
+  .modern-input .form-control,
+  .modern-input .form-select {
+    font-size: 0.9rem;
+  }
+
+  .modern-table {
+    font-size: 0.875rem;
+  }
+
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+
+  .empty-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
   }
 }
 </style>
