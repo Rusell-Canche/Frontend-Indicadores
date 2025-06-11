@@ -8,8 +8,8 @@
       <ul class="navigation-list">
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/dashboard' }"
-          @click="$router.push('/dashboard')"
+          :class="{ active: $route.path === 'Bienvenida' }"
+          @click="$router.push('Bienvenida')"
         >
           <i class="fas fa-home"></i>
           <span>PANEL DE CONTROL</span>
@@ -90,7 +90,7 @@
 <script>
 export default {
   mounted() {
-    // Si la ruta actual es exactamente '/Indicador', redirigir a ver-indicadores
+    // Si la ruta actual es exactamente '/PanelDeControl', redirigir a Bienvenida
     if (this.$route.path === '/PanelDeControl') {
       this.$router.replace('/PanelDeControl/Bienvenida')
     }
