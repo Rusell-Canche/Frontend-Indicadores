@@ -8,8 +8,8 @@
       <ul class="navigation-list">
         <li
           class="navigation-item"
-          :class="{ active: $route.path === 'Bienvenida' }"
-          @click="$router.push('Bienvenida')"
+          :class="{ active: $route.path === '/PanelDeControl/Bienvenida' }"
+          @click="$router.push('/PanelDeControl/Bienvenida')"
         >
           <i class="fas fa-home"></i>
           <span>PANEL DE CONTROL</span>
