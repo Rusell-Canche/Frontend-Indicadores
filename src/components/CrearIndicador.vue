@@ -188,7 +188,7 @@ export default {
         indicadorFormData.append('denominador', this.nuevoIndicador.denominador)
 
         // Mandamos la solicitud POST a la API
-        const response = await axios.post('api/indicador/insert', indicadorFormData, {
+        const response = await axios.post('/indicador/insert', indicadorFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Accept: 'application/json',
