@@ -89,6 +89,12 @@
 
 <script>
 export default {
+  mounted() {
+    // Si la ruta actual es exactamente '/Indicador', redirigir a ver-indicadores
+    if (this.$route.path === '/PanelDeControl') {
+      this.$router.replace('/PanelDeControl/Bienvenida')
+    }
+  },
   data() {
     return {
       showLogoutModal: false,

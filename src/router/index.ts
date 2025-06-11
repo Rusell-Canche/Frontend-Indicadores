@@ -15,6 +15,7 @@ import CrearDocumentos from '@/components/CrearDocumentos.vue'
 import VerDocumentos from '@/components/VerDocumentos.vue'
 import VerUsuarios from '@/components/VerUsuarios.vue'
 import CrearUsuarios from '@/components/CrearUsuarios.vue'
+import Bienvenida from '@/components/Bienvenida.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,6 +30,11 @@ const router = createRouter({
       name: 'PanelDeControl',
       component: PanelDeControl,
       children: [
+        {
+          path: 'Bienvenida',
+          name: 'Bienvenida',
+          component: Bienvenida,
+        },
         {
           path: '/Indicador',
           name: '/Indicador',
