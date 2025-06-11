@@ -197,7 +197,7 @@ export default {
 
     async crearPlantilla() {
       try {
-        const response = await axios.post('/plantillas/crear', {
+        const response = await axios.post('http://127.0.0.1:8000/api/plantillas/crear', {
           plantilla_name: this.plantillaName,
           fields: this.camposPlantilla,
           eje_asociado: this.selectedEje,
@@ -224,9 +224,7 @@ export default {
     },
   },
 
-  mounted() {
-    
-  },
+  mounted() {},
 }
 </script>
 
@@ -568,4 +566,3 @@ export default {
   }
 }
 </style>
-

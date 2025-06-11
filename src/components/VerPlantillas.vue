@@ -8,10 +8,18 @@
           <h4>{{ plantilla.nombre_plantilla }}</h4>
         </div>
         <div class="plantilla-actions">
-          <button @click="openEditModal(plantilla.id)" class="btn btn-edit" title="Editar plantilla">
+          <button
+            @click="openEditModal(plantilla.id)"
+            class="btn btn-edit"
+            title="Editar plantilla"
+          >
             <i class="fas fa-edit"></i> Editar
           </button>
-          <button @click="eliminarPlantilla(plantilla.id)" class="btn btn-delete" title="Eliminar plantilla">
+          <button
+            @click="eliminarPlantilla(plantilla.id)"
+            class="btn btn-delete"
+            title="Eliminar plantilla"
+          >
             <i class="fas fa-trash-alt"></i> Eliminar
           </button>
         </div>
@@ -19,125 +27,151 @@
     </div>
 
     <!-- Modal para editar plantilla con diseño mejorado -->
-    <div v-if="mostrarModalEdit" class="modal fade show" id="editModal" tabindex="-1" aria-labelledby="editModalLabel"
-      aria-hidden="true" style="display: block;">
+    <div
+      v-if="mostrarModalEdit"
+      class="modal fade show"
+      id="editModal"
+      tabindex="-1"
+      aria-labelledby="editModalLabel"
+      aria-hidden="true"
+      style="display: block"
+    >
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header bg-primary text-white">
             <h5 class="modal-title" id="editModalLabel">Editar Plantilla: {{ nombrePlantilla }}</h5>
-            <button type="button" @click="closeEditModal" class="close text-white" aria-label="Close">
+            <button
+              type="button"
+              @click="closeEditModal"
+              class="close text-white"
+              aria-label="Close"
+            >
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
             <!-- Sección para los campos de la plantilla -->
             <div class="form-card form-section">
-                <label class="section-title">Campos de la Plantilla</label>
+              <label class="section-title">Campos de la Plantilla</label>
 
-                <div v-for="(campo, index) in camposPlantilla" :key="index" class="campo-container">
+              <div v-for="(campo, index) in camposPlantilla" :key="index" class="campo-container">
                 <div class="campo-header">
-                    <span class="campo-index">Campo #{{ index + 1 }}</span>
-                    <button type="button" @click="quitarCampo(index)" class="delete-button">
+                  <span class="campo-index">Campo #{{ index + 1 }}</span>
+                  <button type="button" @click="quitarCampo(index)" class="delete-button">
                     <i class="fas fa-times-circle"></i>
-                    </button>
+                  </button>
                 </div>
 
                 <div class="campo-body">
-                    <div class="campo-item">
+                  <div class="campo-item">
                     <label class="campo-label">Nombre del campo</label>
                     <input
-                        v-model="campo.name"
-                        class="form-input"
-                        placeholder="Ej: título, descripción, fecha_entrega"
+                      v-model="campo.name"
+                      class="form-input"
+                      placeholder="Ej: título, descripción, fecha_entrega"
                     />
-                    </div>
+                  </div>
 
-                    <div class="campo-item">
+                  <div class="campo-item">
                     <label class="campo-label">Tipo del campo</label>
-                    <select v-model="campo.type" class="form-select" @change="handleTypeChange(campo)">
-                        <option value="string">Texto</option>
-                        <option value="number">Numérico</option>
-                        <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
-                        <option value="date">Fecha</option>
-                        <option value="subform">Subformulario</option>
+                    <select
+                      v-model="campo.type"
+                      class="form-select"
+                      @change="handleTypeChange(campo)"
+                    >
+                      <option value="string">Texto</option>
+                      <option value="number">Numérico</option>
+                      <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
+                      <option value="date">Fecha</option>
+                      <option value="subform">Subformulario</option>
                     </select>
-                    </div>
+                  </div>
 
-                    <div class="campo-checkbox">
+                  <div class="campo-checkbox">
                     <label class="checkbox-container">
-                        <input type="checkbox" class="custom-checkbox" v-model="campo.required" />
-                        <span class="checkbox-label">Campo obligatorio</span>
+                      <input type="checkbox" class="custom-checkbox" v-model="campo.required" />
+                      <span class="checkbox-label">Campo obligatorio</span>
                     </label>
-                    </div>
+                  </div>
 
-                    <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
-                    <div v-if="campo.type === 'subform'" class="subform-container">
+                  <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
+                  <div v-if="campo.type === 'subform'" class="subform-container">
                     <div class="subform-header">
-                        <i class="fas fa-indent"></i>
-                        <span>Subformulario para {{ campo.name || 'este campo' }}</span>
+                      <i class="fas fa-indent"></i>
+                      <span>Subformulario para {{ campo.name || 'este campo' }}</span>
                     </div>
 
                     <div
-                        v-for="(subcampo, subindex) in campo.subcampos || []"
-                        :key="subindex"
-                        class="subcampo-container"
+                      v-for="(subcampo, subindex) in campo.subcampos || []"
+                      :key="subindex"
+                      class="subcampo-container"
                     >
-                        <div class="subcampo-header">
+                      <div class="subcampo-header">
                         <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
                         <button
-                            type="button"
-                            @click="quitarSubcampo(campo, subindex)"
-                            class="delete-button"
+                          type="button"
+                          @click="quitarSubcampo(campo, subindex)"
+                          class="delete-button"
                         >
-                            <i class="fas fa-times-circle"></i>
+                          <i class="fas fa-times-circle"></i>
                         </button>
-                        </div>
+                      </div>
 
-                        <div class="subcampo-body">
+                      <div class="subcampo-body">
                         <div class="campo-item">
-                            <label class="campo-label">Nombre del apartado</label>
-                            <input
+                          <label class="campo-label">Nombre del apartado</label>
+                          <input
                             v-model="subcampo.name"
                             class="form-input"
                             placeholder="Ej: nombre, cantidad, descripción"
-                            />
+                          />
                         </div>
 
                         <div class="campo-item">
-                            <label class="campo-label">Tipo del apartado</label>
-                            <select v-model="subcampo.type" class="form-select">
+                          <label class="campo-label">Tipo del apartado</label>
+                          <select v-model="subcampo.type" class="form-select">
                             <option value="string">Texto</option>
                             <option value="number">Numérico</option>
                             <option value="file">Archivo</option>
                             <option value="date">Fecha</option>
-                            </select>
+                          </select>
                         </div>
 
                         <div class="campo-checkbox">
-                            <label class="checkbox-container">
-                            <input type="checkbox" class="custom-checkbox" v-model="subcampo.required" />
+                          <label class="checkbox-container">
+                            <input
+                              type="checkbox"
+                              class="custom-checkbox"
+                              v-model="subcampo.required"
+                            />
                             <span class="checkbox-label">Obligatorio</span>
-                            </label>
+                          </label>
                         </div>
-                        </div>
+                      </div>
                     </div>
 
-                    <button type="button" @click="agregarSubcampo(campo)" class="add-subcampo-button">
-                        <i class="fas fa-plus-circle"></i> Agregar Apartado
+                    <button
+                      type="button"
+                      @click="agregarSubcampo(campo)"
+                      class="add-subcampo-button"
+                    >
+                      <i class="fas fa-plus-circle"></i> Agregar Apartado
                     </button>
-                    </div>
+                  </div>
                 </div>
-                </div>
+              </div>
 
-                <button type="button" @click="agregarCampo" class="add-campo-button">
+              <button type="button" @click="agregarCampo" class="add-campo-button">
                 <i class="fas fa-plus-circle"></i> Agregar Campo
-                </button>
+              </button>
             </div>
 
             <!-- Botones de acción -->
             <div class="form-actions">
-                <button type="button" @click="closeEditModal" class="reset-button">Cancelar</button>
-                <button type="button" @click="submitEditForm" class="submit-button">Actualizar Plantilla</button>
+              <button type="button" @click="closeEditModal" class="reset-button">Cancelar</button>
+              <button type="button" @click="submitEditForm" class="submit-button">
+                Actualizar Plantilla
+              </button>
             </div>
           </div>
         </div>
@@ -147,8 +181,8 @@
 </template>
 
 <script>
-import axios from 'axios';
-import Swal from 'sweetalert2';
+import axios from 'axios'
+import Swal from 'sweetalert2'
 
 export default {
   data() {
@@ -158,19 +192,20 @@ export default {
       idPlantilla: '', // ID de la plantilla seleccionada para edición
       camposPlantilla: [], // Campos de la plantilla seleccionada para edición
       mostrarModalEdit: false, // Control de visibilidad del modal de edición
-      nuevoCampo: {  // Nuevo campo que se agregará dinámicamente
+      nuevoCampo: {
+        // Nuevo campo que se agregará dinámicamente
         name: '',
         type: '',
         alias: '',
-        required: false
-      }
-    };
+        required: false,
+      },
+    }
   },
   methods: {
     async fetchPlantillas() {
       try {
-        const response = await axios.get('/plantillas/consultar');
-        this.plantillas = response.data;
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas/consultar')
+        this.plantillas = response.data
 
         //Verificar si hay plantillas
         if (this.plantillas.length === 0) {
@@ -178,106 +213,109 @@ export default {
             icon: 'info',
             title: 'Sin plantillas',
             text: 'No hay plantillas disponibles.',
-          });
+          })
         }
       } catch (error) {
         Swal.fire({
           icon: 'error',
           title: 'Error',
           text: 'Error al obtener las plantillas.',
-        });
-        console.log('Error al obtener las plantillas:', error);
+        })
+        console.log('Error al obtener las plantillas:', error)
       }
     },
     async fetchCamposPlantilla(id) {
       try {
-        const response = await axios.get(`/plantillas/${id}/campos`);
-        this.nombrePlantilla = response.data.nombre_plantilla;
-        this.idPlantilla = id;
-        this.camposPlantilla = response.data.campos;
-        this.mostrarModalEdit = true;
+        const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/campos`)
+        this.nombrePlantilla = response.data.nombre_plantilla
+        this.idPlantilla = id
+        this.camposPlantilla = response.data.campos
+        this.mostrarModalEdit = true
       } catch (error) {
         Swal.fire({
           icon: 'error',
           title: 'Error',
           text: 'Error al obtener los campos de la plantilla.',
-        });
-        console.log('Error al obtener los campos de la plantilla:', error);
+        })
+        console.log('Error al obtener los campos de la plantilla:', error)
       }
     },
     async submitEditForm() {
-        const result = await Swal.fire({
-            title: '¿Estás seguro?',
-            text: '¿Quieres actualizar la plantilla?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, actualizar',
-            cancelButtonText: 'Cancelar'
-        });
+      const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: '¿Quieres actualizar la plantilla?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, actualizar',
+        cancelButtonText: 'Cancelar',
+      })
 
-        if (result.isConfirmed) {
-            try {
-                const updateData = {
-                    campos: this.camposPlantilla.map(campo => {
-                        const campoData = {
-                        name: campo.name,
-                        type: campo.type,
-                        required: Boolean(campo.required)
-                        };
+      if (result.isConfirmed) {
+        try {
+          const updateData = {
+            campos: this.camposPlantilla.map((campo) => {
+              const campoData = {
+                name: campo.name,
+                type: campo.type,
+                required: Boolean(campo.required),
+              }
 
-                        // Solo agrega subcampos si existe y tiene elementos
-                        if (campo.subcampos && campo.subcampos.length > 0) {
-                        campoData.subcampos = campo.subcampos;
-                        }
+              // Solo agrega subcampos si existe y tiene elementos
+              if (campo.subcampos && campo.subcampos.length > 0) {
+                campoData.subcampos = campo.subcampos
+              }
 
-                        return campoData;
-                    })
-                };
+              return campoData
+            }),
+          }
 
-            console.log('Datos a enviar:', updateData);
+          console.log('Datos a enviar:', updateData)
 
-            const response = await axios.put(`/plantillas/${this.idPlantilla}`, updateData, {
-                headers: {
+          const response = await axios.put(
+            `http://127.0.0.1:8000/api/plantillas/${this.idPlantilla}`,
+            updateData,
+            {
+              headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
-                }
-            });
+                Accept: 'application/json',
+              },
+            },
+          )
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Actualizado',
-                text: response.data.message || 'Plantilla actualizada correctamente',
-            });
-            this.closeEditModal();
-            this.fetchPlantillas();
-
-            } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Error al actualizar la plantilla',
-            });
-            console.error('Error al actualizar la plantilla:', error);
-            }
+          Swal.fire({
+            icon: 'success',
+            title: 'Actualizado',
+            text: response.data.message || 'Plantilla actualizada correctamente',
+          })
+          this.closeEditModal()
+          this.fetchPlantillas()
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error al actualizar la plantilla',
+          })
+          console.error('Error al actualizar la plantilla:', error)
         }
+      }
     },
     eliminarCampo(index) {
-      this.camposPlantilla.splice(index, 1);
+      this.camposPlantilla.splice(index, 1)
     },
     agregarCampo() {
-      this.camposPlantilla.push({ ...this.nuevoCampo });
+      this.camposPlantilla.push({ ...this.nuevoCampo })
       this.nuevoCampo = {
         name: '',
         type: '',
         alias: '',
-        required: false
-      };
+        required: false,
+      }
     },
     openEditModal(id) {
-      this.fetchCamposPlantilla(String(id));
+      this.fetchCamposPlantilla(String(id))
     },
     closeEditModal() {
-      this.mostrarModalEdit = false;
+      this.mostrarModalEdit = false
     },
     async eliminarPlantilla(id) {
       const result = await Swal.fire({
@@ -287,24 +325,24 @@ export default {
         showCancelButton: true,
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'No, cancelar',
-      });
+      })
 
       if (result.isConfirmed) {
         try {
-          const response = await axios.delete(`/plantillas/${id}`);
+          const response = await axios.delete(`http://127.0.0.1:8000/api/plantillas/${id}`)
           Swal.fire({
             icon: 'success',
             title: 'Eliminado',
             text: response.data.message,
-          });
-          this.fetchPlantillas();
+          })
+          this.fetchPlantillas()
         } catch (error) {
           Swal.fire({
             icon: 'error',
             title: 'Error',
             text: error.response.data.message || 'Error al eliminar la plantilla',
-          });
-            console.error('Error al eliminar la plantilla:', error);
+          })
+          console.error('Error al eliminar la plantilla:', error)
         }
       }
     },
@@ -330,9 +368,9 @@ export default {
     },
   },
   created() {
-    this.fetchPlantillas();
-  }
-};
+    this.fetchPlantillas()
+  },
+}
 </script>
 
 <style scoped>
@@ -674,4 +712,3 @@ export default {
   }
 }
 </style>
-
