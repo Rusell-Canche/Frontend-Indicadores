@@ -94,60 +94,8 @@
     <!-- Panel lateral de opciones -->
     <div class="panel-opciones">
       <div class="opciones-header">
-        <h3>Opciones del Sistema</h3>
-        <p>Herramientas y configuraciones</p>
-      </div>
-
-      <div class="opciones-lista">
-        <div class="opcion-item" @click="$router.push('/Indicador')">
-          <div class="opcion-icon">
-            <i class="fas fa-tachometer-alt"></i>
-          </div>
-          <div class="opcion-info">
-            <div class="opcion-titulo">Indicadores</div>
-            <div class="opcion-descripcion">Gestiona métricas y KPIs</div>
-          </div>
-        </div>
-
-        <div class="opcion-item" @click="$router.push('/Ejes')">
-          <div class="opcion-icon">
-            <i class="fas fa-arrows-alt-v"></i>
-          </div>
-          <div class="opcion-info">
-            <div class="opcion-titulo">Ejes</div>
-            <div class="opcion-descripcion">Configura dimensiones</div>
-          </div>
-        </div>
-
-        <div class="opcion-item" @click="$router.push('/Plantillas')">
-          <div class="opcion-icon">
-            <i class="fas fa-file"></i>
-          </div>
-          <div class="opcion-info">
-            <div class="opcion-titulo">Plantillas</div>
-            <div class="opcion-descripcion">Modelos predefinidos</div>
-          </div>
-        </div>
-
-        <div class="opcion-item" @click="$router.push('/Documentos')">
-          <div class="opcion-icon">
-            <i class="fas fa-file-alt"></i>
-          </div>
-          <div class="opcion-info">
-            <div class="opcion-titulo">Documentos</div>
-            <div class="opcion-descripcion">Repositorio de archivos</div>
-          </div>
-        </div>
-
-        <div class="opcion-item" @click="$router.push('/Usuarios')">
-          <div class="opcion-icon">
-            <i class="fas fa-users"></i>
-          </div>
-          <div class="opcion-info">
-            <div class="opcion-titulo">Usuarios</div>
-            <div class="opcion-descripcion">Administrar permisos</div>
-          </div>
-        </div>
+        <h3>Informacion del Sistema</h3>
+        <p>configuraciones</p>
       </div>
 
       <!-- Información del sistema -->
