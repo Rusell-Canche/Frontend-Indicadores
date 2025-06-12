@@ -91,7 +91,12 @@
                       <span class="input-group-text">
                         <i class="fas fa-cog"></i>
                       </span>
-                      <select v-model="campo.type" class="form-select" @change="handleTypeChange(campo)" required>
+                      <select
+                        v-model="campo.type"
+                        class="form-select"
+                        @change="handleTypeChange(campo)"
+                        required
+                      >
                         <option value="">Seleccione un tipo</option>
                         <option value="string">Texto</option>
                         <option value="number">Numérico</option>
@@ -175,7 +180,11 @@
                         <div class="col-md-12">
                           <div class="campo-checkbox">
                             <label class="checkbox-container">
-                              <input type="checkbox" class="custom-checkbox" v-model="subcampo.required" />
+                              <input
+                                type="checkbox"
+                                class="custom-checkbox"
+                                v-model="subcampo.required"
+                              />
                               <span class="checkmark"></span>
                               <span class="checkbox-label">Obligatorio</span>
                             </label>
@@ -279,12 +288,21 @@ export default {
 
     async crearPlantilla() {
       try {
-        const response = await axios.post('http://127.0.0.1:8000/api/plantillas/crear', {
-          plantilla_name: this.plantillaName,
-          fields: this.camposPlantilla,
-          eje_asociado: this.selectedEje,
-          indicador_asociado: this.selectedIndicador,
-        })
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.post(
+          'http://127.0.0.1:8000/api/plantillas/crear',
+          {
+            plantilla_name: this.plantillaName,
+            fields: this.camposPlantilla,
+            eje_asociado: this.selectedEje,
+            indicador_asociado: this.selectedIndicador,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
 
         Swal.fire({
           icon: 'success',
@@ -570,7 +588,7 @@ export default {
 }
 
 .checkmark:after {
-  content: "";
+  content: '';
   position: absolute;
   display: none;
   left: 5px;

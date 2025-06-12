@@ -204,7 +204,14 @@ export default {
   methods: {
     async fetchPlantillas() {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas/consultar')
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas/consultar', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        })
         this.plantillas = response.data
 
         //Verificar si hay plantillas
@@ -226,7 +233,14 @@ export default {
     },
     async fetchCamposPlantilla(id) {
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/campos`)
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/campos`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        })
         this.nombrePlantilla = response.data.nombre_plantilla
         this.idPlantilla = id
         this.camposPlantilla = response.data.campos
@@ -241,6 +255,7 @@ export default {
       }
     },
     async submitEditForm() {
+      const token = localStorage.getItem('apiToken')
       const result = await Swal.fire({
         title: '¿Estás seguro?',
         text: '¿Quieres actualizar la plantilla?',
@@ -277,6 +292,7 @@ export default {
             {
               headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
                 Accept: 'application/json',
               },
             },
@@ -318,6 +334,7 @@ export default {
       this.mostrarModalEdit = false
     },
     async eliminarPlantilla(id) {
+      const token = localStorage.getItem('apiToken')
       const result = await Swal.fire({
         title: '¿Estás seguro?',
         text: '¿Estás seguro de que deseas eliminar la plantilla?',
@@ -329,7 +346,13 @@ export default {
 
       if (result.isConfirmed) {
         try {
-          const response = await axios.delete(`http://127.0.0.1:8000/api/plantillas/${id}`)
+          const response = await axios.delete(`http://127.0.0.1:8000/api/plantillas/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+          })
           Swal.fire({
             icon: 'success',
             title: 'Eliminado',

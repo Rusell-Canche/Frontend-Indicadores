@@ -282,7 +282,12 @@ export default {
   methods: {
     async fetchPlantillas() {
       try {
-        const response = await axios.get('/plantillas/consultar')
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas/consultar', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
         this.plantillas = response.data
       } catch (error) {
         console.error('Error obteniendo plantillas', error)
@@ -293,7 +298,15 @@ export default {
     async onPlantillaSelected() {
       if (this.selectedPlantilla) {
         try {
-          const response = await axios.get(`/plantillas/${this.selectedPlantilla}/campos`)
+          const token = localStorage.getItem('apiToken')
+          const response = await axios.get(
+            `http://127.0.0.1:8000/api/plantillas/${this.selectedPlantilla}/campos`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          )
           if (response.data) {
             this.camposPlantilla = response.data.campos
             // Inicializar arrays para cada subformulario
@@ -552,9 +565,15 @@ export default {
       })
 
       try {
-        const response = await axios.post(`/documentos/${this.selectedPlantilla}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.post(
+          `http://127.0.0.1:8000/api/documentos/${this.selectedPlantilla}`,
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            Authorization: `Bearer ${token}`,
+          },
+        )
 
         Swal.fire({
           title: 'Éxito',
