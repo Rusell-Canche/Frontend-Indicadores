@@ -72,7 +72,7 @@
                     <i class="fas fa-indent me-2"></i>
                     <span>Subformulario para {{ campo.name || 'este campo' }}</span>
                   </div>
-                  
+
                   <button type="button" @click="openModal(campo)" class="add-campo-button">
                     <i class="fas fa-plus me-2"></i> Agregar entrada
                   </button>
@@ -135,7 +135,7 @@
                       multiple
                     />
                   </div>
-                  
+
                   <!-- Vista previa de archivos -->
                   <div v-if="files[campo.name]" class="file-preview mt-3">
                     <h6 class="preview-title">Archivos seleccionados:</h6>
@@ -147,11 +147,7 @@
                       >
                         <div class="file-content">
                           <div v-if="isImageFile(file)" class="file-thumbnail">
-                            <img
-                              :src="getThumbnailUrl(file)"
-                              alt="Miniatura"
-                              class="img-fluid"
-                            />
+                            <img :src="getThumbnailUrl(file)" alt="Miniatura" class="img-fluid" />
                           </div>
                           <div v-else class="file-icon">
                             <i class="fas fa-file-alt"></i>
@@ -273,7 +269,10 @@
                   @change="onModalFileChange($event, subcampo.name)"
                 />
               </div>
-              <div v-if="subcampo.type === 'file' && currentSubformData[subcampo.name]?.name" class="form-text">
+              <div
+                v-if="subcampo.type === 'file' && currentSubformData[subcampo.name]?.name"
+                class="form-text"
+              >
                 {{ currentSubformData[subcampo.name].name }}
               </div>
 
@@ -644,8 +643,7 @@ export default {
           `http://127.0.0.1:8000/api/documentos/${this.selectedPlantilla}`,
           formData,
           {
-            headers: { 'Content-Type': 'multipart/form-data' },
-            Authorization: `Bearer ${token}`,
+            headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
           },
         )
 
@@ -956,7 +954,7 @@ export default {
 }
 
 .checkmark:after {
-  content: "";
+  content: '';
   position: absolute;
   display: none;
   left: 5px;
@@ -1375,7 +1373,7 @@ export default {
     width: 100%;
     justify-content: center;
   }
-  
+
   .modal-dialog {
     margin: 0.5rem;
     max-width: 95%;
