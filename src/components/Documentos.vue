@@ -104,7 +104,7 @@ export default {
 
 /* Header principal */
 .main-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   padding: 2rem 0;
   position: relative;
   overflow: hidden;
@@ -277,7 +277,7 @@ export default {
 
 .btn-confirm {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -287,9 +287,9 @@ export default {
 }
 
 .btn-confirm:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
 /* Navegación de pestañas */
@@ -339,7 +339,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.05) 0%, rgba(75, 85, 99, 0.05) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -349,18 +349,18 @@ export default {
 }
 
 .tab:hover {
-  color: #4f46e5;
+  color: #374151;
   transform: translateY(-2px);
 }
 
 .tab.active {
-  color: #4f46e5;
+  color: #374151;
   font-weight: 600;
 }
 
 .tab.active::before {
   opacity: 1;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.1) 0%, rgba(75, 85, 99, 0.1) 100%);
 }
 
 .tab-icon {
@@ -377,15 +377,15 @@ export default {
 }
 
 .tab:hover .tab-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   color: white;
   transform: scale(1.1);
 }
 
 .tab.active .tab-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
 }
 
 .tab-content-text {
@@ -414,10 +414,10 @@ export default {
   bottom: 0;
   left: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, #6b7280 0%, #4b5563 100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 2px 2px 0 0;
-  box-shadow: 0 -2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 -2px 8px rgba(107, 114, 128, 0.3);
 }
 
 /* Contenido de pestañas */
@@ -526,7 +526,7 @@ export default {
   }
 
   .tab.active {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.1) 0%, rgba(75, 85, 99, 0.1) 100%);
     border-radius: 12px;
     margin: 0.25rem;
   }
