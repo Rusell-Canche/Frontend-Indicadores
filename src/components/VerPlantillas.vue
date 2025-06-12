@@ -1,11 +1,31 @@
 <template>
-  <div>
+  <div class="container-fluid py-4">
+    <!-- Header principal -->
+    <div class="card shadow border-0 rounded-3 mb-4">
+      <div class="medico-header">
+        <div class="header-content">
+          <div class="header-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <div class="header-title-section">
+            <h3>Gestión de Plantillas</h3>
+            <p class="header-subtitle">Administra y edita tus plantillas existentes</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Listado de plantillas con diseño mejorado -->
     <div class="plantilla-list">
       <div v-for="plantilla in plantillas" :key="plantilla.id" class="plantilla-card">
-        <div class="plantilla-header">
-          <i class="fas fa-file-alt card-icon"></i>
-          <h4>{{ plantilla.nombre_plantilla }}</h4>
+        <div class="plantilla-card-header">
+          <div class="plantilla-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <div class="plantilla-info">
+            <h4 class="plantilla-title">{{ plantilla.nombre_plantilla }}</h4>
+            <p class="plantilla-subtitle">Plantilla de formulario</p>
+          </div>
         </div>
         <div class="plantilla-actions">
           <button
@@ -13,14 +33,16 @@
             class="btn btn-edit"
             title="Editar plantilla"
           >
-            <i class="fas fa-edit"></i> Editar
+            <i class="fas fa-edit"></i>
+            <span>Editar</span>
           </button>
           <button
             @click="eliminarPlantilla(plantilla.id)"
             class="btn btn-delete"
             title="Eliminar plantilla"
           >
-            <i class="fas fa-trash-alt"></i> Eliminar
+            <i class="fas fa-trash-alt"></i>
+            <span>Eliminar</span>
           </button>
         </div>
       </div>
@@ -36,68 +58,103 @@
       aria-hidden="true"
       style="display: block"
     >
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="editModalLabel">Editar Plantilla: {{ nombrePlantilla }}</h5>
-            <button
-              type="button"
-              @click="closeEditModal"
-              class="close text-white"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">&times;</span>
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content modern-modal">
+          <!-- Header del modal con el diseño moderno -->
+          <div class="medico-header modal-header-custom">
+            <div class="header-content">
+              <div class="header-icon">
+                <i class="fas fa-edit"></i>
+              </div>
+              <div class="header-title-section">
+                <h3>Editar Plantilla</h3>
+                <p class="header-subtitle">{{ nombrePlantilla }}</p>
+              </div>
+            </div>
+            <button type="button" @click="closeEditModal" class="close-button" aria-label="Close">
+              <i class="fas fa-times"></i>
             </button>
           </div>
-          <div class="modal-body">
+
+          <!-- Body del modal con el diseño moderno -->
+          <div class="medico-body modal-body-custom">
+            <!-- Nota informativa -->
+            <div class="alert alert-info mb-4">
+              <i class="fas fa-info-circle me-2"></i>
+              Modifica los campos de tu plantilla según tus necesidades
+            </div>
+
             <!-- Sección para los campos de la plantilla -->
-            <div class="form-card form-section">
-              <label class="section-title">Campos de la Plantilla</label>
+            <div class="form-section">
+              <h6 class="section-title">
+                <i class="fas fa-list me-2"></i>
+                Campos de la Plantilla
+              </h6>
 
               <div v-for="(campo, index) in camposPlantilla" :key="index" class="campo-container">
                 <div class="campo-header">
-                  <span class="campo-index">Campo #{{ index + 1 }}</span>
+                  <div class="campo-title">
+                    <i class="fas fa-grip-vertical me-2"></i>
+                    <span class="campo-index">Campo #{{ index + 1 }}</span>
+                  </div>
                   <button type="button" @click="quitarCampo(index)" class="delete-button">
-                    <i class="fas fa-times-circle"></i>
+                    <i class="fas fa-times"></i>
                   </button>
                 </div>
 
                 <div class="campo-body">
-                  <div class="campo-item">
-                    <label class="campo-label">Nombre del campo</label>
-                    <input
-                      v-model="campo.name"
-                      class="form-input"
-                      placeholder="Ej: título, descripción, fecha_entrega"
-                    />
-                  </div>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Nombre del Campo*</label>
+                      <div class="input-group modern-input">
+                        <span class="input-group-text">
+                          <i class="fas fa-edit"></i>
+                        </span>
+                        <input
+                          v-model="campo.name"
+                          class="form-control"
+                          required
+                          placeholder="Ej: título, descripción, fecha_entrega"
+                        />
+                      </div>
+                    </div>
 
-                  <div class="campo-item">
-                    <label class="campo-label">Tipo del campo</label>
-                    <select
-                      v-model="campo.type"
-                      class="form-select"
-                      @change="handleTypeChange(campo)"
-                    >
-                      <option value="string">Texto</option>
-                      <option value="number">Numérico</option>
-                      <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
-                      <option value="date">Fecha</option>
-                      <option value="subform">Subformulario</option>
-                    </select>
-                  </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Tipo del Campo*</label>
+                      <div class="input-group modern-input">
+                        <span class="input-group-text">
+                          <i class="fas fa-cog"></i>
+                        </span>
+                        <select
+                          v-model="campo.type"
+                          class="form-select"
+                          @change="handleTypeChange(campo)"
+                          required
+                        >
+                          <option value="string">Texto</option>
+                          <option value="number">Numérico</option>
+                          <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
+                          <option value="date">Fecha</option>
+                          <option value="subform">Subformulario</option>
+                        </select>
+                      </div>
+                    </div>
 
-                  <div class="campo-checkbox">
-                    <label class="checkbox-container">
-                      <input type="checkbox" class="custom-checkbox" v-model="campo.required" />
-                      <span class="checkbox-label">Campo obligatorio</span>
-                    </label>
+                    <div class="col-md-12">
+                      <div class="campo-checkbox">
+                        <label class="checkbox-container">
+                          <input type="checkbox" class="custom-checkbox" v-model="campo.required" />
+                          <span class="checkmark"></span>
+                          <span class="checkbox-label">Campo obligatorio</span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
                   <div v-if="campo.type === 'subform'" class="subform-container">
                     <div class="subform-header">
-                      <i class="fas fa-indent"></i>
+                      <i class="fas fa-indent me-2"></i>
                       <span>Subformulario para {{ campo.name || 'este campo' }}</span>
                     </div>
 
@@ -107,45 +164,64 @@
                       class="subcampo-container"
                     >
                       <div class="subcampo-header">
-                        <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
+                        <div class="subcampo-title">
+                          <i class="fas fa-angle-right me-2"></i>
+                          <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
+                        </div>
                         <button
                           type="button"
                           @click="quitarSubcampo(campo, subindex)"
-                          class="delete-button"
+                          class="delete-button-small"
                         >
-                          <i class="fas fa-times-circle"></i>
+                          <i class="fas fa-times"></i>
                         </button>
                       </div>
 
                       <div class="subcampo-body">
-                        <div class="campo-item">
-                          <label class="campo-label">Nombre del apartado</label>
-                          <input
-                            v-model="subcampo.name"
-                            class="form-input"
-                            placeholder="Ej: nombre, cantidad, descripción"
-                          />
-                        </div>
+                        <div class="row g-3">
+                          <div class="col-md-6">
+                            <label class="form-label">Nombre del Apartado*</label>
+                            <div class="input-group modern-input">
+                              <span class="input-group-text">
+                                <i class="fas fa-edit"></i>
+                              </span>
+                              <input
+                                v-model="subcampo.name"
+                                class="form-control"
+                                required
+                                placeholder="Ej: nombre, cantidad, descripción"
+                              />
+                            </div>
+                          </div>
 
-                        <div class="campo-item">
-                          <label class="campo-label">Tipo del apartado</label>
-                          <select v-model="subcampo.type" class="form-select">
-                            <option value="string">Texto</option>
-                            <option value="number">Numérico</option>
-                            <option value="file">Archivo</option>
-                            <option value="date">Fecha</option>
-                          </select>
-                        </div>
+                          <div class="col-md-6">
+                            <label class="form-label">Tipo del Apartado*</label>
+                            <div class="input-group modern-input">
+                              <span class="input-group-text">
+                                <i class="fas fa-cog"></i>
+                              </span>
+                              <select v-model="subcampo.type" class="form-select" required>
+                                <option value="string">Texto</option>
+                                <option value="number">Numérico</option>
+                                <option value="file">Archivo</option>
+                                <option value="date">Fecha</option>
+                              </select>
+                            </div>
+                          </div>
 
-                        <div class="campo-checkbox">
-                          <label class="checkbox-container">
-                            <input
-                              type="checkbox"
-                              class="custom-checkbox"
-                              v-model="subcampo.required"
-                            />
-                            <span class="checkbox-label">Obligatorio</span>
-                          </label>
+                          <div class="col-md-12">
+                            <div class="campo-checkbox">
+                              <label class="checkbox-container">
+                                <input
+                                  type="checkbox"
+                                  class="custom-checkbox"
+                                  v-model="subcampo.required"
+                                />
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Obligatorio</span>
+                              </label>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -155,21 +231,25 @@
                       @click="agregarSubcampo(campo)"
                       class="add-subcampo-button"
                     >
-                      <i class="fas fa-plus-circle"></i> Agregar Apartado
+                      <i class="fas fa-plus me-2"></i> Agregar Apartado
                     </button>
                   </div>
                 </div>
               </div>
 
               <button type="button" @click="agregarCampo" class="add-campo-button">
-                <i class="fas fa-plus-circle"></i> Agregar Campo
+                <i class="fas fa-plus me-2"></i> Agregar Campo
               </button>
             </div>
 
-            <!-- Botones de acción -->
-            <div class="form-actions">
-              <button type="button" @click="closeEditModal" class="reset-button">Cancelar</button>
-              <button type="button" @click="submitEditForm" class="submit-button">
+            <!-- Footer con botones -->
+            <div class="medico-footer">
+              <button @click="closeEditModal" class="btn btn-cancel" type="button">
+                <i class="fas fa-times me-2"></i>
+                Cancelar
+              </button>
+              <button @click="submitEditForm" class="btn btn-save" type="button">
+                <i class="fas fa-save me-2"></i>
                 Actualizar Plantilla
               </button>
             </div>
@@ -397,341 +477,756 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos para las tarjetas de plantillas */
-.plantilla-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  padding: 15px;
-}
-.plantilla-card {
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* Estilos base del diseño moderno */
+.card {
+  border-radius: 20px;
   overflow: hidden;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #e0e0e0;
-}
-.plantilla-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-}
-.plantilla-header {
-  padding: 20px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  background: white;
   position: relative;
 }
-.card-icon {
-  font-size: 2.5rem;
-  color: #4e73df;
-  margin-bottom: 15px;
-  display: block;
-}
-.plantilla-header h4 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-.plantilla-actions {
+
+/* Header con el diseño moderno */
+.medico-header {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  padding: 2rem;
   display: flex;
-  padding: 15px;
-  background: #f8f9fa;
-  border-top: 1px solid #eee;
   justify-content: space-between;
-}
-.btn {
-  border: none;
-  border-radius: 6px;
-  padding: 8px 15px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.btn-edit {
-  background-color: #4e73df;
-  color: white;
-}
-.btn-edit:hover {
-  background-color: #3a56b0;
-}
-.btn-delete {
-  background-color: #e74a3b;
-  color: white;
-}
-.btn-delete:hover {
-  background-color: #be2617;
-}
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-/* Modal fade */
-.modal.fade.show {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-/* Formulario de edición */
-.form-card {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.24);
-  padding: 24px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.form-card:hover {
-  box-shadow:
-    0 3px 6px rgba(0, 0, 0, 0.16),
-    0 3px 6px rgba(0, 0, 0, 0.23);
-}
-.section-title {
-  display: block;
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 12px;
-  color: #202124;
-}
-.form-input,
-.form-select {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #dadce0;
-  border-radius: 4px;
-  font-size: 14px;
-  color: #202124;
-  transition: border 0.3s;
-}
-.form-input:focus,
-.form-select:focus {
-  border-color: #4285f4;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
-}
-.campo-container {
-  background-color: #f8f9fa;
-  border: 1px solid #dadce0;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  align-items: flex-start;
+  position: relative;
   overflow: hidden;
 }
+
+.medico-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1;
+}
+
+.header-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-title-section h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-subtitle {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+/* Estilos mejorados para las tarjetas de plantillas */
+.plantilla-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 0;
+}
+
+.plantilla-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(220, 53, 69, 0.1);
+  position: relative;
+}
+
+.plantilla-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #dc3545, #c82333);
+  border-radius: 16px 16px 0 0;
+}
+
+.plantilla-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(220, 53, 69, 0.2);
+}
+
+.plantilla-card-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.plantilla-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.plantilla-info {
+  flex: 1;
+}
+
+.plantilla-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  line-height: 1.3;
+}
+
+.plantilla-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-weight: 400;
+}
+
+.plantilla-actions {
+  display: flex;
+  padding: 1rem 1.5rem;
+  background: white;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+}
+
+/* Modal con diseño moderno */
+.modal.fade.show {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+}
+
+.modern-modal {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  background: white;
+  border: none;
+}
+
+.modal-header-custom {
+  padding: 2rem;
+  border-bottom: none;
+}
+
+.close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 1;
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.modal-body-custom {
+  padding: 2rem;
+  background: white;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #dc3545, #c82333);
+  border-radius: 16px 16px 0 0;
+}
+
+.section-title {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.section-title i {
+  color: #dc3545;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.modern-input {
+  position: relative;
+}
+
+.modern-input .input-group-text {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  border-radius: 12px 0 0 12px;
+  width: 50px;
+  justify-content: center;
+}
+
+.modern-input .form-control,
+.modern-input .form-select {
+  border: 2px solid #e9ecef;
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.modern-input .form-control:focus,
+.modern-input .form-select:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  transform: translateY(-1px);
+}
+
+.alert {
+  border-radius: 12px;
+  border: 1px solid #f5c6cb;
+  background: linear-gradient(145deg, #f8d7da 0%, #f1b0b7 100%);
+  color: #721c24;
+}
+
+/* Estilos específicos para campos */
+.campo-container {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(220, 53, 69, 0.1);
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
 .campo-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #e8f0fe;
-  padding: 12px 16px;
-  border-bottom: 1px solid #dadce0;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
+
+.campo-title {
+  display: flex;
+  align-items: center;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
 .campo-index {
-  font-weight: 500;
-  color: #1a73e8;
+  font-size: 0.95rem;
 }
+
+.delete-button {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+}
+
+.delete-button:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
 .campo-body {
-  padding: 16px;
+  margin-top: 1rem;
 }
-.campo-item {
-  margin-bottom: 16px;
-}
-.campo-label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #5f6368;
-}
+
+/* Checkbox personalizado */
 .campo-checkbox {
-  margin-top: 8px;
+  margin-top: 1rem;
 }
+
 .checkbox-container {
   display: flex;
   align-items: center;
   cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  position: relative;
+  padding-left: 2rem;
 }
+
 .custom-checkbox {
-  margin-right: 8px;
-}
-.checkbox-label {
-  font-size: 14px;
-  color: #5f6368;
-}
-.delete-button {
-  background-color: transparent;
-  border: none;
-  color: #d93025;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  opacity: 0;
   cursor: pointer;
-  transition: all 0.2s;
+  height: 0;
+  width: 0;
 }
-.delete-button:hover {
-  background-color: #fadad9;
-  color: #c5221f;
-}
-.add-campo-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: transparent;
-  color: #1a73e8;
-  border: 1px dashed #4285f4;
+
+.checkmark {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+  width: 18px;
+  background: white;
+  border: 2px solid #e9ecef;
   border-radius: 4px;
-  padding: 12px;
-  width: 100%;
-  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.checkbox-container:hover .checkmark {
+  border-color: #dc3545;
+}
+
+.custom-checkbox:checked ~ .checkmark {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-color: #dc3545;
+}
+
+.checkmark:after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox:checked ~ .checkmark:after {
+  display: block;
+}
+
+.checkbox-label {
+  margin-left: 0.5rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
 }
-.add-campo-button i {
-  margin-right: 8px;
-}
-.add-campo-button:hover {
-  background-color: #e8f0fe;
-}
+
+/* Subformulario */
 .subform-container {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f1f3f4;
-  border-radius: 6px;
-  border-left: 4px solid #4285f4;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(220, 53, 69, 0.15);
 }
+
 .subform-header {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
-  color: #5f6368;
-  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
+
 .subform-header i {
-  margin-right: 8px;
-  color: #4285f4;
+  color: #dc3545;
 }
+
 .subcampo-container {
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  overflow: hidden;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
 }
+
 .subcampo-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f5f5f5;
-  padding: 10px 12px;
-  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
-.subcampo-index {
-  font-size: 13px;
+
+.subcampo-title {
+  display: flex;
+  align-items: center;
+  color: #495057;
   font-weight: 500;
-  color: #5f6368;
+  font-size: 0.875rem;
 }
-.subcampo-body {
-  padding: 12px;
+
+.subcampo-index {
+  font-size: 0.875rem;
 }
-.add-subcampo-button {
+
+.delete-button-small {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: transparent;
-  color: #5f6368;
-  border: 1px dashed #5f6368;
-  border-radius: 4px;
-  padding: 10px;
-  width: 100%;
-  font-size: 13px;
-  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s;
-  margin-top: 10px;
+  transition: all 0.3s ease;
+  font-size: 0.75rem;
 }
-.add-subcampo-button i {
-  margin-right: 8px;
+
+.delete-button-small:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
 }
-.add-subcampo-button:hover {
-  background-color: #e8e8e8;
+
+.subcampo-body {
+  margin-top: 0.75rem;
 }
-.form-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: flex-end;
-  margin-top: 32px;
-}
-.submit-button {
-  background-color: #4285f4;
-  color: white;
+
+/* Botones de agregar */
+.add-campo-button,
+.add-subcampo-button {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   border: none;
-  border-radius: 4px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 500;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: background-color 0.3s;
+  font-size: 0.9rem;
+  margin-top: 1rem;
 }
-.submit-button:hover {
-  background-color: #3367d6;
+
+.add-campo-button {
+  width: 100%;
 }
-.reset-button {
-  background-color: transparent;
-  color: #5f6368;
-  border: 1px solid #dadce0;
-  border-radius: 4px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
+
+.add-subcampo-button {
+  width: auto;
 }
-.reset-button:hover {
-  background-color: #f1f3f4;
-  color: #202124;
+
+.add-campo-button:hover,
+.add-subcampo-button:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+/* Footer con botones */
+.medico-footer {
+  padding: 1.5rem 0 0.5rem 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.btn-cancel {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-cancel:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+  color: white;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-save::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-save:hover::before {
+  left: 100%;
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+  color: white;
+}
+
+/* Animaciones */
+@keyframes shimmer {
+  0%,
+  100% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  50% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .plantilla-list {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  .medico-header {
+    padding: 1.5rem;
   }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .header-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .header-title-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .plantilla-list {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .plantilla-card-header {
+    padding: 1rem;
+  }
+
   .plantilla-actions {
     flex-direction: column;
-    gap: 10px;
+    gap: 0.5rem;
+    padding: 1rem;
   }
+
   .btn {
     justify-content: center;
     width: 100%;
   }
+
   .modal-dialog {
-    margin: 1rem auto;
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
   }
-  .form-row {
+
+  .modal-header-custom {
+    padding: 1.5rem;
+  }
+
+  .modal-body-custom {
+    padding: 1.5rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .campo-container {
+    padding: 1rem;
+  }
+
+  .campo-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .medico-footer {
+    padding: 1rem 0;
     flex-direction: column;
   }
-  .form-group.col-md-6 {
+
+  .btn-cancel,
+  .btn-save {
     width: 100%;
-    margin-bottom: 15px;
+    justify-content: center;
   }
-  .form-container {
-    margin: 1rem;
+}
+
+@media (max-width: 576px) {
+  .plantilla-list {
+    grid-template-columns: 1fr;
   }
-  .form-actions {
-    flex-direction: column-reverse;
+
+  .modal-header-custom {
+    padding: 1rem;
   }
-  .submit-button,
-  .reset-button {
-    width: 100%;
+
+  .modal-body-custom {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 0.75rem;
+  }
+
+  .campo-container {
+    padding: 0.75rem;
+  }
+
+  .subform-container {
+    padding: 0.75rem;
+  }
+
+  .subcampo-container {
+    padding: 0.75rem;
+  }
+
+  .modern-input .form-control,
+  .modern-input .form-select {
+    font-size: 0.9rem;
   }
 }
 </style>
