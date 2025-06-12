@@ -1,123 +1,620 @@
 <template>
-  <div>
-    <h2 class="title">Bienvenido, para crear la cuenta proporciona los siguientes datos</h2>
-  </div>
-  
-  <br>
-  <div class="container">
-    <div class="form-container">
-      <form @submit.prevent="submitForm" class="max-w-md mx-auto"> 
-        <div class="row mb-3">
-          <div class="col-sm-6">
-            <label for="nombre" class="form-label">Nombre:</label>
-            <input v-model="nombre" type="text" id="nombre" name="nombre" class="form-control" required>
-          </div> 
-          <div class="col-sm-6">
-            <label for="apellido_paterno" class="form-label">Apellido Paterno:</label>
-            <input v-model="apellido_paterno" type="text" id="apellido_paterno" name="ape llido_paterno"
-              class="form-control" required>
+  <div class="container-fluid py-4">
+    <!-- Contenedor principal-->
+    <div class="card shadow border-0 rounded-3">
+      <!-- Header con el diseño moderno -->
+      <div class="medico-header">
+        <div class="header-content">
+          <div class="header-icon">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <div class="header-title-section">
+            <h3>Crear Usuario</h3>
+            <p class="header-subtitle">Proporciona los siguientes datos para crear la cuenta</p>
           </div>
         </div>
-        <div class="row mb-3">
-          <div class="col-sm-6">
-            <label for="apellido_materno" class="form-label">Apellido Materno:</label>
-            <input v-model="apellido_materno" type="text" id="apellido_materno" name="apellido_materno"
-              class="form-control" required>
+      </div>
+
+      <!-- Body con el diseño moderno -->
+      <div class="medico-body">
+        <form @submit.prevent="submitForm">
+          <!-- Nota de campos requeridos -->
+          <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle me-2"></i>Todos los campos son obligatorios para crear la cuenta
           </div>
-          <div class="col-sm-6">
-            <label for="email" class="form-label">Correo Electrónico:</label>
-            <input v-model="email" type="email" id="email" name="email" class="form-control" required>
+
+          <!-- Sección de información personal -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-user me-2"></i>
+              Información Personal
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Nombre*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-user"></i>
+                  </span>
+                  <input
+                    v-model="nombre"
+                    type="text"
+                    id="nombre"
+                    name="nombre"
+                    class="form-control"
+                    required
+                    placeholder="Ingrese el nombre"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Apellido Paterno*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-user"></i>
+                  </span>
+                  <input
+                    v-model="apellido_paterno"
+                    type="text"
+                    id="apellido_paterno"
+                    name="apellido_paterno"
+                    class="form-control"
+                    required
+                    placeholder="Ingrese el apellido paterno"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Apellido Materno*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-user"></i>
+                  </span>
+                  <input
+                    v-model="apellido_materno"
+                    type="text"
+                    id="apellido_materno"
+                    name="apellido_materno"
+                    class="form-control"
+                    required
+                    placeholder="Ingrese el apellido materno"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Correo Electrónico*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-envelope"></i>
+                  </span>
+                  <input
+                    v-model="email"
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-control"
+                    required
+                    placeholder="ejemplo@correo.com"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-         <div class="row mb-3">
-          <div class="col-sm-6">
-            <label for="password" class="form-label">Contraseña:</label>
-            <input v-model="password" type="password" id="password" name="password" class="form-control" required>
+
+          <!-- Sección de seguridad -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-lock me-2"></i>
+              Información de Seguridad
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Contraseña*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-lock"></i>
+                  </span>
+                  <input
+                    v-model="password"
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-control"
+                    required
+                    placeholder="Ingrese la contraseña"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Confirmar Contraseña*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-lock"></i>
+                  </span>
+                  <input
+                    v-model="confirm_password"
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    class="form-control"
+                    required
+                    placeholder="Confirme la contraseña"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="col-sm-6">
-            <label for="confirm_password" class="form-label">Confirmar Contraseña:</label>
-            <input v-model="confirm_password" type="password" id="confirm_password" name="confirm_password"
-              class="form-control" required>
+
+          <!-- Sección de roles -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-user-tag me-2"></i>
+              Roles del Usuario
+            </h6>
+            <div class="roles-container">
+              <div class="role-item">
+                <label class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    class="custom-checkbox"
+                    id="adminSwitch"
+                    name="roles[]"
+                    value="administrador"
+                    @change="updateRoles"
+                  />
+                  <span class="checkmark"></span>
+                  <div class="role-content">
+                    <span class="role-title">Administrador</span>
+                    <span class="role-description">Acceso completo al sistema</span>
+                  </div>
+                </label>
+              </div>
+              <div class="role-item">
+                <label class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    class="custom-checkbox"
+                    id="comentariosSwitch"
+                    name="roles[]"
+                    value="capturista"
+                    @change="updateRoles"
+                  />
+                  <span class="checkmark"></span>
+                  <div class="role-content">
+                    <span class="role-title">Capturista</span>
+                    <span class="role-description">Puede capturar y editar información</span>
+                  </div>
+                </label>
+              </div>
+              <div class="role-item">
+                <label class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    class="custom-checkbox"
+                    id="validadorSwitch"
+                    name="roles[]"
+                    value="validador"
+                    @change="updateRoles"
+                  />
+                  <span class="checkmark"></span>
+                  <div class="role-content">
+                    <span class="role-title">Validador</span>
+                    <span class="role-description">Puede validar y aprobar información</span>
+                  </div>
+                </label>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="row justify-content-center">
-          <div class="col-sm-12 text-center">
-            <div class="form-check form-switch d-inline-block mx-2">
-              <input class="form-check-input" type="checkbox" id="adminSwitch" name="roles[]" value="administrador"
-                @change="updateRoles">
-              <label class="form-check-label switch-label" for="adminSwitch">Administrador</label>
-            </div>
-            <div class="form-check form-switch d-inline-block mx-2">
-              <input class="form-check-input" type="checkbox" id="comentariosSwitch" name="roles[]" value="capturista"
-                @change="updateRoles">
-              <label class="form-check-label switch-label" for="comentariosSwitch">Capturista</label>
-            </div>
-            <div class="form-check form-switch d-inline-block mx-2">
-              <input class="form-check-input" type="checkbox" id="validadorSwitch" name="roles[]" value="validador"
-                @change="updateRoles">
-              <label class="form-check-label switch-label" for="validadorSwitch">Validador</label>
-            </div>
-            <!--
-            <div class="form-check form-switch d-inline-block mx-2">
-              <input class="form-check-input" type="checkbox" id="plantillasSwitch" name="roles[]" value="plantillas"
-                @change="updateRoles">
-              <label class="form-check-label switch-label" for="plantillasSwitch">Plantillas</label>
-            </div>
-            <div class="form-check form-switch d-inline-block mx-2">
-              <input class="form-check-input" type="checkbox" id="carruselSwitch" name="roles[]" value="carrusel"
-                @change="updateRoles">
-              <label class="form-check-label switch-label" for="carruselSwitch">Carrusel</label>
-            </div>
-            <div class="form-check form-switch d-inline-block mx-2">
-              <input class="form-check-input" type="checkbox" id="carruselSwitch" name="roles[]" value="onepiece"
-                @change="updateRoles">
-              <label class="form-check-label switch-label" for="carruselSwitch">One Piece</label>
-            </div>-->
-          </div>
-        </div>
-        <div class="row">
-          <div class="form-check form-switch text-center">
-            <br>
-            <button type="submit" class="btn btn-primary" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
-              <span v-if="!isHovered" class="default-icon"><i class="fas fa-user-plus"></i></span>
-              <span v-else class="hover-icon"><i class="fas fa-user-check"></i></span>
-              Registrar
+
+          <!-- Footer con botones -->
+          <div class="medico-footer">
+            <button type="button" class="btn btn-cancel" @click="resetForm">
+              <i class="fas fa-eraser me-2"></i>
+              Limpiar Formulario
+            </button>
+            <button type="submit" class="btn btn-save" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
+              <span v-if="!isHovered" class="default-icon"><i class="fas fa-user-plus me-2"></i></span>
+              <span v-else class="hover-icon"><i class="fas fa-user-check me-2"></i></span>
+              Registrar Usuario
             </button>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
-<style>
-.container {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
+<style scoped>
+/* Estilos base del diseño moderno */
+.card {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  background: white;
+  position: relative;
 }
 
-.title {
-  text-align: center;
+/* Header con el diseño moderno */
+.medico-header {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
 }
 
-.btn-primary {
-  background-color: #a52446;
-  border: 1px solid #a52446;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+.medico-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
 }
 
-.btn-primary:hover {
-  background-color: #ba2023;
-  border-color: #ba2023;
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1;
 }
 
-.default-icon {
-  margin-right: 8px;
+.header-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.header-title-section h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-subtitle {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+/* Body con el diseño moderno */
+.medico-body {
+  padding: 2rem;
+  background: white;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #047857, #065f46);
+  border-radius: 16px 16px 0 0;
+}
+
+.section-title {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.section-title i {
+  color: #047857;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.modern-input {
+  position: relative;
+}
+
+.modern-input .input-group-text {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  border: none;
+  color: white;
+  border-radius: 12px 0 0 12px;
+  width: 50px;
+  justify-content: center;
+}
+
+.modern-input .form-control {
+  border: 2px solid #e9ecef;
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.modern-input .form-control:focus {
+  border-color: #047857;
+  box-shadow: 0 0 0 0.2rem rgba(4, 120, 87, 0.25);
+  transform: translateY(-1px);
+}
+
+.alert {
+  border-radius: 12px;
+  border: 1px solid #b3d9ff;
+  background: linear-gradient(145deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #0d47a1;
+}
+
+/* Estilos para roles */
+.roles-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.role-item {
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(4, 120, 87, 0.1);
+  transition: all 0.3s ease;
+}
+
+.role-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(4, 120, 87, 0.1);
+}
+
+/* Checkbox personalizado */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  position: relative;
+  padding-left: 2.5rem;
+  width: 100%;
+}
+
+.custom-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 20px;
+  width: 20px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.checkbox-container:hover .checkmark {
+  border-color: #047857;
+}
+
+.custom-checkbox:checked ~ .checkmark {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  border-color: #047857;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox:checked ~ .checkmark:after {
+  display: block;
+}
+
+.role-content {
+  display: flex;
+  flex-direction: column;
+  margin-left: 0.5rem;
+}
+
+.role-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.role-description {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+/* Footer con botones */
+.medico-footer {
+  padding: 1.5rem 0 0.5rem 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.btn-cancel {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-cancel:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+  color: white;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-save::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-save:hover::before {
+  left: 100%;
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(4, 120, 87, 0.4);
+  color: white;
+}
+
+.default-icon,
 .hover-icon {
-  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+/* Animaciones */
+@keyframes shimmer {
+  0%,
+  100% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  50% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .medico-header {
+    padding: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .header-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .header-title-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .medico-body {
+    padding: 1.5rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .roles-container {
+    grid-template-columns: 1fr;
+  }
+
+  .medico-footer {
+    padding: 1rem 0;
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-save {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .medico-header {
+    padding: 1rem;
+  }
+
+  .medico-body {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 0.75rem;
+  }
+
+  .modern-input .form-control {
+    font-size: 0.9rem;
+  }
 }
 </style>
 
