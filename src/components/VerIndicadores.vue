@@ -496,8 +496,29 @@ export default {
         // Activamos el modo de carga
         this.loading = true
 
+        // Obtenemos el token del localStorage (usando la clave correcta)
+        const token = localStorage.getItem('apiToken')
+
+        // Verificamos que el token existe
+        if (!token) {
+          this.mostrarNotificacion(
+            'Error',
+            'No hay sesión activa. Por favor inicia sesión.',
+            'error',
+          )
+          // Redirigir al login si no hay token
+          this.$router.push('/login')
+          return
+        }
+
         // Hacemos la peticion para obtener los indicadores
-        const response = await axios.get('http://127.0.0.1:8000/api/indicador/getAll')
+        const response = await axios.get('http://127.0.0.1:8000/api/indicador/getAll', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        })
 
         // Imprimimos la respuesta
         console.info('Respuesta de la API a indicadores')
@@ -514,15 +535,38 @@ export default {
           }
         }
       } catch (error) {
+        console.error('Error completo:', error)
+
         // Revisamos que haya respuesta
         if (error.response) {
-          this.mostrarNotificacion('Error', `Error inesperado: ${error.response.status}`, 'error')
-          console.error('Error inesperado:', error)
+          const status = error.response.status
+
+          if (status === 401) {
+            // Token inválido o expirado
+            this.mostrarNotificacion(
+              'Error',
+              'Sesión expirada. Por favor inicia sesión nuevamente.',
+              'error',
+            )
+            // Limpiar token inválido
+            localStorage.removeItem('apiToken')
+            localStorage.removeItem('user')
+            // Redirigir al login
+            this.$router.push('/login')
+          } else {
+            this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
+          }
         } else if (error.request) {
           // No se recibió respuesta del servidor
           this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
           console.error('Sin respuesta del servidor:', error.request)
+        } else {
+          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
+          console.error('Error inesperado:', error)
         }
+      } finally {
+        // Desactivamos el modo de carga
+        this.loading = false
       }
     },
 
@@ -533,6 +577,19 @@ export default {
      */
     async eliminarIndicador(indicador) {
       try {
+        // Obtenemos el token
+        const token = localStorage.getItem('apiToken')
+
+        if (!token) {
+          this.mostrarNotificacion(
+            'Error',
+            'No hay sesión activa. Por favor inicia sesión.',
+            'error',
+          )
+          this.$router.push('/login')
+          return
+        }
+
         // Mostramos un mensaje de confirmación
         const respuesta = await Swal.fire({
           title: '¿Estás seguro que quieres borrarlo?',
@@ -555,7 +612,8 @@ export default {
             `http://127.0.0.1:8000/api/indicador/delete/${idIndicador}`,
             {
               headers: {
-                'Content-Type': 'multipart/form-data',
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
               },
@@ -577,33 +635,42 @@ export default {
           }
         }
       } catch (error) {
+        console.error('Error completo:', error)
+
         // Revisamos que el error tenga respuesta
         if (error.response) {
+          const status = error.response.status
+
           // Manejamos los posibles codigos de error
-          switch (error.response.status) {
+          switch (status) {
+            case 401:
+              this.mostrarNotificacion(
+                'Error',
+                'Sesión expirada. Por favor inicia sesión nuevamente.',
+                'error',
+              )
+              localStorage.removeItem('apiToken')
+              localStorage.removeItem('user')
+              this.$router.push('/login')
+              break
+
             case 404:
               this.mostrarNotificacion('Error', 'Indicador no encontrado', 'error')
-              console.error('Error 404:', error.response.data.message)
               break
 
             case 500:
               this.mostrarNotificacion('Error', 'Error interno del servidor', 'error')
-              console.error('Error 500:', error.response.data.message)
               break
 
             default:
-              this.mostrarNotificacion(
-                'Error',
-                `Error inesperado: ${error.response.status}`,
-                'error',
-              )
-              console.error('Error inesperado:', error.response.data.message)
+              this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
               break
           }
         } else if (error.request) {
           // No se recibió respuesta del servidor
           this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
-          console.error('Sin respuesta del servidor:', error.request)
+        } else {
+          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
         }
       }
     },
@@ -653,6 +720,19 @@ export default {
      */
     async guardarEdicion() {
       try {
+        // Obtenemos el token
+        const token = localStorage.getItem('apiToken')
+
+        if (!token) {
+          this.mostrarNotificacion(
+            'Error',
+            'No hay sesión activa. Por favor inicia sesión.',
+            'error',
+          )
+          this.$router.push('/login')
+          return
+        }
+
         // Configuramos la información a enviar
         const indicadorData = new FormData()
         indicadorData.append('nombreIndicador', this.indicadorEditForm.nombreIndicador)
@@ -666,6 +746,7 @@ export default {
           indicadorData,
           {
             headers: {
+              Authorization: `Bearer ${token}`,
               'Content-Type': 'multipart/form-data',
               Accept: 'application/json',
               'X-Requested-With': 'XMLHttpRequest',
@@ -690,33 +771,42 @@ export default {
           )
         }
       } catch (error) {
+        console.error('Error completo:', error)
+
         // Revisamos que el error tenga respuesta
         if (error.response) {
+          const status = error.response.status
+
           // Manejamos los posibles codigos de error
-          switch (error.response.status) {
+          switch (status) {
+            case 401:
+              this.mostrarNotificacion(
+                'Error',
+                'Sesión expirada. Por favor inicia sesión nuevamente.',
+                'error',
+              )
+              localStorage.removeItem('apiToken')
+              localStorage.removeItem('user')
+              this.$router.push('/login')
+              break
+
             case 404:
               this.mostrarNotificacion('Error', 'Indicador no encontrado', 'error')
-              console.error('Error 404:', error.response.data.message)
               break
 
             case 500:
               this.mostrarNotificacion('Error', 'Error interno del servidor', 'error')
-              console.error('Error 500:', error.response.data.message)
               break
 
             default:
-              this.mostrarNotificacion(
-                'Error',
-                `Error inesperado: ${error.response.status}`,
-                'error',
-              )
-              console.error('Error inesperado:', error.response.data.message)
+              this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
               break
           }
         } else if (error.request) {
           // No se recibió respuesta del servidor
           this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
-          console.error('Sin respuesta del servidor:', error.request)
+        } else {
+          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
         }
       }
     },

@@ -159,7 +159,13 @@ export default {
     },
     async obtenerTotalIndicadores() {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/indicador/getAll')
+        const token = localStorage.getItem('apiToken')
+        const response = await fetch('http://127.0.0.1:8000/api/indicador/getAll', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
         const data = await response.json()
         this.totalIndicadores = Array.isArray(data.indicadores) ? data.indicadores.length : 0
       } catch (e) {

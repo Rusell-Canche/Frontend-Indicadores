@@ -1,33 +1,39 @@
 <template>
-  <!-- Modal de creación/edición (estático para diseño) -->
-  <div class="modal-backdrop" style="display: none">
+  <!-- Modal de creación/edición -->
+  <div v-if="showModal" class="modal-backdrop" @click="closeModal">
     <div class="modal-content" @click.stop>
       <!-- Header del modal -->
       <div class="modal-header">
         <div class="modal-header-content">
           <div class="modal-icon">
-            <i class="fas fa-chart-line"></i>
+            <i class="fas fa-user"></i>
           </div>
           <div class="modal-title-section">
             <h3>Registro</h3>
             <p class="modal-subtitle">Regístrate aquí</p>
           </div>
         </div>
-        <button class="close-button">
+        <button @click="closeModal" class="close-button">
           <i class="fas fa-times"></i>
         </button>
       </div>
 
       <!-- Body del modal -->
       <div class="modal-body">
-        <form>
+        <form @submit.prevent="registrarUsuario">
           <div class="form-group">
             <label class="form-label">Nombre*</label>
             <div class="input-container">
               <div class="input-icon">
                 <i class="fas fa-user"></i>
               </div>
-              <input type="text" class="form-input" placeholder="Ej: Juan" required />
+              <input
+                v-model="registerForm.username"
+                type="text"
+                class="form-input"
+                placeholder="Ej: Juan"
+                required
+              />
             </div>
           </div>
           <div class="form-group">
@@ -36,8 +42,16 @@
               <div class="input-icon">
                 <i class="fas fa-envelope"></i>
               </div>
-              <input type="email" class="form-input" placeholder="tu@email.com" required />
+              <input
+                v-model="registerForm.email"
+                type="email"
+                class="form-input"
+                placeholder="tu@email.com"
+                required
+                :class="{ error: errors.email }"
+              />
             </div>
+            <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
           </div>
           <div class="form-group">
             <label class="form-label">Contraseña*</label>
@@ -45,22 +59,38 @@
               <div class="input-icon">
                 <i class="fas fa-lock"></i>
               </div>
-              <input type="password" class="form-input" placeholder="Tu contraseña" required />
-              <button type="button" class="password-toggle">
-                <i class="fas fa-eye"></i>
+              <input
+                v-model="registerForm.password"
+                :type="showPassword ? 'text' : 'password'"
+                class="form-input"
+                placeholder="Tu contraseña"
+                required
+                :class="{ error: errors.password }"
+              />
+              <button type="button" class="password-toggle" @click="showPassword = !showPassword">
+                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
               </button>
             </div>
+            <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
           </div>
         </form>
       </div>
 
       <!-- Footer del modal -->
       <div class="modal-footer">
-        <button class="btn btn-cancel">
+        <button @click="closeModal" class="btn btn-cancel">
           <i class="fas fa-times me-2"></i>
           Cancelar
         </button>
-        <button class="btn btn-save"><i class="fas fa-save me-2"></i> Registrarse</button>
+        <button @click="registrarUsuario" class="btn btn-save" :disabled="registrando">
+          <template v-if="registrando">
+            <div class="spinner-container">
+              <div class="spinner"></div>
+            </div>
+            Registrando...
+          </template>
+          <template v-else> <i class="fas fa-save me-2"></i> Registrarse </template>
+        </button>
       </div>
     </div>
   </div>
@@ -82,39 +112,39 @@
         <div class="info-content">
           <div class="logo-section">
             <div class="logo-icon">
-              <i class="fas fa-chart-bar"></i>
+              <i class="fas fa-hospital-alt"></i>
             </div>
-            <p class="logo-subtitle">Sistema de Gestión de Indicadores</p>
+            <p class="logo-subtitle">Sistema de Gestión Médica</p>
           </div>
 
           <div class="features-list">
             <div class="feature-item">
               <div class="feature-icon">
-                <i class="fas fa-chart-pie"></i>
+                <i class="fas fa-user-md"></i>
               </div>
               <div class="feature-text">
-                <h3>Indicadores</h3>
-                <p>Visualiza Indicadores y Crea</p>
+                <h3>Gestión de Médicos</h3>
+                <p>Administra profesionales de la salud</p>
               </div>
             </div>
 
             <div class="feature-item">
               <div class="feature-icon">
-                <i class="fas fa-chart-line"></i>
+                <i class="fas fa-stethoscope"></i>
               </div>
               <div class="feature-text">
-                <h3>Plantillas</h3>
-                <p>Realiza Plantillas</p>
+                <h3>Especialidades Médicas</h3>
+                <p>Organiza áreas de especialización</p>
               </div>
             </div>
 
             <div class="feature-item">
               <div class="feature-icon">
-                <i class="fas fa-tachometer-alt"></i>
+                <i class="fas fa-clock"></i>
               </div>
               <div class="feature-text">
-                <h3>Dashboard Inteligente</h3>
-                <p>Reportes en tiempo real</p>
+                <h3>Horarios Inteligentes</h3>
+                <p>Programa citas y disponibilidad</p>
               </div>
             </div>
           </div>
@@ -129,15 +159,23 @@
             <p class="form-subtitle">Ingresa tus credenciales para acceder al sistema</p>
           </div>
 
-          <form class="login-form">
+          <form @submit.prevent="handleLogin" class="login-form">
             <div class="form-group">
               <label class="form-label">Email</label>
               <div class="input-container">
                 <div class="input-icon">
                   <i class="fas fa-envelope"></i>
                 </div>
-                <input type="email" class="form-input" placeholder="tu@email.com" required />
+                <input
+                  v-model="loginForm.email"
+                  type="email"
+                  class="form-input"
+                  placeholder="tu@email.com"
+                  required
+                  :class="{ error: errors.email }"
+                />
               </div>
+              <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
             </div>
 
             <div class="form-group">
@@ -146,20 +184,32 @@
                 <div class="input-icon">
                   <i class="fas fa-lock"></i>
                 </div>
-                <input type="password" class="form-input" placeholder="Tu contraseña" required />
-                <button type="button" class="password-toggle">
-                  <i class="fas fa-eye"></i>
+                <input
+                  v-model="loginForm.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  class="form-input"
+                  placeholder="Tu contraseña"
+                  required
+                  :class="{ error: errors.password }"
+                />
+                <button type="button" class="password-toggle" @click="showPassword = !showPassword">
+                  <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                 </button>
               </div>
+              <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
             </div>
 
-            <button type="submit" class="login-button" @click="redirectToPanel">
-              <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+            <button type="submit" class="login-button" :disabled="isLoading">
+              <template v-if="isLoading">
+                <div class="loading-spinner"></div>
+                Iniciando sesión...
+              </template>
+              <template v-else> <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión </template>
             </button>
           </form>
 
           <div class="signup-link">
-            <p>¿No tienes una cuenta? <a href="#">Regístrate aquí</a></p>
+            <p>¿No tienes una cuenta? <a href="#" @click="abrirModal">Regístrate aquí</a></p>
           </div>
         </div>
       </div>
@@ -168,10 +218,126 @@
 </template>
 
 <script>
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
 export default {
+  name: 'Login',
+  data() {
+    return {
+      loginForm: {
+        email: '',
+        password: '',
+      },
+      registerForm: {
+        username: '',
+        email: '',
+        password: '',
+      },
+      showModal: false,
+      showPassword: false,
+      rememberMe: false,
+      isLoading: false,
+      errors: {},
+      apiBaseUrl: 'http://127.0.0.1:8000/api/',
+    }
+  },
   methods: {
-    redirectToPanel() {
-      this.$router.push('/PanelDeControl')
+    async handleLogin() {
+      this.isLoading = true
+      this.errors = {}
+
+      console.log('searchig...')
+      try {
+        const response = await axios.post(`${this.apiBaseUrl}login`, this.loginForm)
+        console.log(response)
+
+        // Guarda el token recibido (corrección principal)
+        localStorage.setItem('apiToken', response.data.token)
+
+        // Redirige o realiza otra acción
+        this.$router.push('/PanelDeControl')
+      } catch (error) {
+        console.error(error)
+        if (error.response && error.response.data) {
+          this.errors = error.response.data.errors || { general: error.response.data.message }
+        } else {
+          this.errors = { general: 'Error de red o del servidor' }
+        }
+      } finally {
+        this.isLoading = false
+      }
+    },
+    async registrarUsuario() {
+      if (!this.validarFormulario()) return
+
+      this.payload = {
+        ...this.registerForm,
+      }
+
+      await axios
+        .post(`${this.apiBaseUrl}/usuarios`, this.payload)
+        .then((response) => {
+          console.log(response.data)
+
+          if (response.data.status === 500) {
+            this.mostrarError(response.data.message)
+            return
+          }
+          this.closeModal()
+          this.resetRegisterForm()
+          this.mostrarMensaje('Usuario registrado exitosamente', 'success')
+        })
+        .catch((error) => {
+          console.error('Error al registrar usuario:', error)
+          this.mostrarError('Error al registrar usuario')
+        })
+    },
+    abrirModal() {
+      this.showModal = true
+    },
+    closeModal() {
+      this.showModal = false
+    },
+    validarFormulario() {
+      if (!this.registerForm.username || !this.registerForm.email || !this.registerForm.password) {
+        this.mostrarError('Los campos marcados con * son obligatorios')
+        return false
+      }
+
+      if (!this.validarEmail(this.registerForm.email)) {
+        this.mostrarError('Por favor ingrese un email válido')
+        return false
+      }
+
+      return true
+    },
+
+    validarEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      return re.test(email)
+    },
+    resetRegisterForm() {
+      this.registerForm = {
+        username: '',
+        email: '',
+        password: '',
+      }
+    },
+    mostrarMensaje(texto, tipo = 'success') {
+      Swal.fire({
+        title: texto,
+        icon: tipo,
+        position: 'center',
+        showConfirmButton: true,
+        timer: tipo === 'success' ? 2500 : undefined,
+        timerProgressBar: tipo === 'success',
+        confirmButtonColor: tipo === 'success' ? '#3085d6' : '#d33',
+      })
+    },
+
+    mostrarError(texto) {
+      this.mostrarMensaje(`ERROR: ${texto}`, 'error')
     },
   },
 }
@@ -219,7 +385,7 @@ export default {
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #1e3a8a 0%, #f97316 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2rem;
   display: flex;
   justify-content: space-between;
@@ -313,7 +479,7 @@ export default {
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #1e3a8a 0%, #f97316 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 3px;
 }
 
@@ -346,7 +512,7 @@ export default {
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #1e3a8a 0%, #f97316 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
   padding: 0.75rem 1.5rem;
@@ -375,9 +541,9 @@ export default {
 }
 
 .btn-save:hover {
-  background: linear-gradient(135deg, #1e40af 0%, #ea580c 100%);
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.4);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
   color: white;
 }
 
@@ -393,7 +559,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1e3a8a 0%, #f97316 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
   overflow: hidden;
   padding: 1rem;
@@ -487,7 +653,7 @@ export default {
 /* Panel de información */
 .info-panel {
   flex: 1;
-  background: linear-gradient(135deg, #1e3a8a 0%, #f97316 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 3rem;
   display: flex;
   align-items: center;
@@ -655,8 +821,8 @@ export default {
 
 .form-input:focus {
   outline: none;
-  border-color: #1e3a8a;
-  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   transform: translateY(-1px);
 }
 
@@ -677,7 +843,7 @@ export default {
 }
 
 .password-toggle:hover {
-  color: #1e3a8a;
+  color: #667eea;
 }
 
 .error-message {
@@ -686,10 +852,40 @@ export default {
   margin-top: 0.25rem;
 }
 
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.checkbox-container input {
+  margin-right: 0.5rem;
+}
+
+.forgot-password {
+  color: #667eea;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+}
+
+.forgot-password:hover {
+  color: #4f46e5;
+}
+
 .login-button {
   width: 100%;
   padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, #1e3a8a 0%, #f97316 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -722,7 +918,7 @@ export default {
 
 .login-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.4);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .login-button:disabled {
@@ -742,6 +938,29 @@ export default {
   margin-right: 0.5rem;
 }
 
+.login-button a {
+  color: inherit;
+  text-decoration: none;
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+.login-button a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+
+.login-button a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+.login-button a:focus {
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -752,21 +971,84 @@ export default {
   }
 }
 
+.divider {
+  text-align: center;
+  margin: 2rem 0;
+  position: relative;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e5e7eb;
+  z-index: 1;
+}
+
+.divider span {
+  background: white;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.social-login {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.social-button {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  color: #6b7280;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.social-button:hover {
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.social-button.google:hover {
+  border-color: #ea4335;
+  color: #ea4335;
+}
+
+.social-button.microsoft:hover {
+  border-color: #0078d4;
+  color: #0078d4;
+}
+
 .signup-link {
   text-align: center;
   color: #6b7280;
   font-size: 0.9rem;
-  margin-top: 2rem;
 }
 
 .signup-link a {
-  color: #1e3a8a;
+  color: #667eea;
   text-decoration: none;
   font-weight: 500;
 }
 
 .signup-link a:hover {
-  color: #f97316;
+  color: #4f46e5;
 }
 
 @keyframes shimmer {
@@ -777,27 +1059,6 @@ export default {
 
   50% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
-  }
-}
-
-/* Animaciones adicionales */
-@keyframes backdropFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -867,6 +1128,10 @@ export default {
 @media (max-width: 480px) {
   .login-panel {
     padding: 1.5rem 1rem;
+  }
+
+  .social-login {
+    flex-direction: column;
   }
 
   .form-options {
