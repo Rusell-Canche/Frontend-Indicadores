@@ -202,6 +202,7 @@ export default {
       this.guardando = true
 
       try {
+        const token = localStorage.getItem('apiToken')
         // Configurar axios para enviar como indicadorFormData
         const indicadorFormData = new FormData()
 
@@ -220,6 +221,7 @@ export default {
               'Content-Type': 'multipart/form-data',
               Accept: 'application/json',
               'X-Requested-With': 'XMLHttpRequest',
+              Authorization: `Bearer ${token}`,
             },
           },
         )
