@@ -142,7 +142,7 @@ export default {
       formData.append('excel_file', this.file)
 
       this.isLoading = true
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('apitoken')
       try {
         const response = await axios.post('http://127.0.0.1:8000/api/indicador/upload', formData, {
           headers: {
