@@ -860,7 +860,7 @@ export default {
         const token = localStorage.getItem('apiToken')
         if (!token) {
           this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
-          this.$router.push('/login')
+          this.$router.push('/')
           return
         }
 
@@ -906,7 +906,7 @@ export default {
           if (error.response.status === 401) {
             mensaje = 'Sesión expirada. Por favor inicie sesión nuevamente'
             localStorage.removeItem('apiToken')
-            this.$router.push('/login')
+            this.$router.push('/')
           } else if (error.response.data && error.response.data.error) {
             mensaje = error.response.data.error
           }
@@ -955,7 +955,7 @@ export default {
             'error',
           )
           // Redirigir al login si no hay token
-          this.$router.push('/login')
+          this.$router.push('/')
           return
         }
 
@@ -1000,7 +1000,7 @@ export default {
             localStorage.removeItem('apiToken')
             localStorage.removeItem('user')
             // Redirigir al login
-            this.$router.push('/login')
+            this.$router.push('/')
           } else {
             this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
           }
@@ -1034,7 +1034,7 @@ export default {
             'No hay sesión activa. Por favor inicia sesión.',
             'error',
           )
-          this.$router.push('/login')
+          this.$router.push('/')
           return
         }
 
@@ -1099,7 +1099,7 @@ export default {
               )
               localStorage.removeItem('apiToken')
               localStorage.removeItem('user')
-              this.$router.push('/login')
+              this.$router.push('/')
               break
 
             case 404:
@@ -1177,7 +1177,7 @@ export default {
             'No hay sesión activa. Por favor inicia sesión.',
             'error',
           )
-          this.$router.push('/login')
+          this.$router.push('/')
           return
         }
 
@@ -1235,7 +1235,7 @@ export default {
               )
               localStorage.removeItem('apiToken')
               localStorage.removeItem('user')
-              this.$router.push('/login')
+              this.$router.push('/')
               break
 
             case 404:
