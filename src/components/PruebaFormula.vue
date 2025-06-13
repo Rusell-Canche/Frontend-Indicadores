@@ -1094,7 +1094,7 @@ export default {
      */
     configurarIndicador() {
       // Cambiamos el estado del modal de configuración
-      this.showConfigModal = true
+      this.configurarParametrosCalculo()
     },
     /**
      * Cierra el modal de configuración
