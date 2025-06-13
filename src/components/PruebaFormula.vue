@@ -163,7 +163,7 @@
             </h6>
             <div class="row g-3">
               <div class="col-md-6">
-                <div class="config-card">
+                <div class="config-card" @click="abrirModalParametros">
                   <div class="config-icon">
                     <i class="fas fa-chart-line"></i>
                   </div>
@@ -721,6 +721,10 @@ export default {
       }
       return metaTag.content
     },
+    abrirModalParametros() {
+      this.closeConfigModal() // Cierra el modal de configuración
+      this.configurarParametrosCalculo() // Abre el modal de parámetros
+    },
 
     /**
      * Hace una petición a la API para conseguir
@@ -914,7 +918,7 @@ export default {
      */
     configurarIndicador() {
       // Cambiamos el estado del modal de configuración
-      this.configurarParametrosCalculo()
+      this.showConfigModal = true
     },
     /**
      * Cierra el modal de configuración
