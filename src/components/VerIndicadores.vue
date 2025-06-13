@@ -153,66 +153,6 @@
             <i class="fas fa-times"></i>
           </button>
         </div>
-
-        <!-- Body del modal -->
-        <div class="medico-modal-body">
-          <div class="form-section">
-            <h6 class="section-title">
-              <i class="fas fa-sliders-h me-2"></i>
-              Configuraciones Disponibles
-            </h6>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <div class="config-card">
-                  <div class="config-icon">
-                    <i class="fas fa-chart-line"></i>
-                  </div>
-                  <h6>Parámetros de Cálculo</h6>
-                  <p class="text-muted small">Configurar fórmulas y métodos de cálculo</p>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="config-card">
-                  <div class="config-icon">
-                    <i class="fas fa-bell"></i>
-                  </div>
-                  <h6>Alertas y Notificaciones</h6>
-                  <p class="text-muted small">Establecer umbrales y alertas automáticas</p>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="config-card">
-                  <div class="config-icon">
-                    <i class="fas fa-calendar"></i>
-                  </div>
-                  <h6>Periodicidad</h6>
-                  <p class="text-muted small">Definir frecuencia de actualización</p>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="config-card">
-                  <div class="config-icon">
-                    <i class="fas fa-users"></i>
-                  </div>
-                  <h6>Permisos</h6>
-                  <p class="text-muted small">Gestionar accesos y permisos de usuario</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer del modal -->
-        <div class="medico-modal-footer">
-          <button @click="closeConfigModal" class="btn btn-cancel">
-            <i class="fas fa-times me-2"></i>
-            Cancelar
-          </button>
-          <button @click="guardarConfiguracion" class="btn btn-save">
-            <i class="fas fa-cog me-2"></i>
-            Aplicar Configuración
-          </button>
-        </div>
       </div>
     </div>
 
@@ -322,7 +262,7 @@
                 <td>
                   <div class="d-flex justify-content-center gap-2">
                     <button
-                      @click="configurarIndicador()"
+                      @click="configurarIndicador(indicador)"
                       class="action-btn config-btn"
                       title="Configurar indicador"
                     >
@@ -410,6 +350,313 @@
         </div>
       </div>
 
+      <!-- Modal para parámetros de cálculo -->
+      <div v-if="showParametrosModal" class="medico-modal-backdrop" @click="closeParametrosModal">
+        <div class="medico-modal-content" @click.stop>
+          <!-- Header del modal -->
+          <div class="medico-modal-header">
+            <div class="modal-header-content">
+              <div class="modal-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="modal-title-section">
+                <h3>Parámetros de Cálculo</h3>
+                <p class="modal-subtitle">
+                  Configura las operaciones y campos para el cálculo del indicador
+                </p>
+              </div>
+            </div>
+            <button @click="closeParametrosModal" class="medico-close-button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Body del modal -->
+          <div class="medico-modal-body">
+            <!-- Selección de plantilla -->
+            <div class="form-section">
+              <h6 class="section-title">
+                <i class="fas fa-file-alt me-2"></i>
+                Seleccionar Plantilla
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Plantilla*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-list-alt"></i>
+                    </span>
+                    <select
+                      v-model="parametrosForm.plantillaSeleccionada"
+                      class="form-select"
+                      @change="onPlantillaSelected"
+                      required
+                    >
+                      <option value="">Seleccione una plantilla</option>
+                      <option
+                        v-for="plantilla in plantillasDisponibles"
+                        :key="plantilla.id"
+                        :value="plantilla.id"
+                      >
+                        {{ plantilla.title || plantilla.nombre_plantilla }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="form-text">Selecciona la plantilla de documentos a analizar</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selección de operación -->
+            <div class="form-section" v-if="parametrosForm.plantillaSeleccionada">
+              <h6 class="section-title">
+                <i class="fas fa-calculator me-2"></i>
+                Tipo de Operación
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Operación*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-function"></i>
+                    </span>
+                    <select v-model="parametrosForm.tipoOperacion" class="form-select" required>
+                      <option value="">Seleccione una operación</option>
+                      <option value="count">Contar registros (COUNT)</option>
+                      <option value="sum">Sumar valores (SUM)</option>
+                      <option value="avg">Promedio (AVG)</option>
+                      <option value="max">Valor máximo (MAX)</option>
+                      <option value="min">Valor mínimo (MIN)</option>
+                    </select>
+                  </div>
+                  <div class="form-text">
+                    <span v-if="parametrosForm.tipoOperacion === 'count'">
+                      Contará el número total de documentos
+                    </span>
+                    <span v-else-if="parametrosForm.tipoOperacion === 'sum'">
+                      Sumará los valores del campo seleccionado
+                    </span>
+                    <span v-else-if="parametrosForm.tipoOperacion === 'avg'">
+                      Calculará el promedio del campo seleccionado
+                    </span>
+                    <span v-else-if="parametrosForm.tipoOperacion === 'max'">
+                      Encontrará el valor máximo del campo seleccionado
+                    </span>
+                    <span v-else-if="parametrosForm.tipoOperacion === 'min'">
+                      Encontrará el valor mínimo del campo seleccionado
+                    </span>
+                    <span v-else> Selecciona la operación matemática a realizar </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selección de campo -->
+            <!-- Dentro del modal de parámetros de cálculo -->
+            <div
+              class="form-section"
+              v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'count'"
+            >
+              <h6 class="section-title">
+                <i class="fas fa-tag me-2"></i>
+                Campo a Procesar
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Campo principal*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-columns"></i>
+                    </span>
+                    <select
+                      v-model="parametrosForm.campoSeleccionado"
+                      @change="onCampoPrincipalSelected"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Seleccione un campo</option>
+                      <option
+                        v-for="campo in camposDisponibles"
+                        :key="campo.name"
+                        :value="campo.name"
+                      >
+                        {{ campo.alias || campo.name }} ({{ getTipoCampo(campo) }})
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Select para subcampos (solo visible si el campo principal es un subform) -->
+                <div class="col-md-12" v-if="mostrarSubcampos">
+                  <label class="form-label">Subcampo*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-layer-group"></i>
+                    </span>
+                    <select
+                      v-model="parametrosForm.subcampoSeleccionado"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Seleccione un subcampo</option>
+                      <option
+                        v-for="subcampo in subcamposDisponibles"
+                        :key="subcampo.name"
+                        :value="subcampo.name"
+                        :disabled="
+                          parametrosForm.tipoOperacion !== 'count' && !esCampoNumerico(subcampo)
+                        "
+                      >
+                        {{ subcampo.name }} ({{ getTipoCampo(subcampo) }})
+                        <span
+                          v-if="
+                            parametrosForm.tipoOperacion !== 'count' && !esCampoNumerico(subcampo)
+                          "
+                        >
+                          (No numérico)
+                        </span>
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección de condiciones -->
+            <div class="form-section" v-if="parametrosForm.campoSeleccionado">
+              <h6 class="section-title">
+                <i class="fas fa-filter me-2"></i>
+                Condiciones de Filtrado
+              </h6>
+
+              <div class="table-responsive">
+                <table class="table modern-table">
+                  <thead>
+                    <tr>
+                      <th>Campo</th>
+                      <th>Operador</th>
+                      <th>Valor</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(condicion, index) in parametrosForm.condiciones" :key="index">
+                      <td>
+                        <select v-model="condicion.campo" class="form-select form-select-sm">
+                          <option
+                            v-for="campo in camposFiltrables"
+                            :key="campo.name"
+                            :value="campo.name"
+                          >
+                            {{ campo.alias || campo.name }}
+                          </option>
+                        </select>
+                      </td>
+                      <td>
+                        <select v-model="condicion.operador" class="form-select form-select-sm">
+                          <option value="==">Igual a</option>
+                          <option value="!=">Diferente de</option>
+                          <option value=">">Mayor que</option>
+                          <option value="<">Menor que</option>
+                          <option value=">=">Mayor o igual</option>
+                          <option value="<=">Menor o igual</option>
+                          <option value="contains">Contiene</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          v-model="condicion.valor"
+                          type="text"
+                          class="form-control form-control-sm"
+                          placeholder="Valor"
+                        />
+                      </td>
+                      <td>
+                        <button
+                          @click="eliminarCondicion(index)"
+                          class="btn btn-sm btn-danger"
+                          title="Eliminar condición"
+                        >
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <button @click="agregarCondicion" class="btn btn-sm btn-primary mt-2">
+                <i class="fas fa-plus me-1"></i> Agregar Condición
+              </button>
+            </div>
+
+            <!-- Información del cálculo (solo si está todo completo) -->
+            <div class="form-section" v-if="isFormComplete">
+              <h6 class="section-title">
+                <i class="fas fa-info-circle me-2"></i>
+                Resumen del Cálculo
+              </h6>
+              <div class="alert alert-info">
+                <div class="d-flex align-items-start">
+                  <i class="fas fa-lightbulb me-3 mt-1"></i>
+                  <div>
+                    <strong>Operación configurada:</strong><br />
+                    <span v-if="parametrosForm.tipoOperacion === 'count'">
+                      Se contarán todos los documentos de la plantilla
+                      <strong>"{{ getNombrePlantillaSeleccionada() }}"</strong>
+                    </span>
+                    <span v-else>
+                      Se realizará la operación <strong>{{ getTipoOperacionTexto() }}</strong> sobre
+                      el campo <strong>"{{ getNombreCampoSeleccionado() }}"</strong>
+                      de todos los documentos de la plantilla
+                      <strong>"{{ getNombrePlantillaSeleccionada() }}"</strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vista previa de campos disponibles (solo informativa) -->
+            <div class="form-section" v-if="camposDisponibles.length > 0">
+              <h6 class="section-title">
+                <i class="fas fa-eye me-2"></i>
+                Campos Disponibles en la Plantilla
+              </h6>
+              <div class="campos-preview">
+                <div class="row g-2">
+                  <div
+                    v-for="campo in camposDisponibles.slice(0, 6)"
+                    :key="campo.name"
+                    class="col-md-4"
+                  >
+                    <div class="campo-badge" :class="{ 'campo-numerico': esCampoNumerico(campo) }">
+                      <i class="fas fa-tag me-2"></i>
+                      <span>{{ campo.alias || campo.name }}</span>
+                      <small class="campo-tipo">({{ getTipoCampo(campo) }})</small>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="camposDisponibles.length > 6" class="text-muted mt-2">
+                  <small>... y {{ camposDisponibles.length - 6 }} campos más</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer del modal -->
+          <div class="medico-modal-footer">
+            <button @click="closeParametrosModal" class="btn btn-cancel">
+              <i class="fas fa-times me-2"></i>
+              Cancelar
+            </button>
+            <button @click="aplicarParametros" class="btn btn-save" :disabled="!isFormComplete">
+              <i class="fas fa-check me-2"></i>
+              Aplicar Configuración
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer con información -->
       <div class="card-footer bg-white text-muted small py-2">
         <div class="d-flex justify-content-between align-items-center">
@@ -442,9 +689,51 @@ export default {
         denominador: '',
         _idProyecto: '',
       },
+      showParametrosModal: false,
+      plantillasDisponibles: [],
+      camposDisponibles: [],
+      parametrosForm: {
+        plantillaSeleccionada: '',
+        tipoOperacion: '',
+        campoSeleccionado: '',
+        subcampoSeleccionado: '',
+        condiciones: [],
+      },
+      subcamposDisponibles: [],
+      camposFiltrables: [],
+      indicadorSeleccionado: null,
     }
   },
   computed: {
+    mostrarSubcampos() {
+      const campoSeleccionado = this.camposDisponibles.find(
+        (c) => c.name === this.parametrosForm.campoSeleccionado,
+      )
+      return campoSeleccionado && campoSeleccionado.type === 'subform'
+    },
+    campoFinal() {
+      return this.mostrarSubcampos
+        ? this.parametrosForm.subcampoSeleccionado
+        : this.parametrosForm.campoSeleccionado
+    },
+    isFormComplete() {
+      // Validación básica
+      if (!this.parametrosForm.plantillaSeleccionada || !this.parametrosForm.tipoOperacion) {
+        return false
+      }
+
+      // Validación para COUNT
+      if (this.parametrosForm.tipoOperacion === 'count') {
+        return true
+      }
+
+      // Validación para otras operaciones
+      if (this.mostrarSubcampos) {
+        return !!this.parametrosForm.subcampoSeleccionado
+      }
+
+      return !!this.parametrosForm.campoSeleccionado
+    },
     totalPages() {
       return Math.ceil(this.indicadores.length / this.itemsPerPage)
     },
@@ -479,12 +768,149 @@ export default {
     this.fetchIndicadores()
   },
   methods: {
+    onCampoPrincipalSelected() {
+      this.parametrosForm.subcampoSeleccionado = ''
+      this.parametrosForm.condiciones = []
+
+      const campoSeleccionado = this.camposDisponibles.find(
+        (c) => c.name === this.parametrosForm.campoSeleccionado,
+      )
+
+      if (campoSeleccionado && campoSeleccionado.type === 'subform') {
+        // Verifica que los subcampos estén en la propiedad 'subcampos'
+        this.subcamposDisponibles = campoSeleccionado.subcampos || []
+        console.log('Subcampos disponibles:', this.subcamposDisponibles) // Para depuración
+      } else {
+        this.subcamposDisponibles = []
+      }
+
+      // Preparar campos filtrables (todos los campos excepto subforms)
+      this.camposFiltrables = this.camposDisponibles.filter((campo) => campo.type !== 'subform')
+    },
+
+    agregarCondicion() {
+      this.parametrosForm.condiciones.push({
+        campo: this.camposFiltrables[0]?.name || '',
+        operador: '==',
+        valor: '',
+      })
+    },
+
+    eliminarCondicion(index) {
+      this.parametrosForm.condiciones.splice(index, 1)
+    },
+
+    async aplicarParametros() {
+      try {
+        // Obtener el ID del indicador seleccionado
+        const idIndicador = this.indicadorSeleccionado?._id || this.indicadorSeleccionado?.id
+
+        if (!idIndicador) {
+          this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
+          return
+        }
+        // 1. Preparar la configuración en el formato requerido
+        const configuracion = {
+          coleccion: `template_${this.parametrosForm.plantillaSeleccionada}_data`,
+          operacion: this.parametrosForm.tipoOperacion, // Usamos el valor crudo (sum, avg, etc.)
+          condicion: this.parametrosForm.condiciones.map((cond) => ({
+            campo: cond.campo,
+            operador: cond.operador,
+            valor: cond.valor,
+          })),
+          campo: this.campoFinal || '', // Asegurarnos de que siempre haya un valor
+        }
+
+        console.log('Configuración a enviar:', configuracion)
+
+        // 2. Obtener el token y verificar autenticación
+        const token = localStorage.getItem('apiToken')
+        if (!token) {
+          this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
+          this.$router.push('/login')
+          return
+        }
+
+        // 4. Enviar la configuración al servidor - SIN anidar en objeto "configuracion"
+        const response = await axios.put(
+          `http://127.0.0.1:8000/api/indicadores/${idIndicador}/configuracion`,
+          configuracion, // Enviamos directamente el objeto configuracion
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+          },
+        )
+
+        // 5. Manejar la respuesta
+        if (response.status === 200) {
+          this.mostrarNotificacion(
+            '¡Configuración Guardada!',
+            `La configuración se guardó exitosamente`,
+            'success',
+          )
+
+          // Opcional: Actualizar los datos del indicador
+          this.fetchIndicadores()
+        } else {
+          this.mostrarNotificacion(
+            'Advertencia',
+            'El servidor respondió con un estado inesperado: ' + response.status,
+            'warning',
+          )
+        }
+
+        // 6. Cerrar el modal
+        this.closeParametrosModal()
+      } catch (error) {
+        console.error('Error al guardar configuración:', error)
+
+        let mensaje = 'Error al guardar la configuración'
+        if (error.response) {
+          // Manejar errores específicos del servidor
+          if (error.response.status === 401) {
+            mensaje = 'Sesión expirada. Por favor inicie sesión nuevamente'
+            localStorage.removeItem('apiToken')
+            this.$router.push('/login')
+          } else if (error.response.data && error.response.data.message) {
+            mensaje = error.response.data.message
+          } else if (error.response.data) {
+            // Mostrar el primer error de validación si existe
+            const firstError = Object.values(error.response.data)[0]
+            if (Array.isArray(firstError)) {
+              mensaje = firstError[0]
+            }
+          }
+        }
+
+        this.mostrarNotificacion('Error', mensaje, 'error')
+      }
+    },
+
+    resetParametrosForm() {
+      this.parametrosForm = {
+        plantillaSeleccionada: '',
+        tipoOperacion: '',
+        campoSeleccionado: '',
+        subcampoSeleccionado: '',
+        condiciones: [],
+      }
+      this.subcamposDisponibles = []
+      this.camposFiltrables = []
+    },
     getCsrfToken() {
       const metaTag = document.querySelector('meta[name="csrf-token"]')
       if (!metaTag) {
         throw new Error('No se encontró el token CSRF')
       }
       return metaTag.content
+    },
+    abrirModalParametros(indicador) {
+      this.indicadorSeleccionado = indicador // Guardar el indicador
+      this.closeConfigModal()
+      this.configurarParametrosCalculo()
     },
 
     /**
@@ -677,9 +1103,9 @@ export default {
     /**
      * Configura el indicador seleccionado
      */
-    configurarIndicador() {
-      // Cambiamos el estado del modal de configuración
-      this.showConfigModal = true
+    configurarIndicador(indicador) {
+      this.indicadorSeleccionado = indicador // Guardar el indicador
+      this.configurarParametrosCalculo()
     },
     /**
      * Cierra el modal de configuración
@@ -884,6 +1310,151 @@ export default {
     },
     goToPage(page) {
       this.currentPage = page
+    },
+    /**
+     * Abre el modal de parámetros de cálculo
+     */
+    async configurarParametrosCalculo() {
+      this.showParametrosModal = true
+      await this.fetchPlantillasDisponibles()
+    },
+
+    /**
+     * Cierra el modal de parámetros
+     */
+    closeParametrosModal() {
+      this.showParametrosModal = false
+      this.resetParametrosForm()
+    },
+
+    /**
+     * Obtiene las plantillas disponibles
+     */
+    async fetchPlantillasDisponibles() {
+      try {
+        const token = localStorage.getItem('apiToken')
+
+        if (!token) {
+          this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
+          return
+        }
+
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas/consultar', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        })
+
+        this.plantillasDisponibles = response.data || []
+      } catch (error) {
+        console.error('Error obteniendo plantillas:', error)
+        this.mostrarNotificacion('Error', 'No se pudieron cargar las plantillas', 'error')
+      }
+    },
+
+    /**
+     * Maneja la selección de plantilla
+     */
+    async onPlantillaSelected() {
+      if (this.parametrosForm.plantillaSeleccionada) {
+        // Resetear selecciones dependientes
+        this.parametrosForm.tipoOperacion = ''
+        this.parametrosForm.campoSeleccionado = ''
+        this.parametrosForm.subcampoSeleccionado = ''
+        this.parametrosForm.condiciones = []
+
+        try {
+          const token = localStorage.getItem('apiToken')
+          const response = await axios.get(
+            `http://127.0.0.1:8000/api/plantillas/${this.parametrosForm.plantillaSeleccionada}/campos`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+              },
+            },
+          )
+
+          if (response.data && response.data.campos) {
+            // Solo filtramos el campo _id, mantenemos los subforms
+            this.camposDisponibles = response.data.campos.filter((campo) => campo.name !== '_id')
+          }
+        } catch (error) {
+          console.error('Error al obtener los campos:', error)
+          this.mostrarNotificacion('Error', 'Error al cargar los campos de la plantilla', 'error')
+        }
+      } else {
+        this.camposDisponibles = []
+      }
+    },
+
+    /**
+     * Verifica si un campo es numérico
+     */
+    esCampoNumerico(campo) {
+      return campo.type === 'number'
+    },
+
+    /**
+     * Obtiene el tipo de campo en texto legible
+     */
+    getTipoCampo(campo) {
+      const tipos = {
+        text: 'Texto',
+        number: 'Numérico',
+        date: 'Fecha',
+        file: 'Archivo',
+      }
+      return tipos[campo.type] || campo.type
+    },
+
+    /**
+     * Obtiene el nombre de la plantilla seleccionada
+     */
+    getNombrePlantillaSeleccionada() {
+      const plantilla = this.plantillasDisponibles.find(
+        (p) => p.id === this.parametrosForm.plantillaSeleccionada,
+      )
+      return plantilla ? plantilla.title || plantilla.nombre_plantilla : ''
+    },
+
+    /**
+     * Obtiene el nombre del campo seleccionado
+     */
+    getNombreCampoSeleccionado() {
+      const campo = this.camposDisponibles.find(
+        (c) => c.name === this.parametrosForm.campoSeleccionado,
+      )
+      return campo ? campo.alias || campo.name : ''
+    },
+
+    /**
+     * Obtiene el texto descriptivo del tipo de operación
+     */
+    getTipoOperacionTexto() {
+      const operaciones = {
+        count: 'CONTEO',
+        sum: 'SUMA',
+        avg: 'PROMEDIO',
+        max: 'MÁXIMO',
+        min: 'MÍNIMO',
+      }
+      return operaciones[this.parametrosForm.tipoOperacion] || this.parametrosForm.tipoOperacion
+    },
+
+    /**
+     * Resetea el formulario de parámetros
+     */
+    resetParametrosForm() {
+      this.parametrosForm = {
+        plantillaSeleccionada: '',
+        tipoOperacion: '',
+        campoSeleccionado: '',
+      }
+      this.camposDisponibles = []
     },
   },
 }

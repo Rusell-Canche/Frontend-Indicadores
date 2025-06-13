@@ -760,6 +760,7 @@ export default {
       },
       subcamposDisponibles: [],
       camposFiltrables: [],
+      indicadorSeleccionado: null,
     }
   },
   computed: {
@@ -860,6 +861,13 @@ export default {
 
     async aplicarParametros() {
       try {
+        // Obtener el ID del indicador seleccionado
+        const idIndicador = this.indicadorSeleccionado?._id || this.indicadorSeleccionado?.id
+
+        if (!idIndicador) {
+          this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
+          return
+        }
         // 1. Preparar la configuración en el formato requerido
         const configuracion = {
           coleccion: `template_${this.parametrosForm.plantillaSeleccionada}_data`,
@@ -879,13 +887,6 @@ export default {
         if (!token) {
           this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
           this.$router.push('/login')
-          return
-        }
-
-        // 3. Obtener el ID del indicador (asumo que está en this.indicadorEditForm._id)
-        const idIndicador = this.indicadorEditForm._id
-        if (!idIndicador) {
-          this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
           return
         }
 
@@ -965,9 +966,10 @@ export default {
       }
       return metaTag.content
     },
-    abrirModalParametros() {
-      this.closeConfigModal() // Cierra el modal de configuración
-      this.configurarParametrosCalculo() // Abre el modal de parámetros
+    abrirModalParametros(indicador) {
+      this.indicadorSeleccionado = indicador // Guardar el indicador
+      this.closeConfigModal()
+      this.configurarParametrosCalculo()
     },
 
     /**
@@ -1160,8 +1162,8 @@ export default {
     /**
      * Configura el indicador seleccionado
      */
-    configurarIndicador() {
-      // Cambiamos el estado del modal de configuración
+    configurarIndicador(indicador) {
+      this.indicadorSeleccionado = indicador // Guardar el indicador
       this.configurarParametrosCalculo()
     },
     /**
@@ -1500,31 +1502,6 @@ export default {
         min: 'MÍNIMO',
       }
       return operaciones[this.parametrosForm.tipoOperacion] || this.parametrosForm.tipoOperacion
-    },
-
-    /**
-     * Aplica la configuración de parámetros
-     */
-    aplicarParametros() {
-      // Por ahora solo mostrar la configuración
-      const configuracion = {
-        plantilla: this.getNombrePlantillaSeleccionada(),
-        plantillaId: this.parametrosForm.plantillaSeleccionada,
-        operacion: this.getTipoOperacionTexto(),
-        tipoOperacion: this.parametrosForm.tipoOperacion,
-        campo: this.getNombreCampoSeleccionado(),
-        campoId: this.parametrosForm.campoSeleccionado,
-      }
-
-      console.log('Configuración de parámetros:', configuracion)
-
-      this.mostrarNotificacion(
-        '¡Configuración Lista!',
-        `Se configuró ${configuracion.operacion} para la plantilla "${configuracion.plantilla}"`,
-        'success',
-      )
-
-      this.closeParametrosModal()
     },
 
     /**
