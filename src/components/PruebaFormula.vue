@@ -511,6 +511,7 @@
             </div>
 
             <!-- Selección de campo -->
+            <!-- Dentro del modal de parámetros de cálculo -->
             <div
               class="form-section"
               v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'count'"
@@ -521,43 +522,131 @@
               </h6>
               <div class="row g-3">
                 <div class="col-md-12">
-                  <label class="form-label">Campo*</label>
+                  <label class="form-label">Campo principal*</label>
                   <div class="input-group modern-input">
                     <span class="input-group-text">
                       <i class="fas fa-columns"></i>
                     </span>
-                    <select v-model="parametrosForm.campoSeleccionado" class="form-select" required>
+                    <select
+                      v-model="parametrosForm.campoSeleccionado"
+                      @change="onCampoPrincipalSelected"
+                      class="form-select"
+                      required
+                    >
                       <option value="">Seleccione un campo</option>
                       <option
                         v-for="campo in camposDisponibles"
                         :key="campo.name"
                         :value="campo.name"
-                        :disabled="!esCampoNumerico(campo)"
                       >
-                        {{ campo.alias || campo.name }}
-                        <span v-if="!esCampoNumerico(campo)"> (No numérico)</span>
+                        {{ campo.alias || campo.name }} ({{ getTipoCampo(campo) }})
                       </option>
                     </select>
                   </div>
-                  <div class="form-text">
-                    <span v-if="parametrosForm.tipoOperacion === 'sum'">
-                      Solo se pueden seleccionar campos numéricos para sumar
+                </div>
+
+                <!-- Select para subcampos (solo visible si el campo principal es un subform) -->
+                <div class="col-md-12" v-if="mostrarSubcampos">
+                  <label class="form-label">Subcampo*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-layer-group"></i>
                     </span>
-                    <span v-else-if="parametrosForm.tipoOperacion === 'avg'">
-                      Solo se pueden seleccionar campos numéricos para promediar
-                    </span>
-                    <span
-                      v-else-if="
-                        parametrosForm.tipoOperacion === 'max' ||
-                        parametrosForm.tipoOperacion === 'min'
-                      "
+                    <select
+                      v-model="parametrosForm.subcampoSeleccionado"
+                      class="form-select"
+                      required
                     >
-                      Se pueden seleccionar campos numéricos o de fecha
-                    </span>
-                    <span v-else> Selecciona el campo sobre el cual realizar la operación </span>
+                      <option value="">Seleccione un subcampo</option>
+                      <option
+                        v-for="subcampo in subcamposDisponibles"
+                        :key="subcampo.name"
+                        :value="subcampo.name"
+                        :disabled="
+                          parametrosForm.tipoOperacion !== 'count' && !esCampoNumerico(subcampo)
+                        "
+                      >
+                        {{ subcampo.name }} ({{ getTipoCampo(subcampo) }})
+                        <span
+                          v-if="
+                            parametrosForm.tipoOperacion !== 'count' && !esCampoNumerico(subcampo)
+                          "
+                        >
+                          (No numérico)
+                        </span>
+                      </option>
+                    </select>
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- Sección de condiciones -->
+            <div class="form-section" v-if="parametrosForm.campoSeleccionado">
+              <h6 class="section-title">
+                <i class="fas fa-filter me-2"></i>
+                Condiciones de Filtrado
+              </h6>
+
+              <div class="table-responsive">
+                <table class="table modern-table">
+                  <thead>
+                    <tr>
+                      <th>Campo</th>
+                      <th>Operador</th>
+                      <th>Valor</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(condicion, index) in parametrosForm.condiciones" :key="index">
+                      <td>
+                        <select v-model="condicion.campo" class="form-select form-select-sm">
+                          <option
+                            v-for="campo in camposFiltrables"
+                            :key="campo.name"
+                            :value="campo.name"
+                          >
+                            {{ campo.alias || campo.name }}
+                          </option>
+                        </select>
+                      </td>
+                      <td>
+                        <select v-model="condicion.operador" class="form-select form-select-sm">
+                          <option value="==">Igual a</option>
+                          <option value="!=">Diferente de</option>
+                          <option value=">">Mayor que</option>
+                          <option value="<">Menor que</option>
+                          <option value=">=">Mayor o igual</option>
+                          <option value="<=">Menor o igual</option>
+                          <option value="contains">Contiene</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          v-model="condicion.valor"
+                          type="text"
+                          class="form-control form-control-sm"
+                          placeholder="Valor"
+                        />
+                      </td>
+                      <td>
+                        <button
+                          @click="eliminarCondicion(index)"
+                          class="btn btn-sm btn-danger"
+                          title="Eliminar condición"
+                        >
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <button @click="agregarCondicion" class="btn btn-sm btn-primary mt-2">
+                <i class="fas fa-plus me-1"></i> Agregar Condición
+              </button>
             </div>
 
             <!-- Información del cálculo (solo si está todo completo) -->
@@ -666,19 +755,42 @@ export default {
         plantillaSeleccionada: '',
         tipoOperacion: '',
         campoSeleccionado: '',
+        subcampoSeleccionado: '',
+        condiciones: [],
       },
+      subcamposDisponibles: [],
+      camposFiltrables: [],
     }
   },
   computed: {
-    isFormComplete() {
-      if (this.parametrosForm.tipoOperacion === 'count') {
-        return this.parametrosForm.plantillaSeleccionada && this.parametrosForm.tipoOperacion
-      }
-      return (
-        this.parametrosForm.plantillaSeleccionada &&
-        this.parametrosForm.tipoOperacion &&
-        this.parametrosForm.campoSeleccionado
+    mostrarSubcampos() {
+      const campoSeleccionado = this.camposDisponibles.find(
+        (c) => c.name === this.parametrosForm.campoSeleccionado,
       )
+      return campoSeleccionado && campoSeleccionado.type === 'subform'
+    },
+    campoFinal() {
+      return this.mostrarSubcampos
+        ? this.parametrosForm.subcampoSeleccionado
+        : this.parametrosForm.campoSeleccionado
+    },
+    isFormComplete() {
+      // Validación básica
+      if (!this.parametrosForm.plantillaSeleccionada || !this.parametrosForm.tipoOperacion) {
+        return false
+      }
+
+      // Validación para COUNT
+      if (this.parametrosForm.tipoOperacion === 'count') {
+        return true
+      }
+
+      // Validación para otras operaciones
+      if (this.mostrarSubcampos) {
+        return !!this.parametrosForm.subcampoSeleccionado
+      }
+
+      return !!this.parametrosForm.campoSeleccionado
     },
     totalPages() {
       return Math.ceil(this.indicadores.length / this.itemsPerPage)
@@ -714,6 +826,70 @@ export default {
     this.fetchIndicadores()
   },
   methods: {
+    onCampoPrincipalSelected() {
+      this.parametrosForm.subcampoSeleccionado = ''
+      this.parametrosForm.condiciones = []
+
+      const campoSeleccionado = this.camposDisponibles.find(
+        (c) => c.name === this.parametrosForm.campoSeleccionado,
+      )
+
+      if (campoSeleccionado && campoSeleccionado.type === 'subform') {
+        // Verifica que los subcampos estén en la propiedad 'subcampos'
+        this.subcamposDisponibles = campoSeleccionado.subcampos || []
+        console.log('Subcampos disponibles:', this.subcamposDisponibles) // Para depuración
+      } else {
+        this.subcamposDisponibles = []
+      }
+
+      // Preparar campos filtrables (todos los campos excepto subforms)
+      this.camposFiltrables = this.camposDisponibles.filter((campo) => campo.type !== 'subform')
+    },
+
+    agregarCondicion() {
+      this.parametrosForm.condiciones.push({
+        campo: this.camposFiltrables[0]?.name || '',
+        operador: '==',
+        valor: '',
+      })
+    },
+
+    eliminarCondicion(index) {
+      this.parametrosForm.condiciones.splice(index, 1)
+    },
+
+    aplicarParametros() {
+      const configuracion = {
+        coleccion: `template_${this.parametrosForm.plantillaSeleccionada}_data`,
+        operacion: this.parametrosForm.tipoOperacion,
+        condiciones: [...this.parametrosForm.condiciones],
+        campo: this.campoFinal,
+      }
+
+      console.log('Configuración completa:', configuracion)
+
+      this.mostrarNotificacion(
+        '¡Configuración Lista!',
+        `Se configuró ${this.getTipoOperacionTexto()} con ${configuracion.condiciones.length} condiciones`,
+        'success',
+      )
+
+      this.closeParametrosModal()
+
+      // Aquí puedes enviar la configuración al servidor o guardarla donde necesites
+    },
+
+    resetParametrosForm() {
+      this.parametrosForm = {
+        plantillaSeleccionada: '',
+        tipoOperacion: '',
+        campoSeleccionado: '',
+        subcampoSeleccionado: '',
+        condiciones: [],
+      }
+      this.subcamposDisponibles = []
+      this.camposFiltrables = []
+    },
     getCsrfToken() {
       const metaTag = document.querySelector('meta[name="csrf-token"]')
       if (!metaTag) {
@@ -1175,6 +1351,8 @@ export default {
         // Resetear selecciones dependientes
         this.parametrosForm.tipoOperacion = ''
         this.parametrosForm.campoSeleccionado = ''
+        this.parametrosForm.subcampoSeleccionado = ''
+        this.parametrosForm.condiciones = []
 
         try {
           const token = localStorage.getItem('apiToken')
@@ -1190,10 +1368,8 @@ export default {
           )
 
           if (response.data && response.data.campos) {
-            // Filtrar campos que no sean _id y subforms para simplificar
-            this.camposDisponibles = response.data.campos.filter(
-              (campo) => campo.name !== '_id' && campo.type !== 'subform',
-            )
+            // Solo filtramos el campo _id, mantenemos los subforms
+            this.camposDisponibles = response.data.campos.filter((campo) => campo.name !== '_id')
           }
         } catch (error) {
           console.error('Error al obtener los campos:', error)
