@@ -768,6 +768,29 @@ export default {
     this.fetchIndicadores()
   },
   methods: {
+    mapOperacionToBackend(operacionFrontend) {
+      const map = {
+        count: 'contar',
+        sum: 'sumar',
+        avg: 'promedio',
+        max: 'maximo',
+        min: 'minimo',
+      }
+      return map[operacionFrontend] || operacionFrontend
+    },
+
+    mapOperadorToBackend(operadorFrontend) {
+      const map = {
+        '==': 'igual',
+        '!=': 'diferente',
+        '>': 'mayor',
+        '<': 'menor',
+        '>=': 'mayor_o_igual',
+        '<=': 'menor_o_igual',
+        contains: 'contiene',
+      }
+      return map[operadorFrontend] || operadorFrontend
+    },
     onCampoPrincipalSelected() {
       this.parametrosForm.subcampoSeleccionado = ''
       this.parametrosForm.condiciones = []
@@ -807,17 +830,29 @@ export default {
           this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
           return
         }
+        // 1. Obtener el nombre de la plantilla seleccionada
+        const plantillaSeleccionada = this.plantillasDisponibles.find(
+          (p) => p.id === this.parametrosForm.plantillaSeleccionada,
+        )
 
-        // 1. Preparar la configuración en el formato requerido
+        if (!plantillaSeleccionada) {
+          this.mostrarNotificacion('Error', 'No se encontró la plantilla seleccionada', 'error')
+          return
+        }
+
+        const nombrePlantilla =
+          plantillaSeleccionada.nombre_plantilla || plantillaSeleccionada.title
+
+        // 2. Preparar la configuración en el formato requerido
         const configuracion = {
-          coleccion: `template_${this.parametrosForm.plantillaSeleccionada}_data`,
-          operacion: this.parametrosForm.tipoOperacion,
+          coleccion: `template_${nombrePlantilla}_data`,
+          operacion: this.mapOperacionToBackend(this.parametrosForm.tipoOperacion),
+          campo: this.campoFinal || '',
           condicion: this.parametrosForm.condiciones.map((cond) => ({
             campo: cond.campo,
-            operador: cond.operador,
+            operador: this.mapOperadorToBackend(cond.operador),
             valor: cond.valor,
           })),
-          campo: this.campoFinal || '',
         }
 
         console.log('Configuración a enviar:', configuracion)
@@ -829,7 +864,7 @@ export default {
           return
         }
 
-        // 2. ENVOLVER LA CONFIGURACIÓN EN UN OBJETO CON LA PROPIEDAD "configuracion"
+        // 2. Envolvemos en un objeto con la propiedad 'configuracion'
         const payload = {
           configuracion: configuracion,
         }
@@ -837,7 +872,7 @@ export default {
         // 3. Enviar al endpoint
         const response = await axios.put(
           `http://127.0.0.1:8000/api/indicadores/${idIndicador}/configuracion`,
-          payload, // Enviamos el objeto payload que contiene configuracion
+          payload,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -861,26 +896,19 @@ export default {
             'warning',
           )
         }
-        //Modal de cierre
+
         this.closeParametrosModal()
       } catch (error) {
         console.error('Error al guardar configuración:', error)
 
         let mensaje = 'Error al guardar la configuración'
         if (error.response) {
-          // Manejar errores específicos del servidor
           if (error.response.status === 401) {
             mensaje = 'Sesión expirada. Por favor inicie sesión nuevamente'
             localStorage.removeItem('apiToken')
             this.$router.push('/login')
-          } else if (error.response.data && error.response.data.message) {
-            mensaje = error.response.data.message
-          } else if (error.response.data) {
-            // Mostrar el primer error de validación si existe
-            const firstError = Object.values(error.response.data)[0]
-            if (Array.isArray(firstError)) {
-              mensaje = firstError[0]
-            }
+          } else if (error.response.data && error.response.data.error) {
+            mensaje = error.response.data.error
           }
         }
 
