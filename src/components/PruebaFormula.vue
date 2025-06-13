@@ -858,25 +858,93 @@ export default {
       this.parametrosForm.condiciones.splice(index, 1)
     },
 
-    aplicarParametros() {
-      const configuracion = {
-        coleccion: `template_${this.parametrosForm.plantillaSeleccionada}_data`,
-        operacion: this.parametrosForm.tipoOperacion,
-        condiciones: [...this.parametrosForm.condiciones],
-        campo: this.campoFinal,
+    async aplicarParametros() {
+      try {
+        // 1. Preparar la configuración en el formato requerido
+        const configuracion = {
+          coleccion: `template_${this.parametrosForm.plantillaSeleccionada}_data`,
+          operacion: this.parametrosForm.tipoOperacion, // Usamos el valor crudo (sum, avg, etc.)
+          condicion: this.parametrosForm.condiciones.map((cond) => ({
+            campo: cond.campo,
+            operador: cond.operador,
+            valor: cond.valor,
+          })),
+          campo: this.campoFinal || '', // Asegurarnos de que siempre haya un valor
+        }
+
+        console.log('Configuración a enviar:', configuracion)
+
+        // 2. Obtener el token y verificar autenticación
+        const token = localStorage.getItem('apiToken')
+        if (!token) {
+          this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
+          this.$router.push('/login')
+          return
+        }
+
+        // 3. Obtener el ID del indicador (asumo que está en this.indicadorEditForm._id)
+        const idIndicador = this.indicadorEditForm._id
+        if (!idIndicador) {
+          this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
+          return
+        }
+
+        // 4. Enviar la configuración al servidor - SIN anidar en objeto "configuracion"
+        const response = await axios.put(
+          `http://127.0.0.1:8000/api/indicadores/${idIndicador}/configuracion`,
+          configuracion, // Enviamos directamente el objeto configuracion
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+          },
+        )
+
+        // 5. Manejar la respuesta
+        if (response.status === 200) {
+          this.mostrarNotificacion(
+            '¡Configuración Guardada!',
+            `La configuración se guardó exitosamente`,
+            'success',
+          )
+
+          // Opcional: Actualizar los datos del indicador
+          this.fetchIndicadores()
+        } else {
+          this.mostrarNotificacion(
+            'Advertencia',
+            'El servidor respondió con un estado inesperado: ' + response.status,
+            'warning',
+          )
+        }
+
+        // 6. Cerrar el modal
+        this.closeParametrosModal()
+      } catch (error) {
+        console.error('Error al guardar configuración:', error)
+
+        let mensaje = 'Error al guardar la configuración'
+        if (error.response) {
+          // Manejar errores específicos del servidor
+          if (error.response.status === 401) {
+            mensaje = 'Sesión expirada. Por favor inicie sesión nuevamente'
+            localStorage.removeItem('apiToken')
+            this.$router.push('/login')
+          } else if (error.response.data && error.response.data.message) {
+            mensaje = error.response.data.message
+          } else if (error.response.data) {
+            // Mostrar el primer error de validación si existe
+            const firstError = Object.values(error.response.data)[0]
+            if (Array.isArray(firstError)) {
+              mensaje = firstError[0]
+            }
+          }
+        }
+
+        this.mostrarNotificacion('Error', mensaje, 'error')
       }
-
-      console.log('Configuración completa:', configuracion)
-
-      this.mostrarNotificacion(
-        '¡Configuración Lista!',
-        `Se configuró ${this.getTipoOperacionTexto()} con ${configuracion.condiciones.length} condiciones`,
-        'success',
-      )
-
-      this.closeParametrosModal()
-
-      // Aquí puedes enviar la configuración al servidor o guardarla donde necesites
     },
 
     resetParametrosForm() {
