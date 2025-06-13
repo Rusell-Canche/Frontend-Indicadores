@@ -802,28 +802,26 @@ export default {
 
     async aplicarParametros() {
       try {
-        // Obtener el ID del indicador seleccionado
         const idIndicador = this.indicadorSeleccionado?._id || this.indicadorSeleccionado?.id
-
         if (!idIndicador) {
           this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
           return
         }
+
         // 1. Preparar la configuración en el formato requerido
         const configuracion = {
           coleccion: `template_${this.parametrosForm.plantillaSeleccionada}_data`,
-          operacion: this.parametrosForm.tipoOperacion, // Usamos el valor crudo (sum, avg, etc.)
+          operacion: this.parametrosForm.tipoOperacion,
           condicion: this.parametrosForm.condiciones.map((cond) => ({
             campo: cond.campo,
             operador: cond.operador,
             valor: cond.valor,
           })),
-          campo: this.campoFinal || '', // Asegurarnos de que siempre haya un valor
+          campo: this.campoFinal || '',
         }
 
         console.log('Configuración a enviar:', configuracion)
 
-        // 2. Obtener el token y verificar autenticación
         const token = localStorage.getItem('apiToken')
         if (!token) {
           this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
@@ -831,10 +829,15 @@ export default {
           return
         }
 
-        // 4. Enviar la configuración al servidor - SIN anidar en objeto "configuracion"
+        // 2. ENVOLVER LA CONFIGURACIÓN EN UN OBJETO CON LA PROPIEDAD "configuracion"
+        const payload = {
+          configuracion: configuracion,
+        }
+
+        // 3. Enviar al endpoint
         const response = await axios.put(
           `http://127.0.0.1:8000/api/indicadores/${idIndicador}/configuracion`,
-          configuracion, // Enviamos directamente el objeto configuracion
+          payload, // Enviamos el objeto payload que contiene configuracion
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -844,15 +847,12 @@ export default {
           },
         )
 
-        // 5. Manejar la respuesta
         if (response.status === 200) {
           this.mostrarNotificacion(
             '¡Configuración Guardada!',
             `La configuración se guardó exitosamente`,
             'success',
           )
-
-          // Opcional: Actualizar los datos del indicador
           this.fetchIndicadores()
         } else {
           this.mostrarNotificacion(
@@ -861,8 +861,7 @@ export default {
             'warning',
           )
         }
-
-        // 6. Cerrar el modal
+        //Modal de cierre
         this.closeParametrosModal()
       } catch (error) {
         console.error('Error al guardar configuración:', error)
@@ -906,11 +905,6 @@ export default {
         throw new Error('No se encontró el token CSRF')
       }
       return metaTag.content
-    },
-    abrirModalParametros(indicador) {
-      this.indicadorSeleccionado = indicador // Guardar el indicador
-      this.closeConfigModal()
-      this.configurarParametrosCalculo()
     },
 
     /**
@@ -1436,7 +1430,7 @@ export default {
      */
     getTipoOperacionTexto() {
       const operaciones = {
-        count: 'CONTEO',
+        count: 'contar',
         sum: 'SUMA',
         avg: 'PROMEDIO',
         max: 'MÁXIMO',
