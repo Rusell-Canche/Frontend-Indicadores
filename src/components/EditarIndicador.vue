@@ -143,7 +143,7 @@ export default {
   data() {
     return {
       indicadorEditForm: {
-        _id: this.id,
+        _id: this.id || this._id,
         nombreIndicador: '',
         numerador: '',
         numero: '',
@@ -159,7 +159,8 @@ export default {
     async cargarIndicador() {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(`http://127.0.0.1:8000/api/indicador/${this.id}`, {
+        // Obtener todos los indicadores
+        const response = await axios.get('http://127.0.0.1:8000/api/indicador/getAll', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -167,20 +168,34 @@ export default {
           },
         })
 
-        if (response.status === 200) {
-          const indicador = response.data
-          this.indicadorEditForm = {
-            _id: this.id,
-            nombreIndicador: indicador.nombreIndicador,
-            numerador: indicador.numerador,
-            numero: indicador.numero,
-            denominador: indicador.denominador,
-            _idProyecto: indicador._idProyecto,
+        if (response.status === 200 && Array.isArray(response.data.indicadores)) {
+          // Buscar el indicador por ID
+          const indicador = response.data.indicadores.find(
+            (i) => i._id === this.id || i.id === this.id,
+          )
+
+          if (indicador) {
+            this.indicadorEditForm = {
+              _id: this.id,
+              nombreIndicador: indicador.nombreIndicador,
+              numerador: indicador.numerador,
+              numero: indicador.numero,
+              denominador: indicador.denominador,
+              _idProyecto: indicador._idProyecto,
+            }
+          } else {
+            throw new Error('Indicador no encontrado')
           }
+        } else {
+          throw new Error('Respuesta inválida de la API')
         }
       } catch (error) {
         console.error('Error cargando indicador:', error)
-        this.mostrarNotificacion('Error', 'No se pudo cargar el indicador', 'error')
+        this.mostrarNotificacion(
+          'Error',
+          'No se pudo cargar el indicador: ' + error.message,
+          'error',
+        )
         this.cerrarModal()
       }
     },
