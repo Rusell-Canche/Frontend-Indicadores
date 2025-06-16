@@ -158,7 +158,10 @@
         </div>
 
         <!-- Sección de condiciones -->
-        <div class="form-section" v-if="parametrosForm.campoSeleccionado">
+        <div
+          class="form-section"
+          v-if="parametrosForm.campoSeleccionado || parametrosForm.tipoOperacion"
+        >
           <h6 class="section-title">
             <i class="fas fa-filter me-2"></i>
             Condiciones de Filtrado
@@ -538,6 +541,9 @@ export default {
 
           if (response.data && response.data.campos) {
             this.camposDisponibles = response.data.campos.filter((campo) => campo.name !== '_id')
+            this.camposFiltrables = this.camposDisponibles.filter(
+              (campo) => campo.type !== 'subform',
+            )
           }
         } catch (error) {
           console.error('Error al obtener los campos:', error)
