@@ -159,7 +159,7 @@ export default {
     async cargarIndicador() {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(`http://127.0.0.1:8000/api/indicador/getById/${this.id}`, {
+        const response = await axios.get(`http://127.0.0.1:8000/api/indicador/${this.id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
