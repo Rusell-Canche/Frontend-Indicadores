@@ -1,161 +1,5 @@
 <template>
   <div class="container-fluid py-4">
-    <!-- Modal de edición -->
-    <div v-if="showEditModal" class="medico-modal-backdrop" @click="closeEditModal">
-      <div class="medico-modal-content" @click.stop>
-        <!-- Header del modal -->
-        <div class="medico-modal-header">
-          <div class="modal-header-content">
-            <div class="modal-icon">
-              <i class="fas fa-edit"></i>
-            </div>
-            <div class="modal-title-section">
-              <h3>Editar Indicador</h3>
-              <p class="modal-subtitle">Actualiza la información del indicador seleccionado</p>
-            </div>
-          </div>
-          <button @click="closeEditModal" class="medico-close-button">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-
-        <!-- Body del modal -->
-        <div class="medico-modal-body">
-          <form @submit.prevent="guardarEdicion">
-            <div class="form-section">
-              <h6 class="section-title">
-                <i class="fas fa-tag me-2"></i>
-                Información del Indicador
-              </h6>
-              <div class="row g-3">
-                <div class="col-md-12">
-                  <label class="form-label">Nombre del Indicador*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-tag"></i>
-                    </span>
-                    <input
-                      v-model="indicadorEditForm.nombreIndicador"
-                      class="form-control"
-                      required
-                      placeholder="Ej: Indicador de calidad"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-section">
-              <h6 class="section-title">
-                <i class="fas fa-folder me-2"></i>
-                Configuración del Proyecto
-              </h6>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label">Proyecto*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-folder"></i>
-                    </span>
-                    <select v-model="indicadorEditForm._idProyecto" class="form-select" required>
-                      <option value="">Seleccione un proyecto</option>
-                      <option value="1.1.2">Proyecto 1.1.2</option>
-                      <option value="1.1.3">Proyecto 1.1.3</option>
-                      <option value="1.1.4">Proyecto 1.1.4</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Número</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-hashtag"></i>
-                    </span>
-                    <input
-                      v-model="indicadorEditForm.numero"
-                      type="number"
-                      class="form-control"
-                      placeholder="Ej: 1"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-section">
-              <h6 class="section-title">
-                <i class="fas fa-calculator me-2"></i>
-                Valores Numéricos
-              </h6>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label">Numerador</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-arrow-down"></i>
-                    </span>
-                    <input
-                      v-model="indicadorEditForm.numerador"
-                      type="number"
-                      class="form-control"
-                      placeholder="Ej: 100"
-                    />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Denominador</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-arrow-up"></i>
-                    </span>
-                    <input
-                      v-model="indicadorEditForm.denominador"
-                      type="number"
-                      class="form-control"
-                      placeholder="Ej: 200"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        <!-- Footer del modal -->
-        <div class="medico-modal-footer">
-          <button @click="closeEditModal" class="btn btn-cancel">
-            <i class="fas fa-times me-2"></i>
-            Cancelar
-          </button>
-          <button @click="guardarEdicion" class="btn btn-save">
-            <i class="fas fa-save me-2"></i>
-            Actualizar Indicador
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal para configurar el indicador -->
-    <div v-if="showConfigModal" class="medico-modal-backdrop" @click="closeConfigModal">
-      <div class="medico-modal-content" @click.stop>
-        <!-- Header del modal -->
-        <div class="medico-modal-header">
-          <div class="modal-header-content">
-            <div class="modal-icon">
-              <i class="fas fa-cog"></i>
-            </div>
-            <div class="modal-title-section">
-              <h3>Configurar Indicador</h3>
-              <p class="modal-subtitle">Ajusta los parámetros y configuraciones del indicador</p>
-            </div>
-          </div>
-          <button @click="closeConfigModal" class="medico-close-button">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Contenido principal -->
     <div class="card shadow border-0 rounded-3">
       <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
@@ -261,20 +105,26 @@
                 </td>
                 <td>
                   <div class="d-flex justify-content-center gap-2">
-                    <button
-                      @click="configurarIndicador(indicador)"
+                    <router-link
+                      :to="{
+                        name: 'configurar-indicador',
+                        params: { id: indicador._id || indicador.id },
+                      }"
                       class="action-btn config-btn"
                       title="Configurar indicador"
                     >
                       <i class="fas fa-cog"></i>
-                    </button>
-                    <button
-                      @click="editarIndicador(indicador)"
+                    </router-link>
+                    <router-link
+                      :to="{
+                        name: 'editar-indicador',
+                        params: { id: indicador._id || indicador.id },
+                      }"
                       class="action-btn edit-btn"
                       title="Editar indicador"
                     >
                       <i class="fas fa-edit"></i>
-                    </button>
+                    </router-link>
                     <button
                       @click="eliminarIndicador(indicador)"
                       class="action-btn delete-btn"
@@ -350,313 +200,6 @@
         </div>
       </div>
 
-      <!-- Modal para parámetros de cálculo -->
-      <div v-if="showParametrosModal" class="medico-modal-backdrop" @click="closeParametrosModal">
-        <div class="medico-modal-content" @click.stop>
-          <!-- Header del modal -->
-          <div class="medico-modal-header">
-            <div class="modal-header-content">
-              <div class="modal-icon">
-                <i class="fas fa-chart-line"></i>
-              </div>
-              <div class="modal-title-section">
-                <h3>Parámetros de Cálculo</h3>
-                <p class="modal-subtitle">
-                  Configura las operaciones y campos para el cálculo del indicador
-                </p>
-              </div>
-            </div>
-            <button @click="closeParametrosModal" class="medico-close-button">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-
-          <!-- Body del modal -->
-          <div class="medico-modal-body">
-            <!-- Selección de plantilla -->
-            <div class="form-section">
-              <h6 class="section-title">
-                <i class="fas fa-file-alt me-2"></i>
-                Seleccionar Plantilla
-              </h6>
-              <div class="row g-3">
-                <div class="col-md-12">
-                  <label class="form-label">Plantilla*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-list-alt"></i>
-                    </span>
-                    <select
-                      v-model="parametrosForm.plantillaSeleccionada"
-                      class="form-select"
-                      @change="onPlantillaSelected"
-                      required
-                    >
-                      <option value="">Seleccione una plantilla</option>
-                      <option
-                        v-for="plantilla in plantillasDisponibles"
-                        :key="plantilla.id"
-                        :value="plantilla.id"
-                      >
-                        {{ plantilla.title || plantilla.nombre_plantilla }}
-                      </option>
-                    </select>
-                  </div>
-                  <div class="form-text">Selecciona la plantilla de documentos a analizar</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Selección de operación -->
-            <div class="form-section" v-if="parametrosForm.plantillaSeleccionada">
-              <h6 class="section-title">
-                <i class="fas fa-calculator me-2"></i>
-                Tipo de Operación
-              </h6>
-              <div class="row g-3">
-                <div class="col-md-12">
-                  <label class="form-label">Operación*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-function"></i>
-                    </span>
-                    <select v-model="parametrosForm.tipoOperacion" class="form-select" required>
-                      <option value="">Seleccione una operación</option>
-                      <option value="count">Contar registros (COUNT)</option>
-                      <option value="sum">Sumar valores (SUM)</option>
-                      <option value="avg">Promedio (AVG)</option>
-                      <option value="max">Valor máximo (MAX)</option>
-                      <option value="min">Valor mínimo (MIN)</option>
-                    </select>
-                  </div>
-                  <div class="form-text">
-                    <span v-if="parametrosForm.tipoOperacion === 'count'">
-                      Contará el número total de documentos
-                    </span>
-                    <span v-else-if="parametrosForm.tipoOperacion === 'sum'">
-                      Sumará los valores del campo seleccionado
-                    </span>
-                    <span v-else-if="parametrosForm.tipoOperacion === 'avg'">
-                      Calculará el promedio del campo seleccionado
-                    </span>
-                    <span v-else-if="parametrosForm.tipoOperacion === 'max'">
-                      Encontrará el valor máximo del campo seleccionado
-                    </span>
-                    <span v-else-if="parametrosForm.tipoOperacion === 'min'">
-                      Encontrará el valor mínimo del campo seleccionado
-                    </span>
-                    <span v-else> Selecciona la operación matemática a realizar </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Selección de campo -->
-            <!-- Dentro del modal de parámetros de cálculo -->
-            <div
-              class="form-section"
-              v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'count'"
-            >
-              <h6 class="section-title">
-                <i class="fas fa-tag me-2"></i>
-                Campo a Procesar
-              </h6>
-              <div class="row g-3">
-                <div class="col-md-12">
-                  <label class="form-label">Campo principal*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-columns"></i>
-                    </span>
-                    <select
-                      v-model="parametrosForm.campoSeleccionado"
-                      @change="onCampoPrincipalSelected"
-                      class="form-select"
-                      required
-                    >
-                      <option value="">Seleccione un campo</option>
-                      <option
-                        v-for="campo in camposDisponibles"
-                        :key="campo.name"
-                        :value="campo.name"
-                      >
-                        {{ campo.alias || campo.name }} ({{ getTipoCampo(campo) }})
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Select para subcampos (solo visible si el campo principal es un subform) -->
-                <div class="col-md-12" v-if="mostrarSubcampos">
-                  <label class="form-label">Subcampo*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-layer-group"></i>
-                    </span>
-                    <select
-                      v-model="parametrosForm.subcampoSeleccionado"
-                      class="form-select"
-                      required
-                    >
-                      <option value="">Seleccione un subcampo</option>
-                      <option
-                        v-for="subcampo in subcamposDisponibles"
-                        :key="subcampo.name"
-                        :value="subcampo.name"
-                        :disabled="
-                          parametrosForm.tipoOperacion !== 'count' && !esCampoNumerico(subcampo)
-                        "
-                      >
-                        {{ subcampo.name }} ({{ getTipoCampo(subcampo) }})
-                        <span
-                          v-if="
-                            parametrosForm.tipoOperacion !== 'count' && !esCampoNumerico(subcampo)
-                          "
-                        >
-                          (No numérico)
-                        </span>
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sección de condiciones -->
-            <div class="form-section" v-if="parametrosForm.campoSeleccionado">
-              <h6 class="section-title">
-                <i class="fas fa-filter me-2"></i>
-                Condiciones de Filtrado
-              </h6>
-
-              <div class="table-responsive">
-                <table class="table modern-table">
-                  <thead>
-                    <tr>
-                      <th>Campo</th>
-                      <th>Operador</th>
-                      <th>Valor</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(condicion, index) in parametrosForm.condiciones" :key="index">
-                      <td>
-                        <select v-model="condicion.campo" class="form-select form-select-sm">
-                          <option
-                            v-for="campo in camposFiltrables"
-                            :key="campo.name"
-                            :value="campo.name"
-                          >
-                            {{ campo.alias || campo.name }}
-                          </option>
-                        </select>
-                      </td>
-                      <td>
-                        <select v-model="condicion.operador" class="form-select form-select-sm">
-                          <option value="==">Igual a</option>
-                          <option value="!=">Diferente de</option>
-                          <option value=">">Mayor que</option>
-                          <option value="<">Menor que</option>
-                          <option value=">=">Mayor o igual</option>
-                          <option value="<=">Menor o igual</option>
-                          <option value="contains">Contiene</option>
-                        </select>
-                      </td>
-                      <td>
-                        <input
-                          v-model="condicion.valor"
-                          type="text"
-                          class="form-control form-control-sm"
-                          placeholder="Valor"
-                        />
-                      </td>
-                      <td>
-                        <button
-                          @click="eliminarCondicion(index)"
-                          class="btn btn-sm btn-danger"
-                          title="Eliminar condición"
-                        >
-                          <i class="fas fa-trash-alt"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <button @click="agregarCondicion" class="btn btn-sm btn-primary mt-2">
-                <i class="fas fa-plus me-1"></i> Agregar Condición
-              </button>
-            </div>
-
-            <!-- Información del cálculo (solo si está todo completo) -->
-            <div class="form-section" v-if="isFormComplete">
-              <h6 class="section-title">
-                <i class="fas fa-info-circle me-2"></i>
-                Resumen del Cálculo
-              </h6>
-              <div class="alert alert-info">
-                <div class="d-flex align-items-start">
-                  <i class="fas fa-lightbulb me-3 mt-1"></i>
-                  <div>
-                    <strong>Operación configurada:</strong><br />
-                    <span v-if="parametrosForm.tipoOperacion === 'count'">
-                      Se contarán todos los documentos de la plantilla
-                      <strong>"{{ getNombrePlantillaSeleccionada() }}"</strong>
-                    </span>
-                    <span v-else>
-                      Se realizará la operación <strong>{{ getTipoOperacionTexto() }}</strong> sobre
-                      el campo <strong>"{{ getNombreCampoSeleccionado() }}"</strong>
-                      de todos los documentos de la plantilla
-                      <strong>"{{ getNombrePlantillaSeleccionada() }}"</strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Vista previa de campos disponibles (solo informativa) -->
-            <div class="form-section" v-if="camposDisponibles.length > 0">
-              <h6 class="section-title">
-                <i class="fas fa-eye me-2"></i>
-                Campos Disponibles en la Plantilla
-              </h6>
-              <div class="campos-preview">
-                <div class="row g-2">
-                  <div
-                    v-for="campo in camposDisponibles.slice(0, 6)"
-                    :key="campo.name"
-                    class="col-md-4"
-                  >
-                    <div class="campo-badge" :class="{ 'campo-numerico': esCampoNumerico(campo) }">
-                      <i class="fas fa-tag me-2"></i>
-                      <span>{{ campo.alias || campo.name }}</span>
-                      <small class="campo-tipo">({{ getTipoCampo(campo) }})</small>
-                    </div>
-                  </div>
-                </div>
-                <div v-if="camposDisponibles.length > 6" class="text-muted mt-2">
-                  <small>... y {{ camposDisponibles.length - 6 }} campos más</small>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Footer del modal -->
-          <div class="medico-modal-footer">
-            <button @click="closeParametrosModal" class="btn btn-cancel">
-              <i class="fas fa-times me-2"></i>
-              Cancelar
-            </button>
-            <button @click="aplicarParametros" class="btn btn-save" :disabled="!isFormComplete">
-              <i class="fas fa-check me-2"></i>
-              Aplicar Configuración
-            </button>
-          </div>
-        </div>
-      </div>
-
       <!-- Footer con información -->
       <div class="card-footer bg-white text-muted small py-2">
         <div class="d-flex justify-content-between align-items-center">
@@ -665,6 +208,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Vista para componentes hijos -->
+    <router-view @indicador-actualizado="fetchIndicadores"></router-view>
   </div>
 </template>
 
@@ -679,61 +225,9 @@ export default {
       loading: true,
       currentPage: 1,
       itemsPerPage: 12,
-      showEditModal: false,
-      showConfigModal: false,
-      indicadorEditForm: {
-        _id: null,
-        nombreIndicador: '',
-        numerador: '',
-        numero: '',
-        denominador: '',
-        _idProyecto: '',
-      },
-      showParametrosModal: false,
-      plantillasDisponibles: [],
-      camposDisponibles: [],
-      parametrosForm: {
-        plantillaSeleccionada: '',
-        tipoOperacion: '',
-        campoSeleccionado: '',
-        subcampoSeleccionado: '',
-        condiciones: [],
-      },
-      subcamposDisponibles: [],
-      camposFiltrables: [],
-      indicadorSeleccionado: null,
     }
   },
   computed: {
-    mostrarSubcampos() {
-      const campoSeleccionado = this.camposDisponibles.find(
-        (c) => c.name === this.parametrosForm.campoSeleccionado,
-      )
-      return campoSeleccionado && campoSeleccionado.type === 'subform'
-    },
-    campoFinal() {
-      return this.mostrarSubcampos
-        ? this.parametrosForm.subcampoSeleccionado
-        : this.parametrosForm.campoSeleccionado
-    },
-    isFormComplete() {
-      // Validación básica
-      if (!this.parametrosForm.plantillaSeleccionada || !this.parametrosForm.tipoOperacion) {
-        return false
-      }
-
-      // Validación para COUNT
-      if (this.parametrosForm.tipoOperacion === 'count') {
-        return true
-      }
-
-      // Validación para otras operaciones
-      if (this.mostrarSubcampos) {
-        return !!this.parametrosForm.subcampoSeleccionado
-      }
-
-      return !!this.parametrosForm.campoSeleccionado
-    },
     totalPages() {
       return Math.ceil(this.indicadores.length / this.itemsPerPage)
     },
@@ -767,199 +261,30 @@ export default {
   mounted() {
     this.fetchIndicadores()
   },
+  watch: {
+    // Recargar indicadores al regresar de rutas hijas
+    $route(to, from) {
+      if (to.name === 'ver-indicadores' && from.name !== 'ver-indicadores') {
+        this.fetchIndicadores()
+      }
+    },
+  },
   methods: {
-    mapOperacionToBackend(operacionFrontend) {
-      const map = {
-        count: 'contar',
-        sum: 'sumar',
-        avg: 'promedio',
-        max: 'maximo',
-        min: 'minimo',
-      }
-      return map[operacionFrontend] || operacionFrontend
-    },
-
-    mapOperadorToBackend(operadorFrontend) {
-      const map = {
-        '==': 'igual',
-        '!=': 'diferente',
-        '>': 'mayor',
-        '<': 'menor',
-        '>=': 'mayor_o_igual',
-        '<=': 'menor_o_igual',
-        contains: 'contiene',
-      }
-      return map[operadorFrontend] || operadorFrontend
-    },
-    onCampoPrincipalSelected() {
-      this.parametrosForm.subcampoSeleccionado = ''
-      this.parametrosForm.condiciones = []
-
-      const campoSeleccionado = this.camposDisponibles.find(
-        (c) => c.name === this.parametrosForm.campoSeleccionado,
-      )
-
-      if (campoSeleccionado && campoSeleccionado.type === 'subform') {
-        // Verifica que los subcampos estén en la propiedad 'subcampos'
-        this.subcamposDisponibles = campoSeleccionado.subcampos || []
-        console.log('Subcampos disponibles:', this.subcamposDisponibles) // Para depuración
-      } else {
-        this.subcamposDisponibles = []
-      }
-
-      // Preparar campos filtrables (todos los campos excepto subforms)
-      this.camposFiltrables = this.camposDisponibles.filter((campo) => campo.type !== 'subform')
-    },
-
-    agregarCondicion() {
-      this.parametrosForm.condiciones.push({
-        campo: this.camposFiltrables[0]?.name || '',
-        operador: '==',
-        valor: '',
-      })
-    },
-
-    eliminarCondicion(index) {
-      this.parametrosForm.condiciones.splice(index, 1)
-    },
-
-    async aplicarParametros() {
-      try {
-        const idIndicador = this.indicadorSeleccionado?._id || this.indicadorSeleccionado?.id
-        if (!idIndicador) {
-          this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
-          return
-        }
-        // 1. Obtener el nombre de la plantilla seleccionada
-        const plantillaSeleccionada = this.plantillasDisponibles.find(
-          (p) => p.id === this.parametrosForm.plantillaSeleccionada,
-        )
-
-        if (!plantillaSeleccionada) {
-          this.mostrarNotificacion('Error', 'No se encontró la plantilla seleccionada', 'error')
-          return
-        }
-
-        const nombrePlantilla =
-          plantillaSeleccionada.nombre_plantilla || plantillaSeleccionada.title
-
-        // 2. Preparar la configuración en el formato requerido
-        const configuracion = {
-          coleccion: `template_${nombrePlantilla}_data`,
-          operacion: this.mapOperacionToBackend(this.parametrosForm.tipoOperacion),
-          campo: this.campoFinal || '',
-          condicion: this.parametrosForm.condiciones.map((cond) => ({
-            campo: cond.campo,
-            operador: this.mapOperadorToBackend(cond.operador),
-            valor: cond.valor,
-          })),
-        }
-
-        console.log('Configuración a enviar:', configuracion)
-
-        const token = localStorage.getItem('apiToken')
-        if (!token) {
-          this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
-          this.$router.push('/')
-          return
-        }
-
-        // 2. Envolvemos en un objeto con la propiedad 'configuracion'
-        const payload = {
-          configuracion: configuracion,
-        }
-
-        // 3. Enviar al endpoint
-        const response = await axios.put(
-          `http://127.0.0.1:8000/api/indicadores/${idIndicador}/configuracion`,
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-          },
-        )
-
-        if (response.status === 200) {
-          this.mostrarNotificacion(
-            '¡Configuración Guardada!',
-            `La configuración se guardó exitosamente`,
-            'success',
-          )
-          this.fetchIndicadores()
-        } else {
-          this.mostrarNotificacion(
-            'Advertencia',
-            'El servidor respondió con un estado inesperado: ' + response.status,
-            'warning',
-          )
-        }
-
-        this.closeParametrosModal()
-      } catch (error) {
-        console.error('Error al guardar configuración:', error)
-
-        let mensaje = 'Error al guardar la configuración'
-        if (error.response) {
-          if (error.response.status === 401) {
-            mensaje = 'Sesión expirada. Por favor inicie sesión nuevamente'
-            localStorage.removeItem('apiToken')
-            this.$router.push('/')
-          } else if (error.response.data && error.response.data.error) {
-            mensaje = error.response.data.error
-          }
-        }
-
-        this.mostrarNotificacion('Error', mensaje, 'error')
-      }
-    },
-
-    resetParametrosForm() {
-      this.parametrosForm = {
-        plantillaSeleccionada: '',
-        tipoOperacion: '',
-        campoSeleccionado: '',
-        subcampoSeleccionado: '',
-        condiciones: [],
-      }
-      this.subcamposDisponibles = []
-      this.camposFiltrables = []
-    },
-    getCsrfToken() {
-      const metaTag = document.querySelector('meta[name="csrf-token"]')
-      if (!metaTag) {
-        throw new Error('No se encontró el token CSRF')
-      }
-      return metaTag.content
-    },
-
-    /**
-     * Hace una petición a la API para conseguir
-     * todos los indicadores y los guarda en el arreglo indicadores
-     * @async */
     async fetchIndicadores() {
       try {
-        // Activamos el modo de carga
         this.loading = true
-
-        // Obtenemos el token del localStorage (usando la clave correcta)
         const token = localStorage.getItem('apiToken')
 
-        // Verificamos que el token existe
         if (!token) {
           this.mostrarNotificacion(
             'Error',
             'No hay sesión activa. Por favor inicia sesión.',
             'error',
           )
-          // Redirigir al login si no hay token
           this.$router.push('/')
           return
         }
 
-        // Hacemos la peticion para obtener los indicadores
         const response = await axios.get('http://127.0.0.1:8000/api/indicador/getAll', {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -968,44 +293,32 @@ export default {
           },
         })
 
-        // Imprimimos la respuesta
-        console.info('Respuesta de la API a indicadores')
-        console.info(response)
-
-        // Procesamos la respuesta
         if (response.status === 200) {
-          // Revisamos si hay indicadores en data
           if (Array.isArray(response.data.indicadores)) {
             this.indicadores = response.data.indicadores
           } else {
-            // Si indicadores esta vacio no se devuelve nada
             this.indicadores = []
           }
         }
       } catch (error) {
         console.error('Error completo:', error)
 
-        // Revisamos que haya respuesta
         if (error.response) {
           const status = error.response.status
 
           if (status === 401) {
-            // Token inválido o expirado
             this.mostrarNotificacion(
               'Error',
               'Sesión expirada. Por favor inicia sesión nuevamente.',
               'error',
             )
-            // Limpiar token inválido
             localStorage.removeItem('apiToken')
             localStorage.removeItem('user')
-            // Redirigir al login
             this.$router.push('/')
           } else {
             this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
           }
         } else if (error.request) {
-          // No se recibió respuesta del servidor
           this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
           console.error('Sin respuesta del servidor:', error.request)
         } else {
@@ -1013,19 +326,11 @@ export default {
           console.error('Error inesperado:', error)
         }
       } finally {
-        // Desactivamos el modo de carga
         this.loading = false
       }
     },
-
-    /**
-     * Elimina un indicador en especifico
-     * @param {Object} indicador -  El indicador a borrar.
-     * @async
-     */
     async eliminarIndicador(indicador) {
       try {
-        // Obtenemos el token
         const token = localStorage.getItem('apiToken')
 
         if (!token) {
@@ -1038,7 +343,6 @@ export default {
           return
         }
 
-        // Mostramos un mensaje de confirmación
         const respuesta = await Swal.fire({
           title: '¿Estás seguro que quieres borrarlo?',
           text: 'No podrás revertir esto.',
@@ -1050,12 +354,9 @@ export default {
           cancelButtonText: 'Cancelar',
         })
 
-        // Si el usuario confirma la eliminacion hacemos la peticion
         if (respuesta.isConfirmed) {
-          // Obtenemos el id del indicador
           const idIndicador = indicador._id || indicador.id
 
-          // Hacemos la peticion
           const response = await axios.delete(
             `http://127.0.0.1:8000/api/indicador/delete/${idIndicador}`,
             {
@@ -1068,11 +369,8 @@ export default {
             },
           )
 
-          // Manejamos la respuesta
           if (response.status === 200) {
-            // Mostramos un mensaje de exito
             this.mostrarNotificacion('¡Completado!', 'Indicador eliminado exitosamente', 'success')
-            // Actualizamos la lista de indicadores
             this.fetchIndicadores()
           } else {
             this.mostrarNotificacion(
@@ -1085,11 +383,9 @@ export default {
       } catch (error) {
         console.error('Error completo:', error)
 
-        // Revisamos que el error tenga respuesta
         if (error.response) {
           const status = error.response.status
 
-          // Manejamos los posibles codigos de error
           switch (status) {
             case 401:
               this.mostrarNotificacion(
@@ -1115,198 +411,12 @@ export default {
               break
           }
         } else if (error.request) {
-          // No se recibió respuesta del servidor
           this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
         } else {
           this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
         }
       }
     },
-    /**
-     * Configura el indicador seleccionado
-     */
-    configurarIndicador(indicador) {
-      this.indicadorSeleccionado = indicador // Guardar el indicador
-      this.configurarParametrosCalculo()
-    },
-    /**
-     * Cierra el modal de configuración
-     */
-    closeConfigModal() {
-      this.showConfigModal = false
-    },
-
-    /**
-     * Guarda la configuración del indicador
-     */
-    guardarConfiguracion() {
-      // Aquí iría la lógica para guardar la configuración
-      this.mostrarNotificacion('¡Completado!', 'Configuración aplicada exitosamente', 'success')
-      this.closeConfigModal()
-    },
-
-    /**
-     * Activa el modo de edición y carga los datos
-     * del indicador seleccionado en indicadorEditForm
-     * @param eje - El eje a editar.
-     */
-    editarIndicador(indicador) {
-      // Cambiamos el estado del modal
-      this.showEditModal = true
-      // Cargamos los datos del eje en el formulario
-      this.indicadorEditForm._id = indicador._id || indicador.id
-      this.indicadorEditForm.nombreIndicador = indicador.nombreIndicador
-      this.indicadorEditForm.numerador = indicador.numerador
-      this.indicadorEditForm.numero = indicador.numero
-      this.indicadorEditForm.denominador = indicador.denominador
-      this.indicadorEditForm._idProyecto = indicador._idProyecto
-    },
-
-    /**
-     * Guarda los cambios realizados en el indicador
-     * @async
-     */
-    async guardarEdicion() {
-      try {
-        // Obtenemos el token
-        const token = localStorage.getItem('apiToken')
-
-        if (!token) {
-          this.mostrarNotificacion(
-            'Error',
-            'No hay sesión activa. Por favor inicia sesión.',
-            'error',
-          )
-          this.$router.push('/')
-          return
-        }
-
-        // Configuramos la información a enviar
-        const indicadorData = new FormData()
-        indicadorData.append('nombreIndicador', this.indicadorEditForm.nombreIndicador)
-        indicadorData.append('numerador', this.indicadorEditForm.numerador)
-        indicadorData.append('numero', this.indicadorEditForm.numero)
-        indicadorData.append('_idProyecto', this.indicadorEditForm._idProyecto)
-
-        // Enviamos la información al servidor
-        const response = await axios.post(
-          `http://127.0.0.1:8000/api/indicador/update/${this.indicadorEditForm._id}`,
-          indicadorData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data',
-              Accept: 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
-            },
-          },
-        )
-
-        // Verificamos la respuesta
-        if (response.status === 200) {
-          // Cerramos el modal
-          this.closeEditModal()
-
-          // Descargamos los indicadores nuevamente
-          this.fetchIndicadores()
-          // Mostramos un mensaje de éxito
-          this.mostrarNotificacion('¡Completado!', 'Indicador editado exitosamente', 'success')
-        } else {
-          this.mostrarNotificacion(
-            'Advertencia',
-            'Estado inesperado: ' + response.status,
-            'warning',
-          )
-        }
-      } catch (error) {
-        console.error('Error completo:', error)
-
-        // Revisamos que el error tenga respuesta
-        if (error.response) {
-          const status = error.response.status
-
-          // Manejamos los posibles codigos de error
-          switch (status) {
-            case 401:
-              this.mostrarNotificacion(
-                'Error',
-                'Sesión expirada. Por favor inicia sesión nuevamente.',
-                'error',
-              )
-              localStorage.removeItem('apiToken')
-              localStorage.removeItem('user')
-              this.$router.push('/')
-              break
-
-            case 404:
-              this.mostrarNotificacion('Error', 'Indicador no encontrado', 'error')
-              break
-
-            case 500:
-              this.mostrarNotificacion('Error', 'Error interno del servidor', 'error')
-              break
-
-            default:
-              this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
-              break
-          }
-        } else if (error.request) {
-          // No se recibió respuesta del servidor
-          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
-        } else {
-          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
-        }
-      }
-    },
-
-    /**
-     * Cierra el modal de edición
-     */
-    closeEditModal() {
-      this.showEditModal = false
-      this.indicadorEditForm = {
-        _id: null,
-        nombreIndicador: '',
-        numerador: '',
-        denominador: '',
-        numero: '',
-        _idProyecto: '',
-      }
-    },
-
-    formatDate(dateObj) {
-      if (!dateObj) return 'Fecha no disponible'
-
-      if (dateObj.$date) {
-        const timestamp = dateObj.$date.$numberLong || dateObj.$date
-        return new Date(parseInt(timestamp)).toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      } else if (typeof dateObj === 'string') {
-        return new Date(dateObj).toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      } else if (typeof dateObj === 'number') {
-        return new Date(dateObj).toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      }
-
-      return 'Formato de fecha no reconocido'
-    },
-
     mostrarNotificacion(titulo, mensaje, tipo) {
       Swal.fire({
         title: titulo,
@@ -1319,7 +429,6 @@ export default {
         timerProgressBar: tipo === 'success',
       })
     },
-
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--
@@ -1333,156 +442,10 @@ export default {
     goToPage(page) {
       this.currentPage = page
     },
-    /**
-     * Abre el modal de parámetros de cálculo
-     */
-    async configurarParametrosCalculo() {
-      this.showParametrosModal = true
-      await this.fetchPlantillasDisponibles()
-    },
-
-    /**
-     * Cierra el modal de parámetros
-     */
-    closeParametrosModal() {
-      this.showParametrosModal = false
-      this.resetParametrosForm()
-    },
-
-    /**
-     * Obtiene las plantillas disponibles
-     */
-    async fetchPlantillasDisponibles() {
-      try {
-        const token = localStorage.getItem('apiToken')
-
-        if (!token) {
-          this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
-          return
-        }
-
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas/consultar', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-        })
-
-        this.plantillasDisponibles = response.data || []
-      } catch (error) {
-        console.error('Error obteniendo plantillas:', error)
-        this.mostrarNotificacion('Error', 'No se pudieron cargar las plantillas', 'error')
-      }
-    },
-
-    /**
-     * Maneja la selección de plantilla
-     */
-    async onPlantillaSelected() {
-      if (this.parametrosForm.plantillaSeleccionada) {
-        // Resetear selecciones dependientes
-        this.parametrosForm.tipoOperacion = ''
-        this.parametrosForm.campoSeleccionado = ''
-        this.parametrosForm.subcampoSeleccionado = ''
-        this.parametrosForm.condiciones = []
-
-        try {
-          const token = localStorage.getItem('apiToken')
-          const response = await axios.get(
-            `http://127.0.0.1:8000/api/plantillas/${this.parametrosForm.plantillaSeleccionada}/campos`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-              },
-            },
-          )
-
-          if (response.data && response.data.campos) {
-            // Solo filtramos el campo _id, mantenemos los subforms
-            this.camposDisponibles = response.data.campos.filter((campo) => campo.name !== '_id')
-          }
-        } catch (error) {
-          console.error('Error al obtener los campos:', error)
-          this.mostrarNotificacion('Error', 'Error al cargar los campos de la plantilla', 'error')
-        }
-      } else {
-        this.camposDisponibles = []
-      }
-    },
-
-    /**
-     * Verifica si un campo es numérico
-     */
-    esCampoNumerico(campo) {
-      return campo.type === 'number'
-    },
-
-    /**
-     * Obtiene el tipo de campo en texto legible
-     */
-    getTipoCampo(campo) {
-      const tipos = {
-        text: 'Texto',
-        number: 'Numérico',
-        date: 'Fecha',
-        file: 'Archivo',
-      }
-      return tipos[campo.type] || campo.type
-    },
-
-    /**
-     * Obtiene el nombre de la plantilla seleccionada
-     */
-    getNombrePlantillaSeleccionada() {
-      const plantilla = this.plantillasDisponibles.find(
-        (p) => p.id === this.parametrosForm.plantillaSeleccionada,
-      )
-      return plantilla ? plantilla.title || plantilla.nombre_plantilla : ''
-    },
-
-    /**
-     * Obtiene el nombre del campo seleccionado
-     */
-    getNombreCampoSeleccionado() {
-      const campo = this.camposDisponibles.find(
-        (c) => c.name === this.parametrosForm.campoSeleccionado,
-      )
-      return campo ? campo.alias || campo.name : ''
-    },
-
-    /**
-     * Obtiene el texto descriptivo del tipo de operación
-     */
-    getTipoOperacionTexto() {
-      const operaciones = {
-        count: 'contar',
-        sum: 'SUMA',
-        avg: 'PROMEDIO',
-        max: 'MÁXIMO',
-        min: 'MÍNIMO',
-      }
-      return operaciones[this.parametrosForm.tipoOperacion] || this.parametrosForm.tipoOperacion
-    },
-
-    /**
-     * Resetea el formulario de parámetros
-     */
-    resetParametrosForm() {
-      this.parametrosForm = {
-        plantillaSeleccionada: '',
-        tipoOperacion: '',
-        campoSeleccionado: '',
-      }
-      this.camposDisponibles = []
-    },
   },
 }
 </script>
-
-<style scoped>
+<style>
 /* Estilos para el modal moderno */
 .medico-modal-backdrop {
   position: fixed;
