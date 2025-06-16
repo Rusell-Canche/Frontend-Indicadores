@@ -16,6 +16,8 @@ import VerDocumentos from '@/components/VerDocumentos.vue'
 import VerUsuarios from '@/components/VerUsuarios.vue'
 import CrearUsuarios from '@/components/CrearUsuarios.vue'
 import Bienvenida from '@/components/Bienvenida.vue'
+import EditarIndicador from '@/components/EditarIndicador.vue'
+import ConfigurarIndicador from '@/components/ConfigurarIndicador.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +46,20 @@ const router = createRouter({
               path: 'ver-indicadores',
               name: 'ver-indicadores',
               component: VerIndicadores,
+              children: [
+                {
+                  path: 'editar/:id',
+                  name: 'editar-indicador',
+                  component: EditarIndicador,
+                  props: true,
+                },
+                {
+                  path: 'configurar/:id',
+                  name: 'configurar-indicador',
+                  component: ConfigurarIndicador,
+                  props: true,
+                },
+              ],
             },
             {
               path: 'CargarIndicador',
