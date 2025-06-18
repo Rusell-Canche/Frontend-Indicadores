@@ -509,8 +509,8 @@ export default {
         '!=': 'diferente',
         '>': 'mayor',
         '<': 'menor',
-        '>=': 'mayor_o_igual',
-        '<=': 'menor_o_igual',
+        '>=': 'mayor_igual',
+        '<=': 'menor_igual',
         contains: 'contiene',
       }
       return map[operadorFrontend] || operadorFrontend
