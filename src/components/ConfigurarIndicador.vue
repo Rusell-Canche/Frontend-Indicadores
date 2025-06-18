@@ -68,27 +68,27 @@
                 </span>
                 <select v-model="parametrosForm.tipoOperacion" class="form-select" required>
                   <option value="">Seleccione una operación</option>
-                  <option value="count">Contar registros (COUNT)</option>
-                  <option value="sum">Sumar valores (SUM)</option>
-                  <option value="avg">Promedio (AVG)</option>
-                  <option value="max">Valor máximo (MAX)</option>
-                  <option value="min">Valor mínimo (MIN)</option>
+                  <option value="contar">Contar registros (COUNT)</option>
+                  <option value="sumar">Sumar valores (SUM)</option>
+                  <option value="promedio">Promedio (AVG)</option>
+                  <option value="maximo">Valor máximo (MAX)</option>
+                  <option value="minimo">Valor mínimo (MIN)</option>
                 </select>
               </div>
               <div class="form-text">
-                <span v-if="parametrosForm.tipoOperacion === 'count'">
+                <span v-if="parametrosForm.tipoOperacion === 'contar'">
                   Contará el número total de documentos
                 </span>
-                <span v-else-if="parametrosForm.tipoOperacion === 'sum'">
+                <span v-else-if="parametrosForm.tipoOperacion === 'sumar'">
                   Sumará los valores del campo seleccionado
                 </span>
-                <span v-else-if="parametrosForm.tipoOperacion === 'avg'">
+                <span v-else-if="parametrosForm.tipoOperacion === 'promedio'">
                   Calculará el promedio del campo seleccionado
                 </span>
-                <span v-else-if="parametrosForm.tipoOperacion === 'max'">
+                <span v-else-if="parametrosForm.tipoOperacion === 'maximo'">
                   Encontrará el valor máximo del campo seleccionado
                 </span>
-                <span v-else-if="parametrosForm.tipoOperacion === 'min'">
+                <span v-else-if="parametrosForm.tipoOperacion === 'minimo'">
                   Encontrará el valor mínimo del campo seleccionado
                 </span>
                 <span v-else> Selecciona la operación matemática a realizar </span>
@@ -100,7 +100,7 @@
         <!-- Selección de campo con soporte para subconfiguración -->
         <div
           class="form-section"
-          v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'count'"
+          v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'contar'"
         >
           <h6 class="section-title">
             <i class="fas fa-tag me-2"></i>
@@ -148,11 +148,11 @@
                       required
                     >
                       <option value="">Seleccione operación</option>
-                      <option value="count">Contar registros (COUNT)</option>
-                      <option value="sum">Sumar valores (SUM)</option>
-                      <option value="avg">Promedio (AVG)</option>
-                      <option value="max">Valor máximo (MAX)</option>
-                      <option value="min">Valor mínimo (MIN)</option>
+                      <option value="contar">Contar registros (COUNT)</option>
+                      <option value="sumar">Sumar valores (SUM)</option>
+                      <option value="promedio">Promedio (AVG)</option>
+                      <option value="maximo">Valor máximo (MAX)</option>
+                      <option value="minimo">Valor mínimo (MIN)</option>
                     </select>
                   </div>
                 </div>
@@ -163,7 +163,7 @@
                 class="row g-3 mt-3"
                 v-if="
                   parametrosForm.subConfiguracion.tipoOperacion &&
-                  parametrosForm.subConfiguracion.tipoOperacion !== 'count'
+                  parametrosForm.subConfiguracion.tipoOperacion !== 'contar'
                 "
               >
                 <div class="col-md-12">
@@ -233,13 +233,13 @@
                     </td>
                     <td>
                       <select v-model="condicion.operador" class="form-select form-select-sm">
-                        <option value="==">Igual a</option>
-                        <option value="!=">Diferente de</option>
-                        <option value=">">Mayor que</option>
-                        <option value="<">Menor que</option>
-                        <option value=">=">Mayor o igual</option>
-                        <option value="<=">Menor o igual</option>
-                        <option value="contains">Contiene</option>
+                        <option value="igual">Igual a</option>
+                        <option value="diferente">Diferente de</option>
+                        <option value="mayor">Mayor que</option>
+                        <option value="menor">Menor que</option>
+                        <option value="mayor_igual">Mayor o igual</option>
+                        <option value="menor_igual">Menor o igual</option>
+                        <option value="contiene">Contiene</option>
                       </select>
                     </td>
                     <td>
@@ -303,13 +303,13 @@
                     </td>
                     <td>
                       <select v-model="condicion.operador" class="form-select form-select-sm">
-                        <option value="==">Igual a</option>
-                        <option value="!=">Diferente de</option>
-                        <option value=">">Mayor que</option>
-                        <option value="<">Menor que</option>
-                        <option value=">=">Mayor o igual</option>
-                        <option value="<=">Menor o igual</option>
-                        <option value="contains">Contiene</option>
+                        <option value="igual">Igual a</option>
+                        <option value="diferente">Diferente de</option>
+                        <option value="mayor">Mayor que</option>
+                        <option value="menor">Menor que</option>
+                        <option value="mayor_igual">Mayor o igual</option>
+                        <option value="menor_igual">Menor o igual</option>
+                        <option value="contiene">Contiene</option>
                       </select>
                     </td>
                     <td>
@@ -351,7 +351,7 @@
               <i class="fas fa-lightbulb me-3 mt-1"></i>
               <div>
                 <strong>Operación configurada:</strong><br />
-                <span v-if="parametrosForm.tipoOperacion === 'count'">
+                <span v-if="parametrosForm.tipoOperacion === 'contar'">
                   Se contarán todos los documentos de la plantilla
                   <strong>"{{ getNombrePlantillaSeleccionada() }}"</strong>
                 </span>
@@ -368,7 +368,7 @@
                 >
                   <strong>Subconfiguración:</strong><br />
                   Se aplicará la operación <strong>{{ getSubOperacionTexto() }}</strong>
-                  <span v-if="parametrosForm.subConfiguracion.tipoOperacion !== 'count'">
+                  <span v-if="parametrosForm.subConfiguracion.tipoOperacion !== 'contar'">
                     sobre el campo <strong>"{{ getNombreSubcampoSeleccionado() }}"</strong>
                   </span>
                 </div>
@@ -459,8 +459,8 @@ export default {
         return false
       }
 
-      // Si es COUNT, no necesita campo
-      if (this.parametrosForm.tipoOperacion === 'count') {
+      // Si es contar, no necesita campo
+      if (this.parametrosForm.tipoOperacion === 'contar') {
         return true
       }
 
@@ -476,9 +476,9 @@ export default {
           return false
         }
 
-        // Si la suboperación no es COUNT, necesita campo
+        // Si la suboperación no es contar, necesita campo
         if (
-          this.parametrosForm.subConfiguracion.tipoOperacion !== 'count' &&
+          this.parametrosForm.subConfiguracion.tipoOperacion !== 'contar' &&
           !this.parametrosForm.subConfiguracion.campoSeleccionado
         ) {
           return false
@@ -493,28 +493,6 @@ export default {
     this.fetchPlantillasDisponibles()
   },
   methods: {
-    mapOperacionToBackend(operacionFrontend) {
-      const map = {
-        count: 'contar',
-        sum: 'sumar',
-        avg: 'promedio',
-        max: 'maximo',
-        min: 'minimo',
-      }
-      return map[operacionFrontend] || operacionFrontend
-    },
-    mapOperadorToBackend(operadorFrontend) {
-      const map = {
-        '==': 'igual',
-        '!=': 'diferente',
-        '>': 'mayor',
-        '<': 'menor',
-        '>=': 'mayor_igual',
-        '<=': 'menor_igual',
-        contains: 'contiene',
-      }
-      return map[operadorFrontend] || operadorFrontend
-    },
     onCampoPrincipalSelected() {
       this.parametrosForm.subConfiguracion = {
         tipoOperacion: '',
@@ -541,7 +519,7 @@ export default {
     agregarCondicion() {
       this.parametrosForm.condiciones.push({
         campo: this.camposFiltrables[0]?.name || '',
-        operador: '==',
+        operador: 'igual',
         valor: '',
       })
     },
@@ -551,7 +529,7 @@ export default {
     agregarCondicionSubform() {
       this.parametrosForm.subConfiguracion.condiciones.push({
         campo: this.subcamposFiltrables[0]?.name || '',
-        operador: '==',
+        operador: 'igual',
         valor: '',
       })
     },
@@ -581,14 +559,14 @@ export default {
         // Construir objeto de configuración
         const configuracion = {
           coleccion: `template_${nombrePlantilla}_data`,
-          operacion: this.mapOperacionToBackend(this.parametrosForm.tipoOperacion),
+          operacion: this.parametrosForm.tipoOperacion,
           campo:
-            this.parametrosForm.tipoOperacion === 'count'
+            this.parametrosForm.tipoOperacion === 'contar'
               ? null
               : this.parametrosForm.campoSeleccionado,
           condicion: this.parametrosForm.condiciones.map((cond) => ({
             campo: cond.campo,
-            operador: this.mapOperadorToBackend(cond.operador),
+            operador: cond.operador,
             valor: cond.valor,
           })),
         }
@@ -596,16 +574,14 @@ export default {
         // Agregar subconfiguración si es necesario
         if (this.mostrarSubcampos && this.parametrosForm.subConfiguracion.tipoOperacion) {
           configuracion.subConfiguracion = {
-            operacion: this.mapOperacionToBackend(
-              this.parametrosForm.subConfiguracion.tipoOperacion,
-            ),
+            operacion: this.parametrosForm.subConfiguracion.tipoOperacion,
             campo:
-              this.parametrosForm.subConfiguracion.tipoOperacion === 'count'
+              this.parametrosForm.subConfiguracion.tipoOperacion === 'contar'
                 ? null
                 : this.parametrosForm.subConfiguracion.campoSeleccionado,
             condicion: this.parametrosForm.subConfiguracion.condiciones.map((cond) => ({
               campo: cond.campo,
-              operador: this.mapOperadorToBackend(cond.operador),
+              operador: cond.operador,
               valor: cond.valor,
             })),
           }
@@ -775,21 +751,21 @@ export default {
     },
     getTipoOperacionTexto() {
       const operaciones = {
-        count: 'contar',
-        sum: 'SUMA',
-        avg: 'PROMEDIO',
-        max: 'MÁXIMO',
-        min: 'MÍNIMO',
+        contar: 'contar',
+        sumar: 'SUMA',
+        promedio: 'PROMEDIO',
+        maximo: 'MÁXIMO',
+        minimo: 'MÍNIMO',
       }
       return operaciones[this.parametrosForm.tipoOperacion] || this.parametrosForm.tipoOperacion
     },
     getSubOperacionTexto() {
       const operaciones = {
-        count: 'CONTAR',
-        sum: 'SUMAR',
-        avg: 'PROMEDIO',
-        max: 'MÁXIMO',
-        min: 'MÍNIMO',
+        contar: 'CONTAR',
+        sumar: 'SUMAR',
+        promedio: 'PROMEDIO',
+        maximo: 'MÁXIMO',
+        minimo: 'MÍNIMO',
       }
       return (
         operaciones[this.parametrosForm.subConfiguracion.tipoOperacion] ||
