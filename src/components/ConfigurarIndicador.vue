@@ -582,7 +582,10 @@ export default {
         const configuracion = {
           coleccion: `template_${nombrePlantilla}_data`,
           operacion: this.mapOperacionToBackend(this.parametrosForm.tipoOperacion),
-          campo: this.parametrosForm.campoSeleccionado,
+          campo:
+            this.parametrosForm.tipoOperacion === 'count'
+              ? null
+              : this.parametrosForm.campoSeleccionado,
           condicion: this.parametrosForm.condiciones.map((cond) => ({
             campo: cond.campo,
             operador: this.mapOperadorToBackend(cond.operador),
@@ -596,7 +599,10 @@ export default {
             operacion: this.mapOperacionToBackend(
               this.parametrosForm.subConfiguracion.tipoOperacion,
             ),
-            campo: this.parametrosForm.subConfiguracion.campoSeleccionado,
+            campo:
+              this.parametrosForm.subConfiguracion.tipoOperacion === 'count'
+                ? null
+                : this.parametrosForm.subConfiguracion.campoSeleccionado,
             condicion: this.parametrosForm.subConfiguracion.condiciones.map((cond) => ({
               campo: cond.campo,
               operador: this.mapOperadorToBackend(cond.operador),
