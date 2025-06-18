@@ -54,6 +54,14 @@
           <i class="fas fa-users"></i>
           <span>Usuarios</span>
         </li>
+        <li
+          class="navigation-item"
+          :class="{ active: $route.path === '/Reportes' }"
+          @click="$router.push('/Reportes')"
+        >
+          <i class="fas fa-users"></i>
+          <span>Reportes</span>
+        </li>
       </ul>
       <button class="logout-button" @click="showLogoutModal = true">
         <i class="fas fa-sign-out-alt"></i>

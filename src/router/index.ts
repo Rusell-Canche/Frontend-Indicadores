@@ -18,6 +18,7 @@ import CrearUsuarios from '@/components/CrearUsuarios.vue'
 import Bienvenida from '@/components/Bienvenida.vue'
 import EditarIndicador from '@/components/EditarIndicador.vue'
 import ConfigurarIndicador from '@/components/ConfigurarIndicador.vue'
+import Reportes from '@/components/Reportes.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -128,6 +129,11 @@ const router = createRouter({
               component: CrearUsuarios,
             },
           ],
+        },
+        {
+          path: '/Reportes',
+          name: 'Reportes',
+          component: Reportes,
         },
       ],
     },
