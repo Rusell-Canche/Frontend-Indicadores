@@ -23,7 +23,7 @@
             @click="$router.push({ name: 'VerReportes' })"
           >
             <div class="tab-icon">
-              <i class="fas fa-eye"></i>
+              <i class="fa-solid fa-eye"></i>
             </div>
             <div class="tab-content-text">
               <span class="tab-title">Ver Reportes</span>

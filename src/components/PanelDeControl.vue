@@ -51,7 +51,7 @@
           :class="{ active: $route.path === '/Reportes' }"
           @click="$router.push('/Reportes')"
         >
-          <i class="fas fa-file-alt"></i>
+          <i class="fa-solid fa-file-import"></i>
           <span>Reportes</span>
         </li>
         <li
