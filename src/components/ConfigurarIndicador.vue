@@ -97,7 +97,7 @@
           </div>
         </div>
 
-        <!-- Selección de campo -->
+        <!-- Selección de campo con soporte para subconfiguración -->
         <div
           class="form-section"
           v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'count'"
@@ -127,31 +127,69 @@
               </div>
             </div>
 
-            <!-- Select para subcampos -->
-            <div class="col-md-12" v-if="mostrarSubcampos">
-              <label class="form-label">Subcampo*</label>
-              <div class="input-group modern-input">
-                <span class="input-group-text">
-                  <i class="fas fa-layer-group"></i>
-                </span>
-                <select v-model="parametrosForm.subcampoSeleccionado" class="form-select" required>
-                  <option value="">Seleccione un subcampo</option>
-                  <option
-                    v-for="subcampo in subcamposDisponibles"
-                    :key="subcampo.name"
-                    :value="subcampo.name"
-                    :disabled="
-                      parametrosForm.tipoOperacion !== 'count' && !esCampoNumerico(subcampo)
-                    "
-                  >
-                    {{ subcampo.name }} ({{ getTipoCampo(subcampo) }})
-                    <span
-                      v-if="parametrosForm.tipoOperacion !== 'count' && !esCampoNumerico(subcampo)"
-                    >
-                      (No numérico)
+            <!-- Subconfiguración para campos de tipo subform -->
+            <div v-if="mostrarSubcampos" class="subform-config-section">
+              <h6 class="mt-3 mb-3">
+                <i class="fas fa-layer-group me-2"></i>
+                Configuración del Subformulario
+              </h6>
+
+              <!-- Operación para subformulario -->
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Operación para Subformulario*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-calculator"></i>
                     </span>
-                  </option>
-                </select>
+                    <select
+                      v-model="parametrosForm.subConfiguracion.tipoOperacion"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Seleccione operación</option>
+                      <option value="count">Contar registros (COUNT)</option>
+                      <option value="sum">Sumar valores (SUM)</option>
+                      <option value="avg">Promedio (AVG)</option>
+                      <option value="max">Valor máximo (MAX)</option>
+                      <option value="min">Valor mínimo (MIN)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Campo para subformulario -->
+              <div
+                class="row g-3 mt-3"
+                v-if="
+                  parametrosForm.subConfiguracion.tipoOperacion &&
+                  parametrosForm.subConfiguracion.tipoOperacion !== 'count'
+                "
+              >
+                <div class="col-md-12">
+                  <label class="form-label">Campo en Subformulario*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-tag"></i>
+                    </span>
+                    <select
+                      v-model="parametrosForm.subConfiguracion.campoSeleccionado"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Seleccione un campo</option>
+                      <option
+                        v-for="subcampo in subcamposDisponibles"
+                        :key="subcampo.name"
+                        :value="subcampo.name"
+                        :disabled="!esCampoNumerico(subcampo)"
+                      >
+                        {{ subcampo.alias || subcampo.name }} ({{ getTipoCampo(subcampo) }})
+                        <span v-if="!esCampoNumerico(subcampo)"> (No numérico) </span>
+                      </option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -167,65 +205,139 @@
             Condiciones de Filtrado
           </h6>
 
-          <div class="table-responsive">
-            <table class="table modern-table">
-              <thead>
-                <tr>
-                  <th>Campo</th>
-                  <th>Operador</th>
-                  <th>Valor</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(condicion, index) in parametrosForm.condiciones" :key="index">
-                  <td>
-                    <select v-model="condicion.campo" class="form-select form-select-sm">
-                      <option
-                        v-for="campo in camposFiltrables"
-                        :key="campo.name"
-                        :value="campo.name"
+          <!-- Condiciones principales -->
+          <div class="mb-4">
+            <h6>Condiciones Principales</h6>
+            <div class="table-responsive">
+              <table class="table modern-table">
+                <thead>
+                  <tr>
+                    <th>Campo</th>
+                    <th>Operador</th>
+                    <th>Valor</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(condicion, index) in parametrosForm.condiciones" :key="index">
+                    <td>
+                      <select v-model="condicion.campo" class="form-select form-select-sm">
+                        <option
+                          v-for="campo in camposFiltrables"
+                          :key="campo.name"
+                          :value="campo.name"
+                        >
+                          {{ campo.alias || campo.name }}
+                        </option>
+                      </select>
+                    </td>
+                    <td>
+                      <select v-model="condicion.operador" class="form-select form-select-sm">
+                        <option value="==">Igual a</option>
+                        <option value="!=">Diferente de</option>
+                        <option value=">">Mayor que</option>
+                        <option value="<">Menor que</option>
+                        <option value=">=">Mayor o igual</option>
+                        <option value="<=">Menor o igual</option>
+                        <option value="contains">Contiene</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        v-model="condicion.valor"
+                        type="text"
+                        class="form-control form-control-sm"
+                        placeholder="Valor"
+                      />
+                    </td>
+                    <td>
+                      <button
+                        @click="eliminarCondicion(index)"
+                        class="btn btn-sm btn-danger"
+                        title="Eliminar condición"
                       >
-                        {{ campo.alias || campo.name }}
-                      </option>
-                    </select>
-                  </td>
-                  <td>
-                    <select v-model="condicion.operador" class="form-select form-select-sm">
-                      <option value="==">Igual a</option>
-                      <option value="!=">Diferente de</option>
-                      <option value=">">Mayor que</option>
-                      <option value="<">Menor que</option>
-                      <option value=">=">Mayor o igual</option>
-                      <option value="<=">Menor o igual</option>
-                      <option value="contains">Contiene</option>
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      v-model="condicion.valor"
-                      type="text"
-                      class="form-control form-control-sm"
-                      placeholder="Valor"
-                    />
-                  </td>
-                  <td>
-                    <button
-                      @click="eliminarCondicion(index)"
-                      class="btn btn-sm btn-danger"
-                      title="Eliminar condición"
-                    >
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <button @click="agregarCondicion" class="btn btn-sm btn-primary mt-2">
+              <i class="fas fa-plus me-1"></i> Agregar Condición Principal
+            </button>
           </div>
 
-          <button @click="agregarCondicion" class="btn btn-sm btn-primary mt-2">
-            <i class="fas fa-plus me-1"></i> Agregar Condición
-          </button>
+          <!-- Condiciones de subformulario -->
+          <div
+            v-if="mostrarSubcampos && parametrosForm.subConfiguracion.tipoOperacion"
+            class="mt-4"
+          >
+            <h6>Condiciones de Subformulario</h6>
+            <div class="table-responsive">
+              <table class="table modern-table">
+                <thead>
+                  <tr>
+                    <th>Campo</th>
+                    <th>Operador</th>
+                    <th>Valor</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(condicion, index) in parametrosForm.subConfiguracion.condiciones"
+                    :key="'sub-' + index"
+                  >
+                    <td>
+                      <select v-model="condicion.campo" class="form-select form-select-sm">
+                        <option
+                          v-for="campo in subcamposFiltrables"
+                          :key="campo.name"
+                          :value="campo.name"
+                        >
+                          {{ campo.alias || campo.name }}
+                        </option>
+                      </select>
+                    </td>
+                    <td>
+                      <select v-model="condicion.operador" class="form-select form-select-sm">
+                        <option value="==">Igual a</option>
+                        <option value="!=">Diferente de</option>
+                        <option value=">">Mayor que</option>
+                        <option value="<">Menor que</option>
+                        <option value=">=">Mayor o igual</option>
+                        <option value="<=">Menor o igual</option>
+                        <option value="contains">Contiene</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        v-model="condicion.valor"
+                        type="text"
+                        class="form-control form-control-sm"
+                        placeholder="Valor"
+                      />
+                    </td>
+                    <td>
+                      <button
+                        @click="eliminarCondicionSubform(index)"
+                        class="btn btn-sm btn-danger"
+                        title="Eliminar condición"
+                      >
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <button @click="agregarCondicionSubform" class="btn btn-sm btn-primary mt-2">
+              <i class="fas fa-plus me-1"></i> Agregar Condición Subform
+            </button>
+          </div>
         </div>
 
         <!-- Información del cálculo -->
@@ -249,6 +361,17 @@
                   de todos los documentos de la plantilla
                   <strong>"{{ getNombrePlantillaSeleccionada() }}"</strong>
                 </span>
+
+                <div
+                  v-if="mostrarSubcampos && parametrosForm.subConfiguracion.tipoOperacion"
+                  class="mt-2"
+                >
+                  <strong>Subconfiguración:</strong><br />
+                  Se aplicará la operación <strong>{{ getSubOperacionTexto() }}</strong>
+                  <span v-if="parametrosForm.subConfiguracion.tipoOperacion !== 'count'">
+                    sobre el campo <strong>"{{ getNombreSubcampoSeleccionado() }}"</strong>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -306,16 +429,21 @@ export default {
     return {
       plantillasDisponibles: [],
       camposDisponibles: [],
+      subcamposDisponibles: [],
+      subcamposFiltrables: [],
+      camposFiltrables: [],
+      indicadorSeleccionado: null,
       parametrosForm: {
         plantillaSeleccionada: '',
         tipoOperacion: '',
         campoSeleccionado: '',
-        subcampoSeleccionado: '',
         condiciones: [],
+        subConfiguracion: {
+          tipoOperacion: '',
+          campoSeleccionado: '',
+          condiciones: [],
+        },
       },
-      subcamposDisponibles: [],
-      camposFiltrables: [],
-      indicadorSeleccionado: null,
     }
   },
   computed: {
@@ -325,25 +453,39 @@ export default {
       )
       return campoSeleccionado && campoSeleccionado.type === 'subform'
     },
-    campoFinal() {
-      return this.mostrarSubcampos
-        ? this.parametrosForm.subcampoSeleccionado
-        : this.parametrosForm.campoSeleccionado
-    },
     isFormComplete() {
+      // Validación básica
       if (!this.parametrosForm.plantillaSeleccionada || !this.parametrosForm.tipoOperacion) {
         return false
       }
 
+      // Si es COUNT, no necesita campo
       if (this.parametrosForm.tipoOperacion === 'count') {
         return true
       }
 
-      if (this.mostrarSubcampos) {
-        return !!this.parametrosForm.subcampoSeleccionado
+      // Si no hay campo seleccionado, no es válido
+      if (!this.parametrosForm.campoSeleccionado) {
+        return false
       }
 
-      return !!this.parametrosForm.campoSeleccionado
+      // Si es subform, validar subconfiguración
+      if (this.mostrarSubcampos) {
+        // Subconfiguración debe tener tipo de operación
+        if (!this.parametrosForm.subConfiguracion.tipoOperacion) {
+          return false
+        }
+
+        // Si la suboperación no es COUNT, necesita campo
+        if (
+          this.parametrosForm.subConfiguracion.tipoOperacion !== 'count' &&
+          !this.parametrosForm.subConfiguracion.campoSeleccionado
+        ) {
+          return false
+        }
+      }
+
+      return true
     },
   },
   mounted() {
@@ -374,8 +516,11 @@ export default {
       return map[operadorFrontend] || operadorFrontend
     },
     onCampoPrincipalSelected() {
-      this.parametrosForm.subcampoSeleccionado = ''
-      this.parametrosForm.condiciones = []
+      this.parametrosForm.subConfiguracion = {
+        tipoOperacion: '',
+        campoSeleccionado: '',
+        condiciones: [],
+      }
 
       const campoSeleccionado = this.camposDisponibles.find(
         (c) => c.name === this.parametrosForm.campoSeleccionado,
@@ -383,8 +528,12 @@ export default {
 
       if (campoSeleccionado && campoSeleccionado.type === 'subform') {
         this.subcamposDisponibles = campoSeleccionado.subcampos || []
+        this.subcamposFiltrables = this.subcamposDisponibles.filter(
+          (campo) => campo.type !== 'subform',
+        )
       } else {
         this.subcamposDisponibles = []
+        this.subcamposFiltrables = []
       }
 
       this.camposFiltrables = this.camposDisponibles.filter((campo) => campo.type !== 'subform')
@@ -398,6 +547,16 @@ export default {
     },
     eliminarCondicion(index) {
       this.parametrosForm.condiciones.splice(index, 1)
+    },
+    agregarCondicionSubform() {
+      this.parametrosForm.subConfiguracion.condiciones.push({
+        campo: this.subcamposFiltrables[0]?.name || '',
+        operador: '==',
+        valor: '',
+      })
+    },
+    eliminarCondicionSubform(index) {
+      this.parametrosForm.subConfiguracion.condiciones.splice(index, 1)
     },
     async aplicarParametros() {
       try {
@@ -419,15 +578,31 @@ export default {
         const nombrePlantilla =
           plantillaSeleccionada.nombre_plantilla || plantillaSeleccionada.title
 
+        // Construir objeto de configuración
         const configuracion = {
           coleccion: `template_${nombrePlantilla}_data`,
           operacion: this.mapOperacionToBackend(this.parametrosForm.tipoOperacion),
-          campo: this.campoFinal || '',
+          campo: this.parametrosForm.campoSeleccionado,
           condicion: this.parametrosForm.condiciones.map((cond) => ({
             campo: cond.campo,
             operador: this.mapOperadorToBackend(cond.operador),
             valor: cond.valor,
           })),
+        }
+
+        // Agregar subconfiguración si es necesario
+        if (this.mostrarSubcampos && this.parametrosForm.subConfiguracion.tipoOperacion) {
+          configuracion.subConfiguracion = {
+            operacion: this.mapOperacionToBackend(
+              this.parametrosForm.subConfiguracion.tipoOperacion,
+            ),
+            campo: this.parametrosForm.subConfiguracion.campoSeleccionado,
+            condicion: this.parametrosForm.subConfiguracion.condiciones.map((cond) => ({
+              campo: cond.campo,
+              operador: this.mapOperadorToBackend(cond.operador),
+              valor: cond.valor,
+            })),
+          }
         }
 
         const token = localStorage.getItem('apiToken')
@@ -490,8 +665,12 @@ export default {
         plantillaSeleccionada: '',
         tipoOperacion: '',
         campoSeleccionado: '',
-        subcampoSeleccionado: '',
         condiciones: [],
+        subConfiguracion: {
+          tipoOperacion: '',
+          campoSeleccionado: '',
+          condiciones: [],
+        },
       }
       this.subcamposDisponibles = []
       this.camposFiltrables = []
@@ -523,8 +702,12 @@ export default {
       if (this.parametrosForm.plantillaSeleccionada) {
         this.parametrosForm.tipoOperacion = ''
         this.parametrosForm.campoSeleccionado = ''
-        this.parametrosForm.subcampoSeleccionado = ''
         this.parametrosForm.condiciones = []
+        this.parametrosForm.subConfiguracion = {
+          tipoOperacion: '',
+          campoSeleccionado: '',
+          condiciones: [],
+        }
 
         try {
           const token = localStorage.getItem('apiToken')
@@ -562,6 +745,7 @@ export default {
         number: 'Numérico',
         date: 'Fecha',
         file: 'Archivo',
+        subform: 'Subformulario',
       }
       return tipos[campo.type] || campo.type
     },
@@ -577,6 +761,12 @@ export default {
       )
       return campo ? campo.alias || campo.name : ''
     },
+    getNombreSubcampoSeleccionado() {
+      const subcampo = this.subcamposDisponibles.find(
+        (c) => c.name === this.parametrosForm.subConfiguracion.campoSeleccionado,
+      )
+      return subcampo ? subcampo.alias || subcampo.name : ''
+    },
     getTipoOperacionTexto() {
       const operaciones = {
         count: 'contar',
@@ -586,6 +776,19 @@ export default {
         min: 'MÍNIMO',
       }
       return operaciones[this.parametrosForm.tipoOperacion] || this.parametrosForm.tipoOperacion
+    },
+    getSubOperacionTexto() {
+      const operaciones = {
+        count: 'CONTAR',
+        sum: 'SUMAR',
+        avg: 'PROMEDIO',
+        max: 'MÁXIMO',
+        min: 'MÍNIMO',
+      }
+      return (
+        operaciones[this.parametrosForm.subConfiguracion.tipoOperacion] ||
+        this.parametrosForm.subConfiguracion.tipoOperacion
+      )
     },
     cerrarModal() {
       this.$router.push({ name: 'ver-indicadores' })
