@@ -19,6 +19,8 @@ import Bienvenida from '@/components/Bienvenida.vue'
 import EditarIndicador from '@/components/EditarIndicador.vue'
 import ConfigurarIndicador from '@/components/ConfigurarIndicador.vue'
 import Reportes from '@/components/Reportes.vue'
+import VerReportes from '@/components/VerReportes.vue'
+import CrearReportes from '@/components/CrearReportes.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -134,6 +136,18 @@ const router = createRouter({
           path: '/Reportes',
           name: 'Reportes',
           component: Reportes,
+          children: [
+            {
+              path: 'VerReportes',
+              name: 'VerReportes',
+              component: VerReportes,
+            },
+            {
+              path: 'CrearReportes',
+              name: 'CrearReportes',
+              component: CrearReportes,
+            },
+          ],
         },
       ],
     },
