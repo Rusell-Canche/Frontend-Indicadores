@@ -512,11 +512,25 @@ export default {
           },
         )
 
+        // Verificar que la respuesta tenga la estructura correcta
         if (!response.data || !response.data.configuracion) {
+          console.log('No hay configuración existente para este indicador')
           return
         }
 
         const config = response.data.configuracion
+
+        // Verificar que config tenga las propiedades necesarias
+        if (!config || typeof config !== 'object') {
+          console.log('Configuración inválida o vacía')
+          return
+        }
+
+        // Verificar que exista la colección antes de procesarla
+        if (!config.coleccion) {
+          console.log('No se encontró información de colección en la configuración')
+          return
+        }
 
         // Extraer nombre de plantilla de la colección
         const nombrePlantilla = config.coleccion.replace('template_', '').replace('_data', '')
@@ -526,59 +540,111 @@ export default {
           (p) => p.nombre_plantilla === nombrePlantilla || p.title === nombrePlantilla,
         )
 
-        if (plantilla) {
-          // Establecer plantilla seleccionada
-          this.parametrosForm.plantillaSeleccionada = plantilla.id
+        if (!plantilla) {
+          console.log(`No se encontró la plantilla: ${nombrePlantilla}`)
+          this.mostrarNotificacion(
+            'Advertencia',
+            `No se encontró la plantilla "${nombrePlantilla}" asociada a esta configuración`,
+            'warning',
+          )
+          return
+        }
 
-          // Cargar campos de la plantilla
-          await this.onPlantillaSelected()
+        // Establecer plantilla seleccionada
+        this.parametrosForm.plantillaSeleccionada = plantilla.id
 
-          // Establecer operación principal
+        // Cargar campos de la plantilla
+        await this.onPlantillaSelected()
+
+        // Establecer operación principal
+        if (config.operacion) {
           this.parametrosForm.tipoOperacion = config.operacion
+        }
 
-          // Establecer campo principal si existe
-          if (config.campo) {
-            this.parametrosForm.campoSeleccionado = config.campo
-            await this.onCampoPrincipalSelected()
+        // Establecer campo principal si existe
+        if (config.campo) {
+          this.parametrosForm.campoSeleccionado = config.campo
+          await this.onCampoPrincipalSelected()
+        }
+
+        // Mapear condiciones principales
+        if (config.condicion && Array.isArray(config.condicion)) {
+          this.parametrosForm.condiciones = config.condicion.map((c) => ({
+            campo: c.campo || '',
+            operador: c.operador || 'igual',
+            valor: c.valor || '',
+          }))
+        }
+
+        // Mapear subconfiguración si existe
+        if (config.subConfiguracion && typeof config.subConfiguracion === 'object') {
+          this.parametrosForm.subConfiguracion = {
+            tipoOperacion: config.subConfiguracion.operacion || '',
+            campoSeleccionado: config.subConfiguracion.campo || '',
+            condiciones: [],
           }
 
-          // Mapear condiciones principales
-          if (config.condicion && Array.isArray(config.condicion)) {
-            this.parametrosForm.condiciones = config.condicion.map((c) => ({
-              campo: c.campo,
-              operador: c.operador,
-              valor: c.valor,
-            }))
-          }
-
-          // Mapear subconfiguración si existe
-          if (config.subConfiguracion) {
-            this.parametrosForm.subConfiguracion = {
-              tipoOperacion: config.subConfiguracion.operacion,
-              campoSeleccionado: config.subConfiguracion.campo || '',
-              condiciones: [],
-            }
-
-            if (
-              config.subConfiguracion.condicion &&
-              Array.isArray(config.subConfiguracion.condicion)
-            ) {
-              this.parametrosForm.subConfiguracion.condiciones =
-                config.subConfiguracion.condicion.map((sc) => ({
-                  campo: sc.campo,
-                  operador: sc.operador,
-                  valor: sc.valor,
-                }))
-            }
+          if (
+            config.subConfiguracion.condicion &&
+            Array.isArray(config.subConfiguracion.condicion)
+          ) {
+            this.parametrosForm.subConfiguracion.condiciones =
+              config.subConfiguracion.condicion.map((sc) => ({
+                campo: sc.campo || '',
+                operador: sc.operador || 'igual',
+                valor: sc.valor || '',
+              }))
           }
         }
+
+        console.log('Configuración cargada exitosamente')
       } catch (error) {
-        console.error('Error cargando configuración existente:', error)
-        this.mostrarNotificacion(
-          'Error',
-          'No se pudo cargar la configuración existente del indicador',
-          'error',
-        )
+        console.error('Error al cargar configuración:', error)
+
+        // Manejar específicamente el error 404 (indicador sin configuración)
+        if (error.response && error.response.status === 404) {
+          console.log('Este indicador no tiene configuración guardada (404)')
+          // No mostrar notificación para indicadores nuevos sin configuración
+          // Esto es normal y esperado
+          return
+        }
+
+        // Manejar otros errores de respuesta del servidor
+        if (error.response) {
+          const status = error.response.status
+          const message =
+            error.response.data?.message || error.response.data?.error || 'Error desconocido'
+
+          if (status === 401) {
+            this.mostrarNotificacion(
+              'Sesión Expirada',
+              'Su sesión ha expirado. Por favor inicie sesión nuevamente.',
+              'warning',
+            )
+            localStorage.removeItem('apiToken')
+            this.$router.push('/')
+            return
+          }
+
+          if (status === 403) {
+            this.mostrarNotificacion(
+              'Sin Permisos',
+              'No tiene permisos para acceder a esta configuración.',
+              'warning',
+            )
+            return
+          }
+
+          // Para otros errores del servidor, mostrar mensaje específico
+          this.mostrarNotificacion('Error del Servidor', `Error ${status}: ${message}`, 'error')
+        } else {
+          // Error de red o conexión
+          this.mostrarNotificacion(
+            'Error de Conexión',
+            'No se pudo conectar con el servidor. Verifique su conexión a internet.',
+            'error',
+          )
+        }
       } finally {
         this.cargandoConfiguracion = false
       }
