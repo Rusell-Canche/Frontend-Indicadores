@@ -533,11 +533,11 @@ export default {
         }
 
         // Extraer nombre de plantilla de la colección
-        const nombrePlantilla = config.coleccion.replace('template_', '').replace('_data', '')
+        //const nombrePlantilla = config.coleccion.replace('template_', '').replace('_data', '')
 
         // Buscar plantilla por nombre
         const plantilla = this.plantillasDisponibles.find(
-          (p) => p.nombre_plantilla === nombrePlantilla || p.title === nombrePlantilla,
+          (p) => `template_${p.nombre_plantilla || p.title}_data` === config.coleccion,
         )
 
         if (!plantilla) {
