@@ -537,7 +537,7 @@ export default {
 
         // Buscar plantilla por nombre
         const plantilla = this.plantillasDisponibles.find(
-          (p) => `template_${p.nombre_plantilla || p.title}_data` === config.coleccion,
+          (p) => p.nombre_coleccion == config.coleccion,
         )
 
         if (!plantilla) {
