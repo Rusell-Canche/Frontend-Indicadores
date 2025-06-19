@@ -433,6 +433,7 @@ export default {
       subcamposFiltrables: [],
       camposFiltrables: [],
       indicadorSeleccionado: null,
+      cargandoConfiguracion: false,
       parametrosForm: {
         plantillaSeleccionada: '',
         tipoOperacion: '',
@@ -454,29 +455,23 @@ export default {
       return campoSeleccionado && campoSeleccionado.type === 'subform'
     },
     isFormComplete() {
-      // Validación básica
       if (!this.parametrosForm.plantillaSeleccionada || !this.parametrosForm.tipoOperacion) {
         return false
       }
 
-      // Si es contar, no necesita campo
       if (this.parametrosForm.tipoOperacion === 'contar') {
         return true
       }
 
-      // Si no hay campo seleccionado, no es válido
       if (!this.parametrosForm.campoSeleccionado) {
         return false
       }
 
-      // Si es subform, validar subconfiguración
       if (this.mostrarSubcampos) {
-        // Subconfiguración debe tener tipo de operación
         if (!this.parametrosForm.subConfiguracion.tipoOperacion) {
           return false
         }
 
-        // Si la suboperación no es contar, necesita campo
         if (
           this.parametrosForm.subConfiguracion.tipoOperacion !== 'contar' &&
           !this.parametrosForm.subConfiguracion.campoSeleccionado
@@ -490,14 +485,112 @@ export default {
   },
   mounted() {
     this.indicadorSeleccionado = { _id: this.id }
-    this.fetchPlantillasDisponibles()
+    this.fetchPlantillasDisponibles().then(() => {
+      if (this.id) {
+        this.cargarConfiguracionExistente()
+      }
+    })
   },
   methods: {
+    async cargarConfiguracionExistente() {
+      this.cargandoConfiguracion = true
+      try {
+        const token = localStorage.getItem('apiToken')
+        if (!token) {
+          this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
+          return
+        }
+
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/indicadores/${this.id}/configuracion`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+          },
+        )
+
+        if (!response.data || !response.data.configuracion) {
+          return
+        }
+
+        const config = response.data.configuracion
+
+        // Extraer nombre de plantilla de la colección
+        const nombrePlantilla = config.coleccion.replace('template_', '').replace('_data', '')
+
+        // Buscar plantilla por nombre
+        const plantilla = this.plantillasDisponibles.find(
+          (p) => p.nombre_plantilla === nombrePlantilla || p.title === nombrePlantilla,
+        )
+
+        if (plantilla) {
+          // Establecer plantilla seleccionada
+          this.parametrosForm.plantillaSeleccionada = plantilla.id
+
+          // Cargar campos de la plantilla
+          await this.onPlantillaSelected()
+
+          // Establecer operación principal
+          this.parametrosForm.tipoOperacion = config.operacion
+
+          // Establecer campo principal si existe
+          if (config.campo) {
+            this.parametrosForm.campoSeleccionado = config.campo
+            await this.onCampoPrincipalSelected()
+          }
+
+          // Mapear condiciones principales
+          if (config.condicion && Array.isArray(config.condicion)) {
+            this.parametrosForm.condiciones = config.condicion.map((c) => ({
+              campo: c.campo,
+              operador: c.operador,
+              valor: c.valor,
+            }))
+          }
+
+          // Mapear subconfiguración si existe
+          if (config.subConfiguracion) {
+            this.parametrosForm.subConfiguracion = {
+              tipoOperacion: config.subConfiguracion.operacion,
+              campoSeleccionado: config.subConfiguracion.campo || '',
+              condiciones: [],
+            }
+
+            if (
+              config.subConfiguracion.condicion &&
+              Array.isArray(config.subConfiguracion.condicion)
+            ) {
+              this.parametrosForm.subConfiguracion.condiciones =
+                config.subConfiguracion.condicion.map((sc) => ({
+                  campo: sc.campo,
+                  operador: sc.operador,
+                  valor: sc.valor,
+                }))
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error cargando configuración existente:', error)
+        this.mostrarNotificacion(
+          'Error',
+          'No se pudo cargar la configuración existente del indicador',
+          'error',
+        )
+      } finally {
+        this.cargandoConfiguracion = false
+      }
+    },
+
     onCampoPrincipalSelected() {
-      this.parametrosForm.subConfiguracion = {
-        tipoOperacion: '',
-        campoSeleccionado: '',
-        condiciones: [],
+      if (!this.cargandoConfiguracion) {
+        this.parametrosForm.subConfiguracion = {
+          tipoOperacion: '',
+          campoSeleccionado: '',
+          condiciones: [],
+        }
       }
 
       const campoSeleccionado = this.camposDisponibles.find(
@@ -516,6 +609,7 @@ export default {
 
       this.camposFiltrables = this.camposDisponibles.filter((campo) => campo.type !== 'subform')
     },
+
     agregarCondicion() {
       this.parametrosForm.condiciones.push({
         campo: this.camposFiltrables[0]?.name || '',
@@ -523,9 +617,11 @@ export default {
         valor: '',
       })
     },
+
     eliminarCondicion(index) {
       this.parametrosForm.condiciones.splice(index, 1)
     },
+
     agregarCondicionSubform() {
       this.parametrosForm.subConfiguracion.condiciones.push({
         campo: this.subcamposFiltrables[0]?.name || '',
@@ -533,9 +629,11 @@ export default {
         valor: '',
       })
     },
+
     eliminarCondicionSubform(index) {
       this.parametrosForm.subConfiguracion.condiciones.splice(index, 1)
     },
+
     async aplicarParametros() {
       try {
         const idIndicador = this.indicadorSeleccionado?._id || this.indicadorSeleccionado?.id
@@ -642,6 +740,7 @@ export default {
         this.mostrarNotificacion('Error', mensaje, 'error')
       }
     },
+
     resetParametrosForm() {
       this.parametrosForm = {
         plantillaSeleccionada: '',
@@ -657,6 +756,7 @@ export default {
       this.subcamposDisponibles = []
       this.camposFiltrables = []
     },
+
     async fetchPlantillasDisponibles() {
       try {
         const token = localStorage.getItem('apiToken')
@@ -680,15 +780,19 @@ export default {
         this.mostrarNotificacion('Error', 'No se pudieron cargar las plantillas', 'error')
       }
     },
+
     async onPlantillaSelected() {
       if (this.parametrosForm.plantillaSeleccionada) {
-        this.parametrosForm.tipoOperacion = ''
-        this.parametrosForm.campoSeleccionado = ''
-        this.parametrosForm.condiciones = []
-        this.parametrosForm.subConfiguracion = {
-          tipoOperacion: '',
-          campoSeleccionado: '',
-          condiciones: [],
+        // Solo resetear si no estamos cargando una configuración existente
+        if (!this.cargandoConfiguracion) {
+          this.parametrosForm.tipoOperacion = ''
+          this.parametrosForm.campoSeleccionado = ''
+          this.parametrosForm.condiciones = []
+          this.parametrosForm.subConfiguracion = {
+            tipoOperacion: '',
+            campoSeleccionado: '',
+            condiciones: [],
+          }
         }
 
         try {
@@ -718,9 +822,11 @@ export default {
         this.camposDisponibles = []
       }
     },
+
     esCampoNumerico(campo) {
       return campo.type === 'number'
     },
+
     getTipoCampo(campo) {
       const tipos = {
         text: 'Texto',
@@ -731,27 +837,31 @@ export default {
       }
       return tipos[campo.type] || campo.type
     },
+
     getNombrePlantillaSeleccionada() {
       const plantilla = this.plantillasDisponibles.find(
         (p) => p.id === this.parametrosForm.plantillaSeleccionada,
       )
       return plantilla ? plantilla.title || plantilla.nombre_plantilla : ''
     },
+
     getNombreCampoSeleccionado() {
       const campo = this.camposDisponibles.find(
         (c) => c.name === this.parametrosForm.campoSeleccionado,
       )
       return campo ? campo.alias || campo.name : ''
     },
+
     getNombreSubcampoSeleccionado() {
       const subcampo = this.subcamposDisponibles.find(
         (c) => c.name === this.parametrosForm.subConfiguracion.campoSeleccionado,
       )
       return subcampo ? subcampo.alias || subcampo.name : ''
     },
+
     getTipoOperacionTexto() {
       const operaciones = {
-        contar: 'contar',
+        contar: 'CONTAR',
         sumar: 'SUMA',
         promedio: 'PROMEDIO',
         maximo: 'MÁXIMO',
@@ -759,6 +869,7 @@ export default {
       }
       return operaciones[this.parametrosForm.tipoOperacion] || this.parametrosForm.tipoOperacion
     },
+
     getSubOperacionTexto() {
       const operaciones = {
         contar: 'CONTAR',
@@ -772,9 +883,11 @@ export default {
         this.parametrosForm.subConfiguracion.tipoOperacion
       )
     },
+
     cerrarModal() {
       this.$router.push({ name: 'ver-indicadores' })
     },
+
     mostrarNotificacion(titulo, mensaje, tipo) {
       Swal.fire({
         title: titulo,
