@@ -135,7 +135,7 @@
               </h6>
 
               <!-- Operación para subformulario -->
-              <div class="row g-3">
+              <div class="row g-3 ">
                 <div class="col-md-12">
                   <label class="form-label">Operación para Subformulario*</label>
                   <div class="input-group modern-input">
@@ -275,7 +275,7 @@
             class="mt-4"
           >
             <h6>Condiciones de Subformulario</h6>
-            <div class="table-responsive">
+            <div class="table-responsive subform-config-section">
               <table class="table modern-table">
                 <thead>
                   <tr>
@@ -967,3 +967,10 @@ export default {
   },
 }
 </script>
+<style scoped>
+/* Estilo específico para la tabla de condiciones del subformulario */
+.subform-config-section .table {
+  --bs-table-bg: #cfccf9;
+}
+
+</style>
