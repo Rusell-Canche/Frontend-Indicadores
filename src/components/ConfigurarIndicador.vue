@@ -718,11 +718,11 @@ export default {
         }
 
         const nombrePlantilla =
-          plantillaSeleccionada.nombre_plantilla || plantillaSeleccionada.title
+          plantillaSeleccionada.nombre_coleccion || plantillaSeleccionada.title
 
         // Construir objeto de configuración
         const configuracion = {
-          coleccion: `template_${nombrePlantilla}_data`,
+          coleccion: nombrePlantilla,
           operacion: this.parametrosForm.tipoOperacion,
           campo:
             this.parametrosForm.tipoOperacion === 'contar'
