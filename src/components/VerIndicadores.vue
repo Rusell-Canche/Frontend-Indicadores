@@ -1195,4 +1195,307 @@ export default {
     font-size: 1.5rem;
   }
 }
+/* Estilos para resoluciones mas pequeñas */
+@media (max-width: 992px) {
+  .modern-table thead th {
+    padding: 0.875rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .modern-table tbody td {
+    padding: 0.875rem 0.5rem;
+  }
+
+  .project-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+
+  .number-circle {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
+  }
+
+  .metric-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Mejoras para móviles grandes */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .card {
+    margin: 0.5rem 0;
+  }
+
+  .card-header {
+    padding: 1rem;
+  }
+
+  .card-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  /* Hacer la tabla más compacta en móviles */
+  .modern-table thead th {
+    padding: 0.75rem 0.25rem;
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+
+  .modern-table tbody td {
+    padding: 0.75rem 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  /* Ocultar columnas menos importantes en móviles */
+  .modern-table thead th:nth-child(4),
+  .modern-table thead th:nth-child(5),
+  .modern-table tbody td:nth-child(4),
+  .modern-table tbody td:nth-child(5) {
+    display: none;
+  }
+
+  /* Ajustar información del proyecto en móviles */
+  .project-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
+
+  .project-icon + div {
+    font-size: 0.8rem;
+  }
+
+  .project-icon + div .fw-semibold {
+    font-size: 0.85rem;
+  }
+
+  .project-icon + div small {
+    font-size: 0.7rem;
+  }
+
+  /* Ajustar botones de acción para móviles */
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+    margin: 0 1px;
+  }
+
+  /* Mejorar paginación en móviles */
+  .pagination-info {
+    text-align: center;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+
+  .pagination-modern .page-link {
+    min-width: 36px;
+    height: 36px;
+    font-size: 0.8rem;
+  }
+
+  .card-footer {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Mejoras para móviles pequeños */
+@media (max-width: 576px) {
+  .card-header {
+    padding: 0.75rem;
+  }
+
+  .card-header h2 {
+    font-size: 1rem;
+  }
+
+  /* Hacer scroll horizontal más evidente */
+  .table-responsive {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+  }
+
+  .table-responsive::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  /* Mostrar solo columnas esenciales */
+  .modern-table {
+    min-width: 500px; /* Asegurar ancho mínimo para scroll */
+  }
+
+  .modern-table thead th:nth-child(1),
+  .modern-table thead th:nth-child(2),
+  .modern-table thead th:nth-child(3),
+  .modern-table thead th:nth-child(6),
+  .modern-table tbody td:nth-child(1),
+  .modern-table tbody td:nth-child(2),
+  .modern-table tbody td:nth-child(3),
+  .modern-table tbody td:nth-child(6) {
+    display: table-cell;
+  }
+
+  /* Ajustar espaciado de botones de acción */
+  .d-flex.justify-content-center.gap-2 {
+    gap: 0.25rem !important;
+  }
+
+  /* Mejorar estado vacío en móviles */
+  .empty-state {
+    padding: 1.5rem 0.5rem;
+  }
+
+  .empty-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .empty-state h5 {
+    font-size: 1rem;
+  }
+
+  .empty-state p {
+    font-size: 0.85rem;
+  }
+
+  /* Paginación más compacta */
+  .pagination-modern {
+    gap: 2px;
+  }
+
+  .pagination-modern .page-link {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+    padding: 0;
+  }
+
+  /* Footer más compacto */
+  .card-footer {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .card-footer .d-flex {
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: center;
+  }
+}
+
+/* Mejoras para pantallas muy pequeñas */
+@media (max-width: 400px) {
+  .container-fluid {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .card-header h2 {
+    font-size: 0.9rem;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .modern-table thead th {
+    padding: 0.5rem 0.125rem;
+    font-size: 0.65rem;
+  }
+
+  .modern-table tbody td {
+    padding: 0.5rem 0.125rem;
+    font-size: 0.8rem;
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+
+  .pagination-modern .page-link {
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Mejoras para pantallas muy anchas */
+@media (min-width: 1400px) {
+  .container-fluid {
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+
+  .modern-table thead th {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .modern-table tbody td {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .project-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.4rem;
+  }
+
+  .action-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+  }
+}
+
+/* Mejoras para orientación landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+  .card-header {
+    padding: 0.5rem 1rem;
+  }
+
+  .modern-table thead th {
+    padding: 0.5rem 0.375rem;
+  }
+
+  .modern-table tbody td {
+    padding: 0.5rem 0.375rem;
+  }
+
+  .pagination-info {
+    padding: 6px 10px;
+  }
+}
 </style>
