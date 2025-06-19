@@ -464,8 +464,8 @@ export default {
 
 .medico-modal-content {
   background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-  width: 95%;
-  max-width: 900px;
+  width: 100%;
+  max-width: 1200px;
   max-height: 90vh;
   border-radius: 20px;
   box-shadow:
@@ -566,7 +566,7 @@ export default {
 
 .medico-modal-body {
   padding: 2rem;
-  max-height: 60vh;
+  max-height: 80vh;
   overflow-y: auto;
   background: white;
 }
