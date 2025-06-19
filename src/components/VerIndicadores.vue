@@ -566,7 +566,7 @@ export default {
 
 .medico-modal-body {
   padding: 2rem;
-  max-height: 70vh;
+  max-height: 65vh;
   overflow-y: auto;
   background: white;
 }
