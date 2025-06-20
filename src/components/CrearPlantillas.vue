@@ -102,6 +102,7 @@
                         <option value="number">Numérico</option>
                         <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
                         <option value="date">Fecha</option>
+                        <option value="select">Lista de Selección</option>
                         <option value="subform">Subformulario</option>
                       </select>
                     </div>
@@ -114,6 +115,84 @@
                         <span class="checkmark"></span>
                         <span class="checkbox-label">Campo obligatorio</span>
                       </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Configuración de opciones para Select -->
+                <div v-if="campo.type === 'select'" class="select-options-container">
+                  <div class="select-options-header">
+                    <i class="fas fa-list-ul me-2"></i>
+                    <span>Opciones para "{{ campo.name || 'este campo' }}"</span>
+                  </div>
+
+                  <div class="select-options-body">
+                    <div
+                      v-for="(option, optionIndex) in campo.options || []"
+                      :key="optionIndex"
+                      class="option-item"
+                    >
+                      <div class="option-content">
+                        <div class="input-group modern-input">
+                          <span class="input-group-text">
+                            <i class="fas fa-tag"></i>
+                          </span>
+                          <input
+                            v-model="option.value"
+                            class="form-control"
+                            placeholder="Valor de la opción"
+                            required
+                          />
+                          <input
+                            v-model="option.label"
+                            class="form-control"
+                            placeholder="Texto mostrado"
+                            required
+                          />
+                          <button
+                            type="button"
+                            @click="quitarOpcion(campo, optionIndex)"
+                            class="btn btn-outline-danger"
+                          >
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="add-option-section">
+                      <div class="row g-2">
+                        <div class="col-md-5">
+                          <input
+                            v-model="campo.newOptionValue"
+                            class="form-control"
+                            placeholder="Valor (ej: 1, activo, si)"
+                            @keyup.enter="agregarOpcion(campo)"
+                          />
+                        </div>
+                        <div class="col-md-5">
+                          <input
+                            v-model="campo.newOptionLabel"
+                            class="form-control"
+                            placeholder="Etiqueta (ej: Opción 1, Activo, Sí)"
+                            @keyup.enter="agregarOpcion(campo)"
+                          />
+                        </div>
+                        <div class="col-md-2">
+                          <button
+                            type="button"
+                            @click="agregarOpcion(campo)"
+                            class="btn btn-primary w-100"
+                            :disabled="!campo.newOptionValue || !campo.newOptionLabel"
+                          >
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="form-text mt-1">
+                        <i class="fas fa-info-circle me-1"></i>
+                        El valor se guardará en la base de datos, la etiqueta se mostrará al usuario
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -173,6 +252,7 @@
                               <option value="number">Numérico</option>
                               <option value="file">Archivo</option>
                               <option value="date">Fecha</option>
+                              <option value="select">Lista de Selección</option>
                             </select>
                           </div>
                         </div>
@@ -188,6 +268,82 @@
                               <span class="checkmark"></span>
                               <span class="checkbox-label">Obligatorio</span>
                             </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Opciones para subcampos de tipo select -->
+                      <div v-if="subcampo.type === 'select'" class="select-options-container mt-3">
+                        <div class="select-options-header">
+                          <i class="fas fa-list-ul me-2"></i>
+                          <span
+                            >Opciones para subcampo "{{ subcampo.name || 'este subcampo' }}"</span
+                          >
+                        </div>
+
+                        <div class="select-options-body">
+                          <div
+                            v-for="(option, optionIndex) in subcampo.options || []"
+                            :key="optionIndex"
+                            class="option-item"
+                          >
+                            <div class="option-content">
+                              <div class="input-group modern-input">
+                                <span class="input-group-text">
+                                  <i class="fas fa-tag"></i>
+                                </span>
+                                <input
+                                  v-model="option.value"
+                                  class="form-control"
+                                  placeholder="Valor"
+                                  required
+                                />
+                                <input
+                                  v-model="option.label"
+                                  class="form-control"
+                                  placeholder="Etiqueta"
+                                  required
+                                />
+                                <button
+                                  type="button"
+                                  @click="quitarOpcion(subcampo, optionIndex)"
+                                  class="btn btn-outline-danger"
+                                >
+                                  <i class="fas fa-trash"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="add-option-section">
+                            <div class="row g-2">
+                              <div class="col-md-5">
+                                <input
+                                  v-model="subcampo.newOptionValue"
+                                  class="form-control"
+                                  placeholder="Valor"
+                                  @keyup.enter="agregarOpcion(subcampo)"
+                                />
+                              </div>
+                              <div class="col-md-5">
+                                <input
+                                  v-model="subcampo.newOptionLabel"
+                                  class="form-control"
+                                  placeholder="Etiqueta"
+                                  @keyup.enter="agregarOpcion(subcampo)"
+                                />
+                              </div>
+                              <div class="col-md-2">
+                                <button
+                                  type="button"
+                                  @click="agregarOpcion(subcampo)"
+                                  class="btn btn-primary w-100"
+                                  :disabled="!subcampo.newOptionValue || !subcampo.newOptionLabel"
+                                >
+                                  <i class="fas fa-plus"></i>
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -265,6 +421,11 @@ export default {
         // Si el tipo es 'subform', inicializar subcampos
         campo.subcampos = []
         this.agregarSubcampo(campo)
+      } else if (campo.type === 'select' && !campo.options) {
+        // Si el tipo es 'select', inicializar opciones
+        campo.options = []
+        campo.newOptionValue = ''
+        campo.newOptionLabel = ''
       }
     },
 
@@ -280,20 +441,122 @@ export default {
       campo.subcampos.splice(index, 1)
     },
 
+    // Métodos para manejar las opciones del select
+    agregarOpcion(campo) {
+      if (!campo.options) {
+        campo.options = []
+      }
+
+      if (campo.newOptionValue && campo.newOptionLabel) {
+        // Verificar que no exista ya una opción con el mismo valor
+        const existeOpcion = campo.options.some((option) => option.value === campo.newOptionValue)
+
+        if (existeOpcion) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Opción duplicada',
+            text: 'Ya existe una opción con ese valor',
+            confirmButtonColor: '#f39c12',
+          })
+          return
+        }
+
+        campo.options.push({
+          value: campo.newOptionValue.trim(),
+          label: campo.newOptionLabel.trim(),
+        })
+
+        // Limpiar los campos de nueva opción
+        campo.newOptionValue = ''
+        campo.newOptionLabel = ''
+      }
+    },
+
+    quitarOpcion(campo, index) {
+      if (campo.options && campo.options.length > index) {
+        campo.options.splice(index, 1)
+      }
+    },
+
     resetForm() {
       this.plantillaName = ''
       this.camposPlantilla = [{ name: '', type: 'string', required: false }]
       this.selectedEje = ''
     },
 
+    // Método para limpiar datos específicos del campo antes de enviar
+    prepararDatosParaEnvio() {
+      return this.camposPlantilla.map((campo) => {
+        const campoLimpio = {
+          name: campo.name,
+          type: campo.type,
+          required: campo.required,
+        }
+
+        // Si es un select, incluir las opciones
+        if (campo.type === 'select' && campo.options) {
+          campoLimpio.options = campo.options.filter((option) => option.value && option.label)
+        }
+
+        // Si es un subform, procesar subcampos
+        if (campo.type === 'subform' && campo.subcampos) {
+          campoLimpio.subcampos = campo.subcampos.map((subcampo) => {
+            const subcampoLimpio = {
+              name: subcampo.name,
+              type: subcampo.type,
+              required: subcampo.required,
+            }
+
+            // Si el subcampo es un select, incluir opciones
+            if (subcampo.type === 'select' && subcampo.options) {
+              subcampoLimpio.options = subcampo.options.filter(
+                (option) => option.value && option.label,
+              )
+            }
+
+            return subcampoLimpio
+          })
+        }
+
+        return campoLimpio
+      })
+    },
+
     async crearPlantilla() {
       try {
+        // Validar que los campos de tipo select tengan al menos una opción
+        const camposInvalidos = this.camposPlantilla.filter((campo) => {
+          if (campo.type === 'select') {
+            return !campo.options || campo.options.length === 0
+          }
+          if (campo.type === 'subform' && campo.subcampos) {
+            return campo.subcampos.some((subcampo) => {
+              return (
+                subcampo.type === 'select' && (!subcampo.options || subcampo.options.length === 0)
+              )
+            })
+          }
+          return false
+        })
+
+        if (camposInvalidos.length > 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Campos incompletos',
+            text: 'Los campos de tipo "Lista de Selección" deben tener al menos una opción',
+            confirmButtonColor: '#f39c12',
+          })
+          return
+        }
+
         const token = localStorage.getItem('apiToken')
+        const camposLimpios = this.prepararDatosParaEnvio()
+
         const response = await axios.post(
           'http://127.0.0.1:8000/api/plantillas/crear',
           {
             plantilla_name: this.plantillaName,
-            fields: this.camposPlantilla,
+            fields: camposLimpios,
             eje_asociado: this.selectedEje,
             indicador_asociado: this.selectedIndicador,
           },
@@ -327,7 +590,6 @@ export default {
   mounted() {},
 }
 </script>
-
 <style scoped>
 /* Estilos base del diseño moderno */
 .card {
