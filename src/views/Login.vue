@@ -1,4 +1,15 @@
 <template>
+  <!-- Animación del avión de papel -->
+  <div v-if="showPaperPlane" class="paper-plane-container">
+    <div class="paper-plane jello-horizontal">
+      <i class="fas fa-paper-plane"></i>
+    </div>
+    <div class="success-message">
+      <h3>¡Bienvenido al Sistema!</h3>
+      <p>Accediendo a tu panel de indicadores...</p>
+    </div>
+  </div>
+
   <!-- Modal de creación/edición -->
   <div v-if="showModal" class="modal-backdrop" @click="closeModal">
     <div class="modal-content" @click.stop>
@@ -112,39 +123,39 @@
         <div class="info-content">
           <div class="logo-section">
             <div class="logo-icon">
-              <i class="fas fa-hospital-alt"></i>
+              <i class="fas fa-chart-line"></i>
             </div>
-            <p class="logo-subtitle">Sistema de Gestión Médica</p>
+            <p class="logo-subtitle">Sistema de Gestión de Indicadores</p>
           </div>
 
           <div class="features-list">
             <div class="feature-item">
               <div class="feature-icon">
-                <i class="fas fa-user-md"></i>
+                <i class="fas fa-plus-circle"></i>
               </div>
               <div class="feature-text">
-                <h3>Gestión de Médicos</h3>
-                <p>Administra profesionales de la salud</p>
+                <h3>Crear Indicadores</h3>
+                <p>Diseña y configura indicadores personalizados</p>
               </div>
             </div>
 
             <div class="feature-item">
               <div class="feature-icon">
-                <i class="fas fa-stethoscope"></i>
+                <i class="fas fa-file-alt"></i>
               </div>
               <div class="feature-text">
-                <h3>Especialidades Médicas</h3>
-                <p>Organiza áreas de especialización</p>
+                <h3>Gestión de Plantillas</h3>
+                <p>Crea y administra plantillas reutilizables</p>
               </div>
             </div>
 
             <div class="feature-item">
               <div class="feature-icon">
-                <i class="fas fa-clock"></i>
+                <i class="fas fa-folder-open"></i>
               </div>
               <div class="feature-text">
-                <h3>Horarios Inteligentes</h3>
-                <p>Programa citas y disponibilidad</p>
+                <h3>Documentos Inteligentes</h3>
+                <p>Organiza y completa documentación</p>
               </div>
             </div>
           </div>
@@ -156,7 +167,7 @@
         <div class="login-form-container">
           <div class="form-header">
             <h2 class="form-title">Bienvenido de vuelta</h2>
-            <p class="form-subtitle">Ingresa tus credenciales para acceder al sistema</p>
+            <p class="form-subtitle">Accede a tu panel de indicadores</p>
           </div>
 
           <form @submit.prevent="handleLogin" class="login-form">
@@ -238,6 +249,7 @@ export default {
       showPassword: false,
       rememberMe: false,
       isLoading: false,
+      showPaperPlane: false,
       errors: {},
       apiBaseUrl: 'http://127.0.0.1:8000/api/',
     }
@@ -255,8 +267,14 @@ export default {
         // Guarda el token recibido (corrección principal)
         localStorage.setItem('apiToken', response.data.token)
 
-        // Redirige o realiza otra acción
-        this.$router.push('/PanelDeControl')
+        // Mostrar animación del avión de papel
+        this.showPaperPlane = true
+
+        // Esperar a que termine la animación antes de redirigir
+        setTimeout(() => {
+          this.showPaperPlane = false
+          this.$router.push('/PanelDeControl')
+        }, 3000)
       } catch (error) {
         console.error(error)
         if (error.response && error.response.data) {
@@ -344,6 +362,110 @@ export default {
 </script>
 
 <style scoped>
+/* Animación del avión de papel mejorada */
+.paper-plane-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+}
+
+.paper-plane {
+  font-size: 12rem; /* Aumenté el tamaño aún más */
+  color: #667eea;
+  margin-bottom: 2rem;
+  animation: paperPlaneFly 2s ease-in-out;
+}
+
+.success-message {
+  text-align: center;
+  color: white;
+  opacity: 0;
+  animation: fadeInMessage 0.5s ease-in-out 1s forwards;
+}
+
+.success-message h3 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.success-message p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Animación jello-horizontal personalizada */
+.jello-horizontal {
+  animation: jello-horizontal 0.9s linear both;
+}
+
+@keyframes jello-horizontal {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  30% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+  40% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+  50% {
+    transform: scale3d(1.15, 0.85, 1);
+  }
+  65% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+  75% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes paperPlaneFly {
+  0% {
+    transform: translateX(-100vw) translateY(50px) rotate(-45deg) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  80% {
+    transform: translateX(50px) translateY(-20px) rotate(15deg) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100vw) translateY(-100px) rotate(45deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInMessage {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Estilos para el modal moderno */
 .modal-backdrop {
   position: fixed;
@@ -1123,6 +1245,19 @@ export default {
     height: 40px;
     font-size: 1rem;
   }
+
+  /* Ajustar tamaño del avión en móviles */
+  .paper-plane {
+    font-size: 8rem;
+  }
+
+  .success-message h3 {
+    font-size: 1.5rem;
+  }
+
+  .success-message p {
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1138,6 +1273,11 @@ export default {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
+  }
+
+  /* Ajustar más el tamaño del avión en pantallas muy pequeñas */
+  .paper-plane {
+    font-size: 7rem;
   }
 }
 </style>
