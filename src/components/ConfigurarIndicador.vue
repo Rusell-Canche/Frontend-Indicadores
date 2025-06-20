@@ -135,7 +135,7 @@
               </h6>
 
               <!-- Operación para subformulario -->
-              <div class="row g-3 ">
+              <div class="row g-3">
                 <div class="col-md-12">
                   <label class="form-label">Operación para Subformulario*</label>
                   <div class="input-group modern-input">
@@ -673,7 +673,16 @@ export default {
         this.subcamposFiltrables = []
       }
 
-      this.camposFiltrables = this.camposDisponibles.filter((campo) => campo.type !== 'subform')
+      // SIEMPRE incluir subcampos de todos los subforms en camposFiltrables
+      let filtrables = this.camposDisponibles.filter((campo) => campo.type !== 'subform')
+      this.camposDisponibles
+        .filter((campo) => campo.type === 'subform' && Array.isArray(campo.subcampos))
+        .forEach((subform) => {
+          filtrables = filtrables.concat(
+            subform.subcampos.filter((subcampo) => subcampo.type !== 'subform'),
+          )
+        })
+      this.camposFiltrables = filtrables
     },
 
     agregarCondicion() {
@@ -972,5 +981,4 @@ export default {
 .subform-config-section .table {
   --bs-table-bg: #cfccf9;
 }
-
 </style>
