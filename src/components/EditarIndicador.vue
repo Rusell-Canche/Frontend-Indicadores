@@ -116,6 +116,29 @@
               </div>
             </div>
           </div>
+
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-tag me-2"></i>
+              Departamentos
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label">Nombre del Departamento</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-tag"></i>
+                  </span>
+                  <input
+                    v-model="indicadorEditForm.departamento"
+                    class="form-control"
+                    required
+                    placeholder="Ej: Computo"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
 
@@ -149,6 +172,7 @@ export default {
         numero: '',
         denominador: '',
         _idProyecto: '',
+        departamento: '',
       },
     }
   },
@@ -182,6 +206,7 @@ export default {
               numero: indicador.numero,
               denominador: indicador.denominador,
               _idProyecto: indicador._idProyecto,
+              departamento: indicador.departamento || '', // Asegurarse de que el campo exista
             }
           } else {
             throw new Error('Indicador no encontrado')
@@ -208,6 +233,7 @@ export default {
         formData.append('numerador', this.indicadorEditForm.numerador)
         formData.append('numero', this.indicadorEditForm.numero)
         formData.append('_idProyecto', this.indicadorEditForm._idProyecto)
+        formData.append('departamento', this.indicadorEditForm.departamento)
 
         const response = await axios.post(
           `http://127.0.0.1:8000/api/indicador/update/${this.id}`,
