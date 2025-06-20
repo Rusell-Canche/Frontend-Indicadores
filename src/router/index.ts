@@ -21,6 +21,8 @@ import ConfigurarIndicador from '@/components/ConfigurarIndicador.vue'
 import Reportes from '@/components/Reportes.vue'
 import VerReportes from '@/components/VerReportes.vue'
 import CrearReportes from '@/components/CrearReportes.vue'
+import VerEjes from '@/components/VerEjes.vue'
+import CrearEjes from '@/components/CrearEjes.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -114,6 +116,18 @@ const router = createRouter({
           path: '/Ejes',
           name: 'Ejes',
           component: Ejes,
+          children: [
+            {
+              path: 'VerEjes',
+              name: 'VerEjes',
+              component: VerEjes,
+            },
+            {
+              path: 'CrearEjes',
+              name: 'CrearEjes',
+              component: CrearEjes,
+            },
+          ],
         },
         {
           path: '/Usuarios',
