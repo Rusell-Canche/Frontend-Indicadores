@@ -81,35 +81,61 @@ export default {
     this.fetchEjes()
   },
   methods: {
-    getCsrfToken() {
-      const metaTag = document.querySelector('meta[name="csrf-token"]')
-      if (!metaTag) {
-        throw new Error('No se encontró el token CSRF')
-      }
-      return metaTag.content
-    },
-
     async fetchEjes() {
       try {
         this.loading = true
         const token = localStorage.getItem('apiToken')
+
+        if (!token) {
+          this.mostrarNotificacion(
+            'Error',
+            'No hay sesión activa. Por favor inicia sesión.',
+            'error',
+          )
+          this.$router.push('/')
+          return
+        }
+
         const response = await axios.get('http://127.0.0.1:8000/api/eje', {
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
           },
         })
 
-        if (response.data && Array.isArray(response.data.ejes)) {
-          this.ejes = response.data.ejes
-          console.log('Datos de ejes recibidos:', this.ejes)
-        } else {
-          console.error('Formato de respuesta inesperado:', response.data)
-          this.ejes = []
+        if (response.status === 200) {
+          if (Array.isArray(response.data.ejes)) {
+            this.ejes = response.data.ejes
+          } else {
+            this.ejes = []
+          }
         }
       } catch (error) {
-        console.error('Error al obtener los ejes:', error)
-        this.ejes = []
+        console.error('Error completo:', error)
+
+        if (error.response) {
+          const status = error.response.status
+
+          if (status === 401) {
+            this.mostrarNotificacion(
+              'Error',
+              'Sesión expirada. Por favor inicia sesión nuevamente.',
+              'error',
+            )
+            localStorage.removeItem('apiToken')
+            localStorage.removeItem('user')
+            this.$router.push('/')
+          } else {
+            this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
+          }
+        } else if (error.request) {
+          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
+          console.error('Sin respuesta del servidor:', error.request)
+        } else {
+          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
+          console.error('Error inesperado:', error)
+        }
       } finally {
         this.loading = false
       }
@@ -170,50 +196,100 @@ export default {
       try {
         const token = localStorage.getItem('apiToken')
 
-        const formData = new FormData()
-        formData.append('descripcion', this.editForm.descripcion)
-        formData.append('clave_oficial', this.editForm.clave_oficial)
+        if (!token) {
+          this.mostrarNotificacion(
+            'Error',
+            'No hay sesión activa. Por favor inicia sesión.',
+            'error',
+          )
+          this.$router.push('/')
+          return
+        }
+
+        const data = {
+          descripcion: this.editForm.descripcion,
+          clave_oficial: this.editForm.clave_oficial,
+        }
 
         const response = await axios.put(
           `http://127.0.0.1:8000/api/eje/${this.editForm._id}`,
-          formData,
+          data,
           {
             headers: {
               Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
               Accept: 'application/json',
               'X-Requested-With': 'XMLHttpRequest',
             },
           },
         )
 
-        if (response.data.message === 'Eje actualizado exitosamente') {
+        if (response.status === 200) {
           this.closeEditModal()
           this.fetchEjes()
           this.mostrarNotificacion('¡Éxito!', 'Eje actualizado correctamente', 'success')
+        } else {
+          this.mostrarNotificacion(
+            'Advertencia',
+            'Estado inesperado: ' + response.status,
+            'warning',
+          )
         }
       } catch (error) {
-        console.error('Error al actualizar el eje:', error)
-        let mensaje = 'Error de conexión'
+        console.error('Error completo:', error)
 
         if (error.response) {
-          if (error.response.status === 419) {
-            mensaje = 'Error de autenticación CSRF. Por favor recarga la página.'
-          } else if (error.response.data && error.response.data.message) {
-            mensaje = error.response.data.message
-          } else {
-            mensaje = 'Error al actualizar el eje'
-          }
-        }
+          const status = error.response.status
 
-        this.mostrarNotificacion('Error', mensaje, 'error')
+          switch (status) {
+            case 401:
+              this.mostrarNotificacion(
+                'Error',
+                'Sesión expirada. Por favor inicia sesión nuevamente.',
+                'error',
+              )
+              localStorage.removeItem('apiToken')
+              localStorage.removeItem('user')
+              this.$router.push('/')
+              break
+
+            case 404:
+              this.mostrarNotificacion('Error', 'Eje no encontrado', 'error')
+              break
+
+            case 500:
+              this.mostrarNotificacion('Error', 'Error interno del servidor', 'error')
+              break
+
+            default:
+              this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
+              break
+          }
+        } else if (error.request) {
+          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
+        } else {
+          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
+        }
       }
     },
 
     async eliminarEje(eje) {
       try {
-        const result = await Swal.fire({
-          title: '¿Estás seguro?',
-          text: `Se eliminará el eje "${eje.clave_oficial}"`,
+        const token = localStorage.getItem('apiToken')
+
+        if (!token) {
+          this.mostrarNotificacion(
+            'Error',
+            'No hay sesión activa. Por favor inicia sesión.',
+            'error',
+          )
+          this.$router.push('/')
+          return
+        }
+
+        const respuesta = await Swal.fire({
+          title: '¿Estás seguro que quieres borrarlo?',
+          text: 'No podrás revertir esto.',
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#3085d6',
@@ -222,45 +298,64 @@ export default {
           cancelButtonText: 'Cancelar',
         })
 
-        if (result.isConfirmed) {
-          const csrfToken = this.getCsrfToken()
-          const token = localStorage.getItem('apiToken')
+        if (respuesta.isConfirmed) {
           const ejeId = eje._id || eje.id
 
-          const formData = new FormData()
-          formData.append('_token', csrfToken)
-          formData.append('_method', 'DELETE')
-
-          const response = await axios.delete(`http://127.0.0.1:8000/api/eje/${ejeId}`, formData, {
+          const response = await axios.delete(`http://127.0.0.1:8000/api/eje/${ejeId}`, {
             headers: {
               Authorization: `Bearer ${token}`,
-              'X-CSRF-TOKEN': csrfToken,
-              'Content-Type': 'multipart/form-data',
+              'Content-Type': 'application/json',
               Accept: 'application/json',
               'X-Requested-With': 'XMLHttpRequest',
             },
           })
 
-          if (response.data.message === 'Eje eliminado exitosamente') {
-            this.mostrarNotificacion('Eliminado', 'Eje eliminado correctamente', 'success')
+          if (response.status === 200) {
+            this.mostrarNotificacion('¡Completado!', 'Eje eliminado exitosamente', 'success')
             this.fetchEjes()
+          } else {
+            this.mostrarNotificacion(
+              'Advertencia',
+              'Estado inesperado: ' + response.status,
+              'warning',
+            )
           }
         }
       } catch (error) {
-        console.error('Error al eliminar el eje:', error)
-        let mensaje = 'Error de conexión'
+        console.error('Error completo:', error)
 
         if (error.response) {
-          if (error.response.status === 419) {
-            mensaje = 'Error de autenticación CSRF. Por favor recarga la página.'
-          } else if (error.response.data && error.response.data.message) {
-            mensaje = error.response.data.message
-          } else {
-            mensaje = 'Error al eliminar el eje'
-          }
-        }
+          const status = error.response.status
 
-        this.mostrarNotificacion('Error', mensaje, 'error')
+          switch (status) {
+            case 401:
+              this.mostrarNotificacion(
+                'Error',
+                'Sesión expirada. Por favor inicia sesión nuevamente.',
+                'error',
+              )
+              localStorage.removeItem('apiToken')
+              localStorage.removeItem('user')
+              this.$router.push('/')
+              break
+
+            case 404:
+              this.mostrarNotificacion('Error', 'Eje no encontrado', 'error')
+              break
+
+            case 500:
+              this.mostrarNotificacion('Error', 'Error interno del servidor', 'error')
+              break
+
+            default:
+              this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
+              break
+          }
+        } else if (error.request) {
+          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
+        } else {
+          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
+        }
       }
     },
 
@@ -279,7 +374,6 @@ export default {
   },
 }
 </script>
-
 <style scoped>
 /* Estilos renovados para ejes */
 .eje-list {
