@@ -37,6 +37,12 @@
                 </th>
                 <th>
                   <div class="d-flex align-items-center">
+                    <i class="fas fa-tag text-primary me-2"></i>
+                    Departamento
+                  </div>
+                </th>
+                <th>
+                  <div class="d-flex align-items-center">
                     <i class="fas fa-arrow-up text-success me-2"></i>
                     Denominador
                   </div>
@@ -81,6 +87,12 @@
                   <div>
                     <div class="fw-semibold text-dark">{{ indicador.nombreIndicador }}</div>
                     <small class="text-muted">Indicador principal</small>
+                  </div>
+                </td>
+                <td>
+                  <div>
+                    <div class="fw-semibold text-dark">{{ indicador.departamento }}</div>
+                    <small class="text-muted">Departamento principal</small>
                   </div>
                 </td>
                 <td>
