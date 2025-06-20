@@ -1100,4 +1100,60 @@ export default {
     font-size: 0.9rem;
   }
 }
+/* Estilos para las opciones del select */
+.select-options-container {
+  margin-top: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.select-options-header {
+  padding: 12px 15px;
+  background-color: #e3f2fd;
+  border-bottom: 1px solid #bbdefb;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.select-options-body {
+  padding: 15px;
+}
+
+.option-item {
+  margin-bottom: 10px;
+}
+
+.option-content .input-group {
+  margin-bottom: 5px;
+}
+
+.add-option-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #dee2e6;
+}
+
+.btn-outline-danger {
+  border-left: none;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .add-option-section .row {
+    flex-direction: column;
+  }
+
+  .add-option-section .col-md-5,
+  .add-option-section .col-md-2 {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
 </style>
