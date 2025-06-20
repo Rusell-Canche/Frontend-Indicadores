@@ -138,15 +138,9 @@
                             <i class="fas fa-tag"></i>
                           </span>
                           <input
-                            v-model="option.value"
+                            v-model="campo.options[optionIndex]"
                             class="form-control"
-                            placeholder="Valor de la opción"
-                            required
-                          />
-                          <input
-                            v-model="option.label"
-                            class="form-control"
-                            placeholder="Texto mostrado"
+                            placeholder="Texto de la opción"
                             required
                           />
                           <button
@@ -162,19 +156,11 @@
 
                     <div class="add-option-section">
                       <div class="row g-2">
-                        <div class="col-md-5">
+                        <div class="col-md-10">
                           <input
-                            v-model="campo.newOptionValue"
+                            v-model="campo.newOption"
                             class="form-control"
-                            placeholder="Valor (ej: 1, activo, si)"
-                            @keyup.enter="agregarOpcion(campo)"
-                          />
-                        </div>
-                        <div class="col-md-5">
-                          <input
-                            v-model="campo.newOptionLabel"
-                            class="form-control"
-                            placeholder="Etiqueta (ej: Opción 1, Activo, Sí)"
+                            placeholder="Texto de la opción (ej: Activo, Inactivo, Pendiente)"
                             @keyup.enter="agregarOpcion(campo)"
                           />
                         </div>
@@ -183,15 +169,11 @@
                             type="button"
                             @click="agregarOpcion(campo)"
                             class="btn btn-primary w-100"
-                            :disabled="!campo.newOptionValue || !campo.newOptionLabel"
+                            :disabled="!campo.newOption"
                           >
                             <i class="fas fa-plus"></i>
                           </button>
                         </div>
-                      </div>
-                      <div class="form-text mt-1">
-                        <i class="fas fa-info-circle me-1"></i>
-                        El valor se guardará en la base de datos, la etiqueta se mostrará al usuario
                       </div>
                     </div>
                   </div>
@@ -293,15 +275,9 @@
                                   <i class="fas fa-tag"></i>
                                 </span>
                                 <input
-                                  v-model="option.value"
+                                  v-model="subcampo.options[optionIndex]"
                                   class="form-control"
-                                  placeholder="Valor"
-                                  required
-                                />
-                                <input
-                                  v-model="option.label"
-                                  class="form-control"
-                                  placeholder="Etiqueta"
+                                  placeholder="Texto de la opción"
                                   required
                                 />
                                 <button
@@ -317,19 +293,11 @@
 
                           <div class="add-option-section">
                             <div class="row g-2">
-                              <div class="col-md-5">
+                              <div class="col-md-10">
                                 <input
-                                  v-model="subcampo.newOptionValue"
+                                  v-model="subcampo.newOption"
                                   class="form-control"
-                                  placeholder="Valor"
-                                  @keyup.enter="agregarOpcion(subcampo)"
-                                />
-                              </div>
-                              <div class="col-md-5">
-                                <input
-                                  v-model="subcampo.newOptionLabel"
-                                  class="form-control"
-                                  placeholder="Etiqueta"
+                                  placeholder="Texto de la opción"
                                   @keyup.enter="agregarOpcion(subcampo)"
                                 />
                               </div>
@@ -338,7 +306,7 @@
                                   type="button"
                                   @click="agregarOpcion(subcampo)"
                                   class="btn btn-primary w-100"
-                                  :disabled="!subcampo.newOptionValue || !subcampo.newOptionLabel"
+                                  :disabled="!subcampo.newOption"
                                 >
                                   <i class="fas fa-plus"></i>
                                 </button>
@@ -447,28 +415,22 @@ export default {
         campo.options = []
       }
 
-      if (campo.newOptionValue && campo.newOptionLabel) {
-        // Verificar que no exista ya una opción con el mismo valor
-        const existeOpcion = campo.options.some((option) => option.value === campo.newOptionValue)
+      if (campo.newOption) {
+        // Verificar que no exista ya esta opción
+        const existeOpcion = campo.options.includes(campo.newOption.trim())
 
         if (existeOpcion) {
           Swal.fire({
             icon: 'warning',
             title: 'Opción duplicada',
-            text: 'Ya existe una opción con ese valor',
+            text: 'Esta opción ya existe',
             confirmButtonColor: '#f39c12',
           })
           return
         }
 
-        campo.options.push({
-          value: campo.newOptionValue.trim(),
-          label: campo.newOptionLabel.trim(),
-        })
-
-        // Limpiar los campos de nueva opción
-        campo.newOptionValue = ''
-        campo.newOptionLabel = ''
+        campo.options.push(campo.newOption.trim())
+        campo.newOption = ''
       }
     },
 
@@ -493,9 +455,9 @@ export default {
           required: campo.required,
         }
 
-        // Si es un select, incluir las opciones
+        // Si es un select, incluir las opciones como array de strings
         if (campo.type === 'select' && campo.options) {
-          campoLimpio.options = campo.options.filter((option) => option.value && option.label)
+          campoLimpio.options = campo.options.map((option) => option.label)
         }
 
         // Si es un subform, procesar subcampos
@@ -507,11 +469,9 @@ export default {
               required: subcampo.required,
             }
 
-            // Si el subcampo es un select, incluir opciones
+            // Si el subcampo es un select, incluir opciones como array de strings
             if (subcampo.type === 'select' && subcampo.options) {
-              subcampoLimpio.options = subcampo.options.filter(
-                (option) => option.value && option.label,
-              )
+              subcampoLimpio.options = subcampo.options.map((option) => option.label)
             }
 
             return subcampoLimpio
