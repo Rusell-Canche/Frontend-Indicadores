@@ -673,16 +673,10 @@ export default {
         this.subcamposFiltrables = []
       }
 
-      // SIEMPRE incluir subcampos de todos los subforms en camposFiltrables
-      let filtrables = this.camposDisponibles.filter((campo) => campo.type !== 'subform')
-      this.camposDisponibles
-        .filter((campo) => campo.type === 'subform' && Array.isArray(campo.subcampos))
-        .forEach((subform) => {
-          filtrables = filtrables.concat(
-            subform.subcampos.filter((subcampo) => subcampo.type !== 'subform'),
-          )
-        })
-      this.camposFiltrables = filtrables
+      // Solo campos normales y subforms (NO subcampos)
+      this.camposFiltrables = this.camposDisponibles.filter(
+        (campo) => campo.type !== 'subform' || campo.type === 'subform',
+      )
     },
 
     agregarCondicion() {
@@ -858,7 +852,6 @@ export default {
 
     async onPlantillaSelected() {
       if (this.parametrosForm.plantillaSeleccionada) {
-        // Solo resetear si no estamos cargando una configuración existente
         if (!this.cargandoConfiguracion) {
           this.parametrosForm.tipoOperacion = ''
           this.parametrosForm.campoSeleccionado = ''
@@ -885,8 +878,9 @@ export default {
 
           if (response.data && response.data.campos) {
             this.camposDisponibles = response.data.campos.filter((campo) => campo.name !== '_id')
+            // Solo campos normales y subforms (NO subcampos)
             this.camposFiltrables = this.camposDisponibles.filter(
-              (campo) => campo.type !== 'subform',
+              (campo) => campo.type !== 'subform' || campo.type === 'subform',
             )
           }
         } catch (error) {
