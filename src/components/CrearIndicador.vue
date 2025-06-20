@@ -111,6 +111,30 @@
             </div>
           </div>
 
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-calculator me-2"></i>
+              Departamentos
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label">Departamento</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fa-solid fa-tent"></i>
+                  </span>
+                  <input
+                    v-model="nuevoIndicador.departamento"
+                    class="form-control"
+                    required
+                    placeholder="Ej: Computo"
+                  />
+                </div>
+                <div class="form-text">Asociar Un indicador a un departamento</div>
+              </div>
+            </div>
+          </div>
+
           <!-- Footer con botones -->
           <div class="medico-footer">
             <button @click="limpiarFormulario" class="btn btn-cancel" type="button">
@@ -146,6 +170,7 @@ export default {
         proyecto: '',
         numero: 0,
         denominador: 0,
+        departamento: '',
       },
       guardando: false,
     }
@@ -159,7 +184,8 @@ export default {
         this.nuevoIndicador.numero === null ||
         this.nuevoIndicador.numero === '' ||
         this.nuevoIndicador.denominador === null ||
-        this.nuevoIndicador.denominador === ''
+        this.nuevoIndicador.denominador === '' ||
+        !this.nuevoIndicador.departamento.trim()
       ) {
         Swal.fire({
           icon: 'error',
@@ -179,6 +205,7 @@ export default {
               <p><strong>Proyecto:</strong> ${this.nuevoIndicador.proyecto}</p>
               <p><strong>Numero:</strong> ${this.nuevoIndicador.numero}</p>
               <p><strong>Denominador:</strong> ${this.nuevoIndicador.denominador}</p>
+              <p><strong>Departamento:</strong> ${this.nuevoIndicador.departamento}</p>
             </div>
           `,
         icon: 'question',
@@ -211,6 +238,7 @@ export default {
         indicadorFormData.append('_idProyecto', this.nuevoIndicador.proyecto)
         indicadorFormData.append('numero', this.nuevoIndicador.numero)
         indicadorFormData.append('denominador', this.nuevoIndicador.denominador)
+        indicadorFormData.append('departamento', this.nuevoIndicador.departamento)
 
         // Mandamos la solicitud POST a la API
         const response = await axios.post(
@@ -233,7 +261,7 @@ export default {
           Swal.fire({
             icon: 'success',
             title: '¡Completado!',
-            text: response.data.message || 'Eje creado exitosamente',
+            text: response.data.message || 'Indicador creado exitosamente',
             confirmButtonColor: '#0d6efd',
           })
 
@@ -273,6 +301,7 @@ export default {
         proyecto: '',
         numero: 0,
         denominador: 0,
+        departamento: '',
       }
     },
   },
