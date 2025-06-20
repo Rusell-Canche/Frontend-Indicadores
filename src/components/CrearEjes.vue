@@ -7,7 +7,9 @@
       <div class="card-body">
         <form @submit.prevent="mostrarConfirmacion">
           <div class="mb-3">
-            <label for="eje-clave" class="form-label">Clave Oficial <span class="text-danger">*</span></label>
+            <label for="eje-clave" class="form-label"
+              >Clave Oficial <span class="text-danger">*</span></label
+            >
             <input
               type="text"
               id="eje-clave"
@@ -20,7 +22,9 @@
           </div>
 
           <div class="mb-3">
-            <label for="eje-descripcion" class="form-label">Descripción <span class="text-danger">*</span></label>
+            <label for="eje-descripcion" class="form-label"
+              >Descripción <span class="text-danger">*</span></label
+            >
             <textarea
               id="eje-descripcion"
               v-model="nuevoEje.descripcion"
@@ -33,20 +37,16 @@
           </div>
 
           <div class="button-group d-flex justify-content-end gap-2 mt-4">
-            <button
-              type="button"
-              @click="limpiarFormulario"
-              class="btn btn-light me-2"
-            >
+            <button type="button" @click="limpiarFormulario" class="btn btn-light me-2">
               Limpiar
             </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              :disabled="guardando"
-            >
+            <button type="submit" class="btn btn-primary" :disabled="guardando">
               <span v-if="guardando">
-                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                <span
+                  class="spinner-border spinner-border-sm me-1"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
                 Guardando...
               </span>
               <span v-else>Guardar Eje</span>
@@ -59,17 +59,17 @@
 </template>
 
 <script>
-import axios from 'axios';
-import Swal from 'sweetalert2';
+import axios from 'axios'
+import Swal from 'sweetalert2'
 
 export default {
   data() {
     return {
       nuevoEje: {
         clave_oficial: '',
-        descripcion: ''
+        descripcion: '',
       },
-      guardando: false
+      guardando: false,
     }
   },
   methods: {
@@ -80,9 +80,9 @@ export default {
           title: 'Campos incompletos',
           text: 'Por favor complete todos los campos requeridos.',
           confirmButtonColor: '#0d6efd',
-          confirmButtonText: 'Entendido'
-        });
-        return;
+          confirmButtonText: 'Entendido',
+        })
+        return
       }
 
       Swal.fire({
@@ -98,90 +98,121 @@ export default {
         confirmButtonColor: '#0d6efd',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Sí, crear eje',
-        cancelButtonText: 'Cancelar'
+        cancelButtonText: 'Cancelar',
       }).then((result) => {
         if (result.isConfirmed) {
-          this.guardarEje();
+          this.guardarEje()
         }
-      });
+      })
     },
+
     async guardarEje() {
-      this.guardando = true;
+      this.guardando = true
 
       try {
-        // Obtener el token CSRF del meta tag
-        const csrfToken = this.getCsrfToken();
+        const token = localStorage.getItem('apiToken')
 
-        // Configurar axios para enviar como FormData
-        const formData = new FormData();
-        formData.append('_token', csrfToken);
-        formData.append('clave_oficial', this.nuevoEje.clave_oficial);
-        formData.append('descripcion', this.nuevoEje.descripcion);
-
-        const response = await axios.post('/eje/insert', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
-
-        Swal.fire({
-          icon: 'success',
-          title: '¡Completado!',
-          text: response.data.message || 'Eje creado exitosamente',
-          confirmButtonColor: '#0d6efd'
-        });
-
-        this.limpiarFormulario();
-      } catch (error) {
-        console.error('Error:', error);
-
-        let errorMessage = 'Error al guardar el eje';
-
-        if (error.response) {
-          if (error.response.status === 419) {
-            errorMessage = 'Error de autenticación CSRF. Por favor recarga la página.';
-          } else if (error.response.data && error.response.data.message) {
-            errorMessage = error.response.data.message;
-          }
-        } else {
-          errorMessage = 'Error de conexión';
+        if (!token) {
+          this.mostrarNotificacion(
+            'Error',
+            'No hay sesión activa. Por favor inicia sesión.',
+            'error',
+          )
+          this.$router.push('/')
+          return
         }
 
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: errorMessage,
-          confirmButtonColor: '#0d6efd'
-        });
+        const data = {
+          clave_oficial: this.nuevoEje.clave_oficial,
+          descripcion: this.nuevoEje.descripcion,
+        }
+
+        const response = await axios.post('http://127.0.0.1:8000/api/eje', data, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        })
+
+        if (response.status === 200 || response.status === 201) {
+          this.mostrarNotificacion('¡Completado!', 'Eje creado exitosamente', 'success')
+          this.limpiarFormulario()
+        } else {
+          this.mostrarNotificacion(
+            'Advertencia',
+            'Estado inesperado: ' + response.status,
+            'warning',
+          )
+        }
+      } catch (error) {
+        console.error('Error completo:', error)
+
+        if (error.response) {
+          const status = error.response.status
+
+          switch (status) {
+            case 401:
+              this.mostrarNotificacion(
+                'Error',
+                'Sesión expirada. Por favor inicia sesión nuevamente.',
+                'error',
+              )
+              localStorage.removeItem('apiToken')
+              localStorage.removeItem('user')
+              this.$router.push('/')
+              break
+
+            case 422:
+              this.mostrarNotificacion('Error', 'Datos de validación incorrectos', 'error')
+              break
+
+            case 500:
+              this.mostrarNotificacion('Error', 'Error interno del servidor', 'error')
+              break
+
+            default:
+              this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
+              break
+          }
+        } else if (error.request) {
+          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
+        } else {
+          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
+        }
       } finally {
-        this.guardando = false;
+        this.guardando = false
       }
     },
-    getCsrfToken() {
-      const metaTag = document.querySelector('meta[name="csrf-token"]');
-      if (!metaTag) {
-        throw new Error('No se encontró el token CSRF');
-      }
-      return metaTag.content;
+
+    mostrarNotificacion(titulo, mensaje, tipo) {
+      Swal.fire({
+        title: titulo,
+        text: mensaje,
+        icon: tipo,
+        position: 'center',
+        showConfirmButton: true,
+        confirmButtonColor: tipo === 'success' ? '#3085d6' : '#d33',
+        timer: tipo === 'success' ? 2500 : undefined,
+        timerProgressBar: tipo === 'success',
+      })
     },
+
     limpiarFormulario() {
       this.nuevoEje = {
         clave_oficial: '',
-        descripcion: ''
-      };
-    }
-  }
+        descripcion: '',
+      }
+    },
+  },
 }
 </script>
 
 <style scoped>
-
-
 .card:hover {
   transform: none !important;
-  box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
 }
 
 .card {
