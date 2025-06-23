@@ -136,6 +136,7 @@
                           <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
                           <option value="date">Fecha</option>
                           <option value="subform">Subformulario</option>
+                          <option value="select">Lista de opciones (Select)</option>
                         </select>
                       </div>
                     </div>
@@ -147,6 +148,44 @@
                           <span class="checkmark"></span>
                           <span class="checkbox-label">Campo obligatorio</span>
                         </label>
+                      </div>
+                    </div>
+
+                    <!-- Campo de opciones para select -->
+                    <div v-if="campo.type === 'select'" class="col-md-12">
+                      <label class="form-label">Opciones del Select*</label>
+                      <div class="select-options-container">
+                        <div
+                          v-for="(option, optionIndex) in campo.options || []"
+                          :key="optionIndex"
+                          class="option-row"
+                        >
+                          <div class="input-group modern-input mb-2">
+                            <span class="input-group-text">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            <input
+                              v-model="campo.options[optionIndex]"
+                              class="form-control"
+                              :placeholder="`Opción ${optionIndex + 1}`"
+                              required
+                            />
+                            <button
+                              type="button"
+                              @click="removeSelectOption(campo, optionIndex)"
+                              class="btn btn-outline-danger"
+                            >
+                              <i class="fas fa-times"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          @click="addSelectOption(campo)"
+                          class="btn btn-outline-primary btn-sm"
+                        >
+                          <i class="fas fa-plus me-2"></i>Agregar Opción
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -205,7 +244,46 @@
                                 <option value="number">Numérico</option>
                                 <option value="file">Archivo</option>
                                 <option value="date">Fecha</option>
+                                <option value="select">Lista de opciones (Select)</option>
                               </select>
+                            </div>
+                          </div>
+
+                          <!-- Opciones para subcampos select -->
+                          <div v-if="subcampo.type === 'select'" class="col-md-12">
+                            <label class="form-label">Opciones del Select*</label>
+                            <div class="select-options-container">
+                              <div
+                                v-for="(option, optionIndex) in subcampo.options || []"
+                                :key="optionIndex"
+                                class="option-row"
+                              >
+                                <div class="input-group modern-input mb-2">
+                                  <span class="input-group-text">
+                                    <i class="fas fa-chevron-right"></i>
+                                  </span>
+                                  <input
+                                    v-model="subcampo.options[optionIndex]"
+                                    class="form-control"
+                                    :placeholder="`Opción ${optionIndex + 1}`"
+                                    required
+                                  />
+                                  <button
+                                    type="button"
+                                    @click="removeSubcampoSelectOption(subcampo, optionIndex)"
+                                    class="btn btn-outline-danger"
+                                  >
+                                    <i class="fas fa-times"></i>
+                                  </button>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                @click="addSubcampoSelectOption(subcampo)"
+                                class="btn btn-outline-primary btn-sm"
+                              >
+                                <i class="fas fa-plus me-2"></i>Agregar Opción
+                              </button>
                             </div>
                           </div>
 
@@ -355,9 +433,27 @@ export default {
                 required: Boolean(campo.required),
               }
 
+              // Agregar opciones si el campo es de tipo select
+              if (campo.type === 'select' && campo.options) {
+                campoData.options = campo.options.filter((option) => option.trim() !== '')
+              }
+
               // Solo agrega subcampos si existe y tiene elementos
               if (campo.subcampos && campo.subcampos.length > 0) {
-                campoData.subcampos = campo.subcampos
+                campoData.subcampos = campo.subcampos.map((subcampo) => {
+                  const subcampoData = {
+                    name: subcampo.name,
+                    type: subcampo.type,
+                    required: Boolean(subcampo.required),
+                  }
+
+                  // Agregar opciones si el subcampo es de tipo select
+                  if (subcampo.type === 'select' && subcampo.options) {
+                    subcampoData.options = subcampo.options.filter((option) => option.trim() !== '')
+                  }
+
+                  return subcampoData
+                })
               }
 
               return campoData
@@ -454,6 +550,42 @@ export default {
         // Si el tipo es 'subform', inicializar subcampos
         campo.subcampos = []
         this.agregarSubcampo(campo)
+      } else if (campo.type === 'select' && !campo.options) {
+        // Si el tipo es 'select', inicializar opciones
+        campo.options = ['']
+      }
+    },
+    handleSubcampoTypeChange(subcampo) {
+      if (subcampo.type === 'select' && !subcampo.options) {
+        // Si el tipo es 'select', inicializar opciones
+        subcampo.options = ['']
+      }
+    },
+    // Métodos para manejar opciones de select en campos principales
+    addSelectOption(campo) {
+      if (!campo.options) {
+        campo.options = []
+      }
+      campo.options.push('')
+    },
+
+    removeSelectOption(campo, index) {
+      if (campo.options && campo.options.length > 1) {
+        campo.options.splice(index, 1)
+      }
+    },
+
+    // Métodos para manejar opciones de select en subcampos
+    addSubcampoSelectOption(subcampo) {
+      if (!subcampo.options) {
+        subcampo.options = []
+      }
+      subcampo.options.push('')
+    },
+
+    removeSubcampoSelectOption(subcampo, index) {
+      if (subcampo.options && subcampo.options.length > 1) {
+        subcampo.options.splice(index, 1)
       }
     },
     quitarCampo(index) {
