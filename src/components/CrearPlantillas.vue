@@ -457,7 +457,10 @@ export default {
 
         // Si es un select, incluir las opciones como array de strings
         if (campo.type === 'select' && campo.options) {
-          campoLimpio.options = campo.options.map((option) => option.label)
+          // usar directamente las opciones sin mapear a .label
+          campoLimpio.options = campo.options.filter(
+            (option) => option !== null && option !== undefined && option.trim() !== '',
+          )
         }
 
         // Si es un subform, procesar subcampos
@@ -471,7 +474,10 @@ export default {
 
             // Si el subcampo es un select, incluir opciones como array de strings
             if (subcampo.type === 'select' && subcampo.options) {
-              subcampoLimpio.options = subcampo.options.map((option) => option.label)
+              // Cambio importante aquí también
+              subcampoLimpio.options = subcampo.options.filter(
+                (option) => option !== null && option !== undefined && option.trim() !== '',
+              )
             }
 
             return subcampoLimpio
@@ -511,6 +517,13 @@ export default {
 
         const token = localStorage.getItem('apiToken')
         const camposLimpios = this.prepararDatosParaEnvio()
+
+        // Imprimir en consola los campos limpios y filtrar los de tipo select
+        console.log('Campos a enviar:', camposLimpios)
+        console.log(
+          'Campos tipo select:',
+          camposLimpios.filter((campo) => campo.type === 'select'),
+        )
 
         const response = await axios.post(
           'http://127.0.0.1:8000/api/plantillas/crear',
