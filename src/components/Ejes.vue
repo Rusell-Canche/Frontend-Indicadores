@@ -5,7 +5,7 @@
       <div class="header-content">
         <div class="header-left">
           <h1 class="main-title">
-            <i class="fas fa-file-alt me-3"></i>
+            <i class="fas fa-project-diagram me-3"></i>
             Ejes
           </h1>
           <p class="main-subtitle">Sistema de gestión de Ejes</p>
@@ -23,28 +23,28 @@
             @click="$router.push({ name: 'VerEjes' })"
           >
             <div class="tab-icon">
-              <i class="fas fa-folder-open"></i>
+              <i class="fas fa-eye"></i>
             </div>
             <div class="tab-content-text">
               <span class="tab-title">Ver Ejes</span>
               <span class="tab-description">Visualiza los ejes que se han creado</span>
             </div>
           </div>
-          <!-- Indicador deslizante mejorado -->
-          <div class="tab-indicator" :style="indicatorStyle"></div>
           <div
             class="tab"
             :class="{ active: $route.name === 'CrearEjes' }"
             @click="$router.push({ name: 'CrearEjes' })"
           >
             <div class="tab-icon">
-              <i class="fas fa-folder-open"></i>
+              <i class="fas fa-drafting-compass"></i>
             </div>
             <div class="tab-content-text">
               <span class="tab-title">Crear Ejes</span>
               <span class="tab-description">Crea un Eje de manera manual</span>
             </div>
           </div>
+          <!-- Indicador deslizante mejorado -->
+          <div class="tab-indicator" :style="indicatorStyle"></div>
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@
 <script>
 export default {
   mounted() {
-    // Si la ruta actual es exactamente '/Documentos', redirigir a CrearDocumentos
+    // Si la ruta actual es exactamente '/Ejes', redirigir a VerEjes
     if (this.$route.path === '/Ejes') {
       this.$router.replace('/Ejes/VerEjes')
     }
@@ -104,11 +104,11 @@ export default {
 
 /* Header principal más pequeño */
 .main-header {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  background: linear-gradient(135deg, #4e73df 0%, #3c5dd4 100%);
   padding: 1.5rem 0;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(107, 114, 128, 0.3);
+  box-shadow: 0 10px 30px rgba(78, 115, 223, 0.3);
 }
 
 .main-header::before {
@@ -207,7 +207,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(107, 114, 128, 0.05) 0%, rgba(75, 85, 99, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(78, 115, 223, 0.05) 0%, rgba(60, 93, 212, 0.05) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -217,18 +217,18 @@ export default {
 }
 
 .tab:hover {
-  color: #374151;
+  color: #4e73df;
   transform: translateY(-2px);
 }
 
 .tab.active {
-  color: #374151;
+  color: #4e73df;
   font-weight: 600;
 }
 
 .tab.active::before {
   opacity: 1;
-  background: linear-gradient(135deg, rgba(107, 114, 128, 0.1) 0%, rgba(75, 85, 99, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(78, 115, 223, 0.1) 0%, rgba(60, 93, 212, 0.1) 100%);
 }
 
 .tab-icon {
@@ -246,16 +246,16 @@ export default {
 }
 
 .tab:hover .tab-icon {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  background: linear-gradient(135deg, #4e73df 0%, #3c5dd4 100%);
   color: white;
   transform: scale(1.1);
-  box-shadow: 0 8px 25px rgba(107, 114, 128, 0.3);
+  box-shadow: 0 8px 25px rgba(78, 115, 223, 0.3);
 }
 
 .tab.active .tab-icon {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  background: linear-gradient(135deg, #4e73df 0%, #3c5dd4 100%);
   color: white;
-  box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+  box-shadow: 0 8px 25px rgba(78, 115, 223, 0.4);
 }
 
 .tab-content-text {
@@ -285,10 +285,10 @@ export default {
   bottom: 0;
   left: 0;
   height: 4px;
-  background: linear-gradient(90deg, #6b7280 0%, #4b5563 100%);
+  background: linear-gradient(90deg, #4e73df 0%, #3c5dd4 100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 2px 2px 0 0;
-  box-shadow: 0 -2px 8px rgba(107, 114, 128, 0.3);
+  box-shadow: 0 -2px 8px rgba(78, 115, 223, 0.3);
 }
 
 /* Contenido de pestañas mejorado */
@@ -437,8 +437,8 @@ export default {
   }
 
   .tab.active {
-    background: linear-gradient(135deg, rgba(107, 114, 128, 0.1) 0%, rgba(75, 85, 99, 0.1) 100%);
-    border-left: 4px solid #6b7280;
+    background: linear-gradient(135deg, rgba(78, 115, 223, 0.1) 0%, rgba(60, 93, 212, 0.1) 100%);
+    border-left: 4px solid #4e73df;
   }
 
   .tab-content-wrapper {
