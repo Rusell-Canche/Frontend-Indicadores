@@ -1,64 +1,702 @@
 <template>
-  <div class="max-w-6xl mx-auto p-4 font-sans">
-    <!-- Modal de edición mejorado -->
-    <div v-if="showEditModal" class="eje-modal-backdrop">
-      <div class="eje-modal-content">
-        <div class="eje-modal-header bg-primary">
-          <h3 class="text-white">Editar Eje</h3>
-          <button @click="closeEditModal" class="eje-close-button">
-            <i class="fas fa-times text-white"></i>
-          </button>
-        </div>
-        <div class="eje-modal-body">
-          <div class="form-group">
-            <label for="clave">Clave Oficial</label>
-            <input type="text" id="clave" v-model="editForm.clave_oficial" class="eje-form-input" />
+  <div class="container-fluid py-4">
+    <!-- Header principal -->
+    <div class="card shadow border-0 rounded-3 mb-4">
+      <div class="medico-header">
+        <div class="header-content">
+          <div class="header-icon">
+            <i class="fas fa-cog"></i>
           </div>
-          <div class="form-group">
-            <label for="descripcion">Descripción</label>
-            <textarea
-              id="descripcion"
-              v-model="editForm.descripcion"
-              class="eje-form-textarea"
-              rows="4"
-            ></textarea>
+          <div class="header-title-section">
+            <h3>Gestión de Ejes</h3>
+            <p class="header-subtitle">Administra y edita tus ejes existentes</p>
           </div>
-        </div>
-        <div class="eje-modal-footer">
-          <button @click="closeEditModal" class="eje-btn eje-btn-cancel">Cancelar</button>
-          <button @click="guardarEdicion" class="eje-btn eje-btn-save">Guardar Cambios</button>
         </div>
       </div>
     </div>
 
-    <!-- Lista de ejes -->
+    <!-- Modal de edición mejorado -->
+    <div v-if="showEditModal" class="modal fade show" style="display: block">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content modern-modal">
+          <!-- Header del modal con el diseño moderno -->
+          <div class="medico-header modal-header-custom">
+            <div class="header-content">
+              <div class="header-icon">
+                <i class="fas fa-edit"></i>
+              </div>
+              <div class="header-title-section">
+                <h3>Editar Eje</h3>
+                <p class="header-subtitle">Modifica la información del eje</p>
+              </div>
+            </div>
+            <button type="button" @click="closeEditModal" class="close-button" aria-label="Close">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Body del modal con el diseño moderno -->
+          <div class="medico-body modal-body-custom">
+            <!-- Nota informativa -->
+            <div class="alert alert-info mb-4">
+              <i class="fas fa-info-circle me-2"></i>
+              Modifica los campos del eje según tus necesidades
+            </div>
+
+            <!-- Formulario de edición -->
+            <div class="form-section">
+              <h6 class="section-title">
+                <i class="fas fa-cog me-2"></i>
+                Información del Eje
+              </h6>
+
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Clave Oficial*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-key"></i>
+                    </span>
+                    <input
+                      type="text"
+                      v-model="editForm.clave_oficial"
+                      class="form-control"
+                      placeholder="Ingrese la clave oficial"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-label">Descripción*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-align-left"></i>
+                    </span>
+                    <textarea
+                      v-model="editForm.descripcion"
+                      class="form-control"
+                      rows="4"
+                      placeholder="Ingrese la descripción del eje"
+                      required
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer con botones -->
+            <div class="medico-footer">
+              <button @click="closeEditModal" class="btn btn-cancel" type="button">
+                <i class="fas fa-times me-2"></i>
+                Cancelar
+              </button>
+              <button @click="guardarEdicion" class="btn btn-save" type="button">
+                <i class="fas fa-save me-2"></i>
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de ejes con diseño mejorado -->
     <div v-if="ejes.length > 0" class="eje-list">
       <div v-for="eje in ejes" :key="eje._id?.$oid || eje._id" class="eje-card">
-        <div class="eje-header">
-          <i class="fas fa-cog eje-card-icon"></i>
-          <h4>Eje {{ eje.clave_oficial }}</h4>
-        </div>
-        <div class="eje-info">
-          <p class="eje-description">{{ eje.descripcion }}</p>
-          <p class="eje-date">
-            Creado: {{ formatDate(eje.created_at) }} | Actualizado: {{ formatDate(eje.updated_at) }}
-          </p>
+        <div class="eje-card-header">
+          <div class="eje-icon">
+            <i class="fas fa-cog"></i>
+          </div>
+          <div class="eje-info">
+            <h4 class="eje-title">Eje {{ eje.clave_oficial }}</h4>
+            <p class="eje-subtitle">{{ eje.descripcion }}</p>
+            <p class="eje-date">
+              Creado: {{ formatDate(eje.created_at) }} | Actualizado: {{ formatDate(eje.updated_at) }}
+            </p>
+          </div>
         </div>
         <div class="eje-actions">
-          <button @click="editarEje(eje)" class="eje-btn eje-btn-edit">
-            <i class="fas fa-edit"></i> Editar
+          <button
+            @click="editarEje(eje)"
+            class="btn btn-edit"
+            title="Editar eje"
+          >
+            <i class="fas fa-edit"></i>
+            <span>Editar</span>
           </button>
-          <button @click="eliminarEje(eje)" class="eje-btn eje-btn-delete">
-            <i class="fas fa-trash-alt"></i> Eliminar
+          <button
+            @click="eliminarEje(eje)"
+            class="btn btn-delete"
+            title="Eliminar eje"
+          >
+            <i class="fas fa-trash-alt"></i>
+            <span>Eliminar</span>
           </button>
         </div>
       </div>
     </div>
 
-    <div v-else-if="loading" class="text-gray-500 text-center">Cargando ejes...</div>
-    <div v-else class="text-red-500 text-center">No se encontraron ejes</div>
+    <div v-else-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando ejes...</span>
+      </div>
+      <p class="mt-3 text-muted">Cargando ejes...</p>
+    </div>
+    
+    <div v-else class="text-center py-5">
+      <i class="fas fa-exclamation-circle text-muted mb-3" style="font-size: 3rem;"></i>
+      <p class="text-muted">No se encontraron ejes</p>
+    </div>
   </div>
 </template>
+
+<style scoped>
+/* Estilos base del diseño moderno */
+.card {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  background: white;
+  position: relative;
+}
+
+/* Header con el diseño moderno usando #4e73df */
+.medico-header {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+}
+
+.medico-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1;
+}
+
+.header-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-title-section h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-subtitle {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+/* Estilos mejorados para las tarjetas de ejes */
+.eje-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  padding: 0;
+}
+
+.eje-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(78, 115, 223, 0.1);
+  position: relative;
+}
+
+.eje-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4e73df, #224abe);
+  border-radius: 16px 16px 0 0;
+}
+
+.eje-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(78, 115, 223, 0.2);
+}
+
+.eje-card-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.eje-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+  box-shadow: 0 4px 15px rgba(78, 115, 223, 0.3);
+  flex-shrink: 0;
+}
+
+.eje-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.eje-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  line-height: 1.3;
+}
+
+.eje-subtitle {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: #495057;
+  font-weight: 400;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.eje-date {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-weight: 400;
+}
+
+.eje-actions {
+  display: flex;
+  padding: 1rem 1.5rem;
+  background: white;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+}
+
+/* Modal con diseño moderno */
+.modal.fade.show {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+}
+
+.modern-modal {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  background: white;
+  border: none;
+}
+
+.modal-header-custom {
+  padding: 2rem;
+  border-bottom: none;
+}
+
+.close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 1;
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.modal-body-custom {
+  padding: 2rem;
+  background: white;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4e73df, #224abe);
+  border-radius: 16px 16px 0 0;
+}
+
+.section-title {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.section-title i {
+  color: #4e73df;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.modern-input {
+  position: relative;
+}
+
+.modern-input .input-group-text {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+  border: none;
+  color: white;
+  border-radius: 12px 0 0 12px;
+  width: 50px;
+  justify-content: center;
+}
+
+.modern-input .form-control,
+.modern-input .form-select {
+  border: 2px solid #e9ecef;
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.modern-input .form-control:focus,
+.modern-input .form-select:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+  transform: translateY(-1px);
+}
+
+.modern-input textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.alert {
+  border-radius: 12px;
+  border: 1px solid rgba(78, 115, 223, 0.2);
+  background: linear-gradient(145deg, rgba(78, 115, 223, 0.1) 0%, rgba(78, 115, 223, 0.05) 100%);
+  color: #224abe;
+}
+
+/* Footer con botones */
+.medico-footer {
+  padding: 1.5rem 0 0.5rem 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.btn-cancel {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-cancel:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+  color: white;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-save::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-save:hover::before {
+  left: 100%;
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #224abe 0%, #1e3a8a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(78, 115, 223, 0.4);
+  color: white;
+}
+
+/* Animaciones */
+@keyframes shimmer {
+  0%,
+  100% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  50% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Estados de carga y vacío */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .medico-header {
+    padding: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .header-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .header-title-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .eje-list {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  .eje-card-header {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .eje-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .modal-dialog {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+
+  .modal-header-custom {
+    padding: 1.5rem;
+  }
+
+  .modal-body-custom {
+    padding: 1.5rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .medico-footer {
+    padding: 1rem 0;
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-save {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .eje-list {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-header-custom {
+    padding: 1rem;
+  }
+
+  .modal-body-custom {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 0.75rem;
+  }
+
+  .modern-input .form-control,
+  .modern-input .form-select {
+    font-size: 0.9rem;
+  }
+
+  .eje-card-header {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .eje-info {
+    min-width: 0;
+  }
+
+  .eje-title {
+    font-size: 1rem;
+  }
+
+  .eje-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .eje-date {
+    font-size: 0.75rem;
+  }
+}
+</style>
+
 
 <script>
 import axios from 'axios'
@@ -374,246 +1012,3 @@ export default {
   },
 }
 </script>
-<style scoped>
-/* Estilos renovados para ejes */
-.eje-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  padding: 15px;
-}
-
-.eje-card {
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #e0e0e0;
-}
-
-.eje-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-}
-
-.eje-header {
-  padding: 20px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  text-align: center;
-  position: relative;
-}
-
-.eje-card-icon {
-  font-size: 2.5rem;
-  color: #4e73df;
-  margin-bottom: 15px;
-  display: block;
-}
-
-.eje-header h4 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-.eje-info {
-  padding: 15px 20px;
-  flex-grow: 1;
-}
-
-.eje-description {
-  color: #4b5563;
-  line-height: 1.5;
-  margin-bottom: 10px;
-  font-size: 0.95rem;
-}
-
-.eje-date {
-  color: #6b7280;
-  font-size: 0.8rem;
-  margin-top: 10px;
-}
-
-.eje-actions {
-  display: flex;
-  padding: 15px;
-  background: #f8f9fa;
-  border-top: 1px solid #eee;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.eje-btn {
-  border: none;
-  border-radius: 6px;
-  padding: 8px 15px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.eje-btn-edit {
-  background-color: #4e73df;
-  color: white;
-}
-
-.eje-btn-edit:hover {
-  background-color: #3a56b0;
-}
-
-.eje-btn-delete {
-  background-color: #e74a3b;
-  color: white;
-}
-
-.eje-btn-delete:hover {
-  background-color: #be2617;
-}
-
-.eje-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-/* Estilos mejorados para el modal */
-.eje-modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.eje-modal-content {
-  background-color: #fff;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  animation: ejeModalFadeIn 0.3s ease;
-}
-
-@keyframes ejeModalFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.eje-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #e9ecef;
-  background: linear-gradient(135deg, #4e73df 0%, #3a56b0 100%);
-}
-
-.eje-modal-header h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: white;
-}
-
-.eje-close-button {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.eje-modal-body {
-  padding: 20px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #495057;
-}
-
-.eje-form-input,
-.eje-form-textarea {
-  width: 100%;
-  padding: 10px 15px;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: all 0.2s;
-}
-
-.eje-form-input:focus,
-.eje-form-textarea:focus {
-  border-color: #4e73df;
-  outline: 0;
-  box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.25);
-}
-
-.eje-modal-footer {
-  padding: 15px 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid #e9ecef;
-}
-
-.eje-btn-cancel {
-  background-color: #f8f9fa;
-  border: 1px solid #ced4da;
-  color: #6c757d;
-}
-
-.eje-btn-cancel:hover {
-  background-color: #e9ecef;
-}
-
-.eje-btn-save {
-  background-color: #4e73df;
-  border: 1px solid #3a56b0;
-  color: white;
-}
-
-.eje-btn-save:hover {
-  background-color: #3a56b0;
-  box-shadow: 0 2px 5px rgba(58, 86, 176, 0.3);
-}
-
-@media (max-width: 768px) {
-  .eje-list {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  }
-
-  .eje-actions {
-    flex-direction: column;
-  }
-
-  .eje-btn {
-    justify-content: center;
-    width: 100%;
-  }
-}
-</style>
