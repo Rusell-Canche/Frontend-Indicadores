@@ -386,14 +386,12 @@ export default {
 
     handleTypeChange(campo) {
       if (campo.type === 'subform' && !campo.subcampos) {
-        // Si el tipo es 'subform', inicializar subcampos
         campo.subcampos = []
         this.agregarSubcampo(campo)
       } else if (campo.type === 'select' && !campo.options) {
-        // Si el tipo es 'select', inicializar opciones
+        // Inicializar como array vacío
         campo.options = []
-        campo.newOptionValue = ''
-        campo.newOptionLabel = ''
+        campo.newOption = '' // Asegurarse de que newOption esté inicializado
       }
     },
 
@@ -415,9 +413,13 @@ export default {
         campo.options = []
       }
 
-      if (campo.newOption) {
-        // Verificar que no exista ya esta opción
-        const existeOpcion = campo.options.includes(campo.newOption.trim())
+      if (campo.newOption && campo.newOption.trim() !== '') {
+        const opcionTrimmed = campo.newOption.trim()
+
+        // Verificar que no exista ya esta opción (case insensitive)
+        const existeOpcion = campo.options.some(
+          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
+        )
 
         if (existeOpcion) {
           Swal.fire({
@@ -429,7 +431,7 @@ export default {
           return
         }
 
-        campo.options.push(campo.newOption.trim())
+        campo.options.push(opcionTrimmed)
         campo.newOption = ''
       }
     },
