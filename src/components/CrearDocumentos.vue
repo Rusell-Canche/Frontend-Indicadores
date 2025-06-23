@@ -120,6 +120,26 @@
                   </div>
                 </div>
 
+                <!-- Campo de tipo select -->
+                <div v-else-if="campo.type === 'select'" class="mt-2">
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-list-ul"></i>
+                    </span>
+                    <select
+                      class="form-select"
+                      :id="campo.name"
+                      v-model="documentData[campo.name]"
+                      :required="campo.required"
+                    >
+                      <option value="" disabled selected>Seleccione una opción</option>
+                      <option v-for="(option, index) in campo.options" :key="index" :value="option">
+                        {{ option }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
                 <!-- Campo de archivos -->
                 <div v-else-if="campo.type === 'file'" class="mt-2">
                   <div class="input-group modern-input">
@@ -288,6 +308,23 @@
                   :required="subcampo.required"
                   placeholder="Ingrese un valor numérico"
                 />
+              </div>
+
+              <!-- Campo select en modal -->
+              <div v-else-if="subcampo.type === 'select'" class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-list-ul"></i>
+                </span>
+                <select
+                  class="form-select"
+                  v-model="currentSubformData[subcampo.name]"
+                  :required="subcampo.required"
+                >
+                  <option value="" disabled selected>Seleccione una opción</option>
+                  <option v-for="(option, index) in subcampo.options" :key="index" :value="option">
+                    {{ option }}
+                  </option>
+                </select>
               </div>
 
               <!-- Campo fecha en modal -->
@@ -478,6 +515,14 @@ export default {
       // Validar campos requeridos
       const isValid = this.currentSubformField.subcampos.every((sub) => {
         if (!sub.required) return true
+        // Validación para selects
+        if (sub.type === 'select') {
+          return (
+            this.currentSubformData[sub.name] !== '' &&
+            this.currentSubformData[sub.name] !== null &&
+            this.currentSubformData[sub.name] !== undefined
+          )
+        }
 
         // Para archivos, validar si hay archivo nuevo o existente
         if (sub.type === 'file') {
@@ -568,6 +613,19 @@ export default {
     },
 
     async onSubmit() {
+      // Validar campos select requeridos
+      const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
+        if (campo.type === 'select' && campo.required) {
+          return !this.documentData[campo.name] || this.documentData[campo.name] === ''
+        }
+        return false
+      })
+
+      if (selectFieldsEmpty) {
+        this.showError('Por favor seleccione una opción en los campos obligatorios')
+        return
+      }
+
       // Validar campos requeridos en el formulario principal
       const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
         if (campo.required && campo.type !== 'subform') {
@@ -668,8 +726,10 @@ export default {
       this.documentData = {}
       this.files = {}
 
-      // Reiniciar subformularios
       this.camposPlantilla.forEach((campo) => {
+        if (campo.type === 'select') {
+          this.documentData[campo.name] = ''
+        }
         if (campo.type === 'subform') {
           this.subformData[campo.name] = []
           this.subformFiles[campo.name] = []
@@ -678,7 +738,6 @@ export default {
 
       if (this.$refs.form) this.$refs.form.reset()
     },
-
     showError(message) {
       Swal.fire({
         title: 'Error',
