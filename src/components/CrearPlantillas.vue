@@ -386,14 +386,12 @@ export default {
 
     handleTypeChange(campo) {
       if (campo.type === 'subform' && !campo.subcampos) {
-        // Si el tipo es 'subform', inicializar subcampos
         campo.subcampos = []
         this.agregarSubcampo(campo)
       } else if (campo.type === 'select' && !campo.options) {
-        // Si el tipo es 'select', inicializar opciones
+        // Inicializar como array vacío
         campo.options = []
-        campo.newOptionValue = ''
-        campo.newOptionLabel = ''
+        campo.newOption = '' // Asegurarse de que newOption esté inicializado
       }
     },
 
@@ -415,9 +413,13 @@ export default {
         campo.options = []
       }
 
-      if (campo.newOption) {
-        // Verificar que no exista ya esta opción
-        const existeOpcion = campo.options.includes(campo.newOption.trim())
+      if (campo.newOption && campo.newOption.trim() !== '') {
+        const opcionTrimmed = campo.newOption.trim()
+
+        // Verificar que no exista ya esta opción (case insensitive)
+        const existeOpcion = campo.options.some(
+          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
+        )
 
         if (existeOpcion) {
           Swal.fire({
@@ -429,7 +431,7 @@ export default {
           return
         }
 
-        campo.options.push(campo.newOption.trim())
+        campo.options.push(opcionTrimmed)
         campo.newOption = ''
       }
     },
@@ -457,7 +459,10 @@ export default {
 
         // Si es un select, incluir las opciones como array de strings
         if (campo.type === 'select' && campo.options) {
-          campoLimpio.options = campo.options.map((option) => option.label)
+          // usar directamente las opciones sin mapear a .label
+          campoLimpio.options = campo.options.filter(
+            (option) => option !== null && option !== undefined && option.trim() !== '',
+          )
         }
 
         // Si es un subform, procesar subcampos
@@ -471,7 +476,10 @@ export default {
 
             // Si el subcampo es un select, incluir opciones como array de strings
             if (subcampo.type === 'select' && subcampo.options) {
-              subcampoLimpio.options = subcampo.options.map((option) => option.label)
+              // Cambio importante aquí también
+              subcampoLimpio.options = subcampo.options.filter(
+                (option) => option !== null && option !== undefined && option.trim() !== '',
+              )
             }
 
             return subcampoLimpio
@@ -511,6 +519,13 @@ export default {
 
         const token = localStorage.getItem('apiToken')
         const camposLimpios = this.prepararDatosParaEnvio()
+
+        // Imprimir en consola los campos limpios y filtrar los de tipo select
+        console.log('Campos a enviar:', camposLimpios)
+        console.log(
+          'Campos tipo select:',
+          camposLimpios.filter((campo) => campo.type === 'select'),
+        )
 
         const response = await axios.post(
           'http://127.0.0.1:8000/api/plantillas/crear',
