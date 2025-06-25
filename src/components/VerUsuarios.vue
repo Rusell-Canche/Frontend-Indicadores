@@ -9,18 +9,31 @@
           <li v-for="role in user.roles" :key="role" class="role">{{ role }}</li>
         </ul>
         <div class="button-group">
-          <button @click="openEditModal(user)" class="btn-edit" data-toggle="modal" data-target="#editModal">
-            <i class="fas fa-edit"></i> <!-- Icono de editar -->
+          <button
+            @click="openEditModal(user)"
+            class="btn-edit"
+            data-toggle="modal"
+            data-target="#editModal"
+          >
+            <i class="fas fa-edit"></i>
+            <!-- Icono de editar -->
           </button>
           <button @click="confirmDelete(user)" class="btn-delete">
-            <i class="fas fa-minus-circle"></i> <!-- Icono de eliminar -->
+            <i class="fas fa-minus-circle"></i>
+            <!-- Icono de eliminar -->
           </button>
         </div>
       </div>
     </div>
 
     <!-- Modal para editar usuario -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="editModal"
+      tabindex="-1"
+      aria-labelledby="editModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -33,23 +46,53 @@
             <form @submit.prevent="confirmUpdate">
               <div class="form-group">
                 <label for="nombre">Nombre:</label>
-                <input v-model="editedUser.nombre" type="text" id="nombre" class="form-control" required>
+                <input
+                  v-model="editedUser.nombre"
+                  type="text"
+                  id="nombre"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="form-group">
                 <label for="apellido_paterno">Apellido Paterno:</label>
-                <input v-model="editedUser.apellido_paterno" type="text" id="apellido_paterno" class="form-control" required>
+                <input
+                  v-model="editedUser.apellido_paterno"
+                  type="text"
+                  id="apellido_paterno"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="form-group">
                 <label for="apellido_materno">Apellido Materno:</label>
-                <input v-model="editedUser.apellido_materno" type="text" id="apellido_materno" class="form-control" required>
+                <input
+                  v-model="editedUser.apellido_materno"
+                  type="text"
+                  id="apellido_materno"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="form-group">
                 <label for="email">Correo Electrónico:</label>
-                <input v-model="editedUser.email" type="email" id="email" class="form-control" required>
+                <input
+                  v-model="editedUser.email"
+                  type="email"
+                  id="email"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="form-group">
                 <label for="password">Contraseña:</label>
-                <input v-model="editedUser.password" type="password" id="password" class="form-control" placeholder="••••••••">
+                <input
+                  v-model="editedUser.password"
+                  type="password"
+                  id="password"
+                  class="form-control"
+                  placeholder="••••••••"
+                />
               </div>
               <div class="form-group">
                 <label>Roles:</label>
@@ -60,7 +103,7 @@
                     :value="role"
                     v-model="editedUser.roles"
                     :id="'edit-' + role"
-                  >
+                  />
                   <label class="form-check-label" :for="'edit-' + role">{{ role }}</label>
                 </div>
               </div>
@@ -76,8 +119,9 @@
 </template>
 
 <script>
-import Swal from 'sweetalert2';
-import axios from 'axios';
+import Swal from 'sweetalert2'
+import axios from 'axios'
+import { h } from 'vue'
 
 export default {
   data() {
@@ -90,34 +134,47 @@ export default {
         apellido_materno: '',
         email: '',
         password: '',
-        roles: []
+        roles: [],
       },
-      availableRoles: ['administrador', 'capturista', 'validador', 'plantillas', 'carrusel', 'onepiece'],
-      originalUser: null // Para almacenar la copia original del usuario
-    };
+      availableRoles: [
+        'administrador',
+        'capturista',
+        'validador',
+        'plantillas',
+        'carrusel',
+        'onepiece',
+      ],
+      originalUser: null, // Para almacenar la copia original del usuario
+    }
   },
   mounted() {
-    this.fetchUsers();
+    this.fetchUsers()
   },
   methods: {
     fetchUsers() {
-      axios.get('/list-users')
-        .then(response => {
-          this.users = response.data;
+      const token = localStorage.getItem('apitoken')
+      axios
+        .get('http://127.0.0.1:8000/api/list-users', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         })
-        .catch(error => {
-          console.error('Error al obtener la lista de usuarios:', error);
-        });
+        .then((response) => {
+          this.users = response.data
+        })
+        .catch((error) => {
+          console.error('Error al obtener la lista de usuarios:', error)
+        })
     },
     openEditModal(user) {
       // Guardar una copia del usuario original
-      this.originalUser = { ...user };
+      this.originalUser = { ...user }
 
       // Limpiar el campo de contraseña
-      const { password, ...editedUser } = user;
-      this.editedUser = editedUser;
+      const { password, ...editedUser } = user
+      this.editedUser = editedUser
 
-      $('#editModal').modal('show'); // Mostrar el modal manualmente
+      $('#editModal').modal('show') // Mostrar el modal manualmente
     },
     confirmUpdate() {
       Swal.fire({
@@ -128,17 +185,17 @@ export default {
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Sí, guardar',
-        cancelButtonText: 'Cancelar'
+        cancelButtonText: 'Cancelar',
       }).then((result) => {
         if (result.isConfirmed) {
-          this.submitEditForm();
+          this.submitEditForm()
         }
-      });
+      })
     },
     submitEditForm() {
       if (!this.editedUser) {
-        console.error('Error: editedUser no está definido');
-        return;
+        console.error('Error: editedUser no está definido')
+        return
       }
 
       const updatedUser = {
@@ -148,33 +205,32 @@ export default {
         apellido_materno: this.editedUser.apellido_materno,
         email: this.editedUser.email,
         roles: this.editedUser.roles,
-      };
+      }
 
       if (this.editedUser.password) {
-        updatedUser.password = this.editedUser.password;
+        updatedUser.password = this.editedUser.password
       }
 
       // Imprimir el objeto actualizado para verificar los valores
-      console.log("Valores antes de enviar la solicitud:", updatedUser);
+      console.log('Valores antes de enviar la solicitud:', updatedUser)
 
-      axios.put(`/users/${updatedUser._id}`, updatedUser)
-        .then(response => {
-          this.fetchUsers();
-          $('#editModal').modal('hide');
-          Swal.fire(
-            'Actualizado',
-            'El usuario ha sido actualizado exitosamente.',
-            'success'
-          );
+      axios
+      const token = localStorage
+        .getItem('apitoken')
+        .put(`http://127.0.0.1:8000/api/users/${updatedUser._id}`, updatedUser, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         })
-        .catch(error => {
-          console.error('Error al actualizar el usuario:', error);
-          Swal.fire(
-            'Error',
-            'Hubo un problema al actualizar el usuario.',
-            'error'
-          );
-        });
+        .then((response) => {
+          this.fetchUsers()
+          $('#editModal').modal('hide')
+          Swal.fire('Actualizado', 'El usuario ha sido actualizado exitosamente.', 'success')
+        })
+        .catch((error) => {
+          console.error('Error al actualizar el usuario:', error)
+          Swal.fire('Error', 'Hubo un problema al actualizar el usuario.', 'error')
+        })
     },
     confirmDelete(user) {
       Swal.fire({
@@ -185,31 +241,30 @@ export default {
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
+        cancelButtonText: 'Cancelar',
       }).then((result) => {
         if (result.isConfirmed) {
-          axios.delete(`/users/${user._id}`)
-            .then(response => {
-              Swal.fire(
-                'Eliminado',
-                'El usuario ha sido eliminado.',
-                'success'
-              );
-              this.fetchUsers();
+          axios
+          const token = localStorage
+            .getItem('apitoken')
+            .delete(`http://127.0.0.1:8000/api/users/${user._id}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             })
-            .catch(error => {
-              console.error('Error al eliminar el usuario:', error);
-              Swal.fire(
-                'Error',
-                'Hubo un problema al eliminar el usuario.',
-                'error'
-              );
-            });
+            .then((response) => {
+              Swal.fire('Eliminado', 'El usuario ha sido eliminado.', 'success')
+              this.fetchUsers()
+            })
+            .catch((error) => {
+              console.error('Error al eliminar el usuario:', error)
+              Swal.fire('Error', 'Hubo un problema al eliminar el usuario.', 'error')
+            })
         }
-      });
-    }
-  }
-};
+      })
+    },
+  },
+}
 </script>
 
 <style scoped>
@@ -264,7 +319,8 @@ export default {
   background-color: transparent;
 }
 
-.btn-edit, .btn-delete {
+.btn-edit,
+.btn-delete {
   padding: 4px 8px;
   margin-right: 5px;
   border: none;
@@ -272,7 +328,8 @@ export default {
   cursor: pointer;
 }
 
-.btn-edit i, .btn-delete i {
+.btn-edit i,
+.btn-delete i {
   font-size: 16px;
 }
 </style>
