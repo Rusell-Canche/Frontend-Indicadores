@@ -231,6 +231,7 @@ export default {
         const formData = new FormData()
         formData.append('nombreIndicador', this.indicadorEditForm.nombreIndicador)
         formData.append('numerador', this.indicadorEditForm.numerador)
+        formData.append('denominador', this.indicadorEditForm.denominador)
         formData.append('numero', this.indicadorEditForm.numero)
         formData.append('_idProyecto', this.indicadorEditForm._idProyecto)
         formData.append('departamento', this.indicadorEditForm.departamento)
