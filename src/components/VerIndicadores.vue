@@ -1,4 +1,25 @@
 <template>
+  <!-- Sección simple para elegir fecha de inicio y fecha fin -->
+  <div class="date-filter-simple mb-3">
+    <div class="filter-row">
+      <div class="date-field">
+        <label for="fechaInicio" class="date-label">Fecha Inicio:</label>
+        <input type="date" id="fechaInicio" class="date-input" v-model="fechaInicio" />
+      </div>
+
+      <div class="date-field">
+        <label for="fechaFin" class="date-label">Fecha Fin:</label>
+        <input type="date" id="fechaFin" class="date-input" v-model="fechaFin" />
+      </div>
+
+      <div class="filter-buttons">
+        <button class="btn-filter-simple" @click="filtrarPorFecha">
+          <i class="fas fa-filter me-1"></i>
+          Filtrar
+        </button>
+      </div>
+    </div>
+  </div>
   <div class="container-fluid py-4">
     <!-- Contenido principal -->
     <div class="card shadow border-0 rounded-3">
@@ -1509,5 +1530,173 @@ export default {
   .pagination-info {
     padding: 6px 10px;
   }
+}
+/* Estilos simples para el filtro de fechas */
+.date-filter-simple {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin: 0 1rem;
+}
+
+.filter-row {
+  display: flex;
+  align-items: end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 160px;
+}
+
+.date-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+}
+
+.date-input {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #495057;
+  background: white;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.date-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.15rem rgba(102, 126, 234, 0.15);
+  outline: none;
+}
+
+.date-input:hover {
+  border-color: #cbd5e1;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-filter-simple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.btn-filter-simple:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.btn-filter-simple:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .date-filter-simple {
+    margin: 0 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .date-field {
+    min-width: 100%;
+  }
+
+  .filter-buttons {
+    justify-content: center;
+  }
+
+  .btn-filter-simple {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .date-filter-simple {
+    margin: 0 0.25rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .date-label {
+    font-size: 0.8rem;
+  }
+
+  .date-input {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .btn-filter-simple {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Mejoras para pantallas grandes */
+@media (min-width: 992px) {
+  .filter-row {
+    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .date-field {
+    flex: 0 0 auto;
+  }
+}
+
+/* Estados de validación */
+.date-input.is-invalid {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.15);
+}
+
+.date-input.is-valid {
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.15rem rgba(40, 167, 69, 0.15);
+}
+
+/* Personalización del selector de fecha */
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.5);
+  transition: filter 0.2s ease;
+}
+
+.date-input:hover::-webkit-calendar-picker-indicator {
+  filter: invert(0.3);
+}
+
+.date-input:focus::-webkit-calendar-picker-indicator {
+  filter: invert(0.2);
 }
 </style>
