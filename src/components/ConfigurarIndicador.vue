@@ -53,147 +53,190 @@
           </div>
         </div>
 
-        <!-- Selección de operación -->
-        <div class="form-section" v-if="parametrosForm.plantillaSeleccionada">
-          <h6 class="section-title">
-            <i class="fas fa-calculator me-2"></i>
-            Tipo de Operación
-          </h6>
-          <div class="row g-3">
-            <div class="col-md-12">
-              <label class="form-label">Operación*</label>
-              <div class="input-group modern-input">
-                <span class="input-group-text">
-                  <i class="fas fa-function"></i>
-                </span>
-                <select v-model="parametrosForm.tipoOperacion" class="form-select" required>
-                  <option value="">Seleccione una operación</option>
-                  <option value="contar">Contar registros (COUNT)</option>
-                  <option value="sumar">Sumar valores (SUM)</option>
-                  <option value="promedio">Promedio (AVG)</option>
-                  <option value="maximo">Valor máximo (MAX)</option>
-                  <option value="minimo">Valor mínimo (MIN)</option>
-                </select>
-              </div>
-              <div class="form-text">
-                <span v-if="parametrosForm.tipoOperacion === 'contar'">
-                  Contará el número total de documentos
-                </span>
-                <span v-else-if="parametrosForm.tipoOperacion === 'sumar'">
-                  Sumará los valores del campo seleccionado
-                </span>
-                <span v-else-if="parametrosForm.tipoOperacion === 'promedio'">
-                  Calculará el promedio del campo seleccionado
-                </span>
-                <span v-else-if="parametrosForm.tipoOperacion === 'maximo'">
-                  Encontrará el valor máximo del campo seleccionado
-                </span>
-                <span v-else-if="parametrosForm.tipoOperacion === 'minimo'">
-                  Encontrará el valor mínimo del campo seleccionado
-                </span>
-                <span v-else> Selecciona la operación matemática a realizar </span>
-              </div>
-            </div>
-          </div>
-        </div>
+<!-- Selección de operación -->
+<div class="form-section" v-if="parametrosForm.plantillaSeleccionada">
+  <h6 class="section-title">
+    <i class="fas fa-calculator me-2"></i>
+    Tipo de Operación
+  </h6>
+  <div class="row g-3">
+    <div class="col-md-12">
+      <label class="form-label">Operación*</label>
+      <div class="input-group modern-input">
+        <span class="input-group-text">
+          <i class="fas fa-function"></i>
+        </span>
+        <select v-model="parametrosForm.tipoOperacion" class="form-select" required>
+          <option value="">Seleccione una operación</option>
+          <option value="contar">Contar registros (COUNT)</option>
+          <option value="distinto">Contar distintos (DISTINCT)</option>
+          <option value="sumar">Sumar valores (SUM)</option>
+          <option value="promedio">Promedio (AVG)</option>
+          <option value="maximo">Valor máximo (MAX)</option>
+          <option value="minimo">Valor mínimo (MIN)</option>
+        </select>
+      </div>
+      <div class="form-text">
+        <span v-if="parametrosForm.tipoOperacion === 'contar'">
+          Contará el número total de documentos
+        </span>
+        <span v-else-if="parametrosForm.tipoOperacion === 'distinto'">
+          Contará el número total de documentos diferentes
+        </span>
+        <span v-else-if="parametrosForm.tipoOperacion === 'sumar'">
+          Sumará los valores del campo seleccionado
+        </span>
+        <span v-else-if="parametrosForm.tipoOperacion === 'promedio'">
+          Calculará el promedio del campo seleccionado
+        </span>
+        <span v-else-if="parametrosForm.tipoOperacion === 'maximo'">
+          Encontrará el valor máximo del campo seleccionado
+        </span>
+        <span v-else-if="parametrosForm.tipoOperacion === 'minimo'">
+          Encontrará el valor mínimo del campo seleccionado
+        </span>
+        <span v-else>Selecciona la operación matemática a realizar</span>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <!-- Selección de campo con soporte para subconfiguración -->
-        <div
-          class="form-section"
-          v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'contar'"
+<!-- Selección de campo con soporte para subconfiguración -->
+<div
+  class="form-section"
+  v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'contar'"
+>
+  <h6 class="section-title">
+    <i class="fas fa-tag me-2"></i>
+    Campo a Procesar
+  </h6>
+  <div class="row g-3">
+    <div class="col-md-12">
+      <label class="form-label">Campo principal*</label>
+      <div class="input-group modern-input">
+        <span class="input-group-text">
+          <i class="fas fa-columns"></i>
+        </span>
+        <select
+          v-model="parametrosForm.campoSeleccionado"
+          @change="onCampoPrincipalSelected"
+          class="form-select"
+          required
         >
-          <h6 class="section-title">
-            <i class="fas fa-tag me-2"></i>
-            Campo a Procesar
-          </h6>
-          <div class="row g-3">
-            <div class="col-md-12">
-              <label class="form-label">Campo principal*</label>
-              <div class="input-group modern-input">
-                <span class="input-group-text">
-                  <i class="fas fa-columns"></i>
-                </span>
-                <select
-                  v-model="parametrosForm.campoSeleccionado"
-                  @change="onCampoPrincipalSelected"
-                  class="form-select"
-                  required
-                >
-                  <option value="">Seleccione un campo</option>
-                  <option v-for="campo in camposDisponibles" :key="campo.name" :value="campo.name">
-                    {{ campo.alias || campo.name }} ({{ getTipoCampo(campo) }})
-                  </option>
-                </select>
-              </div>
-            </div>
+          <option value="">Seleccione un campo</option>
+          <option v-for="campo in camposDisponibles" :key="campo.name" :value="campo.name">
+            {{ campo.alias || campo.name }} ({{ getTipoCampo(campo) }})
+          </option>
+        </select>
+      </div>
+    </div>
 
-            <!-- Subconfiguración para campos de tipo subform -->
-            <div v-if="mostrarSubcampos" class="subform-config-section">
-              <h6 class="mt-3 mb-3">
-                <i class="fas fa-layer-group me-2"></i>
-                Configuración del Subformulario
-              </h6>
+    <!-- Subconfiguración para campos de tipo subform (excepto contarDistinto) -->
+    <div
+      v-if="mostrarSubcampos && parametrosForm.tipoOperacion !== 'contarDistinto'"
+      class="subform-config-section"
+    >
+      <h6 class="mt-3 mb-3">
+        <i class="fas fa-layer-group me-2"></i>
+        Configuración del Subformulario
+      </h6>
 
-              <!-- Operación para subformulario -->
-              <div class="row g-3">
-                <div class="col-md-12">
-                  <label class="form-label">Operación para Subformulario*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-calculator"></i>
-                    </span>
-                    <select
-                      v-model="parametrosForm.subConfiguracion.tipoOperacion"
-                      class="form-select"
-                      required
-                    >
-                      <option value="">Seleccione operación</option>
-                      <option value="contar">Contar registros (COUNT)</option>
-                      <option value="sumar">Sumar valores (SUM)</option>
-                      <option value="promedio">Promedio (AVG)</option>
-                      <option value="maximo">Valor máximo (MAX)</option>
-                      <option value="minimo">Valor mínimo (MIN)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Campo para subformulario -->
-              <div
-                class="row g-3 mt-3"
-                v-if="
-                  parametrosForm.subConfiguracion.tipoOperacion &&
-                  parametrosForm.subConfiguracion.tipoOperacion !== 'contar'
-                "
-              >
-                <div class="col-md-12">
-                  <label class="form-label">Campo en Subformulario*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-tag"></i>
-                    </span>
-                    <select
-                      v-model="parametrosForm.subConfiguracion.campoSeleccionado"
-                      class="form-select"
-                      required
-                    >
-                      <option value="">Seleccione un campo</option>
-                      <option
-                        v-for="subcampo in subcamposDisponibles"
-                        :key="subcampo.name"
-                        :value="subcampo.name"
-                        :disabled="!esCampoNumerico(subcampo)"
-                      >
-                        {{ subcampo.alias || subcampo.name }} ({{ getTipoCampo(subcampo) }})
-                        <span v-if="!esCampoNumerico(subcampo)"> (No numérico) </span>
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <!-- Operación para subformulario -->
+      <div class="row g-3">
+        <div class="col-md-12">
+          <label class="form-label">Operación para Subformulario*</label>
+          <div class="input-group modern-input">
+            <span class="input-group-text">
+              <i class="fas fa-calculator"></i>
+            </span>
+            <select
+              v-model="parametrosForm.subConfiguracion.tipoOperacion"
+              class="form-select"
+              required
+            >
+              <option value="">Seleccione operación</option>
+              <option value="contar">Contar registros (COUNT)</option>
+              <option value="sumar">Sumar valores (SUM)</option>
+              <option value="promedio">Promedio (AVG)</option>
+              <option value="maximo">Valor máximo (MAX)</option>
+              <option value="minimo">Valor mínimo (MIN)</option>
+            </select>
           </div>
         </div>
+      </div>
+
+      <!-- Campo para subformulario -->
+      <div
+        class="row g-3 mt-3"
+        v-if="
+          parametrosForm.subConfiguracion.tipoOperacion &&
+          parametrosForm.subConfiguracion.tipoOperacion !== 'contar'
+        "
+      >
+        <div class="col-md-12">
+          <label class="form-label">Campo en Subformulario*</label>
+          <div class="input-group modern-input">
+            <span class="input-group-text">
+              <i class="fas fa-tag"></i>
+            </span>
+            <select
+              v-model="parametrosForm.subConfiguracion.campoSeleccionado"
+              class="form-select"
+              required
+            >
+              <option value="">Seleccione un campo</option>
+              <option
+                v-for="subcampo in subcamposDisponibles"
+                :key="subcampo.name"
+                :value="subcampo.name"
+                :disabled="!esCampoNumerico(subcampo)"
+              >
+                {{ subcampo.alias || subcampo.name }} ({{ getTipoCampo(subcampo) }})
+                <span v-if="!esCampoNumerico(subcampo)"> (No numérico) </span>
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campo en subformulario para contarDistinto -->
+    <div
+      v-if="mostrarSubcampos && parametrosForm.tipoOperacion === 'contarDistinto'"
+      class="subform-config-section"
+    >
+      <h6 class="mt-3 mb-3">
+        <i class="fas fa-layer-group me-2"></i>
+        Campo Distinto en Subformulario
+      </h6>
+
+      <div class="row g-3">
+        <div class="col-md-12">
+          <label class="form-label">Campo en Subformulario*</label>
+          <div class="input-group modern-input">
+            <span class="input-group-text">
+              <i class="fas fa-columns"></i>
+            </span>
+            <select
+              v-model="parametrosForm.subConfiguracion.campoSeleccionado"
+              class="form-select"
+              required
+            >
+              <option value="">Seleccione un campo</option>
+              <option
+                v-for="subcampo in subcamposDisponibles"
+                :key="subcampo.name"
+                :value="subcampo.name"
+              >
+                {{ subcampo.alias || subcampo.name }} ({{ getTipoCampo(subcampo) }})
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
         <!-- Sección de condiciones -->
         <div
