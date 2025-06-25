@@ -87,20 +87,6 @@
             </h6>
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">Numerador</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-arrow-down"></i>
-                  </span>
-                  <input
-                    v-model="indicadorEditForm.numerador"
-                    type="number"
-                    class="form-control"
-                    placeholder="Ej: 100"
-                  />
-                </div>
-              </div>
-              <div class="col-md-6">
                 <label class="form-label">Denominador</label>
                 <div class="input-group modern-input">
                   <span class="input-group-text">
@@ -111,6 +97,20 @@
                     type="number"
                     class="form-control"
                     placeholder="Ej: 200"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Numerador</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-arrow-down"></i>
+                  </span>
+                  <input
+                    v-model="indicadorEditForm.numerador"
+                    type="number"
+                    class="form-control"
+                    placeholder="Ej: 100"
                   />
                 </div>
               </div>
