@@ -197,6 +197,7 @@
                         <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
                       </div>
                       <button
+                        v-if="!subcampo.isFechaCreacion"
                         type="button"
                         @click="quitarSubcampo(campo, subindex)"
                         class="delete-button-small"
@@ -400,7 +401,17 @@ export default {
         // Asegurarse de que subcampos esté inicializado
         campo.subcampos = []
       }
-      campo.subcampos.push({ name: '', type: 'string', required: false })
+      // Si no hay subcampos, agrega primero el campo especial
+      if (campo.subcampos.length === 0) {
+        campo.subcampos.push({
+          name: 'fecha de creación',
+          type: 'date',
+          required: true,
+          isFechaCreacion: true, // bandera especial
+        })
+      } else {
+        campo.subcampos.push({ name: '', type: 'string', required: false })
+      }
     },
 
     quitarSubcampo(campo, index) {
