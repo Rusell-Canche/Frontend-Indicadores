@@ -13,9 +13,13 @@
       </div>
 
       <div class="filter-buttons">
-        <button class="btn-filter-simple" @click="filtrarPorFecha">
+        <button class="btn-filter-simple" @click="filtrarPorFecha" :disabled="loading">
           <i class="fas fa-filter me-1"></i>
-          Filtrar
+          {{ loading ? 'Filtrando...' : 'Filtrar' }}
+        </button>
+        <button class="btn-clear-filter" @click="limpiarFiltro" v-if="fechaInicio || fechaFin">
+          <i class="fas fa-times me-1"></i>
+          Limpiar
         </button>
       </div>
     </div>
@@ -30,6 +34,9 @@
         <div class="d-flex align-items-center gap-2">
           <span class="badge bg-primary rounded-pill px-3 py-2">
             <i class="fas fa-list-check me-1"></i>{{ indicadores.length }} Total
+          </span>
+          <span v-if="fechaInicio || fechaFin" class="badge bg-success rounded-pill px-3 py-2">
+            <i class="fas fa-filter me-1"></i>Filtrado
           </span>
         </div>
       </div>
@@ -169,14 +176,24 @@
                 </td>
               </tr>
               <tr v-if="indicadores.length === 0">
-                <td colspan="6" class="text-center py-5">
+                <td colspan="7" class="text-center py-5">
                   <div class="empty-state">
                     <div class="empty-icon">
                       <i class="fas fa-chart-bar"></i>
                     </div>
-                    <h5 class="text-muted mb-2">No hay indicadores registrados</h5>
+                    <h5 class="text-muted mb-2">
+                      {{
+                        fechaInicio || fechaFin
+                          ? 'No hay indicadores en el rango de fechas seleccionado'
+                          : 'No hay indicadores registrados'
+                      }}
+                    </h5>
                     <p class="text-muted mb-3">
-                      Los indicadores aparecerán aquí una vez que sean creados
+                      {{
+                        fechaInicio || fechaFin
+                          ? 'Prueba con un rango de fechas diferente'
+                          : 'Los indicadores aparecerán aquí una vez que sean creados'
+                      }}
                     </p>
                   </div>
                 </td>
@@ -258,6 +275,8 @@ export default {
       loading: true,
       currentPage: 1,
       itemsPerPage: 12,
+      fechaInicio: '',
+      fechaFin: '',
     }
   },
   computed: {
@@ -362,6 +381,127 @@ export default {
         this.loading = false
       }
     },
+    async filtrarPorFecha() {
+      // Validar que al menos una fecha esté seleccionada
+      if (!this.fechaInicio && !this.fechaFin) {
+        this.mostrarNotificacion(
+          'Advertencia',
+          'Por favor selecciona al menos una fecha para filtrar.',
+          'warning',
+        )
+        return
+      }
+
+      // Validar que fecha inicio no sea mayor que fecha fin
+      if (this.fechaInicio && this.fechaFin && this.fechaInicio > this.fechaFin) {
+        this.mostrarNotificacion(
+          'Advertencia',
+          'La fecha de inicio no puede ser mayor que la fecha fin.',
+          'warning',
+        )
+        return
+      }
+
+      try {
+        this.loading = true
+        const token = localStorage.getItem('apiToken')
+
+        if (!token) {
+          this.mostrarNotificacion(
+            'Error',
+            'No hay sesión activa. Por favor inicia sesión.',
+            'error',
+          )
+          this.$router.push('/')
+          return
+        }
+
+        // Preparar el objeto de fechas
+        const fechas = {
+          inicio: this.fechaInicio || null,
+          fin: this.fechaFin || null,
+        }
+
+        const response = await axios.post(
+          'http://127.0.0.1:8000/api/indicadores/filterByDates',
+          fechas,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+          },
+        )
+
+        if (response.status === 200) {
+          if (Array.isArray(response.data.indicadores)) {
+            this.indicadores = response.data.indicadores
+            this.currentPage = 1 // Resetear a la primera página
+
+            if (this.indicadores.length === 0) {
+              this.mostrarNotificacion(
+                'Información',
+                'No se encontraron indicadores en el rango de fechas seleccionado.',
+                'info',
+              )
+            } else {
+              this.mostrarNotificacion(
+                'Éxito',
+                `Se encontraron ${this.indicadores.length} indicadores en el rango seleccionado.`,
+                'success',
+              )
+            }
+          } else {
+            this.indicadores = []
+          }
+        }
+      } catch (error) {
+        console.error('Error completo:', error)
+
+        if (error.response) {
+          const status = error.response.status
+
+          if (status === 401) {
+            this.mostrarNotificacion(
+              'Error',
+              'Sesión expirada. Por favor inicia sesión nuevamente.',
+              'error',
+            )
+            localStorage.removeItem('apiToken')
+            localStorage.removeItem('user')
+            this.$router.push('/')
+          } else if (status === 400) {
+            this.mostrarNotificacion(
+              'Error',
+              'Datos de fecha inválidos. Verifica el formato de las fechas.',
+              'error',
+            )
+          } else if (status === 500) {
+            this.mostrarNotificacion(
+              'Error',
+              'Error interno del servidor. Inténtalo más tarde.',
+              'error',
+            )
+          } else {
+            this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
+          }
+        } else if (error.request) {
+          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
+          console.error('Sin respuesta del servidor:', error.request)
+        } else {
+          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
+          console.error('Error inesperado:', error)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+    limpiarFiltro() {
+      this.fechaInicio = ''
+      this.fechaFin = ''
+      this.fetchIndicadores() // Recargar todos los indicadores
+    },
     async eliminarIndicador(indicador) {
       try {
         const token = localStorage.getItem('apiToken')
@@ -404,7 +544,12 @@ export default {
 
           if (response.status === 200) {
             this.mostrarNotificacion('¡Completado!', 'Indicador eliminado exitosamente', 'success')
-            this.fetchIndicadores()
+            // Si hay filtros activos, aplicar el filtro nuevamente, si no, recargar todos
+            if (this.fechaInicio || this.fechaFin) {
+              this.filtrarPorFecha()
+            } else {
+              this.fetchIndicadores()
+            }
           } else {
             this.mostrarNotificacion(
               'Advertencia',
