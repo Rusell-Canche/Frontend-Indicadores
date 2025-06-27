@@ -317,14 +317,13 @@ export default {
     },
   },
   mounted() {
-    this.fetchIndicadores()
     this.filtrarPorFecha()
   },
   watch: {
     // Recargar indicadores al regresar de rutas hijas
     $route(to, from) {
       if (to.name === 'ver-indicadores' && from.name !== 'ver-indicadores') {
-        this.fetchIndicadores()
+        this.filtrarPorFecha()
       }
     },
   },
