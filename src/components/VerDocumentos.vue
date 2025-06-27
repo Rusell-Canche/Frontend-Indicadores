@@ -783,6 +783,9 @@ export default {
   padding: 1rem;
   border: none;
   font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: transparent;
 }
 
 .table-row {
