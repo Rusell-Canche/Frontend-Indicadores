@@ -270,13 +270,19 @@ import Swal from 'sweetalert2'
 
 export default {
   data() {
+    // Obtener la fecha actual en formato YYYY-MM-DD
+    const hoy = new Date()
+    const yyyy = hoy.getFullYear()
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0')
+    const dd = String(hoy.getDate()).padStart(2, '0')
+    const fechaActual = `${yyyy}-${mm}-${dd}`
     return {
       indicadores: [],
       loading: true,
       currentPage: 1,
       itemsPerPage: 12,
-      fechaInicio: '',
-      fechaFin: '',
+      fechaInicio: '2025-01-01',
+      fechaFin: fechaActual,
     }
   },
   computed: {
@@ -312,6 +318,7 @@ export default {
   },
   mounted() {
     this.fetchIndicadores()
+    this.filtrarPorFecha()
   },
   watch: {
     // Recargar indicadores al regresar de rutas hijas
