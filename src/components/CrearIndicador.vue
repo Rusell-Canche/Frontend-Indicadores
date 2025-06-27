@@ -135,6 +135,46 @@
             </div>
           </div>
 
+          <!-- seccion para agregar una fecha_inicio y fecha_fin a los indicadores -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-calendar-alt me-2"></i>
+              Fechas del Indicador
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Fecha de Inicio</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-calendar-check"></i>
+                  </span>
+                  <input
+                    v-model="nuevoIndicador.fecha_inicio"
+                    type="date"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="form-text">Fecha de inicio del indicador</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Fecha de Fin</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-calendar-times"></i>
+                  </span>
+                  <input
+                    v-model="nuevoIndicador.fecha_fin"
+                    type="date"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="form-text">Fecha de fin del indicador</div>
+              </div>
+            </div>
+          </div>
+
           <!-- Footer con botones -->
           <div class="medico-footer">
             <button @click="limpiarFormulario" class="btn btn-cancel" type="button">
@@ -171,6 +211,8 @@ export default {
         numero: 0,
         denominador: 0,
         departamento: '',
+        fecha_inicio: '',
+        fecha_fin: '',
       },
       guardando: false,
     }
@@ -185,7 +227,9 @@ export default {
         this.nuevoIndicador.numero === '' ||
         this.nuevoIndicador.denominador === null ||
         this.nuevoIndicador.denominador === '' ||
-        !this.nuevoIndicador.departamento.trim()
+        !this.nuevoIndicador.departamento.trim() ||
+        !this.nuevoIndicador.fecha_inicio ||
+        !this.nuevoIndicador.fecha_fin
       ) {
         Swal.fire({
           icon: 'error',
@@ -206,6 +250,8 @@ export default {
               <p><strong>Numero:</strong> ${this.nuevoIndicador.numero}</p>
               <p><strong>Denominador:</strong> ${this.nuevoIndicador.denominador}</p>
               <p><strong>Departamento:</strong> ${this.nuevoIndicador.departamento}</p>
+              <p><strong>Fecha de Inicio:</strong> ${this.nuevoIndicador.fecha_inicio}</p>
+              <p><strong>Fecha de Fin:</strong> ${this.nuevoIndicador.fecha_fin}</p>
             </div>
           `,
         icon: 'question',
@@ -239,6 +285,8 @@ export default {
         indicadorFormData.append('numero', this.nuevoIndicador.numero)
         indicadorFormData.append('denominador', this.nuevoIndicador.denominador)
         indicadorFormData.append('departamento', this.nuevoIndicador.departamento)
+        indicadorFormData.append('fecha_inicio', this.nuevoIndicador.fecha_inicio)
+        indicadorFormData.append('fecha_fin', this.nuevoIndicador.fecha_fin)
 
         // Mandamos la solicitud POST a la API
         const response = await axios.post(

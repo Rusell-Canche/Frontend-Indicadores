@@ -139,6 +139,44 @@
               </div>
             </div>
           </div>
+
+          <!-- seccion para agregar una fecha_inicio y fecha_fin a los indicadores -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-calendar-alt me-2"></i>
+              Fechas del Indicador
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Fecha de Inicio</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-calendar"></i>
+                  </span>
+                  <input
+                    v-model="indicadorEditForm.fecha_inicio"
+                    type="date"
+                    class="form-control"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Fecha de Fin</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-calendar"></i>
+                  </span>
+                  <input
+                    v-model="indicadorEditForm.fecha_fin"
+                    type="date"
+                    class="form-control"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
 
@@ -173,6 +211,8 @@ export default {
         denominador: '',
         _idProyecto: '',
         departamento: '',
+        fecha_inicio: '',
+        fecha_fin: '',
       },
     }
   },
@@ -199,6 +239,7 @@ export default {
           )
 
           if (indicador) {
+            const formDate = (fecha) => (fecha ? fecha.slice(0, 10) : '')
             this.indicadorEditForm = {
               _id: this.id,
               nombreIndicador: indicador.nombreIndicador,
@@ -206,7 +247,9 @@ export default {
               numero: indicador.numero,
               denominador: indicador.denominador,
               _idProyecto: indicador._idProyecto,
-              departamento: indicador.departamento || '', // Asegurarse de que el campo exista
+              departamento: indicador.departamento || '',
+              fecha_inicio: formDate(indicador.fecha_inicio),
+              fecha_fin: formDate(indicador.fecha_fin),
             }
           } else {
             throw new Error('Indicador no encontrado')
@@ -235,6 +278,8 @@ export default {
         formData.append('numero', this.indicadorEditForm.numero)
         formData.append('_idProyecto', this.indicadorEditForm._idProyecto)
         formData.append('departamento', this.indicadorEditForm.departamento)
+        formData.append('fecha_inicio', this.indicadorEditForm.fecha_inicio)
+        formData.append('fecha_fin', this.indicadorEditForm.fecha_fin)
 
         const response = await axios.post(
           `http://127.0.0.1:8000/api/indicador/update/${this.id}`,
