@@ -357,42 +357,115 @@ export default {
         this.showError('No se pudieron cargar las colecciones')
       }
     },
-    async onColeccionSelected() {
-      if (this.selectedColeccion) {
-        try {
-          const token = localStorage.getItem('apiToken')
-          const response = await axios.get(
-            `http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          )
-          this.documentos = response.data
-          this.currentPage = 1
-
-          if (this.documentos.length > 0) {
-            const documentoConMasCampos = this.documentos.reduce((prev, current) =>
-              Object.keys(current).length > Object.keys(prev).length ? current : prev,
-            )
-            this.camposDocumento = Object.keys(documentoConMasCampos).filter(
-              (campo) => campo !== '_id',
-            )
-          } else {
-            this.camposDocumento = []
-          }
-        } catch (error) {
-          console.error('Error obteniendo documentos', error)
-          this.documentos = []
-          this.camposDocumento = []
-          this.showError('Error al cargar los documentos')
+   async onColeccionSelected() {
+  if (this.selectedColeccion) {
+    try {
+      const token = localStorage.getItem('apiToken')
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
+      )
+      
+      this.documentos = response.data
+      this.currentPage = 1
+
+      console.log('Documentos obtenidos:', this.documentos)
+
+      if (this.documentos.length > 0) {
+        // Obtener el documento con más campos como ejemplo
+        const docEjemplo = this.documentos.reduce((prev, current) =>
+          Object.keys(current).length > Object.keys(prev).length ? current : prev
+        )
+
+        // Obtener todos los campos disponibles (excluyendo _id)
+        const camposTotales = Object.keys(docEjemplo).filter(c => c !== '_id')
+        
+        console.log('Campos disponibles en documentos:', camposTotales)
+        console.log('Colección seleccionada:', this.selectedColeccion)
+
+        // Buscar la plantilla correspondiente
+        const plantilla = this.colecciones.find(
+          col => col.id === this.selectedColeccion.id || 
+                 col.nombre_coleccion === this.selectedColeccion.nombre_coleccion
+        )
+
+        console.log('Plantilla encontrada:', plantilla)
+
+        if (plantilla && plantilla.campos) {
+          // Obtener campos requeridos (excluyendo subformularios)
+          const camposRequeridos = plantilla.campos
+            .filter(campo => campo.required && campo.type !== 'subform')
+            .map(campo => campo.name)
+            .filter(campo => camposTotales.includes(campo)) // Solo campos que existen en los documentos
+
+          // Obtener campos no requeridos (excluyendo subformularios)
+          const camposNoRequeridos = plantilla.campos
+            .filter(campo => !campo.required && campo.type !== 'subform')
+            .map(campo => campo.name)
+            .filter(campo => camposTotales.includes(campo)) // Solo campos que existen en los documentos
+
+          console.log('Campos requeridos filtrados:', camposRequeridos)
+          console.log('Campos no requeridos filtrados:', camposNoRequeridos)
+
+          // Seleccionar los primeros 3 campos priorizando requeridos
+          let camposSeleccionados = []
+          
+          // Primero agregar campos requeridos (máximo 3)
+          camposSeleccionados = [...camposRequeridos.slice(0, 3)]
+          
+          // Si tenemos menos de 3, completar con campos no requeridos
+          if (camposSeleccionados.length < 3) {
+            const camposRestantes = 3 - camposSeleccionados.length
+            const camposAdicionales = camposNoRequeridos
+              .filter(campo => !camposSeleccionados.includes(campo))
+              .slice(0, camposRestantes)
+            
+            camposSeleccionados = [...camposSeleccionados, ...camposAdicionales]
+          }
+
+          // Si aún no tenemos 3 campos, usar cualquier campo disponible
+          if (camposSeleccionados.length < 3) {
+            const camposRestantes = 3 - camposSeleccionados.length
+            const otrosCampos = camposTotales
+              .filter(campo => !camposSeleccionados.includes(campo))
+              .slice(0, camposRestantes)
+            
+            camposSeleccionados = [...camposSeleccionados, ...otrosCampos]
+          }
+
+          console.log('Campos finales seleccionados:', camposSeleccionados)
+          this.camposDocumento = camposSeleccionados
+
+        } else {
+          // Si no hay plantilla, usar los primeros 3 campos del documento
+          console.log('No se encontró plantilla, usando campos del documento')
+          this.camposDocumento = camposTotales.slice(0, 3)
+        }
+
       } else {
-        this.documentos = []
+        console.log('No hay documentos disponibles')
         this.camposDocumento = []
       }
-    },
+
+      console.log('Campos documento final:', this.camposDocumento)
+
+    } catch (error) {
+      console.error('Error obteniendo documentos', error)
+      this.documentos = []
+      this.camposDocumento = []
+      this.showError('Error al cargar los documentos')
+    }
+  } else {
+    this.documentos = []
+    this.camposDocumento = []
+  }
+}
+
+,
     formatFieldName(fieldName) {
       const fieldMap = {
         created_at: 'Fecha de creación',
