@@ -323,7 +323,7 @@ export default {
     // Recargar indicadores al regresar de rutas hijas
     $route(to, from) {
       if (to.name === 'ver-indicadores' && from.name !== 'ver-indicadores') {
-        this.filtrarPorFecha()
+        this.filtrarPorFecha(false)
       }
     },
   },
@@ -387,7 +387,7 @@ export default {
         this.loading = false
       }
     },
-    async filtrarPorFecha() {
+    async filtrarPorFecha(mostrarNotificacion = true) {
       // Validar que al menos una fecha esté seleccionada
       if (!this.fechaInicio && !this.fechaFin) {
         this.mostrarNotificacion(
@@ -445,13 +445,13 @@ export default {
             this.indicadores = response.data.indicadores
             this.currentPage = 1 // Resetear a la primera página
 
-            if (this.indicadores.length === 0) {
+            if (this.indicadores.length === 0 && mostrarNotificacion) {
               this.mostrarNotificacion(
                 'Información',
                 'No se encontraron indicadores en el rango de fechas seleccionado.',
                 'info',
               )
-            } else {
+            } else if (mostrarNotificacion) {
               this.mostrarNotificacion(
                 'Éxito',
                 `Se encontraron ${this.indicadores.length} indicadores en el rango seleccionado.`,
