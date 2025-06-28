@@ -878,7 +878,7 @@ export default {
           return
         }
 
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas/consultar', {
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',

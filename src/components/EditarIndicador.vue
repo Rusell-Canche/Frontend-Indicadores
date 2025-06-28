@@ -224,7 +224,7 @@ export default {
       try {
         const token = localStorage.getItem('apiToken')
         // Obtener todos los indicadores
-        const response = await axios.get('http://127.0.0.1:8000/api/indicador/getAll', {
+        const response = await axios.get('http://127.0.0.1:8000/api/indicadores', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -271,23 +271,27 @@ export default {
     async guardarEdicion() {
       try {
         const token = localStorage.getItem('apiToken')
-        const formData = new FormData()
-        formData.append('nombreIndicador', this.indicadorEditForm.nombreIndicador)
-        formData.append('numerador', this.indicadorEditForm.numerador)
-        formData.append('denominador', this.indicadorEditForm.denominador)
-        formData.append('numero', this.indicadorEditForm.numero)
-        formData.append('_idProyecto', this.indicadorEditForm._idProyecto)
-        formData.append('departamento', this.indicadorEditForm.departamento)
-        formData.append('fecha_inicio', this.indicadorEditForm.fecha_inicio)
-        formData.append('fecha_fin', this.indicadorEditForm.fecha_fin)
 
-        const response = await axios.post(
-          `http://127.0.0.1:8000/api/indicador/update/${this.id}`,
-          formData,
+
+        const payload = {
+          _id: this.indicadorEditForm._id,
+          nombreIndicador: this.indicadorEditForm.nombreIndicador,
+          numerador: this.indicadorEditForm.numerador,
+          numero: this.indicadorEditForm.numero,
+          denominador: this.indicadorEditForm.denominador,
+          _idProyecto: this.indicadorEditForm._idProyecto,
+          departamento: this.indicadorEditForm.departamento,
+          fecha_inicio: this.indicadorEditForm.fecha_inicio,
+          fecha_fin: this.indicadorEditForm.fecha_fin,
+        }
+
+        const response = await axios.put(
+          `http://127.0.0.1:8000/api/indicadores/${this.id}`,
+          payload,
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data',
+              'Content-Type': 'application/json',
             },
           },
         )

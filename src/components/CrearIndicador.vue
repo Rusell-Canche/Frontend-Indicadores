@@ -290,7 +290,7 @@ export default {
 
         // Mandamos la solicitud POST a la API
         const response = await axios.post(
-          'http://127.0.0.1:8000/api/indicador/insert',
+          'http://127.0.0.1:8000/api/indicadores',
           indicadorFormData,
           {
             headers: {

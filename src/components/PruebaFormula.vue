@@ -997,7 +997,7 @@ export default {
         }
 
         // Hacemos la peticion para obtener los indicadores
-        const response = await axios.get('http://127.0.0.1:8000/api/indicador/getAll', {
+        const response = await axios.get('http://127.0.0.1:8000/api/indicadores', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -1094,7 +1094,7 @@ export default {
 
           // Hacemos la peticion
           const response = await axios.delete(
-            `http://127.0.0.1:8000/api/indicador/delete/${idIndicador}`,
+            `http://127.0.0.1:8000/api/indicadores/${idIndicador}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -1227,7 +1227,7 @@ export default {
 
         // Enviamos la información al servidor
         const response = await axios.post(
-          `http://127.0.0.1:8000/api/indicador/update/${this.indicadorEditForm._id}`,
+          `http://127.0.0.1:8000/api/indicadores/${this.indicadorEditForm._id}`,
           indicadorData,
           {
             headers: {
@@ -1398,7 +1398,7 @@ export default {
           return
         }
 
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas/consultar', {
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',

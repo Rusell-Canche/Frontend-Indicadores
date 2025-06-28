@@ -145,7 +145,7 @@ export default {
       this.isLoading = true
 
       try {
-        const response = await axios.post('http://127.0.0.1:8000/api/indicador/upload', formData, {
+        const response = await axios.post('http://127.0.0.1:8000/api/indicadores/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${token}`,

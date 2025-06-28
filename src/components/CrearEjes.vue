@@ -481,7 +481,7 @@ export default {
           descripcion: this.nuevoEje.descripcion,
         }
 
-        const response = await axios.post('http://127.0.0.1:8000/api/eje', data, {
+        const response = await axios.post('http://127.0.0.1:8000/api/ejes', data, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',

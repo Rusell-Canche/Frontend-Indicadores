@@ -546,7 +546,7 @@ export default {
         )
 
         const response = await axios.post(
-          'http://127.0.0.1:8000/api/plantillas/crear',
+          'http://127.0.0.1:8000/api/plantillas',
           {
             plantilla_name: this.plantillaName,
             fields: camposLimpios,
