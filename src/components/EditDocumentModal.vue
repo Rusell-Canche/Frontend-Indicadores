@@ -298,6 +298,8 @@
               </template>
             </div>
 
+         
+
             <div class="modal-footer">
               <button type="button" @click="closeModal" class="btn btn-cancel">
                 <i class="fas fa-times me-2"></i>
@@ -400,28 +402,41 @@ export default {
   methods: {
     // ========== INICIALIZACIÓN ==========
 initializeEditData(documento) {
-  // Usar los campos de la plantilla como base
-  const todosCampos = this.camposPlantilla
-    .filter(campo => campo.type !== 'subform')  // Excluir subformularios
-    .map(campo => campo.name)
-
-  // Inicializar cada campo con su valor del documento o vacío
   this.documentoEdit = {}
-  todosCampos.forEach(campo => {
-    if (campo === 'Recurso Digital' && Array.isArray(documento[campo])) {
-      this.documentoEdit[campo] = [...documento[campo]]
-    } else {
-      this.documentoEdit[campo] = documento[campo] || ''
-    }
-  })
-
-  // Asegurar _id
   if (documento._id) this.documentoEdit._id = documento._id
 
-   // Asignar los campos editables para usarlos en el template
-  this.camposDocumentoEdit = [...todosCampos]
+  // Inicializar campos normales
+  this.camposPlantilla
+    .filter(campo => campo.type !== 'subform')
+    .forEach(campo => {
+      const nombreCampo = campo.name
+      this.documentoEdit[nombreCampo] = documento[nombreCampo] ?? ''
+    })
 
-  // Inicializar subformularios
+  // Inicializar campos subformulario en documentoEdit
+  this.camposPlantilla
+    .filter(campo => campo.type === 'subform')
+    .forEach(campo => {
+      const nombreCampo = campo.name
+      let valorInicial = []
+
+      // Si viene del documento, usarlo
+      if (documento[nombreCampo]) {
+        try {
+          valorInicial = JSON.parse(documento[nombreCampo])
+        } catch (e) {
+          valorInicial = Array.isArray(documento[nombreCampo]) 
+            ? [...documento[nombreCampo]] 
+            : []
+        }
+      }
+
+      this.documentoEdit[nombreCampo] = [...valorInicial]
+    })
+
+  this.camposDocumentoEdit = this.camposPlantilla.map(campo => campo.name)
+
+  // Preparar datos internos para edición
   this.prepareSubformDataForEdit()
 },
 
