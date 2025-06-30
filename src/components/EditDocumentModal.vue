@@ -400,23 +400,28 @@ export default {
   methods: {
     // ========== INICIALIZACIÓN ==========
 initializeEditData(documento) {
-  const todosCampos = Object.keys(documento).filter(campo => campo !== '_id')
-  
-  this.documentoEdit = todosCampos.reduce((acc, campo) => {
-    if (campo === 'Recurso Digital') {
-      if (documento[campo] && documento[campo].length > 0) {
-        acc[campo] = documento[campo]
-      }
-      // Si no existe o está vacío, no se agrega el campo
+  // Usar los campos de la plantilla como base
+  const todosCampos = this.camposPlantilla
+    .filter(campo => campo.type !== 'subform')  // Excluir subformularios
+    .map(campo => campo.name)
+
+  // Inicializar cada campo con su valor del documento o vacío
+  this.documentoEdit = {}
+  todosCampos.forEach(campo => {
+    if (campo === 'Recurso Digital' && Array.isArray(documento[campo])) {
+      this.documentoEdit[campo] = [...documento[campo]]
     } else {
-      acc[campo] = documento[campo] || ''
+      this.documentoEdit[campo] = documento[campo] || ''
     }
-    return acc
-  }, {})
-  
+  })
+
+  // Asegurar _id
   if (documento._id) this.documentoEdit._id = documento._id
-  
-  this.camposDocumentoEdit = todosCampos
+
+   // Asignar los campos editables para usarlos en el template
+  this.camposDocumentoEdit = [...todosCampos]
+
+  // Inicializar subformularios
   this.prepareSubformDataForEdit()
 },
 
