@@ -376,49 +376,33 @@ export default {
 
     
     // ========== PROCESAMIENTO DE DATOS ==========
-    procesarCamposDocumento() {
-      if (this.documentos.length === 0) {
-        this.camposDocumento = []
-        return
-      }
-      
-      // Obtener documento con más campos
-      const docEjemplo = this.documentos.reduce((prev, current) =>
-        Object.keys(current).length > Object.keys(prev).length ? current : prev
-      )
-      
-      const camposTotales = Object.keys(docEjemplo).filter(c => c !== '_id')
-      
-      if (this.camposPlantilla.length > 0) {
-        this.camposDocumento = this.seleccionarCamposOptimos(camposTotales)
-      } else {
-        this.camposDocumento = camposTotales.slice(0, 3)
-      }
-    },
-    
-    seleccionarCamposOptimos(camposTotales) {
-      // Filtrar campos no-subform que existen en documentos
-      const camposValidos = this.camposPlantilla
-        .filter(campo => campo.type !== 'subform' && camposTotales.includes(campo.name))
-        .map(campo => campo.name)
-      
-      // Separar requeridos y no requeridos
-      const requeridos = this.camposPlantilla
-        .filter(campo => campo.required && campo.type !== 'subform' && camposTotales.includes(campo.name))
-        .map(campo => campo.name)
-      
-      const noRequeridos = camposValidos.filter(campo => !requeridos.includes(campo))
-      
-      // Seleccionar máximo 3: primero requeridos, luego no requeridos
-      let seleccionados = requeridos.slice(0, 3)
-      
-      if (seleccionados.length < 3) {
-        const restantes = 3 - seleccionados.length
-        seleccionados = [...seleccionados, ...noRequeridos.slice(0, restantes)]
-      }
-      
-      return seleccionados
-    },
+  procesarCamposDocumento() {
+  if (!this.camposPlantilla || this.camposPlantilla.length === 0) {
+    this.camposDocumento = []
+    return
+  }
+
+  // Filtrar solo los campos válidos (no subform)
+  const camposValidos = this.camposPlantilla
+    .filter(campo => campo.type !== 'subform')
+    .map(campo => campo.name)
+
+  // Separar los campos requeridos y no requeridos
+  const requeridos = this.camposPlantilla
+    .filter(campo => campo.required && campo.type !== 'subform')
+    .map(campo => campo.name)
+
+  const noRequeridos = camposValidos.filter(campo => !requeridos.includes(campo))
+
+  // Seleccionar máximo 3: primero requeridos, luego no requeridos
+  let seleccionados = requeridos.slice(0, 3)
+  if (seleccionados.length < 3) {
+    const restantes = 3 - seleccionados.length
+    seleccionados = [...seleccionados, ...noRequeridos.slice(0, restantes)]
+  }
+
+  this.camposDocumento = seleccionados
+},
     
     // ========== CAMPO HELPERS ==========
     formatFieldName(fieldName) {
