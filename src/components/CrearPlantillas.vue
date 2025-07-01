@@ -197,7 +197,7 @@
                         <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
                       </div>
                       <button
-                        v-if="!subcampo.isFechaCreacion"
+                       
                         type="button"
                         @click="quitarSubcampo(campo, subindex)"
                         class="delete-button-small"
@@ -219,7 +219,7 @@
                               class="form-control"
                               required
                               placeholder="Ej: nombre, cantidad, descripción"
-                              :readonly="subcampo.isFechaCreacion"
+                              
                             />
                           </div>
                         </div>
@@ -234,7 +234,7 @@
                               v-model="subcampo.type"
                               class="form-select"
                               required
-                              :disabled="subcampo.isFechaCreacion"
+                              
                             >
                               <option value="">Seleccione un tipo</option>
                               <option value="string">Texto</option>
@@ -253,7 +253,7 @@
                                 type="checkbox"
                                 class="custom-checkbox"
                                 v-model="subcampo.required"
-                                :disabled="subcampo.isFechaCreacion"
+                                
                               />
                               <span class="checkmark"></span>
                               <span class="checkbox-label">Obligatorio</span>
@@ -408,15 +408,7 @@ export default {
         // Asegurarse de que subcampos esté inicializado
         campo.subcampos = []
       }
-      // Si no hay subcampos, agrega primero el campo especial
-      if (campo.subcampos.length === 0) {
-        campo.subcampos.push({
-          name: 'fecha de creación',
-          type: 'date',
-          required: true,
-          isFechaCreacion: true, // bandera especial
-        })
-      } else {
+      else {
         campo.subcampos.push({ name: '', type: 'string', required: false })
       }
     },
