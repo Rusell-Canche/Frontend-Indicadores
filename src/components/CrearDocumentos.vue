@@ -753,7 +753,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 /* Estilos base del diseño moderno */
 .card {
   border-radius: 20px;
