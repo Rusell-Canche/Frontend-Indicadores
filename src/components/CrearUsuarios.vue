@@ -20,7 +20,8 @@
         <form @submit.prevent="submitForm">
           <!-- Nota de campos requeridos -->
           <div class="alert alert-info mb-4">
-            <i class="fas fa-info-circle me-2"></i>Todos los campos son obligatorios para crear la cuenta
+            <i class="fas fa-info-circle me-2"></i>Todos los campos son obligatorios para crear la
+            cuenta
           </div>
 
           <!-- Sección de información personal -->
@@ -212,8 +213,15 @@
               <i class="fas fa-eraser me-2"></i>
               Limpiar Formulario
             </button>
-            <button type="submit" class="btn btn-save" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
-              <span v-if="!isHovered" class="default-icon"><i class="fas fa-user-plus me-2"></i></span>
+            <button
+              type="submit"
+              class="btn btn-save"
+              @mouseenter="isHovered = true"
+              @mouseleave="isHovered = false"
+            >
+              <span v-if="!isHovered" class="default-icon"
+                ><i class="fas fa-user-plus me-2"></i
+              ></span>
               <span v-else class="hover-icon"><i class="fas fa-user-check me-2"></i></span>
               Registrar Usuario
             </button>
@@ -223,6 +231,135 @@
     </div>
   </div>
 </template>
+<script>
+import Swal from 'sweetalert2'
+import axios from 'axios'
+
+export default {
+  data() {
+    return {
+      nombre: '',
+      apellido_materno: '',
+      apellido_paterno: '',
+      email: '',
+      password: '',
+      confirm_password: '',
+      roles: [],
+      isHovered: false, // Estado para el ícono de hover
+    }
+  },
+  methods: {
+    updateRoles() {
+      this.roles = []
+      const checkboxes = document.getElementsByName('roles[]')
+      checkboxes.forEach((checkbox) => {
+        if (checkbox.checked) {
+          this.roles.push(checkbox.value)
+        }
+      })
+    },
+    resetForm() {
+      this.nombre = ''
+      this.apellido_materno = ''
+      this.apellido_paterno = ''
+      this.email = ''
+      this.password = ''
+      this.confirm_password = ''
+      this.roles = []
+
+      const checkboxes = document.getElementsByName('roles[]')
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = false
+      })
+    },
+    async submitForm() {
+      // Verificación de campos obligatorios
+      if (
+        !this.nombre ||
+        !this.apellido_materno ||
+        !this.apellido_paterno ||
+        !this.email ||
+        !this.password ||
+        !this.confirm_password
+      ) {
+        Swal.fire({
+          icon: 'error',
+          title: '¡Error!',
+          text: 'Todos los campos son obligatorios',
+        })
+        return
+      }
+
+      // Verificación de coincidencia de contraseñas
+      if (this.password !== this.confirm_password) {
+        Swal.fire({
+          icon: 'error',
+          title: '¡Error!',
+          text: 'Las contraseñas no coinciden',
+        })
+        return
+      }
+
+      // Confirmación de creación del usuario
+      const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: '¿Quieres crear el usuario?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, crear',
+        cancelButtonText: 'Cancelar',
+      })
+
+      // Proceder con la creación del usuario si se confirma
+      if (result.isConfirmed) {
+        const formData = {
+          nombre: this.nombre,
+          apellido_materno: this.apellido_materno,
+          apellido_paterno: this.apellido_paterno,
+          email: this.email,
+          password: this.password,
+          confirm_password: this.confirm_password,
+          roles: [...this.roles],
+        }
+
+        try {
+          const response = await axios.post('/users', formData)
+          Swal.fire({
+            icon: 'success',
+            title: '¡Usuario creado!',
+            text: response.data.message,
+          }).then(() => {
+            this.resetForm()
+          })
+        } catch (error) {
+          if (error.response && error.response.data && error.response.data.errors) {
+            const errors = error.response.data.errors
+            let errorMessage = 'Hubo un error al crear el usuario.'
+
+            if (errors.email && errors.email.length > 0) {
+              errorMessage = 'El correo electrónico ya está en uso.'
+            } else if (errors.password && errors.password.length > 0) {
+              errorMessage = 'La contraseña no cumple con los requisitos.'
+            }
+
+            Swal.fire({
+              icon: 'error',
+              title: '¡Error!',
+              text: errorMessage,
+            })
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: '¡Error!',
+              text: 'Hubo un error al crear el usuario. Por favor, inténtalo de nuevo.',
+            })
+          }
+        }
+      }
+    },
+  },
+}
+</script>
 
 <style scoped>
 /* Estilos base del diseño moderno */
@@ -438,7 +575,7 @@
 }
 
 .checkmark:after {
-  content: "";
+  content: '';
   position: absolute;
   display: none;
   left: 6px;
@@ -617,128 +754,3 @@
   }
 }
 </style>
-
-<script>
-import Swal from 'sweetalert2';
-import axios from 'axios';
-
-export default {
-  data() {
-    return {
-      nombre: '',
-      apellido_materno: '',
-      apellido_paterno: '',
-      email: '',
-      password: '',
-      confirm_password: '',
-      roles: [],
-      isHovered: false // Estado para el ícono de hover
-
-    };
-  },
-  methods: {
-    updateRoles() {
-      this.roles = [];
-      const checkboxes = document.getElementsByName('roles[]');
-      checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-          this.roles.push(checkbox.value);
-        }
-      });
-    },
-    resetForm() {
-      this.nombre = '';
-      this.apellido_materno = '';
-      this.apellido_paterno = '';
-      this.email = '';
-      this.password = '';
-      this.confirm_password = '';
-      this.roles = [];
-
-      const checkboxes = document.getElementsByName('roles[]');
-      checkboxes.forEach(checkbox => {
-        checkbox.checked = false;
-      });
-    },
-    async submitForm() {
-  // Verificación de campos obligatorios
-  if (!this.nombre || !this.apellido_materno || !this.apellido_paterno || !this.email || !this.password || !this.confirm_password) {
-    Swal.fire({
-      icon: 'error',
-      title: '¡Error!',
-      text: 'Todos los campos son obligatorios',
-    });
-    return;
-  }
-
-  // Verificación de coincidencia de contraseñas
-  if (this.password !== this.confirm_password) {
-    Swal.fire({
-      icon: 'error',
-      title: '¡Error!',
-      text: 'Las contraseñas no coinciden',
-    });
-    return;
-  }
-
-  // Confirmación de creación del usuario
-  const result = await Swal.fire({
-    title: '¿Estás seguro?',
-    text: '¿Quieres crear el usuario?',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, crear',
-    cancelButtonText: 'Cancelar'
-  });
-
-  // Proceder con la creación del usuario si se confirma
-  if (result.isConfirmed) {
-    const formData = {
-      nombre: this.nombre,
-      apellido_materno: this.apellido_materno,
-      apellido_paterno: this.apellido_paterno,
-      email: this.email,
-      password: this.password,
-      confirm_password: this.confirm_password,
-      roles: [...this.roles]
-    };
-
-    try {
-      const response = await axios.post('/users', formData);
-      Swal.fire({
-        icon: 'success',
-        title: '¡Usuario creado!',
-        text: response.data.message
-      }).then(() => {
-        this.resetForm();
-      });
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.errors) {
-        const errors = error.response.data.errors;
-        let errorMessage = 'Hubo un error al crear el usuario.';
-
-        if (errors.email && errors.email.length > 0) {
-          errorMessage = 'El correo electrónico ya está en uso.';
-        } else if (errors.password && errors.password.length > 0) {
-          errorMessage = 'La contraseña no cumple con los requisitos.';
-        }
-
-        Swal.fire({
-          icon: 'error',
-          title: '¡Error!',
-          text: errorMessage
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: '¡Error!',
-          text: 'Hubo un error al crear el usuario. Por favor, inténtalo de nuevo.'
-        });
-      }
-    }
-  }
-    }
-  }
-}
-
-</script>
