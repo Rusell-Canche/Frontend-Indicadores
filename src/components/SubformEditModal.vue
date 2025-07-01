@@ -1,7 +1,7 @@
 
 <template>
   <div v-if="show" class="modal fade show" style="display: block">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
       <div class="modal-content modern-modal">
         <!-- Header del modal con el diseño moderno -->
         <div class="medico-header modal-header-custom">
