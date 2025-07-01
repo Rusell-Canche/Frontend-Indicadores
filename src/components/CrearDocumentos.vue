@@ -72,7 +72,6 @@
                     <i class="fas fa-indent me-2"></i>
                     <span>Subformulario para {{ campo.name || 'este campo' }}</span>
                   </div>
-
                   <button type="button" @click="openModal(campo)" class="add-campo-button">
                     <i class="fas fa-plus me-2"></i> Agregar entrada
                   </button>
@@ -155,7 +154,6 @@
                       multiple
                     />
                   </div>
-
                   <!-- Vista previa de archivos -->
                   <div v-if="files[campo.name]" class="file-preview mt-3">
                     <h6 class="preview-title">Archivos seleccionados:</h6>
@@ -259,115 +257,785 @@
       </div>
     </div>
 
-    <!-- Modal para subformulario -->
-    <div v-if="showSubformModal" class="modal-backdrop">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">{{ editingIndex === -1 ? 'Agregar' : 'Editar' }} entrada</h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
-          </div>
-          <div class="modal-body">
-            <div
-              v-for="subcampo in currentSubformField?.subcampos"
-              :key="subcampo.name"
-              class="mb-3"
-            >
-              <label class="form-label">
-                {{ subcampo.alias || subcampo.name }}
-                <span v-if="subcampo.required" class="text-danger">*</span>
-              </label>
-
-              <!-- Campo de archivo en modal -->
-              <div v-if="subcampo.type === 'file'" class="input-group modern-input">
-                <span class="input-group-text">
-                  <i class="fas fa-paperclip"></i>
-                </span>
-                <input
-                  type="file"
-                  class="form-control"
-                  @change="onModalFileChange($event, subcampo.name)"
-                />
+    <!-- Modal para subformulario con diseño moderno -->
+    <div v-if="showSubformModal" class="modal fade show" style="display: block">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content modern-modal">
+          <!-- Header del modal con el diseño moderno -->
+          <div class="medico-header modal-header-custom">
+            <div class="header-content">
+              <div class="header-icon">
+                <i class="fas fa-plus-circle" v-if="editingIndex === -1"></i>
+                <i class="fas fa-edit" v-else></i>
               </div>
-              <div
-                v-if="subcampo.type === 'file' && currentSubformData[subcampo.name]?.name"
-                class="form-text"
-              >
-                {{ currentSubformData[subcampo.name].name }}
-              </div>
-
-              <!-- Campo numérico en modal -->
-              <div v-else-if="subcampo.type === 'number'" class="input-group modern-input">
-                <span class="input-group-text">
-                  <i class="fas fa-hashtag"></i>
-                </span>
-                <input
-                  type="number"
-                  class="form-control"
-                  v-model="currentSubformData[subcampo.name]"
-                  :required="subcampo.required"
-                  placeholder="Ingrese un valor numérico"
-                />
-              </div>
-
-              <!-- Campo select en modal -->
-              <div v-else-if="subcampo.type === 'select'" class="input-group modern-input">
-                <span class="input-group-text">
-                  <i class="fas fa-list-ul"></i>
-                </span>
-                <select
-                  class="form-select"
-                  v-model="currentSubformData[subcampo.name]"
-                  :required="subcampo.required"
-                >
-                  <option value="" disabled selected>Seleccione una opción</option>
-                  <option v-for="(option, index) in subcampo.options" :key="index" :value="option">
-                    {{ option }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Campo fecha en modal -->
-              <div v-else-if="subcampo.type === 'date'" class="input-group modern-input">
-                <span class="input-group-text">
-                  <i class="fas fa-calendar-alt"></i>
-                </span>
-                <input
-                  type="date"
-                  class="form-control"
-                  v-model="currentSubformData[subcampo.name]"
-                  :required="subcampo.required"
-                />
-              </div>
-
-              <!-- Campo texto en modal -->
-              <div v-else class="input-group modern-input">
-                <span class="input-group-text">
-                  <i class="fas fa-font"></i>
-                </span>
-                <input
-                  type="text"
-                  class="form-control"
-                  v-model="currentSubformData[subcampo.name]"
-                  :required="subcampo.required"
-                  placeholder="Ingrese texto"
-                />
+              <div class="header-title-section">
+                <h3>{{ editingIndex === -1 ? 'Agregar' : 'Editar' }} entrada</h3>
+                <p class="header-subtitle">{{ currentSubformField?.name || 'Subformulario' }}</p>
               </div>
             </div>
+            <button type="button" @click="closeModal" class="close-button" aria-label="Close">
+              <i class="fas fa-times"></i>
+            </button>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-cancel" @click="closeModal">
-              <i class="fas fa-times me-2"></i>Cancelar
-            </button>
-            <button type="button" class="btn btn-save" @click="saveSubformEntry">
-              <i class="fas fa-check me-2"></i>Guardar
-            </button>
+
+          <!-- Body del modal con el diseño moderno -->
+          <div class="medico-body modal-body-custom">
+            <!-- Nota informativa -->
+            <div class="alert alert-info mb-4">
+              <i class="fas fa-info-circle me-2"></i>
+              Complete los campos del subformulario según sus necesidades
+            </div>
+
+            <!-- Sección para los campos del subformulario -->
+            <div class="form-section">
+              <h6 class="section-title">
+                <i class="fas fa-list me-2"></i>
+                Campos del Subformulario
+              </h6>
+
+              <div
+                v-for="subcampo in currentSubformField?.subcampos"
+                :key="subcampo.name"
+                class="campo-container"
+              >
+                <div class="campo-header">
+                  <div class="campo-title">
+                    <i class="fas fa-grip-vertical me-2"></i>
+                    <span class="campo-index">{{ subcampo.alias || subcampo.name }}</span>
+                    <span v-if="subcampo.required" class="required-badge">*</span>
+                  </div>
+                </div>
+
+                <div class="campo-body">
+                  <!-- Campo de archivo en modal -->
+                  <div v-if="subcampo.type === 'file'" class="form-field">
+                    <label class="form-label">
+                      {{ subcampo.alias || subcampo.name }}
+                      <span v-if="subcampo.required" class="text-danger">*</span>
+                    </label>
+                    <div class="input-group modern-input">
+                      <span class="input-group-text">
+                        <i class="fas fa-paperclip"></i>
+                      </span>
+                      <input
+                        type="file"
+                        class="form-control"
+                        @change="onModalFileChange($event, subcampo.name)"
+                      />
+                    </div>
+                    <div
+                      v-if="currentSubformData[subcampo.name]?.name"
+                      class="file-info mt-2"
+                    >
+                      <div class="current-file">
+                        <i class="fas fa-file me-2"></i>
+                        <span>{{ currentSubformData[subcampo.name].name }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Campo numérico en modal -->
+                  <div v-else-if="subcampo.type === 'number'" class="form-field">
+                    <label class="form-label">
+                      {{ subcampo.alias || subcampo.name }}
+                      <span v-if="subcampo.required" class="text-danger">*</span>
+                    </label>
+                    <div class="input-group modern-input">
+                      <span class="input-group-text">
+                        <i class="fas fa-hashtag"></i>
+                      </span>
+                      <input
+                        type="number"
+                        class="form-control"
+                        v-model="currentSubformData[subcampo.name]"
+                        :required="subcampo.required"
+                        placeholder="Ingrese un valor numérico"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Campo select en modal -->
+                  <div v-else-if="subcampo.type === 'select'" class="form-field">
+                    <label class="form-label">
+                      {{ subcampo.alias || subcampo.name }}
+                      <span v-if="subcampo.required" class="text-danger">*</span>
+                    </label>
+                    <div class="input-group modern-input">
+                      <span class="input-group-text">
+                        <i class="fas fa-list-ul"></i>
+                      </span>
+                      <select
+                        class="form-select"
+                        v-model="currentSubformData[subcampo.name]"
+                        :required="subcampo.required"
+                      >
+                        <option value="" disabled selected>Seleccione una opción</option>
+                        <option v-for="(option, index) in subcampo.options" :key="index" :value="option">
+                          {{ option }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Campo fecha en modal -->
+                  <div v-else-if="subcampo.type === 'date'" class="form-field">
+                    <label class="form-label">
+                      {{ subcampo.alias || subcampo.name }}
+                      <span v-if="subcampo.required" class="text-danger">*</span>
+                    </label>
+                    <div class="input-group modern-input">
+                      <span class="input-group-text">
+                        <i class="fas fa-calendar-alt"></i>
+                      </span>
+                      <input
+                        type="date"
+                        class="form-control"
+                        v-model="currentSubformData[subcampo.name]"
+                        :required="subcampo.required"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Campo texto en modal -->
+                  <div v-else class="form-field">
+                    <label class="form-label">
+                      {{ subcampo.alias || subcampo.name }}
+                      <span v-if="subcampo.required" class="text-danger">*</span>
+                    </label>
+                    <div class="input-group modern-input">
+                      <span class="input-group-text">
+                        <i class="fas fa-font"></i>
+                      </span>
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="currentSubformData[subcampo.name]"
+                        :required="subcampo.required"
+                        placeholder="Ingrese texto"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer con botones -->
+              <div class="medico-footer">
+                <button type="button" class="btn btn-cancel" @click="closeModal">
+                  <i class="fas fa-times me-2"></i>
+                  Cancelar
+                </button>
+                <button type="button" class="btn btn-save" @click="saveSubformEntry">
+                  <i class="fas fa-check me-2"></i>
+                  {{ editingIndex === -1 ? 'Agregar' : 'Guardar' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Estilos base del diseño moderno */
+.card {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  background: white;
+  position: relative;
+}
+
+/* Header con el diseño moderno */
+.medico-header {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+}
+
+.medico-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1;
+}
+
+.header-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-title-section h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-subtitle {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+/* Body con el diseño moderno */
+.medico-body {
+  padding: 2rem;
+  background: white;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6c757d, #495057);
+  border-radius: 16px 16px 0 0;
+}
+
+.section-title {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.section-title i {
+  color: #6c757d;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.modern-input {
+  position: relative;
+}
+
+.modern-input .input-group-text {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  border: none;
+  color: white;
+  border-radius: 12px 0 0 12px;
+  width: 50px;
+  justify-content: center;
+}
+
+.modern-input .form-control,
+.modern-input .form-select {
+  border: 2px solid #e9ecef;
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.modern-input .form-control:focus,
+.modern-input .form-select:focus {
+  border-color: #6c757d;
+  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+  transform: translateY(-1px);
+}
+
+.form-text {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+.alert {
+  border-radius: 12px;
+  border: 1px solid #b8daff;
+  background: linear-gradient(145deg, #d1ecf1 0%, #bee5eb 100%);
+  color: #0c5460;
+}
+
+/* Subformulario */
+.subform-container {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(108, 117, 125, 0.15);
+}
+
+.subform-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.subform-header i {
+  color: #6c757d;
+}
+
+/* Botón de agregar - CAMBIADO A VERDE */
+.add-campo-button {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.add-campo-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.add-campo-button:hover::before {
+  left: 100%;
+}
+
+.add-campo-button:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+/* Modal con diseño moderno */
+.modal.fade.show {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+}
+
+.modern-modal {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  background: white;
+  border: none;
+}
+
+.modal-header-custom {
+  padding: 2rem;
+  border-bottom: none;
+}
+
+.close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 1;
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.modal-body-custom {
+  padding: 2rem;
+  background: white;
+}
+
+/* Estilos específicos para campos del modal */
+.campo-container {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(108, 117, 125, 0.1);
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.campo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.campo-title {
+  display: flex;
+  align-items: center;
+  color: #2c3e50;
+  font-weight: 600;
+  gap: 0.5rem;
+}
+
+.campo-index {
+  font-size: 0.95rem;
+}
+
+.required-badge {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.campo-body {
+  margin-top: 1rem;
+}
+
+.form-field {
+  margin-bottom: 1rem;
+}
+
+/* Información de archivo */
+.file-info {
+  margin-top: 0.75rem;
+}
+
+.current-file {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(145deg, #e9ecef 0%, #f8f9fa 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.current-file i {
+  color: #6c757d;
+}
+
+/* Footer con botones */
+.medico-footer {
+  padding: 1.5rem 0 0.5rem 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.btn-cancel {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-cancel:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+  color: white;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-save::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-save:hover::before {
+  left: 100%;
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+  color: white;
+}
+
+/* Vista previa de archivos */
+.file-preview {
+  margin-top: 1rem;
+}
+
+.preview-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #495057;
+}
+
+.file-item {
+  position: relative;
+  width: 120px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.file-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.file-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.file-thumbnail {
+  width: 100%;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.file-thumbnail img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.file-icon {
+  font-size: 2rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.file-name {
+  font-size: 0.75rem;
+  color: #495057;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.delete-button {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+
+.delete-button:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* Animaciones */
+@keyframes shimmer {
+  0%,
+  100% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  50% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .medico-header {
+    padding: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .header-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .header-title-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .medico-body {
+    padding: 1.5rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .campo-container {
+    padding: 1rem;
+  }
+
+  .campo-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .medico-footer {
+    padding: 1rem 0;
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-save {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-dialog {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+
+  .modal-header-custom {
+    padding: 1.5rem;
+  }
+
+  .modal-body-custom {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .medico-header {
+    padding: 1rem;
+  }
+
+  .medico-body {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 0.75rem;
+  }
+
+  .campo-container {
+    padding: 0.75rem;
+  }
+
+  .modern-input .form-control,
+  .modern-input .form-select {
+    font-size: 0.9rem;
+  }
+
+  .modal-header-custom {
+    padding: 1rem;
+  }
+
+  .modal-body-custom {
+    padding: 1rem;
+  }
+}
+</style>
 
 <script>
 import axios from 'axios'
@@ -753,720 +1421,3 @@ export default {
 }
 </script>
 
-<style scoped>
-/* Estilos base del diseño moderno */
-.card {
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  background: white;
-  position: relative;
-}
-
-/* Header con el diseño moderno */
-.medico-header {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  padding: 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  position: relative;
-  overflow: hidden;
-}
-
-.medico-header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  z-index: 1;
-}
-
-.header-icon {
-  width: 60px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.header-title-section h3 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.header-subtitle {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 400;
-}
-
-/* Body con el diseño moderno */
-.medico-body {
-  padding: 2rem;
-  background: white;
-}
-
-.form-section {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  position: relative;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-
-.form-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #6c757d, #495057);
-  border-radius: 16px 16px 0 0;
-}
-
-.section-title {
-  color: #2c3e50;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-}
-
-.section-title i {
-  color: #6c757d;
-}
-
-.form-label {
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.modern-input {
-  position: relative;
-}
-
-.modern-input .input-group-text {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  border: none;
-  color: white;
-  border-radius: 12px 0 0 12px;
-  width: 50px;
-  justify-content: center;
-}
-
-.modern-input .form-control,
-.modern-input .form-select {
-  border: 2px solid #e9ecef;
-  border-left: none;
-  border-radius: 0 12px 12px 0;
-  padding: 0.75rem 1rem;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.modern-input .form-control:focus,
-.modern-input .form-select:focus {
-  border-color: #6c757d;
-  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
-  transform: translateY(-1px);
-}
-
-.form-text {
-  font-size: 0.875rem;
-  color: #6c757d;
-  margin-top: 0.25rem;
-}
-
-.alert {
-  border-radius: 12px;
-  border: 1px solid #f5c6cb;
-  background: linear-gradient(145deg, #f8d7da 0%, #f1b0b7 100%);
-  color: #721c24;
-}
-
-/* Estilos específicos para campos */
-.campo-container {
-  margin-bottom: 1.5rem;
-  padding: 1.25rem;
-  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 12px;
-  border: 1px solid rgba(108, 117, 125, 0.1);
-  position: relative;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.campo-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.campo-title {
-  display: flex;
-  align-items: center;
-  color: #2c3e50;
-  font-weight: 600;
-}
-
-.campo-index {
-  font-size: 0.95rem;
-}
-
-.delete-button {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  border: none;
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.875rem;
-}
-
-.delete-button:hover {
-  background: linear-gradient(135deg, #495057 0%, #343a40 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
-}
-
-.campo-body {
-  margin-top: 1rem;
-}
-
-/* Checkbox personalizado */
-.campo-checkbox {
-  margin-top: 1rem;
-}
-
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #495057;
-  position: relative;
-  padding-left: 2rem;
-}
-
-.custom-checkbox {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
-
-.checkmark {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 18px;
-  width: 18px;
-  background: white;
-  border: 2px solid #e9ecef;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-}
-
-.checkbox-container:hover .checkmark {
-  border-color: #6c757d;
-}
-
-.custom-checkbox:checked ~ .checkmark {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  border-color: #6c757d;
-}
-
-.checkmark:after {
-  content: '';
-  position: absolute;
-  display: none;
-  left: 5px;
-  top: 2px;
-  width: 4px;
-  height: 8px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.custom-checkbox:checked ~ .checkmark:after {
-  display: block;
-}
-
-.checkbox-label {
-  margin-left: 0.5rem;
-  font-weight: 500;
-}
-
-/* Subformulario */
-.subform-container {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 10px;
-  border: 1px solid rgba(108, 117, 125, 0.15);
-}
-
-.subform-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
-  color: #495057;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.subform-header i {
-  color: #6c757d;
-}
-
-.subcampo-container {
-  margin-bottom: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-}
-
-.subcampo-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.subcampo-title {
-  display: flex;
-  align-items: center;
-  color: #495057;
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.subcampo-index {
-  font-size: 0.875rem;
-}
-
-.delete-button-small {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  border: none;
-  color: white;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.75rem;
-}
-
-.delete-button-small:hover {
-  background: linear-gradient(135deg, #495057 0%, #343a40 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(108, 117, 125, 0.3);
-}
-
-.subcampo-body {
-  margin-top: 0.75rem;
-}
-
-/* Botones de agregar */
-.add-campo-button,
-.add-subcampo-button {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-}
-
-.add-campo-button {
-  width: 100%;
-}
-
-.add-subcampo-button {
-  width: auto;
-}
-
-.add-campo-button:hover,
-.add-subcampo-button:hover {
-  background: linear-gradient(135deg, #495057 0%, #343a40 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
-}
-
-/* Footer con botones */
-.medico-footer {
-  padding: 1.5rem 0 0.5rem 0;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  margin-top: 1rem;
-}
-
-.btn-cancel {
-  background: linear-gradient(135deg, #adb5bd 0%, #6c757d 100%);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-}
-
-.btn-cancel:hover {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
-  color: white;
-}
-
-.btn-save {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-save::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn-save:hover::before {
-  left: 100%;
-}
-
-.btn-save:hover {
-  background: linear-gradient(135deg, #495057 0%, #343a40 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
-  color: white;
-}
-
-/* Vista previa de archivos */
-.file-preview {
-  margin-top: 1rem;
-}
-
-.preview-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: #495057;
-}
-
-.file-item {
-  position: relative;
-  width: 120px;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 0.75rem;
-  background-color: #f8f9fa;
-  transition: all 0.2s ease;
-}
-
-.file-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.file-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.file-thumbnail {
-  width: 100%;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.5rem;
-}
-
-.file-thumbnail img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 4px;
-}
-
-.file-icon {
-  font-size: 2rem;
-  color: #6c757d;
-  margin-bottom: 0.5rem;
-}
-
-.file-name {
-  font-size: 0.75rem;
-  color: #495057;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-}
-
-/* Modal */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
-}
-
-.modal-dialog {
-  max-width: 500px;
-  width: 100%;
-  margin: 1.75rem;
-}
-
-.modal-content {
-  background-color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-}
-
-.modal-header {
-  padding: 1.25rem 1.5rem;
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  color: white;
-  border-bottom: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.modal-title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.btn-close {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: white;
-  font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: rotate(90deg);
-}
-
-.btn-close::before,
-.btn-close::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 2px;
-  background-color: white;
-}
-
-.btn-close::before {
-  transform: rotate(45deg);
-}
-
-.btn-close::after {
-  transform: rotate(-45deg);
-}
-
-.modal-body {
-  padding: 1.5rem;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.modal-footer {
-  padding: 1rem 1.5rem;
-  background-color: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-/* Animaciones */
-@keyframes shimmer {
-  0%,
-  100% {
-    transform: translateX(-100%) translateY(-100%) rotate(45deg);
-  }
-  50% {
-    transform: translateX(100%) translateY(100%) rotate(45deg);
-  }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .medico-header {
-    padding: 1.5rem;
-  }
-
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .header-icon {
-    width: 50px;
-    height: 50px;
-    font-size: 1.25rem;
-  }
-
-  .header-title-section h3 {
-    font-size: 1.25rem;
-  }
-
-  .medico-body {
-    padding: 1.5rem;
-  }
-
-  .form-section {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .campo-container {
-    padding: 1rem;
-  }
-
-  .campo-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .medico-footer {
-    padding: 1rem 0;
-    flex-direction: column;
-  }
-
-  .btn-cancel,
-  .btn-save {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .modal-dialog {
-    margin: 0.5rem;
-    max-width: 95%;
-  }
-}
-
-@media (max-width: 576px) {
-  .medico-header {
-    padding: 1rem;
-  }
-
-  .medico-body {
-    padding: 1rem;
-  }
-
-  .form-section {
-    padding: 0.75rem;
-  }
-
-  .campo-container {
-    padding: 0.75rem;
-  }
-
-  .subform-container {
-    padding: 0.75rem;
-  }
-
-  .subcampo-container {
-    padding: 0.75rem;
-  }
-
-  .modern-input .form-control,
-  .modern-input .form-select {
-    font-size: 0.9rem;
-  }
-}
-</style>

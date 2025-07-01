@@ -681,7 +681,7 @@
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   border: none;
   color: white;
   padding: 0.75rem 1.5rem;
@@ -710,9 +710,9 @@
 }
 
 .btn-save:hover {
-  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
   color: white;
 }
 
