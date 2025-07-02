@@ -674,7 +674,12 @@ export default {
         console.log('JSON a enviar:', JSON.stringify(formData, null, 2))
 
         try {
-          const response = await axios.post('/users', formData)
+          const token = localStorage.getItem('apiToken')
+          const response = await axios.post('http://127.0.0.1:8000/api/register', formData, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
           Swal.fire({
             icon: 'success',
             title: '¡Usuario creado!',
