@@ -99,6 +99,96 @@
                   />
                 </div>
               </div>
+              <div class="col-md-6">
+                <label class="form-label">Edad*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-calendar-alt"></i>
+                  </span>
+                  <input
+                    v-model.number="edad"
+                    type="number"
+                    id="edad"
+                    name="edad"
+                    class="form-control"
+                    required
+                    min="18"
+                    max="100"
+                    placeholder="Ingrese la edad"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Género*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-venus-mars"></i>
+                  </span>
+                  <select v-model="genero" id="genero" name="genero" class="form-control" required>
+                    <option value="">Seleccione el género</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="femenino">Femenino</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Estado*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-map-marker-alt"></i>
+                  </span>
+                  <input
+                    v-model="estado"
+                    type="text"
+                    id="estado"
+                    name="estado"
+                    class="form-control"
+                    required
+                    placeholder="Ingrese el estado"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Ocupación*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-briefcase"></i>
+                  </span>
+                  <input
+                    v-model="ocupacion"
+                    type="text"
+                    id="ocupacion"
+                    name="ocupacion"
+                    class="form-control"
+                    required
+                    placeholder="Ingrese la ocupación"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Escolaridad*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-graduation-cap"></i>
+                  </span>
+                  <select
+                    v-model="escolaridad"
+                    id="escolaridad"
+                    name="escolaridad"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Seleccione la escolaridad</option>
+                    <option value="Primaria">Primaria</option>
+                    <option value="Secundaria">Secundaria</option>
+                    <option value="Preparatoria">Preparatoria</option>
+                    <option value="Licenciatura">Licenciatura</option>
+                    <option value="Maestría">Maestría</option>
+                    <option value="Doctorado">Doctorado</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -201,10 +291,10 @@
                 <div class="resource-header">
                   <div class="resource-info">
                     <h6 class="resource-name">
-                      {{ getResourceName(resourcePerm.recurso_id) }}
+                      {{ getResourceName(resourcePerm.recurso) }}
                     </h6>
                     <p class="resource-description">
-                      {{ getResourceDescription(resourcePerm.recurso_id) }}
+                      {{ getResourceDescription(resourcePerm.recurso) }}
                     </p>
                   </div>
                   <button
@@ -223,8 +313,9 @@
                       <input
                         type="checkbox"
                         class="custom-checkbox"
-                        v-model="resourcePerm.permisos[accion.id]"
-                        :disabled="hasWildcardPermission(resourcePerm.permisos)"
+                        v-model="resourcePerm.acciones"
+                        :value="accion.id"
+                        :disabled="hasWildcardPermission(resourcePerm.acciones)"
                       />
                       <span class="checkmark"></span>
                       <div class="permission-content">
@@ -299,21 +390,33 @@ import axios from 'axios'
 export default {
   data() {
     return {
+      // Campos básicos
       nombre: '',
       apellido_materno: '',
       apellido_paterno: '',
       email: '',
       password: '',
       confirm_password: '',
+
+      // Nuevos campos requeridos
+      edad: null,
+      genero: '',
+      estado: '',
+      ocupacion: '',
+      escolaridad: '',
+
       isHovered: false,
+
       // Propiedades para recursos
       recursos: [],
       selectedResource: '',
       resourcePermissions: [],
+
       // Propiedades para roles dinámicos
       availableRoles: [],
       selectedRoles: [],
-      // NUEVA: Propiedades para acciones dinámicas
+
+      // Propiedades para acciones dinámicas
       acciones: [],
       wildcardActionId: null, // ID de la acción "*"
     }
@@ -321,7 +424,7 @@ export default {
   async mounted() {
     await this.loadRecursos()
     await this.loadRoles()
-    await this.loadAcciones() // NUEVO: Cargar acciones
+    await this.loadAcciones()
   },
   methods: {
     // Método para cargar recursos desde la API
@@ -370,7 +473,7 @@ export default {
       }
     },
 
-    // NUEVO: Método para cargar acciones desde la API
+    // Método para cargar acciones desde la API
     async loadAcciones() {
       try {
         const token = localStorage.getItem('apiToken')
@@ -410,7 +513,7 @@ export default {
       return recurso ? recurso.descripcion : ''
     },
 
-    // NUEVO: Método para obtener el icono según la acción
+    // Método para obtener el icono según la acción
     getActionIcon(actionName) {
       const iconMap = {
         '*': 'fas fa-star',
@@ -422,21 +525,21 @@ export default {
       return iconMap[actionName] || 'fas fa-cog'
     },
 
-    // NUEVO: Método para capitalizar primera letra
+    // Método para capitalizar primera letra
     capitalizeFirst(str) {
       if (!str) return ''
       return str.charAt(0).toUpperCase() + str.slice(1)
     },
 
-    // NUEVO: Método para verificar si tiene permiso wildcard
-    hasWildcardPermission(permisos) {
-      return this.wildcardActionId && permisos[this.wildcardActionId] === true
+    // Método para verificar si tiene permiso wildcard
+    hasWildcardPermission(acciones) {
+      return this.wildcardActionId && acciones.includes(this.wildcardActionId)
     },
 
     // Método llamado cuando cambia la selección de recurso
     onResourceChange() {},
 
-    // MODIFICADO: Método para agregar un recurso con permisos
+    // Método para agregar un recurso con permisos
     addResourcePermission() {
       if (!this.selectedResource) {
         Swal.fire({
@@ -448,7 +551,7 @@ export default {
       }
 
       // Verificar si el recurso ya está asignado
-      const exists = this.resourcePermissions.find((rp) => rp.recurso_id === this.selectedResource)
+      const exists = this.resourcePermissions.find((rp) => rp.recurso === this.selectedResource)
       if (exists) {
         Swal.fire({
           icon: 'warning',
@@ -461,26 +564,22 @@ export default {
       // Buscar el recurso seleccionado
       const recurso = this.recursos.find((r) => r.id === this.selectedResource)
 
-      // Crear objeto de permisos dinámico basado en las acciones disponibles
-      let permisosDefault = {}
+      // Crear objeto de permisos con el nuevo formato
+      let accionesDefault = []
 
-      this.acciones.forEach((accion) => {
-        // Si el recurso es "*" (permisos totales), activar todos los permisos
-        if (
-          recurso &&
-          recurso.nombre === '*' &&
-          recurso.descripcion === 'Permisos en todas las tablas'
-        ) {
-          permisosDefault[accion.id] = true
-        } else {
-          permisosDefault[accion.id] = false
-        }
-      })
+      // Si el recurso es "*" (permisos totales), activar todas las acciones
+      if (
+        recurso &&
+        recurso.nombre === '*' &&
+        recurso.descripcion === 'Permisos en todas las tablas'
+      ) {
+        accionesDefault = this.acciones.map((accion) => accion.id)
+      }
 
-      // Agregar el recurso con los permisos correspondientes
+      // Agregar el recurso con el nuevo formato
       this.resourcePermissions.push({
-        recurso_id: this.selectedResource,
-        permisos: { ...permisosDefault },
+        recurso: this.selectedResource,
+        acciones: [...accionesDefault],
       })
 
       // Limpiar la selección
@@ -499,21 +598,31 @@ export default {
       this.email = ''
       this.password = ''
       this.confirm_password = ''
+      this.edad = null
+      this.genero = ''
+      this.estado = ''
+      this.ocupacion = ''
+      this.escolaridad = ''
       this.selectedRoles = []
       this.selectedResource = ''
       this.resourcePermissions = []
     },
 
-    // MODIFICADO: Método submitForm para enviar permisos con IDs de acciones
+    // Método submitForm con el nuevo formato de JSON
     async submitForm() {
-      // Verificación de campos obligatorios
+      // Verificación de todos los campos obligatorios
       if (
         !this.nombre ||
         !this.apellido_materno ||
         !this.apellido_paterno ||
         !this.email ||
         !this.password ||
-        !this.confirm_password
+        !this.confirm_password ||
+        !this.edad ||
+        !this.genero ||
+        !this.estado ||
+        !this.ocupacion ||
+        !this.escolaridad
       ) {
         Swal.fire({
           icon: 'error',
@@ -545,29 +654,27 @@ export default {
 
       // Proceder con la creación del usuario si se confirma
       if (result.isConfirmed) {
-        // Procesar los permisos para enviar solo los seleccionados
-        const processedResourcePermissions = this.resourcePermissions.map((resourcePerm) => {
-          // Filtrar solo los permisos que están en true
-          const selectedPermissions = Object.keys(resourcePerm.permisos).filter(
-            (actionId) => resourcePerm.permisos[actionId] === true,
-          )
-
-          return {
-            recurso_id: resourcePerm.recurso_id,
-            acciones_ids: selectedPermissions,
-          }
-        })
-
+        // Crear el JSON
         const formData = {
-          nombre: this.nombre,
-          apellido_materno: this.apellido_materno,
-          apellido_paterno: this.apellido_paterno,
           email: this.email,
           password: this.password,
-          confirm_password: this.confirm_password,
           roles: [...this.selectedRoles],
-          recursos_permisos: processedResourcePermissions,
+          nombre: this.nombre,
+          apellido_paterno: this.apellido_paterno,
+          apellido_materno: this.apellido_materno,
+          edad: this.edad,
+          genero: this.genero,
+          estado: this.estado,
+          ocupacion: this.ocupacion,
+          escolaridad: this.escolaridad,
+          permisos: this.resourcePermissions.map((rp) => ({
+            recurso: rp.recurso,
+            acciones: rp.acciones,
+          })),
         }
+
+        // Mostrar el JSON en consola para verificar
+        console.log('JSON a enviar:', JSON.stringify(formData, null, 2))
 
         try {
           const response = await axios.post('/users', formData)
