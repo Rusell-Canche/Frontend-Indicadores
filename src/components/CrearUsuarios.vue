@@ -718,6 +718,24 @@ export default {
 </script>
 
 <style scoped>
+.btn-primary {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(4, 120, 87, 0.4);
+  color: white;
+}
 /* Estilos base del diseño moderno */
 .card {
   border-radius: 20px;
