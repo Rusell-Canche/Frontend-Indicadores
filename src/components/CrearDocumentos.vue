@@ -63,7 +63,7 @@
                 <h6 class="section-title">
                   <i class="fas fa-edit me-2"></i>
                   {{ campo.alias || campo.name }}
-                  <span v-if="campo.required" class="text-danger">*</span>
+                  <span v-if="campo.required || campo.filterable" class="text-danger">*</span>
                 </h6>
 
                 <!-- Campo de tipo subform -->
@@ -212,7 +212,7 @@
                       class="form-control"
                       :id="campo.name"
                       v-model="documentData[campo.name]"
-                      :required="campo.required"
+                      :required="campo.require || campo.filterable"
                     />
                   </div>
                 </div>
@@ -233,11 +233,15 @@
                     />
                   </div>
                 </div>
-
-                <div class="form-text mt-1">
+                <div class="d-flex">
+                <div class="form-text mt-1 me-4">
                   <small v-if="campo.required" class="text-danger">Campo obligatorio</small>
                   <small v-else class="text-muted">Campo opcional</small>
                 </div>
+                <div class="form-text mt-1">
+                  <small v-if="campo.filterable" class="text-danger">Campo para filtro de fecha</small>
+                </div>
+              </div>
               </div>
             </div>
 
@@ -391,7 +395,7 @@
                         type="date"
                         class="form-control"
                         v-model="currentSubformData[subcampo.name]"
-                        :required="subcampo.required"
+                        :required="subcampo.required || subcampo.filterable"
                       />
                     </div>
                   </div>
@@ -411,6 +415,7 @@
                         class="form-control"
                         v-model="currentSubformData[subcampo.name]"
                         :required="subcampo.required"
+
                         placeholder="Ingrese texto"
                       />
                     </div>
@@ -1296,7 +1301,7 @@ export default {
 
       // Validar campos requeridos en el formulario principal
       const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
-        if (campo.required && campo.type !== 'subform') {
+        if (campo.required || campo.filterable && campo.type !== 'subform') {
           if (campo.type === 'file') {
             return !this.files[campo.name] || this.files[campo.name].length === 0
           }
@@ -1307,7 +1312,7 @@ export default {
 
       // Validar subformularios requeridos
       const subformsEmpty = this.camposPlantilla.some((campo) => {
-        if (campo.type === 'subform' && campo.required) {
+        if (campo.type === 'subform' && (campo.required||campo.filterable)) {
           return !this.subformData[campo.name] || this.subformData[campo.name].length === 0
         }
         return false
