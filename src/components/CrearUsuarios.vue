@@ -146,6 +146,153 @@
             </div>
           </div>
 
+          <!-- Sección de recursos y permisos -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-shield-alt me-2"></i>
+              Recursos y Permisos
+            </h6>
+
+            <!-- Selector de recurso -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label">Seleccionar Recurso</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-database"></i>
+                  </span>
+                  <select
+                    v-model="selectedResource"
+                    class="form-control"
+                    @change="onResourceChange"
+                  >
+                    <option value="">Seleccione un recurso</option>
+                    <option v-for="recurso in recursos" :key="recurso.id" :value="recurso.id">
+                      {{ recurso.nombre }} - {{ recurso.descripcion }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6 d-flex align-items-end">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  @click="addResourcePermission"
+                  :disabled="!selectedResource"
+                >
+                  <i class="fas fa-plus me-2"></i>
+                  Agregar Recurso
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista de recursos asignados -->
+            <div v-if="resourcePermissions.length > 0" class="assigned-resources">
+              <h6 class="mb-3">
+                <i class="fas fa-list me-2"></i>
+                Recursos Asignados
+              </h6>
+
+              <div
+                v-for="(resourcePerm, index) in resourcePermissions"
+                :key="index"
+                class="resource-permission-card mb-3"
+              >
+                <div class="resource-header">
+                  <div class="resource-info">
+                    <h6 class="resource-name">
+                      {{ getResourceName(resourcePerm.recurso_id) }}
+                    </h6>
+                    <p class="resource-description">
+                      {{ getResourceDescription(resourcePerm.recurso_id) }}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    @click="removeResourcePermission(index)"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+
+                <div class="permissions-grid">
+                  <div class="permission-item">
+                    <label class="checkbox-container">
+                      <input
+                        type="checkbox"
+                        class="custom-checkbox"
+                        v-model="resourcePerm.permisos.leer"
+                      />
+                      <span class="checkmark"></span>
+                      <div class="permission-content">
+                        <span class="permission-title">
+                          <i class="fas fa-eye me-2"></i>
+                          Leer
+                        </span>
+                        <span class="permission-description">Consultar información</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div class="permission-item">
+                    <label class="checkbox-container">
+                      <input
+                        type="checkbox"
+                        class="custom-checkbox"
+                        v-model="resourcePerm.permisos.crear"
+                      />
+                      <span class="checkmark"></span>
+                      <div class="permission-content">
+                        <span class="permission-title">
+                          <i class="fas fa-plus me-2"></i>
+                          Crear
+                        </span>
+                        <span class="permission-description">Crear nuevos registros</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div class="permission-item">
+                    <label class="checkbox-container">
+                      <input
+                        type="checkbox"
+                        class="custom-checkbox"
+                        v-model="resourcePerm.permisos.editar"
+                      />
+                      <span class="checkmark"></span>
+                      <div class="permission-content">
+                        <span class="permission-title">
+                          <i class="fas fa-edit me-2"></i>
+                          Editar
+                        </span>
+                        <span class="permission-description">Modificar registros existentes</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div class="permission-item">
+                    <label class="checkbox-container">
+                      <input
+                        type="checkbox"
+                        class="custom-checkbox"
+                        v-model="resourcePerm.permisos.eliminar"
+                      />
+                      <span class="checkmark"></span>
+                      <div class="permission-content">
+                        <span class="permission-title">
+                          <i class="fas fa-trash me-2"></i>
+                          Eliminar
+                        </span>
+                        <span class="permission-description">Eliminar registros</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Sección de roles -->
           <div class="form-section">
             <h6 class="section-title">
@@ -231,6 +378,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import Swal from 'sweetalert2'
 import axios from 'axios'
@@ -245,10 +393,97 @@ export default {
       password: '',
       confirm_password: '',
       roles: [],
-      isHovered: false, // Estado para el ícono de hover
+      isHovered: false,
+      // Nuevas propiedades para recursos
+      recursos: [],
+      selectedResource: '',
+      resourcePermissions: [],
     }
   },
+  async mounted() {
+    await this.loadRecursos()
+  },
   methods: {
+    // Método para cargar recursos desde la API
+    async loadRecursos() {
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/recursos', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.data.success) {
+          this.recursos = response.data.recursos
+        }
+      } catch (error) {
+        console.error('Error al cargar recursos:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los recursos disponibles',
+        })
+      }
+    },
+
+    // Método para obtener el nombre del recurso por ID
+    getResourceName(resourceId) {
+      const recurso = this.recursos.find((r) => r.id === resourceId)
+      return recurso ? recurso.nombre : 'Recurso no encontrado'
+    },
+
+    // Método para obtener la descripción del recurso por ID
+    getResourceDescription(resourceId) {
+      const recurso = this.recursos.find((r) => r.id === resourceId)
+      return recurso ? recurso.descripcion : ''
+    },
+
+    // Método llamado cuando cambia la selección de recurso
+    onResourceChange() {},
+
+    // Método para agregar un recurso con permisos
+    addResourcePermission() {
+      if (!this.selectedResource) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Atención',
+          text: 'Debe seleccionar un recurso',
+        })
+        return
+      }
+
+      // Verificar si el recurso ya está asignado
+      const exists = this.resourcePermissions.find((rp) => rp.recurso_id === this.selectedResource)
+      if (exists) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Atención',
+          text: 'Este recurso ya ha sido asignado',
+        })
+        return
+      }
+
+      // Agregar el recurso con permisos por defecto
+      this.resourcePermissions.push({
+        recurso_id: this.selectedResource,
+        permisos: {
+          leer: false,
+          crear: false,
+          editar: false,
+          eliminar: false,
+        },
+      })
+
+      // Limpiar la selección
+      this.selectedResource = ''
+    },
+
+    // Método para remover un recurso asignado
+    removeResourcePermission(index) {
+      this.resourcePermissions.splice(index, 1)
+    },
+
     updateRoles() {
       this.roles = []
       const checkboxes = document.getElementsByName('roles[]')
@@ -258,6 +493,7 @@ export default {
         }
       })
     },
+
     resetForm() {
       this.nombre = ''
       this.apellido_materno = ''
@@ -266,12 +502,15 @@ export default {
       this.password = ''
       this.confirm_password = ''
       this.roles = []
+      this.selectedResource = ''
+      this.resourcePermissions = []
 
       const checkboxes = document.getElementsByName('roles[]')
       checkboxes.forEach((checkbox) => {
         checkbox.checked = false
       })
     },
+
     async submitForm() {
       // Verificación de campos obligatorios
       if (
@@ -320,6 +559,7 @@ export default {
           password: this.password,
           confirm_password: this.confirm_password,
           roles: [...this.roles],
+          recursos_permisos: [...this.resourcePermissions], // Incluir los permisos de recursos
         }
 
         try {
@@ -360,7 +600,6 @@ export default {
   },
 }
 </script>
-
 <style scoped>
 /* Estilos base del diseño moderno */
 .card {
