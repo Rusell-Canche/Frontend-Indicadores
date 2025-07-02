@@ -142,12 +142,21 @@
                     </div>
 
                     <div class="col-md-12">
-                      <div class="campo-checkbox">
-                        <label class="checkbox-container">
-                          <input type="checkbox" class="custom-checkbox" v-model="campo.required" />
-                          <span class="checkmark"></span>
-                          <span class="checkbox-label">Campo obligatorio</span>
-                        </label>
+                      <div class="d-flex">
+                        <div class="campo-checkbox me-5">
+                          <label class="checkbox-container">
+                            <input type="checkbox" class="custom-checkbox" v-model="campo.required" />
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Campo obligatorio</span>
+                          </label>
+                        </div>
+                        <div class="campo-checkbox" v-if="campo.type === 'date'">
+                          <label class="checkbox-container">
+                            <input type="checkbox" class="custom-checkbox" v-model="campo.filterable" />
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Aplicar para filtro</span>
+                          </label>
+                        </div>
                       </div>
                     </div>
 
@@ -288,16 +297,25 @@
                           </div>
 
                           <div class="col-md-12">
-                            <div class="campo-checkbox">
-                              <label class="checkbox-container">
-                                <input
-                                  type="checkbox"
-                                  class="custom-checkbox"
-                                  v-model="subcampo.required"
-                                />
-                                <span class="checkmark"></span>
-                                <span class="checkbox-label">Obligatorio</span>
-                              </label>
+                            <div class="d-flex">
+                              <div class="campo-checkbox me-5">
+                                <label class="checkbox-container">
+                                  <input
+                                    type="checkbox"
+                                    class="custom-checkbox"
+                                    v-model="subcampo.required"
+                                  />
+                                  <span class="checkmark"></span>
+                                  <span class="checkbox-label">Obligatorio</span>
+                                </label>
+                              </div>
+                              <div class="campo-checkbox" v-if="subcampo.type === 'date'">
+                                <label class="checkbox-container">
+                                  <input type="checkbox" class="custom-checkbox" v-model="subcampo.filterable" />
+                                  <span class="checkmark"></span>
+                                  <span class="checkbox-label">Aplicar para filtro</span>
+                                </label>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -337,7 +355,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import axios from 'axios'
 import Swal from 'sweetalert2'
@@ -356,6 +373,7 @@ export default {
         type: '',
         alias: '',
         required: false,
+        filterable: false
       },
     }
   },
@@ -431,6 +449,7 @@ export default {
                 name: campo.name,
                 type: campo.type,
                 required: Boolean(campo.required),
+                filterable: Boolean(campo.filterable),
               }
 
               // Agregar opciones si el campo es de tipo select
@@ -445,6 +464,7 @@ export default {
                     name: subcampo.name,
                     type: subcampo.type,
                     required: Boolean(subcampo.required),
+                    filterable: Boolean(subcampo.filterable),
                   }
 
                   // Agregar opciones si el subcampo es de tipo select
@@ -501,6 +521,7 @@ export default {
         type: '',
         alias: '',
         required: false,
+        filterable: false,
       }
     },
     openEditModal(id) {
@@ -596,7 +617,7 @@ export default {
         // Asegurarse de que subcampos esté inicializado
         campo.subcampos = []
       }
-      campo.subcampos.push({ name: '', type: 'string', required: false })
+      campo.subcampos.push({ name: '', type: 'string', required: false, filterable: false })
     },
     quitarSubcampo(campo, index) {
       campo.subcampos.splice(index, 1)

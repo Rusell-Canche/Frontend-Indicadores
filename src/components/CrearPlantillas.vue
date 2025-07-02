@@ -109,13 +109,22 @@
                   </div>
 
                   <div class="col-md-12">
-                    <div class="campo-checkbox">
+                    <div class="d-flex">
+                    <div class="campo-checkbox me-5">
                       <label class="checkbox-container">
                         <input type="checkbox" class="custom-checkbox" v-model="campo.required" />
                         <span class="checkmark"></span>
                         <span class="checkbox-label">Campo obligatorio</span>
                       </label>
                     </div>
+                    <div class="campo-checkbox" v-if="campo.type === 'date'">
+                      <label class="checkbox-container">
+                        <input type="checkbox" class="custom-checkbox" v-model="campo.filterable" />
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Aplicar para filtro</span>
+                      </label>
+                    </div>
+                  </div>
                   </div>
                 </div>
 
@@ -247,17 +256,31 @@
                         </div>
 
                         <div class="col-md-12">
-                          <div class="campo-checkbox">
-                            <label class="checkbox-container">
-                              <input
-                                type="checkbox"
-                                class="custom-checkbox"
-                                v-model="subcampo.required"
-                                
-                              />
-                              <span class="checkmark"></span>
-                              <span class="checkbox-label">Obligatorio</span>
-                            </label>
+                          <div class="d-flex">
+                            <div class="campo-checkbox me-5">
+                              <label class="checkbox-container">
+                                <input
+                                  type="checkbox"
+                                  class="custom-checkbox"
+                                  v-model="subcampo.required"
+                                  
+                                />
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Obligatorio</span>
+                              </label>
+                            </div>
+                            <div class="campo-checkbox" v-if="subcampo.type === 'date'">
+                              <label class="checkbox-container">
+                                <input
+                                  type="checkbox"
+                                  class="custom-checkbox"
+                                  v-model="subcampo.filterable"
+                                  
+                                />
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Aplicar para filtro</span>
+                              </label>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -363,7 +386,7 @@ export default {
   data() {
     return {
       plantillaName: '',
-      camposPlantilla: [{ name: '', type: 'string', required: false }],
+      camposPlantilla: [{ name: '', type: 'string', required: false, filterable: false }],
       ejes: [],
       selectedEje: '',
       indicadores: [],
@@ -385,7 +408,7 @@ export default {
 
   methods: {
     agregarCampo() {
-      this.camposPlantilla.push({ name: '', type: 'string', required: false })
+      this.camposPlantilla.push({ name: '', type: 'string', required: false, filterable: false })
     },
 
     quitarCampo(index) {
@@ -401,6 +424,11 @@ export default {
         campo.options = []
         campo.newOption = '' // Asegurarse de que newOption esté inicializado
       }
+      
+      // Reset filterable when type changes to non-date
+      if (campo.type !== 'date') {
+        campo.filterable = false
+      }
     },
 
     agregarSubcampo(campo) {
@@ -409,7 +437,7 @@ export default {
         campo.subcampos = []
       }
       else {
-        campo.subcampos.push({ name: '', type: 'string', required: false })
+        campo.subcampos.push({ name: '', type: 'string', required: false, filterable: false })
       }
     },
 
@@ -454,7 +482,7 @@ export default {
 
     resetForm() {
       this.plantillaName = ''
-      this.camposPlantilla = [{ name: '', type: 'string', required: false }]
+      this.camposPlantilla = [{ name: '', type: 'string', required: false, filterable: false }]
       this.selectedEje = ''
     },
 
@@ -465,6 +493,7 @@ export default {
           name: campo.name,
           type: campo.type,
           required: campo.required,
+          filterable: campo.filterable || false,
         }
 
         // Si es un select, incluir las opciones como array de strings
@@ -482,6 +511,7 @@ export default {
               name: subcampo.name,
               type: subcampo.type,
               required: subcampo.required,
+              filterable: subcampo.filterable || false,
             }
 
             // Si el subcampo es un select, incluir opciones como array de strings
