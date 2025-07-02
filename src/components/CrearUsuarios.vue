@@ -455,15 +455,32 @@ export default {
         return
       }
 
-      // Agregar el recurso con permisos por defecto
+      // Buscar el recurso seleccionado
+      const recurso = this.recursos.find((r) => r.id === this.selectedResource)
+      let permisosDefault = {
+        leer: false,
+        crear: false,
+        editar: false,
+        eliminar: false,
+      }
+      // Si el recurso es el de permisos totales, marcar todos los permisos en true
+      if (
+        recurso &&
+        recurso.nombre === '*' &&
+        recurso.descripcion === 'Permisos en todas las tablas'
+      ) {
+        permisosDefault = {
+          leer: true,
+          crear: true,
+          editar: true,
+          eliminar: true,
+        }
+      }
+
+      // Agregar el recurso con los permisos correspondientes
       this.resourcePermissions.push({
         recurso_id: this.selectedResource,
-        permisos: {
-          leer: false,
-          crear: false,
-          editar: false,
-          eliminar: false,
-        },
+        permisos: { ...permisosDefault },
       })
 
       // Limpiar la selección
