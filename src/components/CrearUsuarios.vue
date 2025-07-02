@@ -293,61 +293,26 @@
             </div>
           </div>
 
-          <!-- Sección de roles -->
+          <!-- Sección de roles MODIFICADA -->
           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-user-tag me-2"></i>
               Roles del Usuario
             </h6>
             <div class="roles-container">
-              <div class="role-item">
+              <div v-for="role in availableRoles" :key="role.id" class="role-item">
                 <label class="checkbox-container">
                   <input
                     type="checkbox"
                     class="custom-checkbox"
-                    id="adminSwitch"
-                    name="roles[]"
-                    value="administrador"
-                    @change="updateRoles"
+                    :id="`role_${role.id}`"
+                    :value="role.id"
+                    v-model="selectedRoles"
                   />
                   <span class="checkmark"></span>
                   <div class="role-content">
-                    <span class="role-title">Administrador</span>
-                    <span class="role-description">Acceso completo al sistema</span>
-                  </div>
-                </label>
-              </div>
-              <div class="role-item">
-                <label class="checkbox-container">
-                  <input
-                    type="checkbox"
-                    class="custom-checkbox"
-                    id="comentariosSwitch"
-                    name="roles[]"
-                    value="capturista"
-                    @change="updateRoles"
-                  />
-                  <span class="checkmark"></span>
-                  <div class="role-content">
-                    <span class="role-title">Capturista</span>
-                    <span class="role-description">Puede capturar y editar información</span>
-                  </div>
-                </label>
-              </div>
-              <div class="role-item">
-                <label class="checkbox-container">
-                  <input
-                    type="checkbox"
-                    class="custom-checkbox"
-                    id="validadorSwitch"
-                    name="roles[]"
-                    value="validador"
-                    @change="updateRoles"
-                  />
-                  <span class="checkmark"></span>
-                  <div class="role-content">
-                    <span class="role-title">Validador</span>
-                    <span class="role-description">Puede validar y aprobar información</span>
+                    <span class="role-title">{{ role.nombre }}</span>
+                    <span class="role-description">{{ role.descripcion }}</span>
                   </div>
                 </label>
               </div>
@@ -392,16 +357,19 @@ export default {
       email: '',
       password: '',
       confirm_password: '',
-      roles: [],
       isHovered: false,
       // Nuevas propiedades para recursos
       recursos: [],
       selectedResource: '',
       resourcePermissions: [],
+      // MODIFICADO: Nuevas propiedades para roles dinámicos
+      availableRoles: [],
+      selectedRoles: [],
     }
   },
   async mounted() {
     await this.loadRecursos()
+    await this.loadRoles() // AGREGADO: Cargar roles al montar el componente
   },
   methods: {
     // Método para cargar recursos desde la API
@@ -423,6 +391,29 @@ export default {
           icon: 'error',
           title: 'Error',
           text: 'No se pudieron cargar los recursos disponibles',
+        })
+      }
+    },
+
+    // AGREGADO: Método para cargar roles desde la API
+    async loadRoles() {
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/roles', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.data.success) {
+          this.availableRoles = response.data.roles
+        }
+      } catch (error) {
+        console.error('Error al cargar roles:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los roles disponibles',
         })
       }
     },
@@ -484,15 +475,7 @@ export default {
       this.resourcePermissions.splice(index, 1)
     },
 
-    updateRoles() {
-      this.roles = []
-      const checkboxes = document.getElementsByName('roles[]')
-      checkboxes.forEach((checkbox) => {
-        if (checkbox.checked) {
-          this.roles.push(checkbox.value)
-        }
-      })
-    },
+    // ELIMINADO: updateRoles() ya no se necesita
 
     resetForm() {
       this.nombre = ''
@@ -501,14 +484,9 @@ export default {
       this.email = ''
       this.password = ''
       this.confirm_password = ''
-      this.roles = []
+      this.selectedRoles = [] // MODIFICADO: Limpiar roles seleccionados
       this.selectedResource = ''
       this.resourcePermissions = []
-
-      const checkboxes = document.getElementsByName('roles[]')
-      checkboxes.forEach((checkbox) => {
-        checkbox.checked = false
-      })
     },
 
     async submitForm() {
@@ -558,8 +536,8 @@ export default {
           email: this.email,
           password: this.password,
           confirm_password: this.confirm_password,
-          roles: [...this.roles],
-          recursos_permisos: [...this.resourcePermissions], // Incluir los permisos de recursos
+          roles: [...this.selectedRoles],
+          recursos_permisos: [...this.resourcePermissions],
         }
 
         try {
