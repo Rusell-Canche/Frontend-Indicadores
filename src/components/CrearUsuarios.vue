@@ -146,7 +146,7 @@
             </div>
           </div>
 
-          <!-- Sección de recursos y permisos -->
+          <!-- Sección de recursos y permisos MODIFICADA -->
           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-shield-alt me-2"></i>
@@ -216,75 +216,23 @@
                   </button>
                 </div>
 
+                <!-- Grid de permisos dinámico -->
                 <div class="permissions-grid">
-                  <div class="permission-item">
+                  <div v-for="accion in acciones" :key="accion.id" class="permission-item">
                     <label class="checkbox-container">
                       <input
                         type="checkbox"
                         class="custom-checkbox"
-                        v-model="resourcePerm.permisos.leer"
+                        v-model="resourcePerm.permisos[accion.id]"
+                        :disabled="hasWildcardPermission(resourcePerm.permisos)"
                       />
                       <span class="checkmark"></span>
                       <div class="permission-content">
                         <span class="permission-title">
-                          <i class="fas fa-eye me-2"></i>
-                          Leer
+                          <i :class="getActionIcon(accion.nombre)" class="me-2"></i>
+                          {{ capitalizeFirst(accion.nombre) }}
                         </span>
-                        <span class="permission-description">Consultar información</span>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div class="permission-item">
-                    <label class="checkbox-container">
-                      <input
-                        type="checkbox"
-                        class="custom-checkbox"
-                        v-model="resourcePerm.permisos.crear"
-                      />
-                      <span class="checkmark"></span>
-                      <div class="permission-content">
-                        <span class="permission-title">
-                          <i class="fas fa-plus me-2"></i>
-                          Crear
-                        </span>
-                        <span class="permission-description">Crear nuevos registros</span>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div class="permission-item">
-                    <label class="checkbox-container">
-                      <input
-                        type="checkbox"
-                        class="custom-checkbox"
-                        v-model="resourcePerm.permisos.editar"
-                      />
-                      <span class="checkmark"></span>
-                      <div class="permission-content">
-                        <span class="permission-title">
-                          <i class="fas fa-edit me-2"></i>
-                          Editar
-                        </span>
-                        <span class="permission-description">Modificar registros existentes</span>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div class="permission-item">
-                    <label class="checkbox-container">
-                      <input
-                        type="checkbox"
-                        class="custom-checkbox"
-                        v-model="resourcePerm.permisos.eliminar"
-                      />
-                      <span class="checkmark"></span>
-                      <div class="permission-content">
-                        <span class="permission-title">
-                          <i class="fas fa-trash me-2"></i>
-                          Eliminar
-                        </span>
-                        <span class="permission-description">Eliminar registros</span>
+                        <span class="permission-description">{{ accion.descripcion }}</span>
                       </div>
                     </label>
                   </div>
@@ -293,7 +241,7 @@
             </div>
           </div>
 
-          <!-- Sección de roles MODIFICADA -->
+          <!-- Sección de roles -->
           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-user-tag me-2"></i>
@@ -358,18 +306,22 @@ export default {
       password: '',
       confirm_password: '',
       isHovered: false,
-      // Nuevas propiedades para recursos
+      // Propiedades para recursos
       recursos: [],
       selectedResource: '',
       resourcePermissions: [],
-      // MODIFICADO: Nuevas propiedades para roles dinámicos
+      // Propiedades para roles dinámicos
       availableRoles: [],
       selectedRoles: [],
+      // NUEVA: Propiedades para acciones dinámicas
+      acciones: [],
+      wildcardActionId: null, // ID de la acción "*"
     }
   },
   async mounted() {
     await this.loadRecursos()
-    await this.loadRoles() // AGREGADO: Cargar roles al montar el componente
+    await this.loadRoles()
+    await this.loadAcciones() // NUEVO: Cargar acciones
   },
   methods: {
     // Método para cargar recursos desde la API
@@ -395,7 +347,7 @@ export default {
       }
     },
 
-    // AGREGADO: Método para cargar roles desde la API
+    // Método para cargar roles desde la API
     async loadRoles() {
       try {
         const token = localStorage.getItem('apiToken')
@@ -418,6 +370,34 @@ export default {
       }
     },
 
+    // NUEVO: Método para cargar acciones desde la API
+    async loadAcciones() {
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/acciones', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.data.success) {
+          this.acciones = response.data.acciones
+          // Buscar el ID de la acción "*" (wildcard)
+          const wildcardAction = this.acciones.find((accion) => accion.nombre === '*')
+          if (wildcardAction) {
+            this.wildcardActionId = wildcardAction.id
+          }
+        }
+      } catch (error) {
+        console.error('Error al cargar acciones:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar las acciones disponibles',
+        })
+      }
+    },
+
     // Método para obtener el nombre del recurso por ID
     getResourceName(resourceId) {
       const recurso = this.recursos.find((r) => r.id === resourceId)
@@ -430,10 +410,33 @@ export default {
       return recurso ? recurso.descripcion : ''
     },
 
+    // NUEVO: Método para obtener el icono según la acción
+    getActionIcon(actionName) {
+      const iconMap = {
+        '*': 'fas fa-star',
+        crear: 'fas fa-plus',
+        leer: 'fas fa-eye',
+        actualizar: 'fas fa-edit',
+        eliminar: 'fas fa-trash',
+      }
+      return iconMap[actionName] || 'fas fa-cog'
+    },
+
+    // NUEVO: Método para capitalizar primera letra
+    capitalizeFirst(str) {
+      if (!str) return ''
+      return str.charAt(0).toUpperCase() + str.slice(1)
+    },
+
+    // NUEVO: Método para verificar si tiene permiso wildcard
+    hasWildcardPermission(permisos) {
+      return this.wildcardActionId && permisos[this.wildcardActionId] === true
+    },
+
     // Método llamado cuando cambia la selección de recurso
     onResourceChange() {},
 
-    // Método para agregar un recurso con permisos
+    // MODIFICADO: Método para agregar un recurso con permisos
     addResourcePermission() {
       if (!this.selectedResource) {
         Swal.fire({
@@ -457,25 +460,22 @@ export default {
 
       // Buscar el recurso seleccionado
       const recurso = this.recursos.find((r) => r.id === this.selectedResource)
-      let permisosDefault = {
-        leer: false,
-        crear: false,
-        editar: false,
-        eliminar: false,
-      }
-      // Si el recurso es el de permisos totales, marcar todos los permisos en true
-      if (
-        recurso &&
-        recurso.nombre === '*' &&
-        recurso.descripcion === 'Permisos en todas las tablas'
-      ) {
-        permisosDefault = {
-          leer: true,
-          crear: true,
-          editar: true,
-          eliminar: true,
+
+      // Crear objeto de permisos dinámico basado en las acciones disponibles
+      let permisosDefault = {}
+
+      this.acciones.forEach((accion) => {
+        // Si el recurso es "*" (permisos totales), activar todos los permisos
+        if (
+          recurso &&
+          recurso.nombre === '*' &&
+          recurso.descripcion === 'Permisos en todas las tablas'
+        ) {
+          permisosDefault[accion.id] = true
+        } else {
+          permisosDefault[accion.id] = false
         }
-      }
+      })
 
       // Agregar el recurso con los permisos correspondientes
       this.resourcePermissions.push({
@@ -492,8 +492,6 @@ export default {
       this.resourcePermissions.splice(index, 1)
     },
 
-    // ELIMINADO: updateRoles() ya no se necesita
-
     resetForm() {
       this.nombre = ''
       this.apellido_materno = ''
@@ -501,11 +499,12 @@ export default {
       this.email = ''
       this.password = ''
       this.confirm_password = ''
-      this.selectedRoles = [] // MODIFICADO: Limpiar roles seleccionados
+      this.selectedRoles = []
       this.selectedResource = ''
       this.resourcePermissions = []
     },
 
+    // MODIFICADO: Método submitForm para enviar permisos con IDs de acciones
     async submitForm() {
       // Verificación de campos obligatorios
       if (
@@ -546,6 +545,19 @@ export default {
 
       // Proceder con la creación del usuario si se confirma
       if (result.isConfirmed) {
+        // Procesar los permisos para enviar solo los seleccionados
+        const processedResourcePermissions = this.resourcePermissions.map((resourcePerm) => {
+          // Filtrar solo los permisos que están en true
+          const selectedPermissions = Object.keys(resourcePerm.permisos).filter(
+            (actionId) => resourcePerm.permisos[actionId] === true,
+          )
+
+          return {
+            recurso_id: resourcePerm.recurso_id,
+            acciones_ids: selectedPermissions,
+          }
+        })
+
         const formData = {
           nombre: this.nombre,
           apellido_materno: this.apellido_materno,
@@ -554,7 +566,7 @@ export default {
           password: this.password,
           confirm_password: this.confirm_password,
           roles: [...this.selectedRoles],
-          recursos_permisos: [...this.resourcePermissions],
+          recursos_permisos: processedResourcePermissions,
         }
 
         try {
