@@ -578,6 +578,7 @@ export default {
   },
 }
 </script>
+
 <style scoped>
 /* Estilos base del diseño moderno */
 .card {
@@ -728,37 +729,59 @@ export default {
   color: #0d47a1;
 }
 
-/* Estilos para roles */
+/* Estilos mejorados para roles - NUEVOS ESTILOS AGREGADOS */
 .roles-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
 
 .role-item {
-  padding: 1rem;
-  background: white;
+  padding: 1.25rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
   border-radius: 12px;
-  border: 1px solid rgba(4, 120, 87, 0.1);
-  transition: all 0.3s ease;
+  border: 2px solid rgba(4, 120, 87, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.role-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #047857, #065f46);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+  transform-origin: left;
 }
 
 .role-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(4, 120, 87, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(4, 120, 87, 0.15);
+  border-color: rgba(4, 120, 87, 0.2);
 }
 
-/* Checkbox personalizado */
+.role-item:hover::before {
+  transform: scaleX(1);
+}
+
+/* Checkbox personalizado mejorado */
 .checkbox-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   cursor: pointer;
   font-size: 0.9rem;
   color: #495057;
   position: relative;
-  padding-left: 2.5rem;
+  padding-left: 2.75rem;
   width: 100%;
+  line-height: 1.4;
 }
 
 .custom-checkbox {
@@ -772,32 +795,35 @@ export default {
 .checkmark {
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 20px;
-  width: 20px;
-  background: white;
+  top: 2px;
+  height: 22px;
+  width: 22px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
   border: 2px solid #e9ecef;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .checkbox-container:hover .checkmark {
   border-color: #047857;
+  box-shadow: 0 4px 8px rgba(4, 120, 87, 0.15);
+  transform: translateY(-1px);
 }
 
 .custom-checkbox:checked ~ .checkmark {
   background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   border-color: #047857;
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
 }
 
 .checkmark:after {
   content: '';
   position: absolute;
   display: none;
-  left: 6px;
-  top: 2px;
-  width: 5px;
+  left: 7px;
+  top: 3px;
+  width: 6px;
   height: 10px;
   border: solid white;
   border-width: 0 2px 2px 0;
@@ -812,15 +838,101 @@ export default {
   display: flex;
   flex-direction: column;
   margin-left: 0.5rem;
+  flex: 1;
 }
 
 .role-title {
   font-weight: 600;
   color: #2c3e50;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+  line-height: 1.3;
 }
 
 .role-description {
+  font-size: 0.85rem;
+  color: #6c757d;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Estilos para recursos y permisos existentes */
+.assigned-resources {
+  margin-top: 1.5rem;
+}
+
+.resource-permission-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(4, 120, 87, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.resource-permission-card:hover {
+  box-shadow: 0 4px 15px rgba(4, 120, 87, 0.1);
+  transform: translateY(-1px);
+}
+
+.resource-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.resource-info {
+  flex: 1;
+}
+
+.resource-name {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: 1rem;
+}
+
+.resource-description {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.permission-item {
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.permission-item:hover {
+  background: #f8f9fa;
+  border-color: rgba(4, 120, 87, 0.1);
+}
+
+.permission-content {
+  display: flex;
+  flex-direction: column;
+  margin-left: 0.5rem;
+}
+
+.permission-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.permission-description {
   font-size: 0.8rem;
   color: #6c757d;
 }
@@ -906,7 +1018,7 @@ export default {
   }
 }
 
-/* Responsive */
+/* Responsive mejorado */
 @media (max-width: 768px) {
   .medico-header {
     padding: 1.5rem;
@@ -939,6 +1051,16 @@ export default {
 
   .roles-container {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .role-item {
+    padding: 1rem;
+  }
+
+  .permissions-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
 
   .medico-footer {
@@ -968,6 +1090,26 @@ export default {
 
   .modern-input .form-control {
     font-size: 0.9rem;
+  }
+
+  .role-item {
+    padding: 0.875rem;
+  }
+
+  .checkbox-container {
+    padding-left: 2.5rem;
+  }
+
+  .checkmark {
+    height: 20px;
+    width: 20px;
+  }
+
+  .checkmark:after {
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 9px;
   }
 }
 </style>
