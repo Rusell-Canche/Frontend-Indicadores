@@ -6,11 +6,11 @@
       <div class="medico-header">
         <div class="header-content">
           <div class="header-icon">
-            <i class="fas fa-user-plus"></i>
+            <i class="fas fa-user-tag"></i>
           </div>
           <div class="header-title-section">
-            <h3>Crear Usuario</h3>
-            <p class="header-subtitle">Proporciona los siguientes datos para crear la cuenta</p>
+            <h3>Crear Rol</h3>
+            <p class="header-subtitle">Define un nuevo rol con sus permisos correspondientes</p>
           </div>
         </div>
       </div>
@@ -20,22 +20,22 @@
         <form @submit.prevent="submitForm">
           <!-- Nota de campos requeridos -->
           <div class="alert alert-info mb-4">
-            <i class="fas fa-info-circle me-2"></i>Todos los campos son obligatorios para crear la
-            cuenta
+            <i class="fas fa-info-circle me-2"></i>
+            Completa la información básica y asigna los permisos necesarios para el rol
           </div>
 
-          <!-- Sección de información personal -->
+          <!-- Sección de información básica del rol -->
           <div class="form-section">
             <h6 class="section-title">
-              <i class="fas fa-user me-2"></i>
-              Información Personal
+              <i class="fas fa-info-circle me-2"></i>
+              Información del Rol
             </h6>
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">Nombre*</label>
+                <label class="form-label">Nombre del Rol*</label>
                 <div class="input-group modern-input">
                   <span class="input-group-text">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-tag"></i>
                   </span>
                   <input
                     v-model="nombre"
@@ -44,200 +44,38 @@
                     name="nombre"
                     class="form-control"
                     required
-                    placeholder="Ingrese el nombre"
+                    placeholder="ej: super_usuario, administrador"
                   />
                 </div>
+                <small class="form-text text-muted">
+                  Se recomienda usar snake_case (ej: super_usuario)
+                </small>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Apellido Paterno*</label>
+                <label class="form-label">Descripción*</label>
                 <div class="input-group modern-input">
                   <span class="input-group-text">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-align-left"></i>
                   </span>
                   <input
-                    v-model="apellido_paterno"
+                    v-model="descripcion"
                     type="text"
-                    id="apellido_paterno"
-                    name="apellido_paterno"
+                    id="descripcion"
+                    name="descripcion"
                     class="form-control"
                     required
-                    placeholder="Ingrese el apellido paterno"
-                  />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Apellido Materno*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-user"></i>
-                  </span>
-                  <input
-                    v-model="apellido_materno"
-                    type="text"
-                    id="apellido_materno"
-                    name="apellido_materno"
-                    class="form-control"
-                    required
-                    placeholder="Ingrese el apellido materno"
-                  />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Correo Electrónico*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-envelope"></i>
-                  </span>
-                  <input
-                    v-model="email"
-                    type="email"
-                    id="email"
-                    name="email"
-                    class="form-control"
-                    required
-                    placeholder="ejemplo@correo.com"
-                  />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Edad*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-calendar-alt"></i>
-                  </span>
-                  <input
-                    v-model.number="edad"
-                    type="number"
-                    id="edad"
-                    name="edad"
-                    class="form-control"
-                    required
-                    min="18"
-                    max="100"
-                    placeholder="Ingrese la edad"
-                  />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Género*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-venus-mars"></i>
-                  </span>
-                  <select v-model="genero" id="genero" name="genero" class="form-control" required>
-                    <option value="">Seleccione el género</option>
-                    <option value="masculino">Masculino</option>
-                    <option value="femenino">Femenino</option>
-                    <option value="otro">Otro</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Estado*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-map-marker-alt"></i>
-                  </span>
-                  <input
-                    v-model="estado"
-                    type="text"
-                    id="estado"
-                    name="estado"
-                    class="form-control"
-                    required
-                    placeholder="Ingrese el estado"
-                  />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Ocupación*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-briefcase"></i>
-                  </span>
-                  <input
-                    v-model="ocupacion"
-                    type="text"
-                    id="ocupacion"
-                    name="ocupacion"
-                    class="form-control"
-                    required
-                    placeholder="Ingrese la ocupación"
-                  />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Escolaridad*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-graduation-cap"></i>
-                  </span>
-                  <select
-                    v-model="escolaridad"
-                    id="escolaridad"
-                    name="escolaridad"
-                    class="form-control"
-                    required
-                  >
-                    <option value="">Seleccione la escolaridad</option>
-                    <option value="Licenciatura">Licenciatura</option>
-                    <option value="Maestría">Maestría</option>
-                    <option value="Doctorado">Doctorado</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sección de seguridad -->
-          <div class="form-section">
-            <h6 class="section-title">
-              <i class="fas fa-lock me-2"></i>
-              Información de Seguridad
-            </h6>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Contraseña*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-lock"></i>
-                  </span>
-                  <input
-                    v-model="password"
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="form-control"
-                    required
-                    placeholder="Ingrese la contraseña"
-                  />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Confirmar Contraseña*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-lock"></i>
-                  </span>
-                  <input
-                    v-model="confirm_password"
-                    type="password"
-                    id="confirm_password"
-                    name="confirm_password"
-                    class="form-control"
-                    required
-                    placeholder="Confirme la contraseña"
+                    placeholder="Describe las funciones de este rol"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Sección de recursos y permisos MODIFICADA -->
+          <!-- Sección de permisos -->
           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-shield-alt me-2"></i>
-              Recursos y Permisos
+              Permisos del Rol
             </h6>
 
             <!-- Selector de recurso -->
@@ -274,24 +112,24 @@
             </div>
 
             <!-- Lista de recursos asignados -->
-            <div v-if="resourcePermissions.length > 0" class="assigned-resources">
+            <div v-if="permisos.length > 0" class="assigned-resources">
               <h6 class="mb-3">
                 <i class="fas fa-list me-2"></i>
-                Recursos Asignados
+                Recursos Asignados ({{ permisos.length }})
               </h6>
 
               <div
-                v-for="(resourcePerm, index) in resourcePermissions"
+                v-for="(permiso, index) in permisos"
                 :key="index"
                 class="resource-permission-card mb-3"
               >
                 <div class="resource-header">
                   <div class="resource-info">
                     <h6 class="resource-name">
-                      {{ getResourceName(resourcePerm.recurso) }}
+                      {{ getResourceName(permiso.recurso) }}
                     </h6>
                     <p class="resource-description">
-                      {{ getResourceDescription(resourcePerm.recurso) }}
+                      {{ getResourceDescription(permiso.recurso) }}
                     </p>
                   </div>
                   <button
@@ -303,16 +141,16 @@
                   </button>
                 </div>
 
-                <!-- Grid de permisos dinámico -->
+                <!-- Grid de acciones dinámico -->
                 <div class="permissions-grid">
                   <div v-for="accion in acciones" :key="accion.id" class="permission-item">
                     <label class="checkbox-container">
                       <input
                         type="checkbox"
                         class="custom-checkbox"
-                        v-model="resourcePerm.acciones"
+                        v-model="permiso.acciones"
                         :value="accion.id"
-                        :disabled="hasWildcardPermission(resourcePerm.acciones)"
+                        :disabled="hasWildcardPermission(permiso.acciones)"
                       />
                       <span class="checkmark"></span>
                       <div class="permission-content">
@@ -325,38 +163,46 @@
                     </label>
                   </div>
                 </div>
+
+                <!-- Resumen de permisos seleccionados -->
+                <div v-if="permiso.acciones.length > 0" class="permissions-summary mt-2">
+                  <small class="text-muted">
+                    <i class="fas fa-check-circle me-1"></i>
+                    {{ permiso.acciones.length }} acción(es) seleccionada(s)
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado cuando no hay permisos -->
+            <div v-else class="no-permissions-state">
+              <div class="text-center py-5">
+                <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
+                <h6 class="text-muted">No hay permisos asignados</h6>
+                <p class="text-muted small">
+                  Selecciona un recurso y agrégalo para comenzar a configurar los permisos
+                </p>
               </div>
             </div>
           </div>
 
-          <!-- Sección de roles -->
-          <div class="form-section">
+          <!-- Vista previa del JSON (opcional - para desarrollo) -->
+          <div v-if="showPreview" class="form-section">
             <h6 class="section-title">
-              <i class="fas fa-user-tag me-2"></i>
-              Roles del Usuario
+              <i class="fas fa-code me-2"></i>
+              Vista Previa del JSON
             </h6>
-            <div class="roles-container">
-              <div v-for="role in availableRoles" :key="role.id" class="role-item">
-                <label class="checkbox-container">
-                  <input
-                    type="checkbox"
-                    class="custom-checkbox"
-                    :id="`role_${role.id}`"
-                    :value="role.id"
-                    v-model="selectedRoles"
-                  />
-                  <span class="checkmark"></span>
-                  <div class="role-content">
-                    <span class="role-title">{{ role.nombre }}</span>
-                    <span class="role-description">{{ role.descripcion }}</span>
-                  </div>
-                </label>
-              </div>
+            <div class="json-preview">
+              <pre>{{ getPreviewJson() }}</pre>
             </div>
           </div>
 
           <!-- Footer con botones -->
           <div class="medico-footer">
+            <button type="button" class="btn btn-secondary me-2" @click="togglePreview">
+              <i class="fas fa-eye me-2"></i>
+              {{ showPreview ? 'Ocultar' : 'Ver' }} Preview
+            </button>
             <button type="button" class="btn btn-cancel" @click="resetForm">
               <i class="fas fa-eraser me-2"></i>
               Limpiar Formulario
@@ -364,14 +210,17 @@
             <button
               type="submit"
               class="btn btn-save"
+              :disabled="!canSubmit"
               @mouseenter="isHovered = true"
               @mouseleave="isHovered = false"
             >
-              <span v-if="!isHovered" class="default-icon"
-                ><i class="fas fa-user-plus me-2"></i
-              ></span>
-              <span v-else class="hover-icon"><i class="fas fa-user-check me-2"></i></span>
-              Registrar Usuario
+              <span v-if="!isHovered" class="default-icon">
+                <i class="fas fa-user-tag me-2"></i>
+              </span>
+              <span v-else class="hover-icon">
+                <i class="fas fa-check me-2"></i>
+              </span>
+              Crear Rol
             </button>
           </div>
         </form>
@@ -387,44 +236,37 @@ import axios from 'axios'
 export default {
   data() {
     return {
-      // Campos básicos
+      // Campos básicos del rol
       nombre: '',
-      apellido_materno: '',
-      apellido_paterno: '',
-      email: '',
-      password: '',
-      confirm_password: '',
+      descripcion: '',
 
-      // Nuevos campos requeridos
-      edad: null,
-      genero: '',
-      estado: '',
-      ocupacion: '',
-      escolaridad: '',
+      // Permisos del rol
+      permisos: [],
 
-      isHovered: false,
-
-      // Propiedades para recursos
+      // Recursos y acciones disponibles
       recursos: [],
-      selectedResource: '',
-      resourcePermissions: [],
-
-      // Propiedades para roles dinámicos
-      availableRoles: [],
-      selectedRoles: [],
-
-      // Propiedades para acciones dinámicas
       acciones: [],
-      wildcardActionId: null, // ID de la acción "*"
+      selectedResource: '',
+
+      // Estados de la UI
+      isHovered: false,
+      showPreview: false,
+
+      // Para funcionalidad wildcard
+      wildcardActionId: null,
     }
+  },
+  computed: {
+    canSubmit() {
+      return this.nombre.trim() && this.descripcion.trim() && this.permisos.length > 0
+    },
   },
   async mounted() {
     await this.loadRecursos()
-    await this.loadRoles()
     await this.loadAcciones()
   },
   methods: {
-    // Método para cargar recursos desde la API
+    // Cargar recursos desde la API
     async loadRecursos() {
       try {
         const token = localStorage.getItem('apiToken')
@@ -447,30 +289,7 @@ export default {
       }
     },
 
-    // Método para cargar roles desde la API
-    async loadRoles() {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/roles', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.data.success) {
-          this.availableRoles = response.data.roles
-        }
-      } catch (error) {
-        console.error('Error al cargar roles:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los roles disponibles',
-        })
-      }
-    },
-
-    // Método para cargar acciones desde la API
+    // Cargar acciones desde la API
     async loadAcciones() {
       try {
         const token = localStorage.getItem('apiToken')
@@ -498,19 +317,19 @@ export default {
       }
     },
 
-    // Método para obtener el nombre del recurso por ID
+    // Obtener nombre del recurso por ID
     getResourceName(resourceId) {
       const recurso = this.recursos.find((r) => r.id === resourceId)
       return recurso ? recurso.nombre : 'Recurso no encontrado'
     },
 
-    // Método para obtener la descripción del recurso por ID
+    // Obtener descripción del recurso por ID
     getResourceDescription(resourceId) {
       const recurso = this.recursos.find((r) => r.id === resourceId)
       return recurso ? recurso.descripcion : ''
     },
 
-    // Método para obtener el icono según la acción
+    // Obtener icono según la acción
     getActionIcon(actionName) {
       const iconMap = {
         '*': 'fas fa-star',
@@ -522,21 +341,18 @@ export default {
       return iconMap[actionName] || 'fas fa-cog'
     },
 
-    // Método para capitalizar primera letra
+    // Capitalizar primera letra
     capitalizeFirst(str) {
       if (!str) return ''
       return str.charAt(0).toUpperCase() + str.slice(1)
     },
 
-    // Método para verificar si tiene permiso wildcard
+    // Verificar si tiene permiso wildcard
     hasWildcardPermission(acciones) {
       return this.wildcardActionId && acciones.includes(this.wildcardActionId)
     },
 
-    // Método llamado cuando cambia la selección de recurso
-    onResourceChange() {},
-
-    // Método para agregar un recurso con permisos
+    // Agregar recurso con permisos
     addResourcePermission() {
       if (!this.selectedResource) {
         Swal.fire({
@@ -548,7 +364,7 @@ export default {
       }
 
       // Verificar si el recurso ya está asignado
-      const exists = this.resourcePermissions.find((rp) => rp.recurso === this.selectedResource)
+      const exists = this.permisos.find((p) => p.recurso === this.selectedResource)
       if (exists) {
         Swal.fire({
           icon: 'warning',
@@ -561,7 +377,7 @@ export default {
       // Buscar el recurso seleccionado
       const recurso = this.recursos.find((r) => r.id === this.selectedResource)
 
-      // Crear objeto de permisos con el nuevo formato
+      // Crear objeto de permisos
       let accionesDefault = []
 
       // Si el recurso es "*" (permisos totales), activar todas las acciones
@@ -573,8 +389,8 @@ export default {
         accionesDefault = this.acciones.map((accion) => accion.id)
       }
 
-      // Agregar el recurso con el nuevo formato
-      this.resourcePermissions.push({
+      // Agregar el permiso
+      this.permisos.push({
         recurso: this.selectedResource,
         acciones: [...accionesDefault],
       })
@@ -583,90 +399,99 @@ export default {
       this.selectedResource = ''
     },
 
-    // Método para remover un recurso asignado
+    // Remover recurso asignado
     removeResourcePermission(index) {
-      this.resourcePermissions.splice(index, 1)
+      this.permisos.splice(index, 1)
     },
 
+    // Evento de cambio de recurso
+    onResourceChange() {
+      // Lógica adicional si es necesaria
+    },
+
+    // Alternar vista previa
+    togglePreview() {
+      this.showPreview = !this.showPreview
+    },
+
+    // Obtener JSON de vista previa
+    getPreviewJson() {
+      const previewData = {
+        nombre: this.nombre || 'nombre_del_rol',
+        descripcion: this.descripcion || 'Descripción del rol',
+        permisos: this.permisos,
+      }
+      return JSON.stringify(previewData, null, 2)
+    },
+
+    // Limpiar formulario
     resetForm() {
       this.nombre = ''
-      this.apellido_materno = ''
-      this.apellido_paterno = ''
-      this.email = ''
-      this.password = ''
-      this.confirm_password = ''
-      this.edad = null
-      this.genero = ''
-      this.estado = ''
-      this.ocupacion = ''
-      this.escolaridad = ''
-      this.selectedRoles = []
+      this.descripcion = ''
+      this.permisos = []
       this.selectedResource = ''
-      this.resourcePermissions = []
+      this.showPreview = false
     },
 
-    // Método submitForm con el nuevo formato de JSON
+    // Enviar formulario
     async submitForm() {
-      // Verificación de todos los campos obligatorios
-      if (
-        !this.nombre ||
-        !this.apellido_materno ||
-        !this.apellido_paterno ||
-        !this.email ||
-        !this.password ||
-        !this.confirm_password ||
-        !this.edad ||
-        !this.genero ||
-        !this.estado ||
-        !this.ocupacion ||
-        !this.escolaridad
-      ) {
+      // Validaciones
+      if (!this.nombre.trim()) {
         Swal.fire({
           icon: 'error',
           title: '¡Error!',
-          text: 'Todos los campos son obligatorios',
+          text: 'El nombre del rol es obligatorio',
         })
         return
       }
 
-      // Verificación de coincidencia de contraseñas
-      if (this.password !== this.confirm_password) {
+      if (!this.descripcion.trim()) {
         Swal.fire({
           icon: 'error',
           title: '¡Error!',
-          text: 'Las contraseñas no coinciden',
+          text: 'La descripción del rol es obligatoria',
         })
         return
       }
 
-      // Confirmación de creación del usuario
+      if (this.permisos.length === 0) {
+        Swal.fire({
+          icon: 'error',
+          title: '¡Error!',
+          text: 'Debe asignar al menos un permiso al rol',
+        })
+        return
+      }
+
+      // Validar que cada permiso tenga al menos una acción
+      const permisosVacios = this.permisos.filter((p) => p.acciones.length === 0)
+      if (permisosVacios.length > 0) {
+        Swal.fire({
+          icon: 'error',
+          title: '¡Error!',
+          text: 'Todos los recursos deben tener al menos una acción seleccionada',
+        })
+        return
+      }
+
+      // Confirmación
       const result = await Swal.fire({
         title: '¿Estás seguro?',
-        text: '¿Quieres crear el usuario?',
+        text: `¿Quieres crear el rol "${this.nombre}"?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Sí, crear',
         cancelButtonText: 'Cancelar',
       })
 
-      // Proceder con la creación del usuario si se confirma
       if (result.isConfirmed) {
-        // Crear el JSON
+        // Crear el JSON con el formato requerido
         const formData = {
-          email: this.email,
-          password: this.password,
-          roles: [...this.selectedRoles],
-          nombre: this.nombre,
-          apellido_paterno: this.apellido_paterno,
-          apellido_materno: this.apellido_materno,
-          edad: this.edad,
-          genero: this.genero,
-          estado: this.estado,
-          ocupacion: this.ocupacion,
-          escolaridad: this.escolaridad,
-          permisos: this.resourcePermissions.map((rp) => ({
-            recurso: rp.recurso,
-            acciones: rp.acciones,
+          nombre: this.nombre.trim(),
+          descripcion: this.descripcion.trim(),
+          permisos: this.permisos.map((p) => ({
+            recurso: p.recurso,
+            acciones: p.acciones,
           })),
         }
 
@@ -675,41 +500,44 @@ export default {
 
         try {
           const token = localStorage.getItem('apiToken')
-          const response = await axios.post('http://127.0.0.1:8000/api/register', formData, {
+          const response = await axios.post('http://127.0.0.1:8000/api/roles', formData, {
             headers: {
               Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
             },
           })
+
           Swal.fire({
             icon: 'success',
-            title: '¡Usuario creado!',
-            text: response.data.message,
+            title: '¡Rol creado!',
+            text: `El rol "${this.nombre}" ha sido creado exitosamente`,
           }).then(() => {
             this.resetForm()
           })
+
+          // Mostrar respuesta del servidor
+          console.log('Respuesta del servidor:', response.data)
         } catch (error) {
-          if (error.response && error.response.data && error.response.data.errors) {
-            const errors = error.response.data.errors
-            let errorMessage = 'Hubo un error al crear el usuario.'
+          console.error('Error al crear rol:', error)
 
-            if (errors.email && errors.email.length > 0) {
-              errorMessage = 'El correo electrónico ya está en uso.'
-            } else if (errors.password && errors.password.length > 0) {
-              errorMessage = 'La contraseña no cumple con los requisitos.'
+          let errorMessage = 'Hubo un error al crear el rol.'
+
+          if (error.response && error.response.data) {
+            if (error.response.data.message) {
+              errorMessage = error.response.data.message
+            } else if (error.response.data.errors) {
+              const errors = error.response.data.errors
+              if (errors.nombre) {
+                errorMessage = 'El nombre del rol ya existe o no es válido.'
+              }
             }
-
-            Swal.fire({
-              icon: 'error',
-              title: '¡Error!',
-              text: errorMessage,
-            })
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: '¡Error!',
-              text: 'Hubo un error al crear el usuario. Por favor, inténtalo de nuevo.',
-            })
           }
+
+          Swal.fire({
+            icon: 'error',
+            title: '¡Error!',
+            text: errorMessage,
+          })
         }
       }
     },
@@ -718,24 +546,6 @@ export default {
 </script>
 
 <style scoped>
-.btn-primary {
-  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(4, 120, 87, 0.4);
-  color: white;
-}
 /* Estilos base del diseño moderno */
 .card {
   border-radius: 20px;
@@ -885,46 +695,68 @@ export default {
   color: #0d47a1;
 }
 
-/* Estilos mejorados para roles - NUEVOS ESTILOS AGREGADOS */
-.roles-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
+/* Estilos para recursos y permisos */
+.assigned-resources {
+  margin-top: 1.5rem;
 }
 
-.role-item {
-  padding: 1.25rem;
+.resource-permission-card {
   background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(4, 120, 87, 0.1);
   border-radius: 12px;
-  border: 2px solid rgba(4, 120, 87, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
 }
 
-.role-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #047857, #065f46);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-  transform-origin: left;
+.resource-permission-card:hover {
+  box-shadow: 0 4px 15px rgba(4, 120, 87, 0.1);
+  transform: translateY(-1px);
 }
 
-.role-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(4, 120, 87, 0.15);
-  border-color: rgba(4, 120, 87, 0.2);
+.resource-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.role-item:hover::before {
-  transform: scaleX(1);
+.resource-info {
+  flex: 1;
+}
+
+.resource-name {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: 1rem;
+}
+
+.resource-description {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.permission-item {
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.permission-item:hover {
+  background: #f8f9fa;
+  border-color: rgba(4, 120, 87, 0.1);
 }
 
 /* Checkbox personalizado mejorado */
@@ -990,91 +822,6 @@ export default {
   display: block;
 }
 
-.role-content {
-  display: flex;
-  flex-direction: column;
-  margin-left: 0.5rem;
-  flex: 1;
-}
-
-.role-title {
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 0.4rem;
-  font-size: 1rem;
-  line-height: 1.3;
-}
-
-.role-description {
-  font-size: 0.85rem;
-  color: #6c757d;
-  line-height: 1.4;
-  margin: 0;
-}
-
-/* Estilos para recursos y permisos existentes */
-.assigned-resources {
-  margin-top: 1.5rem;
-}
-
-.resource-permission-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-  border: 1px solid rgba(4, 120, 87, 0.1);
-  border-radius: 12px;
-  padding: 1.25rem;
-  transition: all 0.3s ease;
-}
-
-.resource-permission-card:hover {
-  box-shadow: 0 4px 15px rgba(4, 120, 87, 0.1);
-  transform: translateY(-1px);
-}
-
-.resource-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.resource-info {
-  flex: 1;
-}
-
-.resource-name {
-  color: #2c3e50;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  font-size: 1rem;
-}
-
-.resource-description {
-  color: #6c757d;
-  font-size: 0.85rem;
-  margin: 0;
-}
-
-.permissions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
-}
-
-.permission-item {
-  padding: 0.75rem;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
-
-.permission-item:hover {
-  background: #f8f9fa;
-  border-color: rgba(4, 120, 87, 0.1);
-}
-
 .permission-content {
   display: flex;
   flex-direction: column;
@@ -1093,6 +840,38 @@ export default {
   color: #6c757d;
 }
 
+.permissions-summary {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.no-permissions-state {
+  background: white;
+  border: 2px dashed #dee2e6;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
+.json-preview {
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border: 1px solid rgba(4, 120, 87, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.json-preview pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: #2c3e50;
+}
+
 /* Footer con botones */
 .medico-footer {
   padding: 1.5rem 0 0.5rem 0;
@@ -1101,6 +880,25 @@ export default {
   gap: 1rem;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   margin-top: 1rem;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+  color: white;
 }
 
 .btn-cancel {
@@ -1151,16 +949,58 @@ export default {
   left: 100%;
 }
 
-.btn-save:hover {
+.btn-save:hover:not(:disabled) {
   background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(4, 120, 87, 0.4);
   color: white;
 }
 
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-save:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(4, 120, 87, 0.4);
+  color: white;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .default-icon,
 .hover-icon {
   transition: all 0.3s ease;
+}
+
+.form-text {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
 }
 
 /* Animaciones */
@@ -1205,15 +1045,6 @@ export default {
     margin-bottom: 1.5rem;
   }
 
-  .roles-container {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .role-item {
-    padding: 1rem;
-  }
-
   .permissions-grid {
     grid-template-columns: 1fr;
     gap: 0.5rem;
@@ -1225,7 +1056,9 @@ export default {
   }
 
   .btn-cancel,
-  .btn-save {
+  .btn-save,
+  .btn-secondary,
+  .btn-primary {
     width: 100%;
     justify-content: center;
   }
@@ -1246,10 +1079,6 @@ export default {
 
   .modern-input .form-control {
     font-size: 0.9rem;
-  }
-
-  .role-item {
-    padding: 0.875rem;
   }
 
   .checkbox-container {

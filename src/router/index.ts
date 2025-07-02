@@ -23,6 +23,7 @@ import VerReportes from '@/components/VerReportes.vue'
 import CrearReportes from '@/components/CrearReportes.vue'
 import VerEjes from '@/components/VerEjes.vue'
 import CrearEjes from '@/components/CrearEjes.vue'
+import CrearRoles from '@/components/CrearRoles.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -143,6 +144,11 @@ const router = createRouter({
               path: 'CrearUsuarios',
               name: 'CrearUsuarios',
               component: CrearUsuarios,
+            },
+            {
+              path: 'CrearRoles',
+              name: 'CrearRoles',
+              component: CrearRoles,
             },
           ],
         },
