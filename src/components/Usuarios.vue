@@ -32,6 +32,19 @@
           </div>
           <div
             class="tab"
+            :class="{ active: $route.name === 'CrearRoles' }"
+            @click="$router.push({ name: 'CrearRoles' })"
+          >
+            <div class="tab-icon">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="tab-content-text">
+              <span class="tab-title">Crear Roles</span>
+              <span class="tab-description">Crea los roles del sistema</span>
+            </div>
+          </div>
+          <div
+            class="tab"
             :class="{ active: $route.name === 'VerUsuarios' }"
             @click="$router.push({ name: 'VerUsuarios' })"
           >
@@ -71,7 +84,7 @@ export default {
   computed: {
     indicatorStyle() {
       // Calcula el índice según la ruta activa
-      const tabNames = ['CrearUsuarios', 'VerUsuarios']
+      const tabNames = ['CrearUsuarios', 'CrearRoles', 'VerUsuarios']
       const index = tabNames.indexOf(this.$route.name)
       const width = 100 / tabNames.length
       return {
