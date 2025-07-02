@@ -180,9 +180,6 @@
                     required
                   >
                     <option value="">Seleccione la escolaridad</option>
-                    <option value="Primaria">Primaria</option>
-                    <option value="Secundaria">Secundaria</option>
-                    <option value="Preparatoria">Preparatoria</option>
                     <option value="Licenciatura">Licenciatura</option>
                     <option value="Maestría">Maestría</option>
                     <option value="Doctorado">Doctorado</option>
