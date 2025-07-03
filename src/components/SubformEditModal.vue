@@ -88,6 +88,7 @@
                       <i class="fas fa-hashtag"></i>
                     </span>
                     <input
+                      v-solo-numeros
                       type="number"
                       class="form-control"
                       v-model="localData[subcampo.name]"
@@ -154,6 +155,7 @@
                       <i class="fas fa-align-left"></i>
                     </span>
                     <textarea
+                      v-solo-texto
                       class="form-control"
                       v-model="localData[subcampo.name]"
                       :required="subcampo.required"
@@ -174,6 +176,7 @@
                       <i class="fas fa-font"></i>
                     </span>
                     <input
+                      v-solo-texto
                       type="text"
                       class="form-control"
                       v-model="localData[subcampo.name]"

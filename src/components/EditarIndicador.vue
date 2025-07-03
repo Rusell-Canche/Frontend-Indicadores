@@ -33,6 +33,7 @@
                     <i class="fas fa-tag"></i>
                   </span>
                   <input
+                    v-solo-texto-y-numeros
                     v-model="indicadorEditForm.nombreIndicador"
                     class="form-control"
                     required
@@ -130,6 +131,7 @@
                     <i class="fas fa-tag"></i>
                   </span>
                   <input
+                    v-solo-texto-y-numeros
                     v-model="indicadorEditForm.departamento"
                     class="form-control"
                     required

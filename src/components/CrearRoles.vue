@@ -38,6 +38,7 @@
                     <i class="fas fa-tag"></i>
                   </span>
                   <input
+                    v-solo-texto
                     v-model="nombre"
                     type="text"
                     id="nombre"
@@ -58,6 +59,7 @@
                     <i class="fas fa-align-left"></i>
                   </span>
                   <input
+                    v-solo-texto
                     v-model="descripcion"
                     type="text"
                     id="descripcion"

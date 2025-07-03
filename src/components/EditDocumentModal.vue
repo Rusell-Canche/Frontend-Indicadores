@@ -197,6 +197,7 @@
                           <i class="fas fa-edit"></i>
                         </span>
                         <input
+                          v-solo-numeros
                           type="number"
                           class="form-control"
                           v-model="documentoEdit[campo]"
@@ -230,6 +231,7 @@
                           <i class="fas fa-edit"></i>
                         </span>
                         <input
+                          v-solo-texto
                           type="text"
                           class="form-control"
                           v-model="documentoEdit[campo]"
@@ -303,6 +305,7 @@
                         <i class="fas fa-align-left"></i>
                       </span>
                       <textarea
+                        v-solo-texto
                         class="form-control"
                         v-model="documentoEdit[campo]"
                         :placeholder="`Ingrese ${formatFieldName(campo).toLowerCase()}`"
@@ -316,6 +319,7 @@
                         <i class="fas fa-font"></i>
                       </span>
                       <input
+                        v-solo-texto
                         type="text"
                         class="form-control"
                         v-model="documentoEdit[campo]"

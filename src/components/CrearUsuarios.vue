@@ -38,6 +38,7 @@
                     <i class="fas fa-user"></i>
                   </span>
                   <input
+                    v-solo-texto
                     v-model="nombre"
                     type="text"
                     id="nombre"
@@ -55,6 +56,7 @@
                     <i class="fas fa-user"></i>
                   </span>
                   <input
+                    v-solo-texto
                     v-model="apellido_paterno"
                     type="text"
                     id="apellido_paterno"
@@ -72,6 +74,7 @@
                     <i class="fas fa-user"></i>
                   </span>
                   <input
+                    v-solo-texto
                     v-model="apellido_materno"
                     type="text"
                     id="apellido_materno"
@@ -89,6 +92,7 @@
                     <i class="fas fa-envelope"></i>
                   </span>
                   <input
+                    v-solo-correo
                     v-model="email"
                     type="email"
                     id="email"
@@ -128,6 +132,7 @@
                     <option value="">Seleccione el género</option>
                     <option value="masculino">Masculino</option>
                     <option value="femenino">Femenino</option>
+                    <option value="noBinario">No binario</option>
                     <option value="otro">Otro</option>
                   </select>
                 </div>
@@ -139,6 +144,7 @@
                     <i class="fas fa-map-marker-alt"></i>
                   </span>
                   <input
+                    v-solo-texto
                     v-model="estado"
                     type="text"
                     id="estado"
@@ -156,6 +162,7 @@
                     <i class="fas fa-briefcase"></i>
                   </span>
                   <input
+                    v-solo-text
                     v-model="ocupacion"
                     type="text"
                     id="ocupacion"

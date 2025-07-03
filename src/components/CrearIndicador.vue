@@ -37,6 +37,7 @@
                     <i class="fas fa-tag"></i>
                   </span>
                   <input
+                    v-solo-texto-y-numeros
                     v-model="nuevoIndicador.nombre"
                     class="form-control"
                     required
@@ -75,6 +76,7 @@
                     <i class="fas fa-hashtag"></i>
                   </span>
                   <input
+                    v-solo-numeros
                     v-model="nuevoIndicador.numero"
                     type="number"
                     class="form-control"
@@ -124,6 +126,7 @@
                     <i class="fa-solid fa-tent"></i>
                   </span>
                   <input
+                    v-solo-texto-y-numeros
                     v-model="nuevoIndicador.departamento"
                     class="form-control"
                     required

@@ -224,6 +224,7 @@
                       <i class="fas fa-font"></i>
                     </span>
                     <input
+                      v-solo-texto
                       type="text"
                       class="form-control"
                       :id="campo.name"
@@ -349,6 +350,7 @@
                         <i class="fas fa-hashtag"></i>
                       </span>
                       <input
+                        v-solo-numeros
                         type="number"
                         class="form-control"
                         v-model="currentSubformData[subcampo.name]"
@@ -411,6 +413,7 @@
                         <i class="fas fa-font"></i>
                       </span>
                       <input
+                        v-solo-texto
                         type="text"
                         class="form-control"
                         v-model="currentSubformData[subcampo.name]"

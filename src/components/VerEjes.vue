@@ -58,6 +58,7 @@
                       <i class="fas fa-key"></i>
                     </span>
                     <input
+                      v-solo-texto-y-numeros
                       type="text"
                       v-model="editForm.clave_oficial"
                       class="form-control"

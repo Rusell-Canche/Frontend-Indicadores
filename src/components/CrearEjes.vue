@@ -31,6 +31,7 @@
                     <i class="fas fa-hashtag"></i>
                   </span>
                   <input
+                    v-solo-texto-y-numeros
                     type="text"
                     id="eje-clave"
                     v-model="nuevoEje.clave_oficial"

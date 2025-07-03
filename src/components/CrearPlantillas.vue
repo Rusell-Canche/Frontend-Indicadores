@@ -38,6 +38,7 @@
                     <i class="fas fa-file-alt"></i>
                   </span>
                   <input
+                    v-solo-texto-y-numeros
                     v-model="plantillaName"
                     v-validacion-input
                     class="form-control"
@@ -77,6 +78,7 @@
                         <i class="fas fa-edit"></i>
                       </span>
                       <input
+                        v-solo-texto-y-numeros
                         v-model="campo.name"
                         class="form-control"
                         required
@@ -147,6 +149,7 @@
                             <i class="fas fa-tag"></i>
                           </span>
                           <input
+                            v-solo-texto-y-numeros
                             v-model="campo.options[optionIndex]"
                             class="form-control"
                             placeholder="Texto de la opción"
@@ -167,6 +170,7 @@
                       <div class="row g-2">
                         <div class="col-md-10">
                           <input
+                            v-solo-texto-y-numeros
                             v-model="campo.newOption"
                             class="form-control"
                             placeholder="Texto de la opción (ej: Activo, Inactivo, Pendiente)"
@@ -224,6 +228,7 @@
                               <i class="fas fa-edit"></i>
                             </span>
                             <input
+                              v-solo-texto-y-numeros
                               v-model="subcampo.name"
                               class="form-control"
                               required
@@ -306,6 +311,7 @@
                                   <i class="fas fa-tag"></i>
                                 </span>
                                 <input
+                                  v-solo-texto-y-numeros
                                   v-model="subcampo.options[optionIndex]"
                                   class="form-control"
                                   placeholder="Texto de la opción"

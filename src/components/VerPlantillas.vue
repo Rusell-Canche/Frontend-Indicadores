@@ -111,6 +111,7 @@
                           <i class="fas fa-edit"></i>
                         </span>
                         <input
+                          v-solo-texto-y-numeros
                           v-model="campo.name"
                           class="form-control"
                           required
@@ -234,6 +235,7 @@
                                 <i class="fas fa-edit"></i>
                               </span>
                               <input
+                                v-solo-texto-y-numeros
                                 v-model="subcampo.name"
                                 class="form-control"
                                 required
