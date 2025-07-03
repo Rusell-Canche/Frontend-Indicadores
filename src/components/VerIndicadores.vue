@@ -120,7 +120,6 @@
                 <td>
                   <div>
                     <div class="fw-semibold text-dark">{{ indicador.departamento }}</div>
-                    <small class="text-muted">Departamento principal</small>
                   </div>
                 </td>
                 <td>
