@@ -119,13 +119,14 @@
                         <span class="checkbox-label">Campo obligatorio</span>
                       </label>
                     </div>
-                    <div class="campo-checkbox" v-if="campo.type === 'date'">
+
+                    <!--<div class="campo-checkbox" v-if="campo.type === 'date'">
                       <label class="checkbox-container">
                         <input type="checkbox" class="custom-checkbox" v-model="campo.filterable" />
                         <span class="checkmark"></span>
                         <span class="checkbox-label">Aplicar para filtro</span>
                       </label>
-                    </div>
+                    </div>-->
                   </div>
                   </div>
                 </div>
@@ -499,7 +500,7 @@ export default {
           name: campo.name,
           type: campo.type,
           required: campo.required,
-          filterable: campo.filterable || false,
+          
         }
 
         // Si es un select, incluir las opciones como array de strings

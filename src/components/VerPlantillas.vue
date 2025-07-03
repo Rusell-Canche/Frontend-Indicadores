@@ -151,13 +151,13 @@
                             <span class="checkbox-label">Campo obligatorio</span>
                           </label>
                         </div>
-                        <div class="campo-checkbox" v-if="campo.type === 'date'">
+                        <!--<div class="campo-checkbox" v-if="campo.type === 'date'">
                           <label class="checkbox-container">
                             <input type="checkbox" class="custom-checkbox" v-model="campo.filterable" />
                             <span class="checkmark"></span>
                             <span class="checkbox-label">Aplicar para filtro</span>
                           </label>
-                        </div>
+                        </div>-->
                       </div>
                     </div>
 
@@ -451,7 +451,7 @@ export default {
                 name: campo.name,
                 type: campo.type,
                 required: Boolean(campo.required),
-                filterable: Boolean(campo.filterable),
+    
               }
 
               // Agregar opciones si el campo es de tipo select
@@ -523,7 +523,7 @@ export default {
         type: '',
         alias: '',
         required: false,
-        filterable: false,
+        
       }
     },
     openEditModal(id) {
