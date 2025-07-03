@@ -177,6 +177,74 @@
               </div>
             </div>
           </div>
+
+          <!-- seccion para agregar una Activdad, Causa y Accion -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-tag me-2"></i>
+              Actividad del Indicador
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label">Actividad</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-tag"></i>
+                  </span>
+                  <input
+                    v-model="indicadorEditForm.actividad"
+                    class="form-control"
+                    required
+                    placeholder="Ej: Esta es una actividad"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-tag me-2"></i>
+              Causa del Indicador
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label">Causa</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-tag"></i>
+                  </span>
+                  <input
+                    v-model="indicadorEditForm.causa"
+                    class="form-control"
+                    required
+                    placeholder="Ej: Esta es una causa"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-tag me-2"></i>
+              Acciones del Indicador
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label">Accion</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-tag"></i>
+                  </span>
+                  <input
+                    v-model="indicadorEditForm.accion"
+                    class="form-control"
+                    required
+                    placeholder="Ej: Esta es una accion"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
 
@@ -211,6 +279,9 @@ export default {
         denominador: '',
         _idProyecto: '',
         departamento: '',
+        actividad: '',
+        causa: '',
+        accion: '',
         fecha_inicio: '',
         fecha_fin: '',
       },
@@ -248,6 +319,9 @@ export default {
               denominador: indicador.denominador,
               _idProyecto: indicador._idProyecto,
               departamento: indicador.departamento || '',
+              actividad: indicador.actividad || '',
+              causa: indicador.causa || '',
+              accion: indicador.accion || '',
               fecha_inicio: formDate(indicador.fecha_inicio),
               fecha_fin: formDate(indicador.fecha_fin),
             }
@@ -272,7 +346,6 @@ export default {
       try {
         const token = localStorage.getItem('apiToken')
 
-
         const payload = {
           _id: this.indicadorEditForm._id,
           nombreIndicador: this.indicadorEditForm.nombreIndicador,
@@ -281,10 +354,13 @@ export default {
           denominador: this.indicadorEditForm.denominador,
           _idProyecto: this.indicadorEditForm._idProyecto,
           departamento: this.indicadorEditForm.departamento,
+          actividad: this.indicadorEditForm.actividad,
+          causa: this.indicadorEditForm.causa,
+          accion: this.indicadorEditForm.accion,
           fecha_inicio: this.indicadorEditForm.fecha_inicio,
           fecha_fin: this.indicadorEditForm.fecha_fin,
         }
-
+        console.log('Payload para editar indicador:', payload)
         const response = await axios.put(
           `http://127.0.0.1:8000/api/indicadores/${this.id}`,
           payload,
