@@ -275,18 +275,19 @@
                                 <span class="checkbox-label">Obligatorio</span>
                               </label>
                             </div>
-                            <div class="campo-checkbox" v-if="subcampo.type === 'date'">
-                              <label class="checkbox-container">
-                                <input
-                                  type="checkbox"
-                                  class="custom-checkbox"
-                                  v-model="subcampo.filterable"
-                                  
-                                />
-                                <span class="checkmark"></span>
-                                <span class="checkbox-label">Aplicar para filtro</span>
-                              </label>
-                            </div>
+                                <div class="campo-radio" v-if="subcampo.type === 'date'">
+                                  <label class="radio-container">
+                                    <input
+                                      type="radio"
+                                      :name="'filterOptionSubform_' + index"
+                                      class="custom-radio"
+                                      v-model="subcampo.filterable"
+                                      :value="true"
+                                    />
+                                    <span class="radiomark"></span>
+                                    <span class="radio-label">Aplicar para filtro</span>
+                                  </label>
+                                </div>
                           </div>
                         </div>
                       </div>
@@ -1217,5 +1218,72 @@ export default {
     width: 100%;
     margin-bottom: 10px;
   }
+}
+/* Radio button personalizado */
+.radio-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  position: relative;
+  padding-left: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.custom-radio {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.radiomark {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+  width: 18px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.radio-container:hover .radiomark {
+  border-color: #dc3545;
+}
+
+.custom-radio:checked ~ .radiomark {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-color: #dc3545;
+}
+
+.radiomark:after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
+}
+
+.custom-radio:checked ~ .radiomark:after {
+  display: block;
+}
+
+.radio-label {
+  margin-left: 0.5rem;
+  font-weight: 500;
+}
+/* Radio button personalizado - contenedor */
+.campo-radio {
+  margin-top: 1rem;
 }
 </style>
