@@ -1,11 +1,11 @@
 export default {
   beforeMount(el) {
     el.addEventListener("input", () => {
-      const originalValue = el.value;
-      const cleanedValue = originalValue.replace(/[^a-zA-ZÁÉÍÓÚáéíóúüÜñÑ\s]/g, '');
-
-      if (originalValue !== cleanedValue) {
-        el.value = cleanedValue;
+      const val = el.value;
+      // Permite letras, números, espacios y caracteres comunes en correos: @ . _ - +
+      const clean = val.replace(/[^a-zA-Z0-9 @._\-+]/g, '');
+      if (val !== clean) {
+        el.value = clean;
         el.dispatchEvent(new Event("input", { bubbles: true }));
       }
     });
