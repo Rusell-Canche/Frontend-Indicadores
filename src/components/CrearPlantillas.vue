@@ -957,13 +957,13 @@ export default {
   color: #721c24;
 }
 
-/* Estilos para secciones */
+/* ===== ESTILOS PARA SECCIONES (COLOR AZUL) ===== */
 .seccion-container {
   margin-bottom: 2rem;
-  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  background: linear-gradient(145deg, #e3f2fd 0%, #f3f9ff 100%);
   border-radius: 16px;
-  border: 1px solid rgba(220, 53, 69, 0.1);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(33, 150, 243, 0.2);
+  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
   overflow: hidden;
   position: relative;
 }
@@ -975,14 +975,14 @@ export default {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #dc3545, #fd7e14, #ffc107);
+  background: linear-gradient(90deg, #2196f3, #1976d2, #0d47a1);
   border-radius: 16px 16px 0 0;
 }
 
 .seccion-header {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, #bbdefb 0%, #e3f2fd 100%);
   padding: 1.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(33, 150, 243, 0.15);
 }
 
 .seccion-header-content {
@@ -1001,14 +1001,14 @@ export default {
 .seccion-icon {
   width: 45px;
   height: 45px;
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 1.2rem;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
 
 .seccion-info {
@@ -1019,13 +1019,13 @@ export default {
 .seccion-index {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: #1565c0;
   margin-bottom: 0.25rem;
 }
 
 .seccion-description {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: #1976d2;
   font-weight: 500;
 }
 
@@ -1057,15 +1057,16 @@ export default {
 
 .seccion-body {
   padding: 1.5rem;
+  background: linear-gradient(145deg, #f3f9ff 0%, #ffffff 100%);
 }
 
-/* Estilos para campos */
+/* ===== ESTILOS PARA CAMPOS REGULARES (COLOR VERDE) ===== */
 .campo-container {
   margin-bottom: 1.5rem;
-  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  background: linear-gradient(145deg, #e8f5e8 0%, #f1f8e9 100%);
   border-radius: 12px;
-  border: 1px solid rgba(0, 123, 255, 0.1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 2px solid rgba(76, 175, 80, 0.2);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
   overflow: hidden;
   position: relative;
 }
@@ -1077,14 +1078,14 @@ export default {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #007bff, #0056b3);
+  background: linear-gradient(90deg, #4caf50, #388e3c, #2e7d32);
   border-radius: 12px 12px 0 0;
 }
 
 .campo-header {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e8 100%);
   padding: 1rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(76, 175, 80, 0.15);
 }
 
 .campo-header-content {
@@ -1102,14 +1103,14 @@ export default {
 .campo-icon {
   width: 35px;
   height: 35px;
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 1rem;
-  box-shadow: 0 3px 10px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 3px 10px rgba(76, 175, 80, 0.4);
 }
 
 .campo-info {
@@ -1120,13 +1121,13 @@ export default {
 .campo-index {
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: #2e7d32;
   margin-bottom: 0.2rem;
 }
 
 .campo-description {
   font-size: 0.8rem;
-  color: #6c757d;
+  color: #388e3c;
   font-weight: 500;
 }
 
@@ -1154,6 +1155,7 @@ export default {
 
 .campo-body {
   padding: 1.25rem;
+  background: linear-gradient(145deg, #f1f8e9 0%, #ffffff 100%);
 }
 
 .campo-options {
@@ -1289,29 +1291,20 @@ export default {
   font-weight: 500;
 }
 
-/* Estilos para las opciones del select */
+/* Estilos para las opciones del select en campos regulares */
 .select-options-container {
   margin-top: 1.5rem;
-  border: 1px solid rgba(0, 123, 255, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.2);
   border-radius: 12px;
-  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  background: linear-gradient(145deg, #f1f8e9 0%, #ffffff 100%);
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-
-.select-options-container.subcampo-select {
-  border-color: rgba(40, 167, 69, 0.2);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
 }
 
 .select-options-header {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e8 100%);
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(0, 123, 255, 0.2);
-}
-
-.subcampo-select .select-options-header {
-  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
-  border-bottom-color: rgba(40, 167, 69, 0.2);
+  border-bottom: 1px solid rgba(76, 175, 80, 0.2);
 }
 
 .options-header-content {
@@ -1319,12 +1312,8 @@ export default {
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #1976d2;
-  font-size: 0.95rem;
-}
-
-.subcampo-select .options-header-content {
   color: #2e7d32;
+  font-size: 0.95rem;
 }
 
 .select-options-body {
@@ -1340,17 +1329,13 @@ export default {
 }
 
 .modern-input-small .input-group-text {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
   border: none;
   color: white;
   border-radius: 8px 0 0 8px;
   width: 45px;
   justify-content: center;
   font-size: 0.9rem;
-}
-
-.subcampo-select .modern-input-small .input-group-text {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
 }
 
 .modern-input-small .form-control {
@@ -1364,14 +1349,9 @@ export default {
 }
 
 .modern-input-small .form-control:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
+  border-color: #4caf50;
+  box-shadow: 0 0 0 0.15rem rgba(76, 175, 80, 0.25);
   transform: translateY(-1px);
-}
-
-.subcampo-select .modern-input-small .form-control:focus {
-  border-color: #28a745;
-  box-shadow: 0 0 0 0.15rem rgba(40, 167, 69, 0.25);
 }
 
 .btn-delete-option {
@@ -1438,13 +1418,13 @@ export default {
   box-shadow: none;
 }
 
-/* Subformulario */
+/* ===== ESTILOS PARA SUBFORMULARIOS (COLOR NARANJA) ===== */
 .subform-container {
   margin-top: 1.5rem;
-  background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(145deg, #fff3e0 0%, #ffeaa7 100%);
   border-radius: 12px;
-  border: 1px solid rgba(40, 167, 69, 0.2);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 2px solid rgba(255, 152, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.15);
   overflow: hidden;
   position: relative;
 }
@@ -1456,35 +1436,36 @@ export default {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #28a745, #20c997);
+  background: linear-gradient(90deg, #ff9800, #f57c00, #e65100);
   border-radius: 12px 12px 0 0;
 }
 
 .subform-header {
-  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+  background: linear-gradient(135deg, #ffcc02 0%, #fff3e0 100%);
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(40, 167, 69, 0.2);
+  border-bottom: 1px solid rgba(255, 152, 0, 0.2);
 }
 
 .subform-header-content {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #2e7d32;
+  color: #e65100;
   font-weight: 600;
   font-size: 1rem;
 }
 
 .subform-body {
   padding: 1.25rem;
+  background: linear-gradient(145deg, #ffeaa7 0%, #ffffff 100%);
 }
 
 .subcampo-container {
   margin-bottom: 1.25rem;
-  background: white;
+  background: linear-gradient(145deg, #fff8e1 0%, #ffffff 100%);
   border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.1);
   overflow: hidden;
   position: relative;
 }
@@ -1496,14 +1477,14 @@ export default {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #ffc107, #fd7e14);
+  background: linear-gradient(90deg, #ffc107, #ff9800, #f57c00);
   border-radius: 10px 10px 0 0;
 }
 
 .subcampo-header {
-  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  background: linear-gradient(135deg, #ffecb3 0%, #fff8e1 100%);
   padding: 0.875rem 1rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(255, 152, 0, 0.15);
 }
 
 .subcampo-header-content {
@@ -1521,14 +1502,14 @@ export default {
 .subcampo-icon {
   width: 30px;
   height: 30px;
-  background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 0.9rem;
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
 }
 
 .subcampo-info {
@@ -1539,13 +1520,13 @@ export default {
 .subcampo-index {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: #e65100;
   margin-bottom: 0.1rem;
 }
 
 .subcampo-description {
   font-size: 0.75rem;
-  color: #6c757d;
+  color: #f57c00;
   font-weight: 500;
 }
 
@@ -1573,6 +1554,7 @@ export default {
 
 .subcampo-body {
   padding: 1rem;
+  background: linear-gradient(145deg, #ffffff 0%, #fff8e1 100%);
 }
 
 .subcampo-options {
@@ -1580,6 +1562,30 @@ export default {
   align-items: center;
   gap: 1.5rem;
   margin-top: 0.75rem;
+}
+
+/* Estilos para las opciones del select en subcampos */
+.select-options-container.subcampo-select {
+  border-color: rgba(255, 152, 0, 0.3);
+  background: linear-gradient(145deg, #fff8e1 0%, #ffffff 100%);
+}
+
+.subcampo-select .select-options-header {
+  background: linear-gradient(135deg, #ffecb3 0%, #fff8e1 100%);
+  border-bottom-color: rgba(255, 152, 0, 0.2);
+}
+
+.subcampo-select .options-header-content {
+  color: #e65100;
+}
+
+.subcampo-select .modern-input-small .input-group-text {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+.subcampo-select .modern-input-small .form-control:focus {
+  border-color: #ff9800;
+  box-shadow: 0 0 0 0.15rem rgba(255, 152, 0, 0.25);
 }
 
 /* Botones de agregar */
