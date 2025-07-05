@@ -84,265 +84,355 @@
               Modifica los campos de tu plantilla según tus necesidades
             </div>
 
-            <!-- Sección para los campos de la plantilla -->
+            <!-- Sección para las secciones de la plantilla -->
             <div class="form-section">
               <h6 class="section-title">
-                <i class="fas fa-list me-2"></i>
-                Campos de la Plantilla
+                <i class="fas fa-layer-group me-2"></i>
+                Secciones de la Plantilla
               </h6>
 
-              <div v-for="(campo, index) in camposPlantilla" :key="index" class="campo-container">
-                <div class="campo-header">
-                  <div class="campo-title">
-                    <i class="fas fa-grip-vertical me-2"></i>
-                    <span class="campo-index">Campo #{{ index + 1 }}</span>
+              <div
+                v-for="(seccion, seccionIndex) in seccionesPlantilla"
+                :key="seccionIndex"
+                class="seccion-container mb-4"
+              >
+                <div class="seccion-header">
+                  <div class="seccion-header-content">
+                    <div class="seccion-title-wrapper">
+                      <div class="seccion-icon">
+                        <i class="fas fa-folder"></i>
+                      </div>
+                      <div class="seccion-info">
+                        <span class="seccion-index">Sección #{{ seccionIndex + 1 }}</span>
+                        <span class="seccion-description"
+                          >Configure los campos de esta sección</span
+                        >
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      @click="quitarSeccion(seccionIndex)"
+                      class="btn-delete-section"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
                   </div>
-                  <button type="button" @click="quitarCampo(index)" class="delete-button">
-                    <i class="fas fa-times"></i>
-                  </button>
+
+                  <div class="seccion-name-input mt-3">
+                    <label class="form-label">Nombre de la Sección*</label>
+                    <div class="input-group modern-input">
+                      <span class="input-group-text">
+                        <i class="fas fa-heading"></i>
+                      </span>
+                      <input
+                        v-solo-texto-y-numeros
+                        v-model="seccion.nombre"
+                        class="form-control"
+                        required
+                        placeholder="Ej: Información Básica, Detalles del Proyecto"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div class="campo-body">
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <label class="form-label">Nombre del Campo*</label>
-                      <div class="input-group modern-input">
-                        <span class="input-group-text">
-                          <i class="fas fa-edit"></i>
-                        </span>
-                        <input
-                          v-solo-texto-y-numeros
-                          v-model="campo.name"
-                          class="form-control"
-                          required
-                          placeholder="Ej: título, descripción, fecha_entrega"
-                        />
-                      </div>
-                    </div>
-
-                    <div class="col-md-6">
-                      <label class="form-label">Tipo del Campo*</label>
-                      <div class="input-group modern-input">
-                        <span class="input-group-text">
-                          <i class="fas fa-cog"></i>
-                        </span>
-                        <select
-                          v-model="campo.type"
-                          class="form-select"
-                          @change="handleTypeChange(campo)"
-                          required
-                        >
-                          <option value="string">Texto</option>
-                          <option value="number">Numérico</option>
-                          <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
-                          <option value="date">Fecha</option>
-                          <option value="subform">Subformulario</option>
-                          <option value="select">Lista de opciones (Select)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div class="col-md-12">
-                      <div class="d-flex">
-                        <div class="campo-checkbox me-5">
-                          <label class="checkbox-container">
-                            <input type="checkbox" class="custom-checkbox" v-model="campo.required" />
-                            <span class="checkmark"></span>
-                            <span class="checkbox-label">Campo obligatorio</span>
-                          </label>
-                        </div>
-                        <!--<div class="campo-checkbox" v-if="campo.type === 'date'">
-                          <label class="checkbox-container">
-                            <input type="checkbox" class="custom-checkbox" v-model="campo.filterable" />
-                            <span class="checkmark"></span>
-                            <span class="checkbox-label">Aplicar para filtro</span>
-                          </label>
-                        </div>-->
-                      </div>
-                    </div>
-
-                    <!-- Campo de opciones para select -->
-                    <div v-if="campo.type === 'select'" class="col-md-12">
-                      <label class="form-label">Opciones del Select*</label>
-                      <div class="select-options-container">
-                        <div
-                          v-for="(option, optionIndex) in campo.options || []"
-                          :key="optionIndex"
-                          class="option-row"
-                        >
-                          <div class="input-group modern-input mb-2">
-                            <span class="input-group-text">
-                              <i class="fas fa-chevron-right"></i>
-                            </span>
-                            <input
-                              v-model="campo.options[optionIndex]"
-                              class="form-control"
-                              :placeholder="`Opción ${optionIndex + 1}`"
-                              required
-                            />
-                            <button
-                              type="button"
-                              @click="removeSelectOption(campo, optionIndex)"
-                              class="btn btn-outline-danger"
+                <div class="seccion-body">
+                  <!-- Campos dentro de la sección -->
+                  <div
+                    v-for="(campo, campoIndex) in seccion.fields"
+                    :key="campoIndex"
+                    class="campo-container"
+                  >
+                    <div class="campo-header">
+                      <div class="campo-header-content">
+                        <div class="campo-title-wrapper">
+                          <div class="campo-icon">
+                            <i class="fas fa-grip-vertical"></i>
+                          </div>
+                          <div class="campo-info">
+                            <span class="campo-index">Campo #{{ campoIndex + 1 }}</span>
+                            <span class="campo-description"
+                              >Configure las propiedades del campo</span
                             >
-                              <i class="fas fa-times"></i>
-                            </button>
                           </div>
                         </div>
                         <button
                           type="button"
-                          @click="addSelectOption(campo)"
-                          class="btn btn-outline-primary btn-sm"
-                        >
-                          <i class="fas fa-plus me-2"></i>Agregar Opción
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
-                  <div v-if="campo.type === 'subform'" class="subform-container">
-                    <div class="subform-header">
-                      <i class="fas fa-indent me-2"></i>
-                      <span>Subformulario para {{ campo.name || 'este campo' }}</span>
-                    </div>
-
-                    <div
-                      v-for="(subcampo, subindex) in campo.subcampos || []"
-                      :key="subindex"
-                      class="subcampo-container"
-                    >
-                      <div class="subcampo-header">
-                        <div class="subcampo-title">
-                          <i class="fas fa-angle-right me-2"></i>
-                          <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
-                        </div>
-                        <button
-                          type="button"
-                          @click="quitarSubcampo(campo, subindex)"
-                          class="delete-button-small"
+                          @click="quitarCampo(seccionIndex, campoIndex)"
+                          class="btn-delete-field"
                         >
                           <i class="fas fa-times"></i>
                         </button>
                       </div>
+                    </div>
 
-                      <div class="subcampo-body">
-                        <div class="row g-3">
-                          <div class="col-md-6">
-                            <label class="form-label">Nombre del Apartado*</label>
-                            <div class="input-group modern-input">
-                              <span class="input-group-text">
-                                <i class="fas fa-edit"></i>
-                              </span>
-                              <input
-                                v-solo-texto-y-numeros
-                                v-model="subcampo.name"
-                                class="form-control"
-                                required
-                                placeholder="Ej: nombre, cantidad, descripción"
-                              />
-                            </div>
+                    <div class="campo-body">
+                      <div class="row g-3">
+                        <div class="col-md-6">
+                          <label class="form-label">Nombre del Campo*</label>
+                          <div class="input-group modern-input">
+                            <span class="input-group-text">
+                              <i class="fas fa-edit"></i>
+                            </span>
+                            <input
+                              v-solo-texto-y-numeros
+                              v-model="campo.name"
+                              class="form-control"
+                              required
+                              placeholder="Ej: título, descripción, fecha_entrega"
+                            />
                           </div>
+                        </div>
 
-                          <div class="col-md-6">
-                            <label class="form-label">Tipo del Apartado*</label>
-                            <div class="input-group modern-input">
-                              <span class="input-group-text">
-                                <i class="fas fa-cog"></i>
-                              </span>
-                              <select v-model="subcampo.type" class="form-select" required>
-                                <option value="string">Texto</option>
-                                <option value="number">Numérico</option>
-                                <option value="file">Archivo</option>
-                                <option value="date">Fecha</option>
-                                <option value="select">Lista de opciones (Select)</option>
-                              </select>
-                            </div>
+                        <div class="col-md-6">
+                          <label class="form-label">Tipo del Campo*</label>
+                          <div class="input-group modern-input">
+                            <span class="input-group-text">
+                              <i class="fas fa-cog"></i>
+                            </span>
+                            <select
+                              v-model="campo.type"
+                              class="form-select"
+                              @change="handleTypeChange(campo)"
+                              required
+                            >
+                              <option value="string">Texto</option>
+                              <option value="number">Numérico</option>
+                              <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
+                              <option value="date">Fecha</option>
+                              <option value="select">Lista de opciones (Select)</option>
+                              <option value="subform">Subformulario</option>
+                            </select>
                           </div>
+                        </div>
 
-                          <!-- Opciones para subcampos select -->
-                          <div v-if="subcampo.type === 'select'" class="col-md-12">
-                            <label class="form-label">Opciones del Select*</label>
-                            <div class="select-options-container">
-                              <div
-                                v-for="(option, optionIndex) in subcampo.options || []"
-                                :key="optionIndex"
-                                class="option-row"
-                              >
-                                <div class="input-group modern-input mb-2">
-                                  <span class="input-group-text">
-                                    <i class="fas fa-chevron-right"></i>
-                                  </span>
-                                  <input
-                                    v-model="subcampo.options[optionIndex]"
-                                    class="form-control"
-                                    :placeholder="`Opción ${optionIndex + 1}`"
-                                    required
-                                  />
-                                  <button
-                                    type="button"
-                                    @click="removeSubcampoSelectOption(subcampo, optionIndex)"
-                                    class="btn btn-outline-danger"
-                                  >
-                                    <i class="fas fa-times"></i>
-                                  </button>
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                @click="addSubcampoSelectOption(subcampo)"
-                                class="btn btn-outline-primary btn-sm"
-                              >
-                                <i class="fas fa-plus me-2"></i>Agregar Opción
-                              </button>
+                        <div class="col-md-12">
+                          <div class="d-flex">
+                            <div class="campo-checkbox me-5">
+                              <label class="checkbox-container">
+                                <input
+                                  type="checkbox"
+                                  class="custom-checkbox"
+                                  v-model="campo.required"
+                                />
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Campo obligatorio</span>
+                              </label>
                             </div>
-                          </div>
-
-                          <div class="col-md-12">
-                            <div class="d-flex">
-                              <div class="campo-checkbox me-5">
-                                <label class="checkbox-container">
-                                  <input
-                                    type="checkbox"
-                                    class="custom-checkbox"
-                                    v-model="subcampo.required"
-                                  />
-                                  <span class="checkmark"></span>
-                                  <span class="checkbox-label">Obligatorio</span>
-                                </label>
-                              </div>
-                             <div class="campo-radio" v-if="subcampo.type === 'date'">
-                                  <label class="radio-container">
-                                    <input
-                                      type="radio"
-                                      :name="'filterOptionSubform_' + index"
-                                      class="custom-radio"
-                                      v-model="subcampo.filterable"
-                                      :value="true"
-                                    />
-                                    <span class="radiomark"></span>
-                                    <span class="radio-label">Aplicar para filtro</span>
-                                  </label>
-                                </div>
+                            <div class="campo-radio" v-if="campo.type === 'date'">
+                              <label class="radio-container">
+                                <input
+                                  type="radio"
+                                  :name="'filterOption_' + seccionIndex + '_' + campoIndex"
+                                  class="custom-radio"
+                                  v-model="campo.filterable"
+                                  :value="true"
+                                />
+                                <span class="radiomark"></span>
+                                <span class="radio-label">Aplicar para filtro</span>
+                              </label>
                             </div>
                           </div>
                         </div>
+
+                        <!-- Campo de opciones para select -->
+                        <div v-if="campo.type === 'select'" class="col-md-12">
+                          <label class="form-label">Opciones del Select*</label>
+                          <div class="select-options-container">
+                            <div
+                              v-for="(option, optionIndex) in campo.options || []"
+                              :key="optionIndex"
+                              class="option-row"
+                            >
+                              <div class="input-group modern-input mb-2">
+                                <span class="input-group-text">
+                                  <i class="fas fa-chevron-right"></i>
+                                </span>
+                                <input
+                                  v-model="campo.options[optionIndex]"
+                                  class="form-control"
+                                  :placeholder="`Opción ${optionIndex + 1}`"
+                                  required
+                                />
+                                <button
+                                  type="button"
+                                  @click="removeSelectOption(campo, optionIndex)"
+                                  class="btn btn-outline-danger"
+                                >
+                                  <i class="fas fa-times"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              @click="addSelectOption(campo)"
+                              class="btn btn-outline-primary btn-sm"
+                            >
+                              <i class="fas fa-plus me-2"></i>Agregar Opción
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
+                      <div v-if="campo.type === 'subform'" class="subform-container">
+                        <div class="subform-header">
+                          <i class="fas fa-indent me-2"></i>
+                          <span>Subformulario para {{ campo.name || 'este campo' }}</span>
+                        </div>
+
+                        <div
+                          v-for="(subcampo, subindex) in campo.subcampos || []"
+                          :key="subindex"
+                          class="subcampo-container"
+                        >
+                          <div class="subcampo-header">
+                            <div class="subcampo-title">
+                              <i class="fas fa-angle-right me-2"></i>
+                              <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
+                            </div>
+                            <button
+                              type="button"
+                              @click="quitarSubcampo(campo, subindex)"
+                              class="delete-button-small"
+                            >
+                              <i class="fas fa-times"></i>
+                            </button>
+                          </div>
+
+                          <div class="subcampo-body">
+                            <div class="row g-3">
+                              <div class="col-md-6">
+                                <label class="form-label">Nombre del Apartado*</label>
+                                <div class="input-group modern-input">
+                                  <span class="input-group-text">
+                                    <i class="fas fa-edit"></i>
+                                  </span>
+                                  <input
+                                    v-solo-texto-y-numeros
+                                    v-model="subcampo.name"
+                                    class="form-control"
+                                    required
+                                    placeholder="Ej: nombre, cantidad, descripción"
+                                  />
+                                </div>
+                              </div>
+
+                              <div class="col-md-6">
+                                <label class="form-label">Tipo del Apartado*</label>
+                                <div class="input-group modern-input">
+                                  <span class="input-group-text">
+                                    <i class="fas fa-cog"></i>
+                                  </span>
+                                  <select v-model="subcampo.type" class="form-select" required>
+                                    <option value="string">Texto</option>
+                                    <option value="number">Numérico</option>
+                                    <option value="file">Archivo</option>
+                                    <option value="date">Fecha</option>
+                                    <option value="select">Lista de opciones (Select)</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              <!-- Opciones para subcampos select -->
+                              <div v-if="subcampo.type === 'select'" class="col-md-12">
+                                <label class="form-label">Opciones del Select*</label>
+                                <div class="select-options-container">
+                                  <div
+                                    v-for="(option, optionIndex) in subcampo.options || []"
+                                    :key="optionIndex"
+                                    class="option-row"
+                                  >
+                                    <div class="input-group modern-input mb-2">
+                                      <span class="input-group-text">
+                                        <i class="fas fa-chevron-right"></i>
+                                      </span>
+                                      <input
+                                        v-model="subcampo.options[optionIndex]"
+                                        class="form-control"
+                                        :placeholder="`Opción ${optionIndex + 1}`"
+                                        required
+                                      />
+                                      <button
+                                        type="button"
+                                        @click="removeSubcampoSelectOption(subcampo, optionIndex)"
+                                        class="btn btn-outline-danger"
+                                      >
+                                        <i class="fas fa-times"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    @click="addSubcampoSelectOption(subcampo)"
+                                    class="btn btn-outline-primary btn-sm"
+                                  >
+                                    <i class="fas fa-plus me-2"></i>Agregar Opción
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div class="col-md-12">
+                                <div class="d-flex">
+                                  <div class="campo-checkbox me-5">
+                                    <label class="checkbox-container">
+                                      <input
+                                        type="checkbox"
+                                        class="custom-checkbox"
+                                        v-model="subcampo.required"
+                                      />
+                                      <span class="checkmark"></span>
+                                      <span class="checkbox-label">Obligatorio</span>
+                                    </label>
+                                  </div>
+                                  <div class="campo-radio" v-if="subcampo.type === 'date'">
+                                    <label class="radio-container">
+                                      <input
+                                        type="radio"
+                                        :name="
+                                          'filterOptionSubform_' +
+                                          seccionIndex +
+                                          '_' +
+                                          campoIndex +
+                                          '_' +
+                                          subindex
+                                        "
+                                        class="custom-radio"
+                                        v-model="subcampo.filterable"
+                                        :value="true"
+                                      />
+                                      <span class="radiomark"></span>
+                                      <span class="radio-label">Aplicar para filtro</span>
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          @click="agregarSubcampo(campo)"
+                          class="add-subcampo-button"
+                        >
+                          <i class="fas fa-plus me-2"></i> Agregar Apartado
+                        </button>
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      @click="agregarSubcampo(campo)"
-                      class="add-subcampo-button"
-                    >
-                      <i class="fas fa-plus me-2"></i> Agregar Apartado
-                    </button>
                   </div>
+
+                  <button
+                    type="button"
+                    @click="agregarCampo(seccionIndex)"
+                    class="add-campo-button"
+                  >
+                    <i class="fas fa-plus me-2"></i> Agregar Campo a esta Sección
+                  </button>
                 </div>
               </div>
 
-              <button type="button" @click="agregarCampo" class="add-campo-button">
-                <i class="fas fa-plus me-2"></i> Agregar Campo
+              <button type="button" @click="agregarSeccion" class="add-seccion-button">
+                <i class="fas fa-plus me-2"></i> Agregar Nueva Sección
               </button>
             </div>
 
@@ -363,6 +453,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import axios from 'axios'
 import Swal from 'sweetalert2'
@@ -373,16 +464,8 @@ export default {
       plantillas: [], // Lista de plantillas obtenidas del servidor
       nombrePlantilla: '', // Nombre de la plantilla seleccionada para edición
       idPlantilla: '', // ID de la plantilla seleccionada para edición
-      camposPlantilla: [], // Campos de la plantilla seleccionada para edición
+      seccionesPlantilla: [], // Secciones de la plantilla seleccionada para edición
       mostrarModalEdit: false, // Control de visibilidad del modal de edición
-      nuevoCampo: {
-        // Nuevo campo que se agregará dinámicamente
-        name: '',
-        type: '',
-        alias: '',
-        required: false,
-        filterable: false
-      },
     }
   },
   methods: {
@@ -415,10 +498,11 @@ export default {
         console.log('Error al obtener las plantillas:', error)
       }
     },
+
     async fetchCamposPlantilla(id) {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/campos`, {
+        const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/secciones`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -427,7 +511,7 @@ export default {
         })
         this.nombrePlantilla = response.data.nombre_plantilla
         this.idPlantilla = id
-        this.camposPlantilla = response.data.campos
+        this.seccionesPlantilla = response.data.secciones || []
         this.mostrarModalEdit = true
       } catch (error) {
         Swal.fire({
@@ -438,6 +522,7 @@ export default {
         console.log('Error al obtener los campos de la plantilla:', error)
       }
     },
+
     async submitEditForm() {
       const token = localStorage.getItem('apiToken')
       const result = await Swal.fire({
@@ -452,40 +537,59 @@ export default {
       if (result.isConfirmed) {
         try {
           const updateData = {
-            campos: this.camposPlantilla.map((campo) => {
-              const campoData = {
-                name: campo.name,
-                type: campo.type,
-                required: Boolean(campo.required),
-    
-              }
+            nombre_plantilla: this.nombrePlantilla,
+            secciones: this.seccionesPlantilla
+              .map((seccion) => {
+                const seccionData = {
+                  nombre: seccion.nombre,
+                  fields: seccion.fields.map((campo) => {
+                    const campoData = {
+                      name: campo.name,
+                      type: campo.type,
+                      required: Boolean(campo.required),
+                      filterable: Boolean(campo.filterable),
+                    }
 
-              // Agregar opciones si el campo es de tipo select
-              if (campo.type === 'select' && campo.options) {
-                campoData.options = campo.options.filter((option) => option.trim() !== '')
-              }
+                    // Agregar opciones si el campo es de tipo select
+                    if (campo.type === 'select' && campo.options) {
+                      campoData.options = campo.options.filter((option) => option.trim() !== '')
+                    }
 
-              // Solo agrega subcampos si existe y tiene elementos
-              if (campo.subcampos && campo.subcampos.length > 0) {
-                campoData.subcampos = campo.subcampos.map((subcampo) => {
-                  const subcampoData = {
-                    name: subcampo.name,
-                    type: subcampo.type,
-                    required: Boolean(subcampo.required),
-                    filterable: Boolean(subcampo.filterable),
-                  }
+                    // Procesar subcampos si es un subformulario
+                    if (campo.type === 'subform' && campo.subcampos) {
+                      campoData.subcampos = campo.subcampos.map((subcampo) => {
+                        const subcampoData = {
+                          name: subcampo.name,
+                          type: subcampo.type,
+                          required: Boolean(subcampo.required),
+                          filterable: Boolean(subcampo.filterable),
+                        }
 
-                  // Agregar opciones si el subcampo es de tipo select
-                  if (subcampo.type === 'select' && subcampo.options) {
-                    subcampoData.options = subcampo.options.filter((option) => option.trim() !== '')
-                  }
+                        // Agregar opciones si el subcampo es de tipo select
+                        if (subcampo.type === 'select' && subcampo.options) {
+                          subcampoData.options = subcampo.options.filter(
+                            (option) => option.trim() !== '',
+                          )
+                        }
 
-                  return subcampoData
-                })
-              }
+                        return subcampoData
+                      })
+                    }
 
-              return campoData
-            }),
+                    return campoData
+                  }),
+                }
+
+                // Filtrar campos vacíos
+                seccionData.fields = seccionData.fields.filter(
+                  (campo) => campo.name && campo.name.trim() !== '',
+                )
+                return seccionData
+              })
+              .filter(
+                (seccion) =>
+                  seccion.nombre && seccion.nombre.trim() !== '' && seccion.fields.length > 0,
+              ),
           }
 
           console.log('Datos a enviar:', updateData)
@@ -519,25 +623,119 @@ export default {
         }
       }
     },
-    eliminarCampo(index) {
-      this.camposPlantilla.splice(index, 1)
+
+    agregarSeccion() {
+      this.seccionesPlantilla.push({
+        nombre: '',
+        fields: [{ name: '', type: 'string', required: false, filterable: false }],
+      })
     },
-    agregarCampo() {
-      this.camposPlantilla.push({ ...this.nuevoCampo })
-      this.nuevoCampo = {
-        name: '',
-        type: '',
-        alias: '',
-        required: false,
-        
+
+    quitarSeccion(index) {
+      if (this.seccionesPlantilla.length > 1) {
+        this.seccionesPlantilla.splice(index, 1)
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No se puede eliminar',
+          text: 'Debe haber al menos una sección en la plantilla',
+        })
       }
     },
+
+    agregarCampo(seccionIndex) {
+      this.seccionesPlantilla[seccionIndex].fields.push({
+        name: '',
+        type: 'string',
+        required: false,
+        filterable: false,
+      })
+    },
+
+    quitarCampo(seccionIndex, campoIndex) {
+      if (this.seccionesPlantilla[seccionIndex].fields.length > 1) {
+        this.seccionesPlantilla[seccionIndex].fields.splice(campoIndex, 1)
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No se puede eliminar',
+          text: 'Cada sección debe tener al menos un campo',
+        })
+      }
+    },
+
+    handleTypeChange(campo) {
+      if (campo.type === 'subform' && !campo.subcampos) {
+        campo.subcampos = []
+        this.agregarSubcampo(campo)
+      } else if (campo.type === 'select' && !campo.options) {
+        campo.options = ['']
+      }
+
+      if (campo.type !== 'date') {
+        campo.filterable = false
+      }
+    },
+
+    agregarSubcampo(campo) {
+      if (!campo.subcampos) {
+        campo.subcampos = []
+      }
+      campo.subcampos.push({
+        name: '',
+        type: 'string',
+        required: false,
+        filterable: false,
+      })
+    },
+
+    quitarSubcampo(campo, index) {
+      if (campo.subcampos && campo.subcampos.length > 1) {
+        campo.subcampos.splice(index, 1)
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No se puede eliminar',
+          text: 'Debe haber al menos un apartado en el subformulario',
+        })
+      }
+    },
+
+    addSelectOption(campo) {
+      if (!campo.options) {
+        campo.options = []
+      }
+      campo.options.push('')
+    },
+
+    removeSelectOption(campo, index) {
+      if (campo.options && campo.options.length > 1) {
+        campo.options.splice(index, 1)
+      }
+    },
+
+    addSubcampoSelectOption(subcampo) {
+      if (!subcampo.options) {
+        subcampo.options = []
+      }
+      subcampo.options.push('')
+    },
+
+    removeSubcampoSelectOption(subcampo, index) {
+      if (subcampo.options && subcampo.options.length > 1) {
+        subcampo.options.splice(index, 1)
+      }
+    },
+
     openEditModal(id) {
       this.fetchCamposPlantilla(String(id))
     },
+
     closeEditModal() {
       this.mostrarModalEdit = false
+      this.seccionesPlantilla = []
     },
+
     async eliminarPlantilla(id) {
       const token = localStorage.getItem('apiToken')
       const result = await Swal.fire({
@@ -573,62 +771,6 @@ export default {
           console.error('Error al eliminar la plantilla:', error)
         }
       }
-    },
-    handleTypeChange(campo) {
-      if (campo.type === 'subform' && !campo.subcampos) {
-        // Si el tipo es 'subform', inicializar subcampos
-        campo.subcampos = []
-        this.agregarSubcampo(campo)
-      } else if (campo.type === 'select' && !campo.options) {
-        // Si el tipo es 'select', inicializar opciones
-        campo.options = ['']
-      }
-    },
-    handleSubcampoTypeChange(subcampo) {
-      if (subcampo.type === 'select' && !subcampo.options) {
-        // Si el tipo es 'select', inicializar opciones
-        subcampo.options = ['']
-      }
-    },
-    // Métodos para manejar opciones de select en campos principales
-    addSelectOption(campo) {
-      if (!campo.options) {
-        campo.options = []
-      }
-      campo.options.push('')
-    },
-
-    removeSelectOption(campo, index) {
-      if (campo.options && campo.options.length > 1) {
-        campo.options.splice(index, 1)
-      }
-    },
-
-    // Métodos para manejar opciones de select en subcampos
-    addSubcampoSelectOption(subcampo) {
-      if (!subcampo.options) {
-        subcampo.options = []
-      }
-      subcampo.options.push('')
-    },
-
-    removeSubcampoSelectOption(subcampo, index) {
-      if (subcampo.options && subcampo.options.length > 1) {
-        subcampo.options.splice(index, 1)
-      }
-    },
-    quitarCampo(index) {
-      this.camposPlantilla.splice(index, 1)
-    },
-    agregarSubcampo(campo) {
-      if (!campo.subcampos) {
-        // Asegurarse de que subcampos esté inicializado
-        campo.subcampos = []
-      }
-      campo.subcampos.push({ name: '', type: 'string', required: false, filterable: false })
-    },
-    quitarSubcampo(campo, index) {
-      campo.subcampos.splice(index, 1)
     },
   },
   created() {
