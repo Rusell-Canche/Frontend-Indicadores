@@ -199,15 +199,15 @@
                               <option value="number">Numérico</option>
                               <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
                               <option value="date">Fecha</option>
-                              <option value="select">Lista de opciones (Select)</option>
+                              <option value="select">Lista de Selección</option>
                               <option value="subform">Subformulario</option>
                             </select>
                           </div>
                         </div>
 
                         <div class="col-md-12">
-                          <div class="d-flex">
-                            <div class="campo-checkbox me-5">
+                          <div class="campo-options">
+                            <div class="campo-checkbox">
                               <label class="checkbox-container">
                                 <input
                                   type="checkbox"
@@ -233,42 +233,67 @@
                             </div>
                           </div>
                         </div>
+                      </div>
 
-                        <!-- Campo de opciones para select -->
-                        <div v-if="campo.type === 'select'" class="col-md-12">
-                          <label class="form-label">Opciones del Select*</label>
-                          <div class="select-options-container">
-                            <div
-                              v-for="(option, optionIndex) in campo.options || []"
-                              :key="optionIndex"
-                              class="option-row"
-                            >
-                              <div class="input-group modern-input mb-2">
+                      <!-- Configuración de opciones para Select -->
+                      <div v-if="campo.type === 'select'" class="select-options-container">
+                        <div class="select-options-header">
+                          <div class="options-header-content">
+                            <i class="fas fa-list-ul"></i>
+                            <span>Opciones para "{{ campo.name || 'este campo' }}"</span>
+                          </div>
+                        </div>
+
+                        <div class="select-options-body">
+                          <div
+                            v-for="(option, optionIndex) in campo.options || []"
+                            :key="optionIndex"
+                            class="option-item"
+                          >
+                            <div class="option-content">
+                              <div class="input-group modern-input-small">
                                 <span class="input-group-text">
-                                  <i class="fas fa-chevron-right"></i>
+                                  <i class="fas fa-tag"></i>
                                 </span>
                                 <input
+                                  v-solo-texto-y-numeros
                                   v-model="campo.options[optionIndex]"
                                   class="form-control"
-                                  :placeholder="`Opción ${optionIndex + 1}`"
+                                  placeholder="Texto de la opción"
                                   required
                                 />
                                 <button
                                   type="button"
                                   @click="removeSelectOption(campo, optionIndex)"
-                                  class="btn btn-outline-danger"
+                                  class="btn-delete-option"
                                 >
-                                  <i class="fas fa-times"></i>
+                                  <i class="fas fa-trash"></i>
                                 </button>
                               </div>
                             </div>
-                            <button
-                              type="button"
-                              @click="addSelectOption(campo)"
-                              class="btn btn-outline-primary btn-sm"
-                            >
-                              <i class="fas fa-plus me-2"></i>Agregar Opción
-                            </button>
+                          </div>
+
+                          <div class="add-option-section">
+                            <div class="add-option-wrapper">
+                              <div class="add-option-input">
+                                <input
+                                  v-solo-texto-y-numeros
+                                  v-model="campo.newOption"
+                                  class="form-control modern-input-standalone"
+                                  placeholder="Texto de la opción (ej: Activo, Inactivo, Pendiente)"
+                                  @keyup.enter="addSelectOption(campo)"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                @click="addSelectOption(campo)"
+                                class="btn-add-option"
+                                :disabled="!campo.newOption"
+                              >
+                                <i class="fas fa-plus"></i>
+                                <span>Agregar</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -276,163 +301,206 @@
                       <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
                       <div v-if="campo.type === 'subform'" class="subform-container">
                         <div class="subform-header">
-                          <i class="fas fa-indent me-2"></i>
-                          <span>Subformulario para {{ campo.name || 'este campo' }}</span>
+                          <div class="subform-header-content">
+                            <i class="fas fa-indent"></i>
+                            <span>Subformulario para {{ campo.name || 'este campo' }}</span>
+                          </div>
                         </div>
 
-                        <div
-                          v-for="(subcampo, subindex) in campo.subcampos || []"
-                          :key="subindex"
-                          class="subcampo-container"
-                        >
-                          <div class="subcampo-header">
-                            <div class="subcampo-title">
-                              <i class="fas fa-angle-right me-2"></i>
-                              <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
+                        <div class="subform-body">
+                          <div
+                            v-for="(subcampo, subindex) in campo.subcampos || []"
+                            :key="subindex"
+                            class="subcampo-container"
+                          >
+                            <div class="subcampo-header">
+                              <div class="subcampo-header-content">
+                                <div class="subcampo-title-wrapper">
+                                  <div class="subcampo-icon">
+                                    <i class="fas fa-angle-right"></i>
+                                  </div>
+                                  <div class="subcampo-info">
+                                    <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
+                                    <span class="subcampo-description"
+                                      >Configure este apartado</span
+                                    >
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  @click="quitarSubcampo(campo, subindex)"
+                                  class="btn-delete-subcampo"
+                                >
+                                  <i class="fas fa-times"></i>
+                                </button>
+                              </div>
                             </div>
-                            <button
-                              type="button"
-                              @click="quitarSubcampo(campo, subindex)"
-                              class="delete-button-small"
-                            >
-                              <i class="fas fa-times"></i>
-                            </button>
-                          </div>
 
-                          <div class="subcampo-body">
-                            <div class="row g-3">
-                              <div class="col-md-6">
-                                <label class="form-label">Nombre del Apartado*</label>
-                                <div class="input-group modern-input">
-                                  <span class="input-group-text">
-                                    <i class="fas fa-edit"></i>
-                                  </span>
-                                  <input
-                                    v-solo-texto-y-numeros
-                                    v-model="subcampo.name"
-                                    class="form-control"
-                                    required
-                                    placeholder="Ej: nombre, cantidad, descripción"
-                                  />
+                            <div class="subcampo-body">
+                              <div class="row g-3">
+                                <div class="col-md-6">
+                                  <label class="form-label">Nombre del Apartado*</label>
+                                  <div class="input-group modern-input">
+                                    <span class="input-group-text">
+                                      <i class="fas fa-edit"></i>
+                                    </span>
+                                    <input
+                                      v-solo-texto-y-numeros
+                                      v-model="subcampo.name"
+                                      class="form-control"
+                                      required
+                                      placeholder="Ej: nombre, cantidad, descripción"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                  <label class="form-label">Tipo del Apartado*</label>
+                                  <div class="input-group modern-input">
+                                    <span class="input-group-text">
+                                      <i class="fas fa-cog"></i>
+                                    </span>
+                                    <select v-model="subcampo.type" class="form-select" required>
+                                      <option value="string">Texto</option>
+                                      <option value="number">Numérico</option>
+                                      <option value="file">Archivo</option>
+                                      <option value="date">Fecha</option>
+                                      <option value="select">Lista de Selección</option>
+                                    </select>
+                                  </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                  <div class="subcampo-options">
+                                    <div class="campo-checkbox">
+                                      <label class="checkbox-container">
+                                        <input
+                                          type="checkbox"
+                                          class="custom-checkbox"
+                                          v-model="subcampo.required"
+                                        />
+                                        <span class="checkmark"></span>
+                                        <span class="checkbox-label">Obligatorio</span>
+                                      </label>
+                                    </div>
+                                    <div class="campo-radio" v-if="subcampo.type === 'date'">
+                                      <label class="radio-container">
+                                        <input
+                                          type="radio"
+                                          :name="
+                                            'filterOptionSubform_' +
+                                            seccionIndex +
+                                            '_' +
+                                            campoIndex +
+                                            '_' +
+                                            subindex
+                                          "
+                                          class="custom-radio"
+                                          v-model="subcampo.filterable"
+                                          :value="true"
+                                        />
+                                        <span class="radiomark"></span>
+                                        <span class="radio-label">Aplicar para filtro</span>
+                                      </label>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
 
-                              <div class="col-md-6">
-                                <label class="form-label">Tipo del Apartado*</label>
-                                <div class="input-group modern-input">
-                                  <span class="input-group-text">
-                                    <i class="fas fa-cog"></i>
-                                  </span>
-                                  <select v-model="subcampo.type" class="form-select" required>
-                                    <option value="string">Texto</option>
-                                    <option value="number">Numérico</option>
-                                    <option value="file">Archivo</option>
-                                    <option value="date">Fecha</option>
-                                    <option value="select">Lista de opciones (Select)</option>
-                                  </select>
+                              <!-- Opciones para subcampos de tipo select -->
+                              <div
+                                v-if="subcampo.type === 'select'"
+                                class="select-options-container subcampo-select"
+                              >
+                                <div class="select-options-header">
+                                  <div class="options-header-content">
+                                    <i class="fas fa-list-ul"></i>
+                                    <span
+                                      >Opciones para subcampo "{{
+                                        subcampo.name || 'este subcampo'
+                                      }}"</span
+                                    >
+                                  </div>
                                 </div>
-                              </div>
 
-                              <!-- Opciones para subcampos select -->
-                              <div v-if="subcampo.type === 'select'" class="col-md-12">
-                                <label class="form-label">Opciones del Select*</label>
-                                <div class="select-options-container">
+                                <div class="select-options-body">
                                   <div
                                     v-for="(option, optionIndex) in subcampo.options || []"
                                     :key="optionIndex"
-                                    class="option-row"
+                                    class="option-item"
                                   >
-                                    <div class="input-group modern-input mb-2">
-                                      <span class="input-group-text">
-                                        <i class="fas fa-chevron-right"></i>
-                                      </span>
-                                      <input
-                                        v-model="subcampo.options[optionIndex]"
-                                        class="form-control"
-                                        :placeholder="`Opción ${optionIndex + 1}`"
-                                        required
-                                      />
-                                      <button
-                                        type="button"
-                                        @click="removeSubcampoSelectOption(subcampo, optionIndex)"
-                                        class="btn btn-outline-danger"
-                                      >
-                                        <i class="fas fa-times"></i>
-                                      </button>
+                                    <div class="option-content">
+                                      <div class="input-group modern-input-small">
+                                        <span class="input-group-text">
+                                          <i class="fas fa-tag"></i>
+                                        </span>
+                                        <input
+                                          v-solo-texto-y-numeros
+                                          v-model="subcampo.options[optionIndex]"
+                                          class="form-control"
+                                          placeholder="Texto de la opción"
+                                          required
+                                        />
+                                        <button
+                                          type="button"
+                                          @click="removeSubcampoSelectOption(subcampo, optionIndex)"
+                                          class="btn-delete-option"
+                                        >
+                                          <i class="fas fa-trash"></i>
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
-                                  <button
-                                    type="button"
-                                    @click="addSubcampoSelectOption(subcampo)"
-                                    class="btn btn-outline-primary btn-sm"
-                                  >
-                                    <i class="fas fa-plus me-2"></i>Agregar Opción
-                                  </button>
-                                </div>
-                              </div>
 
-                              <div class="col-md-12">
-                                <div class="d-flex">
-                                  <div class="campo-checkbox me-5">
-                                    <label class="checkbox-container">
-                                      <input
-                                        type="checkbox"
-                                        class="custom-checkbox"
-                                        v-model="subcampo.required"
-                                      />
-                                      <span class="checkmark"></span>
-                                      <span class="checkbox-label">Obligatorio</span>
-                                    </label>
-                                  </div>
-                                  <div class="campo-radio" v-if="subcampo.type === 'date'">
-                                    <label class="radio-container">
-                                      <input
-                                        type="radio"
-                                        :name="
-                                          'filterOptionSubform_' +
-                                          seccionIndex +
-                                          '_' +
-                                          campoIndex +
-                                          '_' +
-                                          subindex
-                                        "
-                                        class="custom-radio"
-                                        v-model="subcampo.filterable"
-                                        :value="true"
-                                      />
-                                      <span class="radiomark"></span>
-                                      <span class="radio-label">Aplicar para filtro</span>
-                                    </label>
+                                  <div class="add-option-section">
+                                    <div class="add-option-wrapper">
+                                      <div class="add-option-input">
+                                        <input
+                                          v-model="subcampo.newOption"
+                                          class="form-control modern-input-standalone"
+                                          placeholder="Texto de la opción"
+                                          @keyup.enter="addSubcampoSelectOption(subcampo)"
+                                        />
+                                      </div>
+                                      <button
+                                        type="button"
+                                        @click="addSubcampoSelectOption(subcampo)"
+                                        class="btn-add-option"
+                                        :disabled="!subcampo.newOption"
+                                      >
+                                        <i class="fas fa-plus"></i>
+                                        <span>Agregar</span>
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        <button
-                          type="button"
-                          @click="agregarSubcampo(campo)"
-                          class="add-subcampo-button"
-                        >
-                          <i class="fas fa-plus me-2"></i> Agregar Apartado
-                        </button>
+                          <button
+                            type="button"
+                            @click="agregarSubcampo(campo)"
+                            class="btn-add-subcampo"
+                          >
+                            <i class="fas fa-plus"></i>
+                            <span>Agregar Apartado</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    @click="agregarCampo(seccionIndex)"
-                    class="add-campo-button"
-                  >
-                    <i class="fas fa-plus me-2"></i> Agregar Campo a esta Sección
+                  <button type="button" @click="agregarCampo(seccionIndex)" class="btn-add-campo">
+                    <i class="fas fa-plus"></i>
+                    <span>Agregar Campo a esta Sección</span>
                   </button>
                 </div>
               </div>
 
-              <button type="button" @click="agregarSeccion" class="add-seccion-button">
-                <i class="fas fa-plus me-2"></i> Agregar Nueva Sección
+              <button type="button" @click="agregarSeccion" class="btn-add-seccion">
+                <i class="fas fa-plus"></i>
+                <span>Agregar Nueva Sección</span>
               </button>
             </div>
 
@@ -670,6 +738,7 @@ export default {
         this.agregarSubcampo(campo)
       } else if (campo.type === 'select' && !campo.options) {
         campo.options = ['']
+        campo.newOption = ''
       }
 
       if (campo.type !== 'date') {
@@ -705,7 +774,27 @@ export default {
       if (!campo.options) {
         campo.options = []
       }
-      campo.options.push('')
+
+      if (campo.newOption && campo.newOption.trim() !== '') {
+        const opcionTrimmed = campo.newOption.trim()
+
+        const existeOpcion = campo.options.some(
+          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
+        )
+
+        if (existeOpcion) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Opción duplicada',
+            text: 'Esta opción ya existe',
+            confirmButtonColor: '#f39c12',
+          })
+          return
+        }
+
+        campo.options.push(opcionTrimmed)
+        campo.newOption = ''
+      }
     },
 
     removeSelectOption(campo, index) {
@@ -718,7 +807,27 @@ export default {
       if (!subcampo.options) {
         subcampo.options = []
       }
-      subcampo.options.push('')
+
+      if (subcampo.newOption && subcampo.newOption.trim() !== '') {
+        const opcionTrimmed = subcampo.newOption.trim()
+
+        const existeOpcion = subcampo.options.some(
+          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
+        )
+
+        if (existeOpcion) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Opción duplicada',
+            text: 'Esta opción ya existe',
+            confirmButtonColor: '#f39c12',
+          })
+          return
+        }
+
+        subcampo.options.push(opcionTrimmed)
+        subcampo.newOption = ''
+      }
     },
 
     removeSubcampoSelectOption(subcampo, index) {
@@ -1100,6 +1209,21 @@ export default {
   transform: translateY(-1px);
 }
 
+.modern-input-standalone {
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.modern-input-standalone:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  transform: translateY(-1px);
+  outline: none;
+}
+
 .alert {
   border-radius: 12px;
   border: 1px solid #f5c6cb;
@@ -1107,67 +1231,215 @@ export default {
   color: #721c24;
 }
 
-/* Estilos específicos para campos */
-.campo-container {
-  margin-bottom: 1.5rem;
-  padding: 1.25rem;
-  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 12px;
-  border: 1px solid rgba(220, 53, 69, 0.1);
+/* ===== ESTILOS PARA SECCIONES (COLOR AZUL) ===== */
+.seccion-container {
+  margin-bottom: 2rem;
+  background: linear-gradient(145deg, #e3f2fd 0%, #f3f9ff 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(33, 150, 243, 0.2);
+  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
+  overflow: hidden;
   position: relative;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.campo-header {
+.seccion-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2196f3, #1976d2, #0d47a1);
+  border-radius: 16px 16px 0 0;
+}
+
+.seccion-header {
+  background: linear-gradient(135deg, #bbdefb 0%, #e3f2fd 100%);
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(33, 150, 243, 0.15);
+}
+
+.seccion-header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.campo-title {
+.seccion-title-wrapper {
   display: flex;
   align-items: center;
-  color: #2c3e50;
-  font-weight: 600;
+  gap: 1rem;
 }
 
-.campo-index {
-  font-size: 0.95rem;
+.seccion-icon {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
 
-.delete-button {
+.seccion-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.seccion-index {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1565c0;
+  margin-bottom: 0.25rem;
+}
+
+.seccion-description {
+  font-size: 0.85rem;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.btn-delete-section {
   background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   border: none;
   color: white;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete-section:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+.seccion-name-input {
+  margin-top: 1rem;
+}
+
+.seccion-body {
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #f3f9ff 0%, #ffffff 100%);
+}
+
+/* ===== ESTILOS PARA CAMPOS REGULARES (COLOR VERDE) ===== */
+.campo-container {
+  margin-bottom: 1.5rem;
+  background: linear-gradient(145deg, #e8f5e8 0%, #f1f8e9 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(76, 175, 80, 0.2);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.campo-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4caf50, #388e3c, #2e7d32);
+  border-radius: 12px 12px 0 0;
+}
+
+.campo-header {
+  background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e8 100%);
+  padding: 1rem;
+  border-bottom: 1px solid rgba(76, 175, 80, 0.15);
+}
+
+.campo-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.campo-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.campo-icon {
+  width: 35px;
+  height: 35px;
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+  box-shadow: 0 3px 10px rgba(76, 175, 80, 0.4);
+}
+
+.campo-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.campo-index {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2e7d32;
+  margin-bottom: 0.2rem;
+}
+
+.campo-description {
+  font-size: 0.8rem;
+  color: #388e3c;
+  font-weight: 500;
+}
+
+.btn-delete-field {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  width: 35px;
+  height: 35px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+  box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
 }
 
-.delete-button:hover {
+.btn-delete-field:hover {
   background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
 }
 
 .campo-body {
+  padding: 1.25rem;
+  background: linear-gradient(145deg, #f1f8e9 0%, #ffffff 100%);
+}
+
+.campo-options {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
   margin-top: 1rem;
 }
 
 /* Checkbox personalizado */
-.campo-checkbox {
-  margin-top: 1rem;
-}
-
 .checkbox-container {
   display: flex;
   align-items: center;
@@ -1230,114 +1502,405 @@ export default {
   font-weight: 500;
 }
 
-/* Subformulario */
-.subform-container {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 10px;
-  border: 1px solid rgba(220, 53, 69, 0.15);
-}
-
-.subform-header {
+/* Radio button personalizado */
+.radio-container {
   display: flex;
   align-items: center;
-  margin-bottom: 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
   color: #495057;
+  position: relative;
+  padding-left: 2rem;
+}
+
+.custom-radio {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.radiomark {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+  width: 18px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.radio-container:hover .radiomark {
+  border-color: #dc3545;
+}
+
+.custom-radio:checked ~ .radiomark {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-color: #dc3545;
+}
+
+.radiomark:after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
+}
+
+.custom-radio:checked ~ .radiomark:after {
+  display: block;
+}
+
+.radio-label {
+  margin-left: 0.5rem;
+  font-weight: 500;
+}
+
+/* Estilos para las opciones del select en campos regulares */
+.select-options-container {
+  margin-top: 1.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #f1f8e9 0%, #ffffff 100%);
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
+}
+
+.select-options-header {
+  background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e8 100%);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.options-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 600;
+  color: #2e7d32;
+  font-size: 0.95rem;
+}
+
+.select-options-body {
+  padding: 1.25rem;
+}
+
+.option-item {
+  margin-bottom: 1rem;
+}
+
+.option-item:last-child {
+  margin-bottom: 0;
+}
+
+.modern-input-small .input-group-text {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  border: none;
+  color: white;
+  border-radius: 8px 0 0 8px;
+  width: 45px;
+  justify-content: center;
   font-size: 0.9rem;
 }
 
-.subform-header i {
-  color: #dc3545;
-}
-
-.subcampo-container {
-  margin-bottom: 1rem;
-  padding: 1rem;
+.modern-input-small .form-control {
+  border: 2px solid #e9ecef;
+  border-left: none;
+  border-radius: 0;
+  padding: 0.6rem 0.9rem;
+  transition: all 0.3s ease;
   background: white;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  font-size: 0.9rem;
 }
 
-.subcampo-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+.modern-input-small .form-control:focus {
+  border-color: #4caf50;
+  box-shadow: 0 0 0 0.15rem rgba(76, 175, 80, 0.25);
+  transform: translateY(-1px);
 }
 
-.subcampo-title {
-  display: flex;
-  align-items: center;
-  color: #495057;
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.subcampo-index {
-  font-size: 0.875rem;
-}
-
-.delete-button-small {
+.btn-delete-option {
   background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   border: none;
   color: white;
-  width: 28px;
-  height: 28px;
+  border-radius: 0 8px 8px 0;
+  padding: 0.6rem 0.9rem;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete-option:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-1px);
+}
+
+.add-option-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.add-option-wrapper {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.add-option-input {
+  flex: 1;
+}
+
+.btn-add-option {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-add-option:hover:not(:disabled) {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn-add-option:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===== ESTILOS PARA SUBFORMULARIOS (COLOR NARANJA) ===== */
+.subform-container {
+  margin-top: 1.5rem;
+  background: linear-gradient(145deg, #fff3e0 0%, #ffeaa7 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 152, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.15);
+  overflow: hidden;
+  position: relative;
+}
+
+.subform-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ff9800, #f57c00, #e65100);
+  border-radius: 12px 12px 0 0;
+}
+
+.subform-header {
+  background: linear-gradient(135deg, #ffcc02 0%, #fff3e0 100%);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 152, 0, 0.2);
+}
+
+.subform-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #e65100;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.subform-body {
+  padding: 1.25rem;
+  background: linear-gradient(145deg, #ffeaa7 0%, #ffffff 100%);
+}
+
+.subcampo-container {
+  margin-bottom: 1.25rem;
+  background: linear-gradient(145deg, #fff8e1 0%, #ffffff 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.subcampo-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #ffc107, #ff9800, #f57c00);
+  border-radius: 10px 10px 0 0;
+}
+
+.subcampo-header {
+  background: linear-gradient(135deg, #ffecb3 0%, #fff8e1 100%);
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid rgba(255, 152, 0, 0.15);
+}
+
+.subcampo-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.subcampo-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.subcampo-icon {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+}
+
+.subcampo-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.subcampo-index {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e65100;
+  margin-bottom: 0.1rem;
+}
+
+.subcampo-description {
+  font-size: 0.75rem;
+  color: #f57c00;
+  font-weight: 500;
+}
+
+.btn-delete-subcampo {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  width: 30px;
+  height: 30px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
-.delete-button-small:hover {
+.btn-delete-subcampo:hover {
   background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 3px 12px rgba(220, 53, 69, 0.4);
 }
 
 .subcampo-body {
+  padding: 1rem;
+  background: linear-gradient(145deg, #ffffff 0%, #fff8e1 100%);
+}
+
+.subcampo-options {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
   margin-top: 0.75rem;
 }
 
+/* Estilos para las opciones del select en subcampos */
+.select-options-container.subcampo-select {
+  border-color: rgba(255, 152, 0, 0.3);
+  background: linear-gradient(145deg, #fff8e1 0%, #ffffff 100%);
+}
+
+.subcampo-select .select-options-header {
+  background: linear-gradient(135deg, #ffecb3 0%, #fff8e1 100%);
+  border-bottom-color: rgba(255, 152, 0, 0.2);
+}
+
+.subcampo-select .options-header-content {
+  color: #e65100;
+}
+
+.subcampo-select .modern-input-small .input-group-text {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+.subcampo-select .modern-input-small .form-control:focus {
+  border-color: #ff9800;
+  box-shadow: 0 0 0 0.15rem rgba(255, 152, 0, 0.25);
+}
+
 /* Botones de agregar */
-.add-campo-button,
-.add-subcampo-button {
+.btn-add-campo,
+.btn-add-subcampo,
+.btn-add-seccion {
   background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   border: none;
   color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
   font-weight: 600;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-add-campo {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.btn-add-subcampo {
   margin-top: 1rem;
 }
 
-.add-campo-button {
-  width: 100%;
+.btn-add-seccion {
+  margin-top: 1.5rem;
 }
 
-.add-subcampo-button {
-  width: auto;
-}
-
-.add-campo-button:hover,
-.add-subcampo-button:hover {
+.btn-add-campo:hover,
+.btn-add-subcampo:hover,
+.btn-add-seccion:hover {
   background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+  box-shadow: 0 6px 25px rgba(40, 167, 69, 0.4);
 }
 
 /* Footer con botones */
@@ -1476,13 +2039,82 @@ export default {
     margin-bottom: 1.5rem;
   }
 
-  .campo-container {
+  .seccion-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .seccion-header {
     padding: 1rem;
   }
 
-  .campo-header {
+  .seccion-header-content {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .seccion-body {
+    padding: 1rem;
+  }
+
+  .campo-container {
+    margin-bottom: 1rem;
+  }
+
+  .campo-header {
+    padding: 0.875rem;
+  }
+
+  .campo-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .campo-body {
+    padding: 1rem;
+  }
+
+  .campo-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .subform-container {
+    margin-top: 1rem;
+  }
+
+  .subform-body {
+    padding: 1rem;
+  }
+
+  .subcampo-container {
+    margin-bottom: 1rem;
+  }
+
+  .subcampo-header {
+    padding: 0.75rem;
+  }
+
+  .subcampo-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .subcampo-body {
+    padding: 0.875rem;
+  }
+
+  .subcampo-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .add-option-wrapper {
+    flex-direction: column;
     gap: 0.5rem;
   }
 
@@ -1515,15 +2147,47 @@ export default {
     padding: 0.75rem;
   }
 
+  .seccion-container {
+    margin-bottom: 1rem;
+  }
+
+  .seccion-header {
+    padding: 0.75rem;
+  }
+
+  .seccion-body {
+    padding: 0.75rem;
+  }
+
   .campo-container {
+    margin-bottom: 0.75rem;
+  }
+
+  .campo-header {
+    padding: 0.75rem;
+  }
+
+  .campo-body {
     padding: 0.75rem;
   }
 
   .subform-container {
+    margin-top: 0.75rem;
+  }
+
+  .subform-body {
     padding: 0.75rem;
   }
 
   .subcampo-container {
+    margin-bottom: 0.75rem;
+  }
+
+  .subcampo-header {
+    padding: 0.625rem;
+  }
+
+  .subcampo-body {
     padding: 0.75rem;
   }
 
@@ -1531,72 +2195,18 @@ export default {
   .modern-input .form-select {
     font-size: 0.9rem;
   }
-}
-/* Radio button personalizado */
-.radio-container {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #495057;
-  position: relative;
-  padding-left: 2rem;
-  margin-bottom: 0.5rem;
-}
 
-.custom-radio {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
+  .select-options-container {
+    margin-top: 1rem;
+  }
 
-.radiomark {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 18px;
-  width: 18px;
-  background: white;
-  border: 2px solid #e9ecef;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
+  .select-options-body {
+    padding: 1rem;
+  }
 
-.radio-container:hover .radiomark {
-  border-color: #dc3545;
-}
-
-.custom-radio:checked ~ .radiomark {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  border-color: #dc3545;
-}
-
-.radiomark:after {
-  content: '';
-  position: absolute;
-  display: none;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: white;
-}
-
-.custom-radio:checked ~ .radiomark:after {
-  display: block;
-}
-
-.radio-label {
-  margin-left: 0.5rem;
-  font-weight: 500;
-}
-/* Radio button personalizado - contenedor */
-.campo-radio {
-  margin-top: 1rem;
+  .add-option-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
 }
 </style>
