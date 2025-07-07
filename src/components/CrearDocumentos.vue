@@ -60,7 +60,11 @@
 
           <form ref="form" @submit.prevent="onSubmit" enctype="multipart/form-data">
             <!-- Renderizar por secciones -->
-            <div v-for="(seccion, seccionIndex) in seccionesPlantilla" :key="seccionIndex" class="seccion-container mb-4">
+            <div
+              v-for="(seccion, seccionIndex) in seccionesPlantilla"
+              :key="seccionIndex"
+              class="seccion-container mb-4"
+            >
               <div class="seccion-header">
                 <div class="seccion-header-content">
                   <div class="seccion-title-wrapper">
@@ -68,7 +72,9 @@
                       <i class="fas fa-folder-open"></i>
                     </div>
                     <div class="seccion-info">
-                      <h5 class="seccion-title">{{ seccion.nombre || 'Sección ' + (seccionIndex + 1) }}</h5>
+                      <h5 class="seccion-title">
+                        {{ seccion.nombre || 'Sección ' + (seccionIndex + 1) }}
+                      </h5>
                       <span class="seccion-description">Complete los campos de esta sección</span>
                     </div>
                   </div>
@@ -95,7 +101,10 @@
                       </button>
 
                       <!-- Tabla para mostrar entradas existentes -->
-                      <div class="table-responsive mt-3" v-if="getSubformRows(campo.name).length > 0">
+                      <div
+                        class="table-responsive mt-3"
+                        v-if="getSubformRows(campo.name).length > 0"
+                      >
                         <table class="table table-bordered table-hover">
                           <thead class="table-light">
                             <tr>
@@ -106,7 +115,10 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <tr v-for="(row, rowIndex) in getSubformRows(campo.name)" :key="rowIndex">
+                            <tr
+                              v-for="(row, rowIndex) in getSubformRows(campo.name)"
+                              :key="rowIndex"
+                            >
                               <td v-for="subcampo in campo.subcampos" :key="subcampo.name">
                                 <template v-if="subcampo.type === 'file'">
                                   {{ row[subcampo.name]?.name || 'Sin archivo' }}
@@ -150,7 +162,11 @@
                           :required="campo.required"
                         >
                           <option value="" disabled selected>Seleccione una opción</option>
-                          <option v-for="(option, index) in campo.options" :key="index" :value="option">
+                          <option
+                            v-for="(option, index) in campo.options"
+                            :key="index"
+                            :value="option"
+                          >
                             {{ option }}
                           </option>
                         </select>
@@ -183,7 +199,11 @@
                           >
                             <div class="file-content">
                               <div v-if="isImageFile(file)" class="file-thumbnail">
-                                <img :src="getThumbnailUrl(file)" alt="Miniatura" class="img-fluid" />
+                                <img
+                                  :src="getThumbnailUrl(file)"
+                                  alt="Miniatura"
+                                  class="img-fluid"
+                                />
                               </div>
                               <div v-else class="file-icon">
                                 <i class="fas fa-file-alt"></i>
@@ -258,7 +278,9 @@
                         <small v-else class="text-muted">Campo opcional</small>
                       </div>
                       <div class="form-text mt-1">
-                        <small v-if="campo.filterable" class="text-danger">Campo para filtro de fecha</small>
+                        <small v-if="campo.filterable" class="text-danger"
+                          >Campo para filtro de fecha</small
+                        >
                       </div>
                     </div>
                   </div>
@@ -471,7 +493,9 @@
                     <small v-else class="text-muted">Campo opcional</small>
                   </div>
                   <div class="form-text mt-1">
-                    <small v-if="campo.filterable" class="text-danger">Campo para filtro de fecha</small>
+                    <small v-if="campo.filterable" class="text-danger"
+                      >Campo para filtro de fecha</small
+                    >
                   </div>
                 </div>
               </div>
@@ -559,10 +583,7 @@
                         @change="onModalFileChange($event, subcampo.name)"
                       />
                     </div>
-                    <div
-                      v-if="currentSubformData[subcampo.name]?.name"
-                      class="file-info mt-2"
-                    >
+                    <div v-if="currentSubformData[subcampo.name]?.name" class="file-info mt-2">
                       <div class="current-file">
                         <i class="fas fa-file me-2"></i>
                         <span>{{ currentSubformData[subcampo.name].name }}</span>
@@ -607,7 +628,11 @@
                         :required="subcampo.required"
                       >
                         <option value="" disabled selected>Seleccione una opción</option>
-                        <option v-for="(option, index) in subcampo.options" :key="index" :value="option">
+                        <option
+                          v-for="(option, index) in subcampo.options"
+                          :key="index"
+                          :value="option"
+                        >
                           {{ option }}
                         </option>
                       </select>
@@ -674,6 +699,388 @@
     </div>
   </div>
 </template>
+
+<script>
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+export default {
+  data() {
+    return {
+      plantillas: [],
+      selectedPlantilla: null,
+      camposPlantilla: [],
+      seccionesPlantilla: [],
+      seccionesDocumento: [],
+      documentData: {},
+      files: {},
+      subformData: {}, // Guarda los datos de texto/número/fecha
+      subformFiles: {}, // Guarda referencias a archivos
+      showSubformModal: false,
+      currentSubformField: null,
+      currentSubformData: {},
+      editingIndex: -1,
+    }
+  },
+  methods: {
+    async fetchPlantillas() {
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        this.plantillas = response.data
+      } catch (error) {
+        console.error('Error obteniendo plantillas', error)
+        this.showError('No se pudieron cargar las plantillas')
+      }
+    },
+
+    async onPlantillaSelected() {
+      if (this.selectedPlantilla) {
+        try {
+          const token = localStorage.getItem('apiToken')
+          // Cambiamos la ruta para obtener las secciones con campos
+          const response = await axios.get(
+            `http://127.0.0.1:8000/api/plantillas/${this.selectedPlantilla}/secciones`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          )
+
+          if (response.data && Array.isArray(response.data.secciones)) {
+            // Guardar las secciones con sus campos
+            this.seccionesPlantilla = response.data.secciones
+
+            // Crear una lista plana de campos a partir de las secciones
+            this.camposPlantilla = this.seccionesPlantilla.flatMap(
+              (seccion) => seccion.fields || [],
+            )
+
+            this.seccionesDocumento = response.data.secciones.map((seccion) => ({
+              nombre: seccion.nombre,
+              fields: seccion.fields || [],
+            }))
+
+            // Inicializar subformularios
+            this.camposPlantilla.forEach((campo) => {
+              if (campo.type === 'subform') {
+                this.subformData[campo.name] = []
+                this.subformFiles[campo.name] = []
+              }
+            })
+
+            this.resetForm()
+          }
+        } catch (error) {
+          console.error('Error al obtener las secciones:', error)
+          this.showError('Error al cargar las secciones de la plantilla')
+        }
+      }
+    },
+
+    onFileChange(event, fieldName) {
+      const fileList = event.target.files
+      if (fileList.length > 0) {
+        // En Vue 3 podemos asignar directamente
+        this.files[fieldName] = Array.from(fileList)
+      }
+    },
+
+    isImageFile(file) {
+      return file && file.type && file.type.startsWith('image/')
+    },
+
+    getThumbnailUrl(file) {
+      return this.isImageFile(file) ? URL.createObjectURL(file) : null
+    },
+
+    removeFile(fieldName, index) {
+      if (this.files[fieldName]) {
+        this.files[fieldName].splice(index, 1)
+        if (this.files[fieldName].length === 0) {
+          // En Vue 3 podemos eliminar propiedades directamente
+          delete this.files[fieldName]
+        }
+      }
+    },
+
+    // Métodos para subforms
+    getSubformRows(fieldName) {
+      return this.subformData[fieldName] || []
+    },
+
+    openModal(campo, rowIndex = -1) {
+      this.currentSubformField = campo
+      this.editingIndex = rowIndex
+
+      // Inicializar datos del subformulario
+      const emptyData = campo.subcampos.reduce((acc, sub) => {
+        acc[sub.name] = sub.type === 'file' ? null : ''
+        return acc
+      }, {})
+
+      if (rowIndex === -1) {
+        // Nuevo registro
+        this.currentSubformData = { ...emptyData }
+      } else {
+        // Editar registro existente
+        const baseData = this.subformData[campo.name][rowIndex] || {}
+
+        // Combinar datos básicos con archivos
+        this.currentSubformData = { ...emptyData, ...baseData }
+
+        // Agregar archivos si existen
+        if (this.subformFiles[campo.name] && this.subformFiles[campo.name][rowIndex]) {
+          const fileData = this.subformFiles[campo.name][rowIndex]
+          // Iterar sobre cada nombre de campo
+          Object.keys(fileData).forEach((fieldName) => {
+            if (fileData[fieldName]) {
+              this.currentSubformData[fieldName] = fileData[fieldName]
+            }
+          })
+        }
+      }
+
+      this.showSubformModal = true
+    },
+
+    closeModal() {
+      this.showSubformModal = false
+      this.currentSubformField = null
+      this.currentSubformData = {}
+      this.editingIndex = -1
+    },
+
+    saveSubformEntry() {
+      const fieldName = this.currentSubformField.name
+
+      // Validar campos requeridos
+      const isValid = this.currentSubformField.subcampos.every((sub) => {
+        if (!sub.required) return true
+        // Validación para selects
+        if (sub.type === 'select') {
+          return (
+            this.currentSubformData[sub.name] !== '' &&
+            this.currentSubformData[sub.name] !== null &&
+            this.currentSubformData[sub.name] !== undefined
+          )
+        }
+
+        // Para archivos, validar si hay archivo nuevo o existente
+        if (sub.type === 'file') {
+          return !!this.currentSubformData[sub.name]
+        }
+
+        return (
+          this.currentSubformData[sub.name] !== null &&
+          this.currentSubformData[sub.name] !== undefined &&
+          this.currentSubformData[sub.name] !== ''
+        )
+      })
+
+      if (!isValid) {
+        this.showError('Complete los campos requeridos')
+        return
+      }
+
+      // Asegurar que los arrays existen
+      if (!this.subformData[fieldName]) {
+        this.subformData[fieldName] = []
+      }
+
+      if (!this.subformFiles[fieldName]) {
+        this.subformFiles[fieldName] = []
+      }
+
+      // Separar datos normales de archivos
+      const dataSinArchivos = {}
+      const soloArchivos = {}
+
+      // Clasificar datos
+      Object.keys(this.currentSubformData).forEach((key) => {
+        const valor = this.currentSubformData[key]
+
+        if (valor instanceof File) {
+          // Es un archivo
+          soloArchivos[key] = valor
+        } else {
+          // Es un dato normal
+          dataSinArchivos[key] = valor
+        }
+      })
+
+      // Guardar o actualizar según corresponda
+      if (this.editingIndex === -1) {
+        // Nuevo registro
+        this.subformData[fieldName].push(dataSinArchivos)
+        this.subformFiles[fieldName].push(soloArchivos)
+      } else {
+        // Actualizar registro existente
+        this.subformData[fieldName][this.editingIndex] = dataSinArchivos
+
+        // Asegurar que existe el objeto para los archivos
+        if (!this.subformFiles[fieldName][this.editingIndex]) {
+          this.subformFiles[fieldName][this.editingIndex] = {}
+        }
+
+        // Solo actualizar los campos de archivo que se hayan modificado
+        Object.keys(soloArchivos).forEach((key) => {
+          if (soloArchivos[key]) {
+            this.subformFiles[fieldName][this.editingIndex][key] = soloArchivos[key]
+          }
+        })
+      }
+
+      this.closeModal()
+    },
+
+    onModalFileChange(event, subcampoName) {
+      const file = event.target.files[0]
+      if (file) {
+        // Asignación directa en Vue 3
+        this.currentSubformData[subcampoName] = file
+      }
+    },
+
+    removeSubformRow(fieldName, rowIndex) {
+      if (this.subformData[fieldName] && this.subformData[fieldName].length > rowIndex) {
+        // Eliminar la fila de datos
+        this.subformData[fieldName].splice(rowIndex, 1)
+
+        // Eliminar los archivos correspondientes
+        if (this.subformFiles[fieldName] && this.subformFiles[fieldName].length > rowIndex) {
+          this.subformFiles[fieldName].splice(rowIndex, 1)
+        }
+      }
+    },
+    async onSubmit() {
+      // Validaciones previas (esto no cambia)
+      const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
+        if (campo.type === 'select' && campo.required) {
+          return !this.documentData[campo.name] || this.documentData[campo.name] === ''
+        }
+        return false
+      })
+      if (selectFieldsEmpty) {
+        this.showError('Por favor seleccione una opción en los campos obligatorios')
+        return
+      }
+
+      const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
+        if (campo.required || (campo.filterable && campo.type !== 'subform')) {
+          if (campo.type === 'file') {
+            return !this.files[campo.name] || this.files[campo.name].length === 0
+          }
+          return !this.documentData[campo.name]
+        }
+        return false
+      })
+
+      const subformsEmpty = this.camposPlantilla.some((campo) => {
+        if (campo.type === 'subform' && (campo.required || campo.filterable)) {
+          return !this.subformData[campo.name] || this.subformData[campo.name].length === 0
+        }
+        return false
+      })
+
+      if (requiredFieldsEmpty || subformsEmpty) {
+        this.showError('Complete todos los campos obligatorios')
+        return
+      }
+
+      const formData = new FormData()
+
+      // 👇👇 Nueva parte: Construir estructura por secciones 👇👇
+      const seccionesData = []
+
+      this.seccionesPlantilla.forEach((seccion) => {
+        const camposDeSeccion = seccion.fields || []
+        const fields = {}
+
+        camposDeSeccion.forEach((campo) => {
+          if (campo.type === 'subform') {
+            // Si es subform, lo guardamos como array
+            fields[campo.name] = this.subformData[campo.name] || []
+          } else if (campo.type === 'file') {
+            // Para archivos, solo marcamos que existe, pero el archivo va aparte
+            fields[campo.name] = null
+          } else {
+            // Otros tipos de campos
+            fields[campo.name] = this.documentData[campo.name] || ''
+          }
+        })
+
+        seccionesData.push({
+          nombre: seccion.nombre,
+          fields,
+        })
+      })
+
+      // Adjuntar la estructura final al formData
+      formData.append('document_data[secciones]', JSON.stringify(seccionesData))
+
+      // Enviar solicitud
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.post(
+          `http://127.0.0.1:8000/api/documentos/${this.selectedPlantilla}`,
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
+          },
+        )
+
+        Swal.fire({
+          title: 'Éxito',
+          text: 'Documento creado correctamente',
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+        })
+        this.resetForm()
+      } catch (error) {
+        console.error('Error al crear documento:', error)
+        this.showError(
+          'Error al crear el documento: ' +
+            (error.response?.data?.message || error.message || 'Error desconocido'),
+        )
+      }
+    },
+
+    resetForm() {
+      this.documentData = {}
+      this.files = {}
+
+      this.camposPlantilla.forEach((campo) => {
+        if (campo.type === 'select') {
+          this.documentData[campo.name] = ''
+        }
+        if (campo.type === 'subform') {
+          this.subformData[campo.name] = []
+          this.subformFiles[campo.name] = []
+        }
+      })
+
+      if (this.$refs.form) this.$refs.form.reset()
+    },
+    showError(message) {
+      Swal.fire({
+        title: 'Error',
+        text: message,
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+      })
+    },
+  },
+  mounted() {
+    this.fetchPlantillas()
+  },
+}
+</script>
 
 <style scoped>
 /* Estilos base del diseño moderno */
@@ -1274,386 +1681,3 @@
   }
 }
 </style>
-
-<script>
-import axios from 'axios'
-import Swal from 'sweetalert2'
-
-export default {
-  data() {
-    return {
-      plantillas: [],
-      selectedPlantilla: null,
-      camposPlantilla: [],
-      seccionesPlantilla: [],
-      seccionesDocumento: [],
-      documentData: {},
-      files: {},
-      subformData: {}, // Guarda los datos de texto/número/fecha
-      subformFiles: {}, // Guarda referencias a archivos
-      showSubformModal: false,
-      currentSubformField: null,
-      currentSubformData: {},
-      editingIndex: -1,
-    }
-  },
-  methods: {
-    async fetchPlantillas() {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        this.plantillas = response.data
-      } catch (error) {
-        console.error('Error obteniendo plantillas', error)
-        this.showError('No se pudieron cargar las plantillas')
-      }
-    },
-
-async onPlantillaSelected() {
-  if (this.selectedPlantilla) {
-    try {
-      const token = localStorage.getItem('apiToken')
-      // Cambiamos la ruta para obtener las secciones con campos
-      const response = await axios.get(
-        `http://127.0.0.1:8000/api/plantillas/${this.selectedPlantilla}/secciones`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-
-if (response.data && Array.isArray(response.data.secciones)) {
-  // Guardar las secciones con sus campos
-  this.seccionesPlantilla = response.data.secciones
-
-  // Crear una lista plana de campos a partir de las secciones
-  this.camposPlantilla = this.seccionesPlantilla.flatMap(seccion =>
-    seccion.fields || []
-  )
-
-  this.seccionesDocumento = response.data.secciones.map(seccion => ({
-  nombre: seccion.nombre,
-  fields: seccion.fields || []
-}))
-
-  // Inicializar subformularios
-  this.camposPlantilla.forEach((campo) => {
-    if (campo.type === 'subform') {
-      this.subformData[campo.name] = []
-      this.subformFiles[campo.name] = []
-    }
-  })
-
-  this.resetForm()
-}
-    } catch (error) {
-      console.error('Error al obtener las secciones:', error)
-      this.showError('Error al cargar las secciones de la plantilla')
-    }
-  }
-},
-
-    onFileChange(event, fieldName) {
-      const fileList = event.target.files
-      if (fileList.length > 0) {
-        // En Vue 3 podemos asignar directamente
-        this.files[fieldName] = Array.from(fileList)
-      }
-    },
-
-    isImageFile(file) {
-      return file && file.type && file.type.startsWith('image/')
-    },
-
-    getThumbnailUrl(file) {
-      return this.isImageFile(file) ? URL.createObjectURL(file) : null
-    },
-
-    removeFile(fieldName, index) {
-      if (this.files[fieldName]) {
-        this.files[fieldName].splice(index, 1)
-        if (this.files[fieldName].length === 0) {
-          // En Vue 3 podemos eliminar propiedades directamente
-          delete this.files[fieldName]
-        }
-      }
-    },
-
-    // Métodos para subforms
-    getSubformRows(fieldName) {
-      return this.subformData[fieldName] || []
-    },
-
-    openModal(campo, rowIndex = -1) {
-      this.currentSubformField = campo
-      this.editingIndex = rowIndex
-
-      // Inicializar datos del subformulario
-      const emptyData = campo.subcampos.reduce((acc, sub) => {
-        acc[sub.name] = sub.type === 'file' ? null : ''
-        return acc
-      }, {})
-
-      if (rowIndex === -1) {
-        // Nuevo registro
-        this.currentSubformData = { ...emptyData }
-      } else {
-        // Editar registro existente
-        const baseData = this.subformData[campo.name][rowIndex] || {}
-
-        // Combinar datos básicos con archivos
-        this.currentSubformData = { ...emptyData, ...baseData }
-
-        // Agregar archivos si existen
-        if (this.subformFiles[campo.name] && this.subformFiles[campo.name][rowIndex]) {
-          const fileData = this.subformFiles[campo.name][rowIndex]
-          // Iterar sobre cada nombre de campo
-          Object.keys(fileData).forEach((fieldName) => {
-            if (fileData[fieldName]) {
-              this.currentSubformData[fieldName] = fileData[fieldName]
-            }
-          })
-        }
-      }
-
-      this.showSubformModal = true
-    },
-
-    closeModal() {
-      this.showSubformModal = false
-      this.currentSubformField = null
-      this.currentSubformData = {}
-      this.editingIndex = -1
-    },
-
-    saveSubformEntry() {
-      const fieldName = this.currentSubformField.name
-
-      // Validar campos requeridos
-      const isValid = this.currentSubformField.subcampos.every((sub) => {
-        if (!sub.required) return true
-        // Validación para selects
-        if (sub.type === 'select') {
-          return (
-            this.currentSubformData[sub.name] !== '' &&
-            this.currentSubformData[sub.name] !== null &&
-            this.currentSubformData[sub.name] !== undefined
-          )
-        }
-
-        // Para archivos, validar si hay archivo nuevo o existente
-        if (sub.type === 'file') {
-          return !!this.currentSubformData[sub.name]
-        }
-
-        return (
-          this.currentSubformData[sub.name] !== null &&
-          this.currentSubformData[sub.name] !== undefined &&
-          this.currentSubformData[sub.name] !== ''
-        )
-      })
-
-      if (!isValid) {
-        this.showError('Complete los campos requeridos')
-        return
-      }
-
-      // Asegurar que los arrays existen
-      if (!this.subformData[fieldName]) {
-        this.subformData[fieldName] = []
-      }
-
-      if (!this.subformFiles[fieldName]) {
-        this.subformFiles[fieldName] = []
-      }
-
-      // Separar datos normales de archivos
-      const dataSinArchivos = {}
-      const soloArchivos = {}
-
-      // Clasificar datos
-      Object.keys(this.currentSubformData).forEach((key) => {
-        const valor = this.currentSubformData[key]
-
-        if (valor instanceof File) {
-          // Es un archivo
-          soloArchivos[key] = valor
-        } else {
-          // Es un dato normal
-          dataSinArchivos[key] = valor
-        }
-      })
-
-      // Guardar o actualizar según corresponda
-      if (this.editingIndex === -1) {
-        // Nuevo registro
-        this.subformData[fieldName].push(dataSinArchivos)
-        this.subformFiles[fieldName].push(soloArchivos)
-      } else {
-        // Actualizar registro existente
-        this.subformData[fieldName][this.editingIndex] = dataSinArchivos
-
-        // Asegurar que existe el objeto para los archivos
-        if (!this.subformFiles[fieldName][this.editingIndex]) {
-          this.subformFiles[fieldName][this.editingIndex] = {}
-        }
-
-        // Solo actualizar los campos de archivo que se hayan modificado
-        Object.keys(soloArchivos).forEach((key) => {
-          if (soloArchivos[key]) {
-            this.subformFiles[fieldName][this.editingIndex][key] = soloArchivos[key]
-          }
-        })
-      }
-
-      this.closeModal()
-    },
-
-    onModalFileChange(event, subcampoName) {
-      const file = event.target.files[0]
-      if (file) {
-        // Asignación directa en Vue 3
-        this.currentSubformData[subcampoName] = file
-      }
-    },
-
-    removeSubformRow(fieldName, rowIndex) {
-      if (this.subformData[fieldName] && this.subformData[fieldName].length > rowIndex) {
-        // Eliminar la fila de datos
-        this.subformData[fieldName].splice(rowIndex, 1)
-
-        // Eliminar los archivos correspondientes
-        if (this.subformFiles[fieldName] && this.subformFiles[fieldName].length > rowIndex) {
-          this.subformFiles[fieldName].splice(rowIndex, 1)
-        }
-      }
-    },
-async onSubmit() {
-  // Validaciones previas (esto no cambia)
-  const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
-    if (campo.type === 'select' && campo.required) {
-      return !this.documentData[campo.name] || this.documentData[campo.name] === ''
-    }
-    return false
-  })
-  if (selectFieldsEmpty) {
-    this.showError('Por favor seleccione una opción en los campos obligatorios')
-    return
-  }
-
-  const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
-    if (campo.required || campo.filterable && campo.type !== 'subform') {
-      if (campo.type === 'file') {
-        return !this.files[campo.name] || this.files[campo.name].length === 0
-      }
-      return !this.documentData[campo.name]
-    }
-    return false
-  })
-
-  const subformsEmpty = this.camposPlantilla.some((campo) => {
-    if (campo.type === 'subform' && (campo.required || campo.filterable)) {
-      return !this.subformData[campo.name] || this.subformData[campo.name].length === 0
-    }
-    return false
-  })
-
-  if (requiredFieldsEmpty || subformsEmpty) {
-    this.showError('Complete todos los campos obligatorios')
-    return
-  }
-
-  const formData = new FormData()
-
-  // 👇👇 Nueva parte: Construir estructura por secciones 👇👇
-  const seccionesData = []
-
-  this.seccionesPlantilla.forEach((seccion) => {
-    const camposDeSeccion = seccion.fields || []
-    const fields = {}
-
-    camposDeSeccion.forEach((campo) => {
-      if (campo.type === 'subform') {
-        // Si es subform, lo guardamos como array
-        fields[campo.name] = this.subformData[campo.name] || []
-      } else if (campo.type === 'file') {
-        // Para archivos, solo marcamos que existe, pero el archivo va aparte
-        fields[campo.name] = null
-      } else {
-        // Otros tipos de campos
-        fields[campo.name] = this.documentData[campo.name] || ''
-      }
-    })
-
-    seccionesData.push({
-      nombre: seccion.nombre,
-      fields
-    })
-  })
-
-  // Adjuntar la estructura final al formData
-  formData.append('document_data[secciones]', JSON.stringify(seccionesData))
-
-  // Enviar solicitud
-  try {
-    const token = localStorage.getItem('apiToken')
-    const response = await axios.post(
-      `http://127.0.0.1:8000/api/documentos/${this.selectedPlantilla}`,
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
-      },
-    )
-
-    Swal.fire({
-      title: 'Éxito',
-      text: 'Documento creado correctamente',
-      icon: 'success',
-      confirmButtonText: 'Aceptar',
-    })
-    this.resetForm()
-  } catch (error) {
-    console.error('Error al crear documento:', error)
-    this.showError(
-      'Error al crear el documento: ' +
-        (error.response?.data?.message || error.message || 'Error desconocido'),
-    )
-  }
-},
-
-    resetForm() {
-      this.documentData = {}
-      this.files = {}
-
-      this.camposPlantilla.forEach((campo) => {
-        if (campo.type === 'select') {
-          this.documentData[campo.name] = ''
-        }
-        if (campo.type === 'subform') {
-          this.subformData[campo.name] = []
-          this.subformFiles[campo.name] = []
-        }
-      })
-
-      if (this.$refs.form) this.$refs.form.reset()
-    },
-    showError(message) {
-      Swal.fire({
-        title: 'Error',
-        text: message,
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
-      })
-    },
-  },
-  mounted() {
-    this.fetchPlantillas()
-  },
-}
-</script>
-
