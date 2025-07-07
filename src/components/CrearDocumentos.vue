@@ -1584,6 +1584,210 @@ export default {
   }
 }
 
+/* Estilos para las secciones */
+.seccion-container {
+  margin-bottom: 2rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(108, 117, 125, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.seccion-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+}
+
+.seccion-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #6c757d 0%, #495057 50%, #20c997 100%);
+}
+
+.seccion-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.seccion-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 2rem;
+  right: 2rem;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(108, 117, 125, 0.2) 50%,
+    transparent 100%
+  );
+}
+
+.seccion-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.seccion-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.seccion-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.seccion-icon::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.seccion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.seccion-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2c3e50;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.seccion-description {
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.seccion-body {
+  padding: 2rem;
+  background: white;
+  position: relative;
+}
+
+.seccion-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2rem;
+  right: 2rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(32, 201, 151, 0.1) 50%, transparent 100%);
+}
+
+/* Efectos adicionales para las secciones */
+.seccion-container:nth-child(even) .seccion-icon {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+}
+
+.seccion-container:nth-child(3n) .seccion-icon {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+/* Responsive para secciones */
+@media (max-width: 768px) {
+  .seccion-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .seccion-title-wrapper {
+    gap: 0.75rem;
+  }
+
+  .seccion-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .seccion-title {
+    font-size: 1.1rem;
+  }
+
+  .seccion-description {
+    font-size: 0.8rem;
+  }
+
+  .seccion-body {
+    padding: 1.5rem;
+  }
+
+  .seccion-header::after {
+    left: 1.5rem;
+    right: 1.5rem;
+  }
+
+  .seccion-body::before {
+    left: 1.5rem;
+    right: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .seccion-header {
+    padding: 1rem;
+  }
+
+  .seccion-title-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .seccion-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+
+  .seccion-body {
+    padding: 1rem;
+  }
+
+  .seccion-header::after {
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .seccion-body::before {
+    left: 1rem;
+    right: 1rem;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .medico-header {
