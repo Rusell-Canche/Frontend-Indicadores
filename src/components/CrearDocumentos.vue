@@ -50,7 +50,238 @@
           </div>
         </div>
 
-        <div v-if="camposPlantilla.length > 0">
+        <!-- Renderizar por secciones si existen, sino renderizar campos directamente -->
+        <div v-if="seccionesPlantilla.length > 0">
+          <!-- Nota de campos requeridos -->
+          <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle me-2"></i>Los campos marcados con
+            <span class="text-danger">*</span> son obligatorios
+          </div>
+
+          <form ref="form" @submit.prevent="onSubmit" enctype="multipart/form-data">
+            <!-- Renderizar por secciones -->
+            <div v-for="(seccion, seccionIndex) in seccionesPlantilla" :key="seccionIndex" class="seccion-container mb-4">
+              <div class="seccion-header">
+                <div class="seccion-header-content">
+                  <div class="seccion-title-wrapper">
+                    <div class="seccion-icon">
+                      <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div class="seccion-info">
+                      <h5 class="seccion-title">{{ seccion.nombre || 'Sección ' + (seccionIndex + 1) }}</h5>
+                      <span class="seccion-description">Complete los campos de esta sección</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="seccion-body">
+                <div v-for="(campo, campoIndex) in seccion.fields" :key="campo.name">
+                  <div v-if="campo.name !== '_id'" class="form-section">
+                    <h6 class="section-title">
+                      <i class="fas fa-edit me-2"></i>
+                      {{ campo.alias || campo.name }}
+                      <span v-if="campo.required || campo.filterable" class="text-danger">*</span>
+                    </h6>
+
+                    <!-- Campo de tipo subform -->
+                    <div v-if="campo.type === 'subform'" class="subform-container">
+                      <div class="subform-header">
+                        <i class="fas fa-indent me-2"></i>
+                        <span>Subformulario para {{ campo.name || 'este campo' }}</span>
+                      </div>
+                      <button type="button" @click="openModal(campo)" class="add-campo-button">
+                        <i class="fas fa-plus me-2"></i> Agregar entrada
+                      </button>
+
+                      <!-- Tabla para mostrar entradas existentes -->
+                      <div class="table-responsive mt-3" v-if="getSubformRows(campo.name).length > 0">
+                        <table class="table table-bordered table-hover">
+                          <thead class="table-light">
+                            <tr>
+                              <th v-for="subcampo in campo.subcampos" :key="subcampo.name">
+                                {{ subcampo.alias || subcampo.name }}
+                              </th>
+                              <th class="text-center">Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="(row, rowIndex) in getSubformRows(campo.name)" :key="rowIndex">
+                              <td v-for="subcampo in campo.subcampos" :key="subcampo.name">
+                                <template v-if="subcampo.type === 'file'">
+                                  {{ row[subcampo.name]?.name || 'Sin archivo' }}
+                                </template>
+                                <template v-else>
+                                  {{ row[subcampo.name] }}
+                                </template>
+                              </td>
+                              <td class="text-center">
+                                <button
+                                  type="button"
+                                  class="btn btn-sm btn-outline-secondary me-2"
+                                  @click="openModal(campo, rowIndex)"
+                                >
+                                  <i class="fas fa-edit"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  class="btn btn-sm btn-outline-danger"
+                                  @click="removeSubformRow(campo.name, rowIndex)"
+                                >
+                                  <i class="fas fa-trash-alt"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <!-- Campo de tipo select -->
+                    <div v-else-if="campo.type === 'select'" class="mt-2">
+                      <div class="input-group modern-input">
+                        <span class="input-group-text">
+                          <i class="fas fa-list-ul"></i>
+                        </span>
+                        <select
+                          class="form-select"
+                          :id="campo.name"
+                          v-model="documentData[campo.name]"
+                          :required="campo.required"
+                        >
+                          <option value="" disabled selected>Seleccione una opción</option>
+                          <option v-for="(option, index) in campo.options" :key="index" :value="option">
+                            {{ option }}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- Campo de archivos -->
+                    <div v-else-if="campo.type === 'file'" class="mt-2">
+                      <div class="input-group modern-input">
+                        <span class="input-group-text">
+                          <i class="fas fa-paperclip"></i>
+                        </span>
+                        <input
+                          type="file"
+                          class="form-control"
+                          :id="campo.name"
+                          :name="campo.name"
+                          @change="onFileChange($event, campo.name)"
+                          multiple
+                        />
+                      </div>
+                      <!-- Vista previa de archivos -->
+                      <div v-if="files[campo.name]" class="file-preview mt-3">
+                        <h6 class="preview-title">Archivos seleccionados:</h6>
+                        <div class="d-flex flex-wrap gap-3">
+                          <div
+                            class="file-item"
+                            v-for="(file, index) in files[campo.name]"
+                            :key="index"
+                          >
+                            <div class="file-content">
+                              <div v-if="isImageFile(file)" class="file-thumbnail">
+                                <img :src="getThumbnailUrl(file)" alt="Miniatura" class="img-fluid" />
+                              </div>
+                              <div v-else class="file-icon">
+                                <i class="fas fa-file-alt"></i>
+                              </div>
+                              <span class="file-name">{{ file.name }}</span>
+                            </div>
+                            <button
+                              type="button"
+                              class="delete-button"
+                              @click="removeFile(campo.name, index)"
+                            >
+                              <i class="fas fa-times"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Campo numérico -->
+                    <div v-else-if="campo.type === 'number'" class="mt-2">
+                      <div class="input-group modern-input">
+                        <span class="input-group-text">
+                          <i class="fas fa-hashtag"></i>
+                        </span>
+                        <input
+                          type="number"
+                          class="form-control"
+                          :id="campo.name"
+                          v-model="documentData[campo.name]"
+                          :required="campo.required"
+                          placeholder="Ingrese un valor numérico"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Campo de fecha -->
+                    <div v-else-if="campo.type === 'date'" class="mt-2">
+                      <div class="input-group modern-input">
+                        <span class="input-group-text">
+                          <i class="fas fa-calendar-alt"></i>
+                        </span>
+                        <input
+                          type="date"
+                          class="form-control"
+                          :id="campo.name"
+                          v-model="documentData[campo.name]"
+                          :required="campo.require || campo.filterable"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Campo de texto -->
+                    <div v-else class="mt-2">
+                      <div class="input-group modern-input">
+                        <span class="input-group-text">
+                          <i class="fas fa-font"></i>
+                        </span>
+                        <input
+                          v-solo-texto
+                          type="text"
+                          class="form-control"
+                          :id="campo.name"
+                          v-model="documentData[campo.name]"
+                          :required="campo.required"
+                          placeholder="Ingrese texto"
+                        />
+                      </div>
+                    </div>
+                    <div class="d-flex">
+                      <div class="form-text mt-1 me-4">
+                        <small v-if="campo.required" class="text-danger">Campo obligatorio</small>
+                        <small v-else class="text-muted">Campo opcional</small>
+                      </div>
+                      <div class="form-text mt-1">
+                        <small v-if="campo.filterable" class="text-danger">Campo para filtro de fecha</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer con botones -->
+            <div class="medico-footer">
+              <button @click="resetForm" class="btn btn-cancel" type="button">
+                <i class="fas fa-eraser me-2"></i>
+                Limpiar Formulario
+              </button>
+              <button type="submit" class="btn btn-save">
+                <i class="fas fa-save me-2"></i>
+                Crear Documento
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Renderizar campos directamente si no hay secciones (compatibilidad hacia atrás) -->
+        <div v-else-if="camposPlantilla.length > 0">
           <!-- Nota de campos requeridos -->
           <div class="alert alert-info mb-4">
             <i class="fas fa-info-circle me-2"></i>Los campos marcados con
@@ -235,14 +466,14 @@
                   </div>
                 </div>
                 <div class="d-flex">
-                <div class="form-text mt-1 me-4">
-                  <small v-if="campo.required" class="text-danger">Campo obligatorio</small>
-                  <small v-else class="text-muted">Campo opcional</small>
+                  <div class="form-text mt-1 me-4">
+                    <small v-if="campo.required" class="text-danger">Campo obligatorio</small>
+                    <small v-else class="text-muted">Campo opcional</small>
+                  </div>
+                  <div class="form-text mt-1">
+                    <small v-if="campo.filterable" class="text-danger">Campo para filtro de fecha</small>
+                  </div>
                 </div>
-                <div class="form-text mt-1">
-                  <small v-if="campo.filterable" class="text-danger">Campo para filtro de fecha</small>
-                </div>
-              </div>
               </div>
             </div>
 
@@ -418,7 +649,6 @@
                         class="form-control"
                         v-model="currentSubformData[subcampo.name]"
                         :required="subcampo.required"
-
                         placeholder="Ingrese texto"
                       />
                     </div>
@@ -1055,6 +1285,8 @@ export default {
       plantillas: [],
       selectedPlantilla: null,
       camposPlantilla: [],
+      seccionesPlantilla: [],
+      seccionesDocumento: [],
       documentData: {},
       files: {},
       subformData: {}, // Guarda los datos de texto/número/fecha
@@ -1081,36 +1313,50 @@ export default {
       }
     },
 
-    async onPlantillaSelected() {
-      if (this.selectedPlantilla) {
-        try {
-          const token = localStorage.getItem('apiToken')
-          const response = await axios.get(
-            `http://127.0.0.1:8000/api/plantillas/${this.selectedPlantilla}/campos`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          )
-          if (response.data) {
-            this.camposPlantilla = response.data.campos
-            // Inicializar arrays para cada subformulario
-            this.camposPlantilla.forEach((campo) => {
-              if (campo.type === 'subform') {
-                // En Vue 3 podemos asignar directamente gracias a la reactividad mejorada
-                this.subformData[campo.name] = []
-                this.subformFiles[campo.name] = []
-              }
-            })
-            this.resetForm() // Limpiar formulario al cambiar de plantilla
-          }
-        } catch (error) {
-          console.error('Error al obtener los campos:', error)
-          this.showError('Error al cargar los campos de la plantilla')
+async onPlantillaSelected() {
+  if (this.selectedPlantilla) {
+    try {
+      const token = localStorage.getItem('apiToken')
+      // Cambiamos la ruta para obtener las secciones con campos
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/plantillas/${this.selectedPlantilla}/secciones`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      }
-    },
+      )
+
+if (response.data && Array.isArray(response.data.secciones)) {
+  // Guardar las secciones con sus campos
+  this.seccionesPlantilla = response.data.secciones
+
+  // Crear una lista plana de campos a partir de las secciones
+  this.camposPlantilla = this.seccionesPlantilla.flatMap(seccion =>
+    seccion.fields || []
+  )
+
+  this.seccionesDocumento = response.data.secciones.map(seccion => ({
+  nombre: seccion.nombre,
+  fields: seccion.fields || []
+}))
+
+  // Inicializar subformularios
+  this.camposPlantilla.forEach((campo) => {
+    if (campo.type === 'subform') {
+      this.subformData[campo.name] = []
+      this.subformFiles[campo.name] = []
+    }
+  })
+
+  this.resetForm()
+}
+    } catch (error) {
+      console.error('Error al obtener las secciones:', error)
+      this.showError('Error al cargar las secciones de la plantilla')
+    }
+  }
+},
 
     onFileChange(event, fieldName) {
       const fileList = event.target.files
@@ -1287,116 +1533,98 @@ export default {
         }
       }
     },
+async onSubmit() {
+  // Validaciones previas (esto no cambia)
+  const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
+    if (campo.type === 'select' && campo.required) {
+      return !this.documentData[campo.name] || this.documentData[campo.name] === ''
+    }
+    return false
+  })
+  if (selectFieldsEmpty) {
+    this.showError('Por favor seleccione una opción en los campos obligatorios')
+    return
+  }
 
-    async onSubmit() {
-      // Validar campos select requeridos
-      const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
-        if (campo.type === 'select' && campo.required) {
-          return !this.documentData[campo.name] || this.documentData[campo.name] === ''
-        }
-        return false
-      })
-
-      if (selectFieldsEmpty) {
-        this.showError('Por favor seleccione una opción en los campos obligatorios')
-        return
+  const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
+    if (campo.required || campo.filterable && campo.type !== 'subform') {
+      if (campo.type === 'file') {
+        return !this.files[campo.name] || this.files[campo.name].length === 0
       }
+      return !this.documentData[campo.name]
+    }
+    return false
+  })
 
-      // Validar campos requeridos en el formulario principal
-      const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
-        if (campo.required || campo.filterable && campo.type !== 'subform') {
-          if (campo.type === 'file') {
-            return !this.files[campo.name] || this.files[campo.name].length === 0
-          }
-          return !this.documentData[campo.name]
-        }
-        return false
-      })
+  const subformsEmpty = this.camposPlantilla.some((campo) => {
+    if (campo.type === 'subform' && (campo.required || campo.filterable)) {
+      return !this.subformData[campo.name] || this.subformData[campo.name].length === 0
+    }
+    return false
+  })
 
-      // Validar subformularios requeridos
-      const subformsEmpty = this.camposPlantilla.some((campo) => {
-        if (campo.type === 'subform' && (campo.required||campo.filterable)) {
-          return !this.subformData[campo.name] || this.subformData[campo.name].length === 0
-        }
-        return false
-      })
+  if (requiredFieldsEmpty || subformsEmpty) {
+    this.showError('Complete todos los campos obligatorios')
+    return
+  }
 
-      if (requiredFieldsEmpty || subformsEmpty) {
-        this.showError('Complete todos los campos obligatorios')
-        return
+  const formData = new FormData()
+
+  // 👇👇 Nueva parte: Construir estructura por secciones 👇👇
+  const seccionesData = []
+
+  this.seccionesPlantilla.forEach((seccion) => {
+    const camposDeSeccion = seccion.fields || []
+    const fields = {}
+
+    camposDeSeccion.forEach((campo) => {
+      if (campo.type === 'subform') {
+        // Si es subform, lo guardamos como array
+        fields[campo.name] = this.subformData[campo.name] || []
+      } else if (campo.type === 'file') {
+        // Para archivos, solo marcamos que existe, pero el archivo va aparte
+        fields[campo.name] = null
+      } else {
+        // Otros tipos de campos
+        fields[campo.name] = this.documentData[campo.name] || ''
       }
+    })
 
-      const formData = new FormData()
+    seccionesData.push({
+      nombre: seccion.nombre,
+      fields
+    })
+  })
 
-      // Datos principales del documento
-      this.camposPlantilla.forEach((campo) => {
-        if (campo.type !== 'file' && campo.type !== 'subform') {
-          // Convertir a string para evitar problemas con valores nulos o undefined
-          const valor =
-            this.documentData[campo.name] !== undefined && this.documentData[campo.name] !== null
-              ? this.documentData[campo.name]
-              : ''
-          formData.append(`document_data[${campo.name}]`, valor)
-        }
-      })
+  // Adjuntar la estructura final al formData
+  formData.append('document_data[secciones]', JSON.stringify(seccionesData))
 
-      // Datos de subformularios
-      this.camposPlantilla.forEach((campo) => {
-        if (campo.type === 'subform') {
-          // Agregar datos del subformulario como JSON
-          formData.append(
-            `document_data[${campo.name}]`,
-            JSON.stringify(this.subformData[campo.name] || []),
-          )
+  // Enviar solicitud
+  try {
+    const token = localStorage.getItem('apiToken')
+    const response = await axios.post(
+      `http://127.0.0.1:8000/api/documentos/${this.selectedPlantilla}`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
+      },
+    )
 
-          // Agregar archivos del subformulario
-          if (this.subformFiles[campo.name]) {
-            this.subformFiles[campo.name].forEach((rowFiles, rowIndex) => {
-              Object.entries(rowFiles).forEach(([subName, file]) => {
-                if (file instanceof File) {
-                  formData.append(`subform_files[${campo.name}][${rowIndex}][${subName}]`, file)
-                }
-              })
-            })
-          }
-        }
-      })
-
-      // Archivos principales del documento
-      this.camposPlantilla.forEach((campo) => {
-        if (campo.type === 'file' && this.files[campo.name]) {
-          this.files[campo.name].forEach((file) => {
-            formData.append(`files[${campo.name}][]`, file)
-          })
-        }
-      })
-
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.post(
-          `http://127.0.0.1:8000/api/documentos/${this.selectedPlantilla}`,
-          formData,
-          {
-            headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
-          },
-        )
-
-        Swal.fire({
-          title: 'Éxito',
-          text: 'Documento creado correctamente',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-        })
-
-        this.resetForm()
-      } catch (error) {
-        console.error('Error al crear documento:', error)
-        this.showError(
-          'Error al crear el documento: ' +
-            (error.response?.data?.message || error.message || 'Error desconocido'),
-        )
-      }
-    },
+    Swal.fire({
+      title: 'Éxito',
+      text: 'Documento creado correctamente',
+      icon: 'success',
+      confirmButtonText: 'Aceptar',
+    })
+    this.resetForm()
+  } catch (error) {
+    console.error('Error al crear documento:', error)
+    this.showError(
+      'Error al crear el documento: ' +
+        (error.response?.data?.message || error.message || 'Error desconocido'),
+    )
+  }
+},
 
     resetForm() {
       this.documentData = {}
