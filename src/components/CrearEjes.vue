@@ -104,6 +104,157 @@
   </div>
 </template>
 
+<script>
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+export default {
+  data() {
+    return {
+      nuevoEje: {
+        clave_oficial: '',
+        descripcion: '',
+      },
+      guardando: false,
+    }
+  },
+  methods: {
+    mostrarConfirmacion() {
+      if (!this.nuevoEje.clave_oficial.trim() || !this.nuevoEje.descripcion.trim()) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Campos incompletos',
+          text: 'Por favor complete todos los campos requeridos.',
+          confirmButtonColor: '#0d6efd',
+          confirmButtonText: 'Entendido',
+        })
+        return
+      }
+
+      Swal.fire({
+        title: '¿Confirmar creación?',
+        html: `
+          <div class="text-start">
+            <p class="mb-2"><strong>Clave:</strong> ${this.nuevoEje.clave_oficial}</p>
+            <p><strong>Descripción:</strong> ${this.nuevoEje.descripcion}</p>
+          </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#0d6efd',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, crear eje',
+        cancelButtonText: 'Cancelar',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.guardarEje()
+        }
+      })
+    },
+
+    async guardarEje() {
+      this.guardando = true
+
+      try {
+        const token = localStorage.getItem('apiToken')
+
+        if (!token) {
+          this.mostrarNotificacion(
+            'Error',
+            'No hay sesión activa. Por favor inicia sesión.',
+            'error',
+          )
+          this.$router.push('/')
+          return
+        }
+
+        const data = {
+          clave_oficial: this.nuevoEje.clave_oficial,
+          descripcion: this.nuevoEje.descripcion,
+        }
+
+        const response = await axios.post('http://127.0.0.1:8000/api/ejes', data, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        })
+
+        if (response.status === 200 || response.status === 201) {
+          this.mostrarNotificacion('¡Completado!', 'Eje creado exitosamente', 'success')
+          this.limpiarFormulario()
+        } else {
+          this.mostrarNotificacion(
+            'Advertencia',
+            'Estado inesperado: ' + response.status,
+            'warning',
+          )
+        }
+      } catch (error) {
+        console.error('Error completo:', error)
+
+        if (error.response) {
+          const status = error.response.status
+
+          switch (status) {
+            case 401:
+              this.mostrarNotificacion(
+                'Error',
+                'Sesión expirada. Por favor inicia sesión nuevamente.',
+                'error',
+              )
+              localStorage.removeItem('apiToken')
+              localStorage.removeItem('user')
+              this.$router.push('/')
+              break
+
+            case 422:
+              this.mostrarNotificacion('Error', 'Datos de validación incorrectos', 'error')
+              break
+
+            case 500:
+              this.mostrarNotificacion('Error', 'Error interno del servidor', 'error')
+              break
+
+            default:
+              this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
+              break
+          }
+        } else if (error.request) {
+          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
+        } else {
+          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
+        }
+      } finally {
+        this.guardando = false
+      }
+    },
+
+    mostrarNotificacion(titulo, mensaje, tipo) {
+      Swal.fire({
+        title: titulo,
+        text: mensaje,
+        icon: tipo,
+        position: 'center',
+        showConfirmButton: true,
+        confirmButtonColor: tipo === 'success' ? '#3085d6' : '#d33',
+        timer: tipo === 'success' ? 2500 : undefined,
+        timerProgressBar: tipo === 'success',
+      })
+    },
+
+    limpiarFormulario() {
+      this.nuevoEje = {
+        clave_oficial: '',
+        descripcion: '',
+      }
+    },
+  },
+}
+</script>
+
 <style scoped>
 /* Estilos base del diseño moderno */
 .card {
@@ -413,153 +564,3 @@
   }
 }
 </style>
-<script>
-import axios from 'axios'
-import Swal from 'sweetalert2'
-
-export default {
-  data() {
-    return {
-      nuevoEje: {
-        clave_oficial: '',
-        descripcion: '',
-      },
-      guardando: false,
-    }
-  },
-  methods: {
-    mostrarConfirmacion() {
-      if (!this.nuevoEje.clave_oficial.trim() || !this.nuevoEje.descripcion.trim()) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Campos incompletos',
-          text: 'Por favor complete todos los campos requeridos.',
-          confirmButtonColor: '#0d6efd',
-          confirmButtonText: 'Entendido',
-        })
-        return
-      }
-
-      Swal.fire({
-        title: '¿Confirmar creación?',
-        html: `
-          <div class="text-start">
-            <p class="mb-2"><strong>Clave:</strong> ${this.nuevoEje.clave_oficial}</p>
-            <p><strong>Descripción:</strong> ${this.nuevoEje.descripcion}</p>
-          </div>
-        `,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#0d6efd',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, crear eje',
-        cancelButtonText: 'Cancelar',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.guardarEje()
-        }
-      })
-    },
-
-    async guardarEje() {
-      this.guardando = true
-
-      try {
-        const token = localStorage.getItem('apiToken')
-
-        if (!token) {
-          this.mostrarNotificacion(
-            'Error',
-            'No hay sesión activa. Por favor inicia sesión.',
-            'error',
-          )
-          this.$router.push('/')
-          return
-        }
-
-        const data = {
-          clave_oficial: this.nuevoEje.clave_oficial,
-          descripcion: this.nuevoEje.descripcion,
-        }
-
-        const response = await axios.post('http://127.0.0.1:8000/api/ejes', data, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-        })
-
-        if (response.status === 200 || response.status === 201) {
-          this.mostrarNotificacion('¡Completado!', 'Eje creado exitosamente', 'success')
-          this.limpiarFormulario()
-        } else {
-          this.mostrarNotificacion(
-            'Advertencia',
-            'Estado inesperado: ' + response.status,
-            'warning',
-          )
-        }
-      } catch (error) {
-        console.error('Error completo:', error)
-
-        if (error.response) {
-          const status = error.response.status
-
-          switch (status) {
-            case 401:
-              this.mostrarNotificacion(
-                'Error',
-                'Sesión expirada. Por favor inicia sesión nuevamente.',
-                'error',
-              )
-              localStorage.removeItem('apiToken')
-              localStorage.removeItem('user')
-              this.$router.push('/')
-              break
-
-            case 422:
-              this.mostrarNotificacion('Error', 'Datos de validación incorrectos', 'error')
-              break
-
-            case 500:
-              this.mostrarNotificacion('Error', 'Error interno del servidor', 'error')
-              break
-
-            default:
-              this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
-              break
-          }
-        } else if (error.request) {
-          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
-        } else {
-          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
-        }
-      } finally {
-        this.guardando = false
-      }
-    },
-
-    mostrarNotificacion(titulo, mensaje, tipo) {
-      Swal.fire({
-        title: titulo,
-        text: mensaje,
-        icon: tipo,
-        position: 'center',
-        showConfirmButton: true,
-        confirmButtonColor: tipo === 'success' ? '#3085d6' : '#d33',
-        timer: tipo === 'success' ? 2500 : undefined,
-        timerProgressBar: tipo === 'success',
-      })
-    },
-
-    limpiarFormulario() {
-      this.nuevoEje = {
-        clave_oficial: '',
-        descripcion: '',
-      }
-    },
-  },
-}
-</script>
