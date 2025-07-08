@@ -25,6 +25,7 @@ import VerEjes from '@/components/VerEjes.vue'
 import CrearEjes from '@/components/CrearEjes.vue'
 import CrearRoles from '@/components/CrearRoles.vue'
 import AsignarPermisos from '@/components/AsignarPermisos.vue'
+import VerRoles from '@/components/VerRoles.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -155,6 +156,11 @@ const router = createRouter({
               path: 'AsignarPermisos',
               name: 'AsignarPermisos',
               component: AsignarPermisos,
+            },
+            {
+              path: 'VerRoles',
+              name: 'VerRoles',
+              component: VerRoles,
             },
           ],
         },
