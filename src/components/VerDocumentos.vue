@@ -102,9 +102,14 @@
                       <td v-for="campo in camposDocumento" :key="campo" class="table-cell">
                         <!-- Recurso Digital -->
                         <div v-if="campo === 'Recurso Digital'" class="file-badges">
-                          <template v-if="documento[campo] && Array.isArray(documento[campo])">
+                          <template
+                            v-if="
+                              getFieldValueFromDocument(documento, campo) &&
+                              Array.isArray(getFieldValueFromDocument(documento, campo))
+                            "
+                          >
                             <span
-                              v-for="(file, index) in documento[campo]"
+                              v-for="(file, index) in getFieldValueFromDocument(documento, campo)"
                               :key="index"
                               class="file-badge"
                             >
@@ -125,16 +130,21 @@
                           v-else-if="campo === 'Estado'"
                           class="status-badge"
                           :class="{
-                            'status-active': documento[campo] === 'Activo',
-                            'status-pending': documento[campo] === 'Pendiente',
+                            'status-active':
+                              getFieldValueFromDocument(documento, campo) === 'Activo',
+                            'status-pending':
+                              getFieldValueFromDocument(documento, campo) === 'Pendiente',
                             'status-default':
-                              documento[campo] !== 'Activo' && documento[campo] !== 'Pendiente',
+                              getFieldValueFromDocument(documento, campo) !== 'Activo' &&
+                              getFieldValueFromDocument(documento, campo) !== 'Pendiente',
                           }"
                         >
-                          {{ documento[campo] }}
+                          {{ getFieldValueFromDocument(documento, campo) }}
                         </span>
                         <!-- Otros campos -->
-                        <span v-else class="table-text">{{ documento[campo] || '-' }}</span>
+                        <span v-else class="table-text">{{
+                          getFieldValueFromDocument(documento, campo) || '-'
+                        }}</span>
                       </td>
                       <td class="table-cell text-center">
                         <div class="action-buttons">
@@ -188,16 +198,15 @@
 
     <!-- REEMPLAZAR TODO EL MODAL INLINE CON EL COMPONENTE -->
     <EditDocumentModal
-  :is-open="isModalOpen"
-  :documento="documentoParaEditar"
-  :campos-plantilla="camposPlantilla"
-  :selected-coleccion="selectedColeccion"
-  @close="closeModal"
-  @save="handleSaveDocument"
-  @success="handleEditSuccess"
-  @error="handleEditError"
-/>
-
+      :is-open="isModalOpen"
+      :documento="documentoParaEditar"
+      :campos-plantilla="camposPlantilla"
+      :selected-coleccion="selectedColeccion"
+      @close="closeModal"
+      @save="handleSaveDocument"
+      @success="handleEditSuccess"
+      @error="handleEditError"
+    />
   </div>
 </template>
 
@@ -208,11 +217,11 @@ import EditDocumentModal from './EditDocumentModal.vue'
 
 export default {
   name: 'VerDocumentos',
-  
+
   components: {
-    EditDocumentModal
+    EditDocumentModal,
   },
-  
+
   data() {
     return {
       // Estado principal
@@ -220,82 +229,96 @@ export default {
       selectedColeccion: null,
       documentos: [],
       palabraClave: '',
-      
+
       // Campos y plantillas (memoizados)
       camposDocumento: [],
       camposPlantilla: [],
-      
+
       // Paginación
       currentPage: 1,
       itemsPerPage: 10,
-      
+
       // Modal de edición
       isModalOpen: false,
       documentoParaEditar: {},
-      
+
       // Configuración
       excludedCollections: [
-        'failed_jobs', 'navbar_colors', 'password_reset_tokens',
-        'migrations', 'personal_access_tokens', 'plantillas_predeterminadas',
-        'noticias_collection', 'users', 'comentarios', 'carrousel_images'
+        'failed_jobs',
+        'navbar_colors',
+        'password_reset_tokens',
+        'migrations',
+        'personal_access_tokens',
+        'plantillas_predeterminadas',
+        'noticias_collection',
+        'users',
+        'comentarios',
+        'carrousel_images',
       ],
-      
+
       // Estados de carga
       loading: {
         colecciones: false,
-        documentos: false
-      }
+        documentos: false,
+      },
     }
   },
-  
+
   computed: {
     coleccionesFiltradas() {
       return this.colecciones.filter(
-        col => !this.excludedCollections.includes(col.nombre_coleccion)
+        (col) => !this.excludedCollections.includes(col.nombre_coleccion),
       )
     },
-    
+
     filteredDocuments() {
       if (!this.palabraClave.trim()) return this.documentos
-      
+
       const searchTerm = this.palabraClave.toLowerCase()
-      return this.documentos.filter(doc =>
-        Object.values(doc).some(value => 
-          String(value).toLowerCase().includes(searchTerm)
-        )
-      )
+
+      return this.documentos.filter((doc) => {
+        // Buscar en los campos que se muestran en la tabla
+        const matchInVisibleFields = this.camposDocumento.some((campo) => {
+          const valor = this.getFieldValueFromDocument(doc, campo)
+          return valor && String(valor).toLowerCase().includes(searchTerm)
+        })
+
+        // También buscar en _id para compatibilidad
+        const matchInId = doc._id && String(doc._id).toLowerCase().includes(searchTerm)
+
+        return matchInVisibleFields || matchInId
+      })
     },
-    
     paginatedDocumentos() {
       const start = (this.currentPage - 1) * this.itemsPerPage
       return this.filteredDocuments.slice(start, start + this.itemsPerPage)
     },
-    
+
     totalPages() {
       return Math.ceil(this.filteredDocuments.length / this.itemsPerPage)
     },
-    
+
     nombreColeccion() {
       return this.selectedColeccion?.nombre_coleccion || null
-    }
+    },
   },
-  
+
   watch: {
     // Resetear página cuando cambie la búsqueda
     palabraClave() {
       this.currentPage = 1
-    }
+    },
   },
-  
+
   methods: {
     // ========== API CALLS ==========
     async apiCall(endpoint, options = {}) {
       const token = localStorage.getItem('apiToken')
       const config = {
         headers: { Authorization: `Bearer ${token}` },
-        ...options
+        ...options,
       }
-      
+
       try {
         const response = await axios(endpoint, config)
         return response.data
@@ -304,10 +327,10 @@ export default {
         throw error
       }
     },
-    
+
     async getColecciones() {
       if (this.loading.colecciones) return
-      
+
       this.loading.colecciones = true
       try {
         this.colecciones = await this.apiCall('http://127.0.0.1:8000/api/documentos/plantillas')
@@ -317,42 +340,69 @@ export default {
         this.loading.colecciones = false
       }
     },
-    
+
     async getCamposPlantilla(plantillaId) {
       try {
-        const response = await this.apiCall(`http://127.0.0.1:8000/api/plantillas/${plantillaId}/campos`)
-        
-        if (response?.campos && Array.isArray(response.campos)) {
+        const response = await this.apiCall(
+          `http://127.0.0.1:8000/api/plantillas/${plantillaId}/secciones`,
+        )
+
+        // Verificar si la respuesta tiene la estructura esperada con secciones
+        if (response?.secciones && Array.isArray(response.secciones)) {
+          return response
+        } else if (response?.campos && Array.isArray(response.campos)) {
+          // Mantener compatibilidad con estructura anterior
           return response.campos
         } else if (Array.isArray(response)) {
+          // Mantener compatibilidad con estructura anterior
           return response
         }
-        
+
         console.warn('Estructura de respuesta inesperada:', response)
-        return []
+        return { secciones: [] }
       } catch (error) {
         console.error('Error obteniendo campos de plantilla:', error)
-        return []
+        return { secciones: [] }
       }
     },
-    
+
     async obtenerDocumentos() {
       if (!this.selectedColeccion || this.loading.documentos) return
-      
+
       this.loading.documentos = true
       try {
         // Obtener campos de plantilla y documentos en paralelo
         const [camposPlantilla, documentos] = await Promise.all([
           this.getCamposPlantilla(this.selectedColeccion.id),
-          this.apiCall(`http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.id}`)
+          this.apiCall(`http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.id}`),
         ])
-        
+
         this.camposPlantilla = camposPlantilla
         this.documentos = documentos
         this.currentPage = 1
-        
+
+        // DEBUGGING: Verificar qué datos tenemos
+        console.log('=== DEBUGGING DATOS ===')
+        console.log('Campos plantilla recibidos:', camposPlantilla)
+        console.log('Documentos recibidos:', documentos)
+        console.log('Primer documento:', documentos[0])
+        console.log(
+          'Propiedades del primer documento:',
+          documentos[0] ? Object.keys(documentos[0]) : 'Sin documentos',
+        )
+
         this.procesarCamposDocumento()
-        
+
+        // DEBUGGING: Verificar campos procesados
+        console.log('Campos documento procesados:', this.camposDocumento)
+
+        // DEBUGGING: Verificar si los campos existen en los documentos
+        if (documentos[0] && this.camposDocumento.length > 0) {
+          console.log('=== VERIFICACIÓN DE CAMPOS ===')
+          this.camposDocumento.forEach((campo) => {
+            console.log(`Campo "${campo}":`, documentos[0][campo])
+          })
+        }
       } catch (error) {
         this.documentos = []
         this.camposDocumento = []
@@ -362,115 +412,163 @@ export default {
       }
     },
 
+    handleEditSuccess() {
+      Swal.fire('Éxito', 'El documento fue editado correctamente', 'success')
+      this.obtenerDocumentos() // Refresca los documentos si hace falta
+      this.closeModal()
+    },
 
-  handleEditSuccess() {
-    Swal.fire('Éxito', 'El documento fue editado correctamente', 'success')
-    this.obtenerDocumentos() // Refresca los documentos si hace falta
-    this.closeModal()
-  },
+    handleEditError(error) {
+      console.error('Error al editar:', error)
+      Swal.fire('Error', 'Hubo un problema al guardar el documento', 'error')
+    },
 
-  handleEditError(error) {
-    console.error('Error al editar:', error)
-    Swal.fire('Error', 'Hubo un problema al guardar el documento', 'error')
-  },
-
-    
     // ========== PROCESAMIENTO DE DATOS ==========
-  procesarCamposDocumento() {
-  if (!this.camposPlantilla || this.camposPlantilla.length === 0) {
-    this.camposDocumento = []
-    return
-  }
+    procesarCamposDocumento() {
+      // Verificar si tenemos la nueva estructura con secciones
+      if (this.camposPlantilla?.secciones && Array.isArray(this.camposPlantilla.secciones)) {
+        this.procesarCamposConSecciones()
+      } else {
+        this.camposDocumento = []
+      }
+    },
 
-  // Filtrar solo los campos válidos (no subform)
-  const camposValidos = this.camposPlantilla
-    .filter(campo => campo.type !== 'subform')
-    .map(campo => campo.name)
+    procesarCamposConSecciones() {
+      // Extraer todos los campos de todas las secciones
+      const todosLosCampos = []
 
-  // Separar los campos requeridos y no requeridos
-  const requeridos = this.camposPlantilla
-    .filter(campo => campo.required && campo.type !== 'subform')
-    .map(campo => campo.name)
+      console.log('=== PROCESANDO SECCIONES ===')
+      console.log('Secciones disponibles:', this.camposPlantilla.secciones)
 
-  const noRequeridos = camposValidos.filter(campo => !requeridos.includes(campo))
+      this.camposPlantilla.secciones.forEach((seccion, index) => {
+        console.log(`Sección ${index + 1} (${seccion.nombre}):`, seccion.fields)
 
-  // Seleccionar máximo 3: primero requeridos, luego no requeridos
-  let seleccionados = requeridos.slice(0, 3)
-  if (seleccionados.length < 3) {
-    const restantes = 3 - seleccionados.length
-    seleccionados = [...seleccionados, ...noRequeridos.slice(0, restantes)]
-  }
+        if (seccion.fields && Array.isArray(seccion.fields)) {
+          seccion.fields.forEach((campo) => {
+            // Solo agregar campos que NO sean subform
+            if (campo.type !== 'subform') {
+              todosLosCampos.push(campo)
+              console.log(`  - Campo agregado: ${campo.name} (required: ${campo.required})`)
+            } else {
+              console.log(`  - Campo omitido (subform): ${campo.name}`)
+            }
+          })
+        }
+      })
 
-  this.camposDocumento = seleccionados
-},
-    
+      // Separar los campos requeridos y no requeridos
+      const requeridos = todosLosCampos
+        .filter((campo) => campo.required === true)
+        .map((campo) => campo.name)
+
+      const noRequeridos = todosLosCampos
+        .filter((campo) => campo.required !== true)
+        .map((campo) => campo.name)
+
+      // Seleccionar máximo 3: primero requeridos, luego no requeridos
+      let seleccionados = requeridos.slice(0, 3)
+      if (seleccionados.length < 3) {
+        const restantes = 3 - seleccionados.length
+        seleccionados = [...seleccionados, ...noRequeridos.slice(0, restantes)]
+      }
+
+      this.camposDocumento = seleccionados
+
+      console.log('=== RESULTADO PROCESAMIENTO ===')
+      console.log('Total campos encontrados:', todosLosCampos.length)
+      console.log('Campos requeridos:', requeridos)
+      console.log('Campos no requeridos:', noRequeridos)
+      console.log('Campos seleccionados para mostrar:', seleccionados)
+    },
+
+    getFieldValueFromDocument(documento, fieldName) {
+      // Si el documento no tiene secciones, buscar directamente (compatibilidad)
+      if (!documento.secciones) {
+        return documento[fieldName] || null
+      }
+
+      // Buscar en todas las secciones del documento
+      for (const seccion of documento.secciones) {
+        if (seccion.fields) {
+          // Buscar directamente en el objeto fields
+          if (seccion.fields.hasOwnProperty(fieldName)) {
+            return seccion.fields[fieldName] || null
+          }
+        }
+      }
+
+      return null
+    },
+
     // ========== CAMPO HELPERS ==========
     formatFieldName(fieldName) {
       const fieldMap = {
         created_at: 'Fecha de creación',
-        updated_at: 'Última actualización'
+        updated_at: 'Última actualización',
       }
-      
-      return fieldMap[fieldName] || 
-        fieldName.replace(/_/g, ' ')
-                 .replace(/\w\S*/g, word => 
-                   word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()
-                 )
+
+      return (
+        fieldMap[fieldName] ||
+        fieldName
+          .replace(/_/g, ' ')
+          .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.substr(1).toLowerCase())
+      )
     },
-    
+
     // ========== MODAL DE EDICIÓN ==========
     editarDocumento(documento) {
       this.documentoParaEditar = { ...documento }
       this.isModalOpen = true
     },
-    
+
     closeModal() {
       this.isModalOpen = false
       this.documentoParaEditar = {}
     },
-    
+
     // ========== MANEJADORES DEL MODAL ==========
-   async handleSaveDocument(formData) {
-  const token = localStorage.getItem('apiToken');
-  if (!token) {
-    this.showError('No estás autenticado');
-    return;
-  }
-
-  const docId = this.documentoParaEditar._id?.$oid || this.documentoParaEditar._id;
-  if (!docId) {
-    this.showError('ID de documento inválido');
-    return;
-  }
-
-  try {
-    console.log('Informacion que se manda a la api')
-    for (let pair of formData.entries()) {
-  console.log(pair[0], ':', pair[1])
-}
-    const response = await axios.post(
-      `http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.nombre_coleccion}/${docId}`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`
-        }
+    async handleSaveDocument(formData) {
+      const token = localStorage.getItem('apiToken')
+      if (!token) {
+        this.showError('No estás autenticado')
+        return
       }
-    );
 
-    this.showSuccess('Documento actualizado correctamente');
-    this.closeModal();
-    await this.obtenerDocumentos();
-  } catch (error) {
-    console.error('Error completo:', error.response);
-    const errorMsg = error.response?.data?.message || 
-                    error.response?.data?.error || 
-                    'Hubo un problema al actualizar el documento';
-    this.showError(errorMsg);
-  }
-},
-    
+      const docId = this.documentoParaEditar._id?.$oid || this.documentoParaEditar._id
+      if (!docId) {
+        this.showError('ID de documento inválido')
+        return
+      }
+
+      try {
+        console.log('Informacion que se manda a la api')
+        for (let pair of formData.entries()) {
+          console.log(pair[0], ':', pair[1])
+        }
+        const response = await axios.post(
+          `http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.nombre_coleccion}/${docId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+
+        this.showSuccess('Documento actualizado correctamente')
+        this.closeModal()
+        await this.obtenerDocumentos()
+      } catch (error) {
+        console.error('Error completo:', error.response)
+        const errorMsg =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          'Hubo un problema al actualizar el documento'
+        this.showError(errorMsg)
+      }
+    },
+
     // ========== ELIMINACIÓN ==========
     async eliminarDocumento(documentoId) {
       const result = await Swal.fire({
@@ -481,30 +579,29 @@ export default {
         confirmButtonColor: '#6c757d',
         cancelButtonColor: '#dc3545',
         confirmButtonText: 'Sí, eliminarlo',
-        cancelButtonText: 'Cancelar'
+        cancelButtonText: 'Cancelar',
       })
-      
+
       if (!result.isConfirmed) return
-      
+
       try {
         await this.apiCall(
           `http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.nombre_coleccion}/${documentoId}`,
-          { method: 'DELETE' }
+          { method: 'DELETE' },
         )
-        
-        this.documentos = this.documentos.filter(doc => doc._id.$oid !== documentoId)
+
+        this.documentos = this.documentos.filter((doc) => doc._id.$oid !== documentoId)
         this.showSuccess('El documento se ha eliminado exitosamente.')
-        
       } catch (error) {
         this.showError('Hubo un problema al eliminar el documento.')
       }
     },
-    
+
     // ========== UI HELPERS ==========
     changePage(page) {
       this.currentPage = page
     },
-    
+
     async onColeccionSelected() {
       if (this.selectedColeccion) {
         await this.obtenerDocumentos()
@@ -512,37 +609,37 @@ export default {
         this.resetDocumentData()
       }
     },
-    
+
     resetDocumentData() {
       this.documentos = []
       this.camposDocumento = []
       this.camposPlantilla = []
     },
-    
+
     showSuccess(message) {
       Swal.fire({
         title: 'Éxito',
         text: message,
         icon: 'success',
         confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#6c757d'
+        confirmButtonColor: '#6c757d',
       })
     },
-    
+
     showError(message) {
       Swal.fire({
         title: 'Error',
         text: message,
         icon: 'error',
         confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#6c757d'
+        confirmButtonColor: '#6c757d',
       })
-    }
+    },
   },
-  
+
   mounted() {
     this.getColecciones()
-  }
+  },
 }
 </script>
 <style scoped>
