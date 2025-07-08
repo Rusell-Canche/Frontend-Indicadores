@@ -53,190 +53,229 @@
           </div>
         </div>
 
-<!-- Selección de operación -->
-<div class="form-section" v-if="parametrosForm.plantillaSeleccionada">
-  <h6 class="section-title">
-    <i class="fas fa-calculator me-2"></i>
-    Tipo de Operación
-  </h6>
-  <div class="row g-3">
-    <div class="col-md-12">
-      <label class="form-label">Operación*</label>
-      <div class="input-group modern-input">
-        <span class="input-group-text">
-          <i class="fas fa-function"></i>
-        </span>
-        <select v-model="parametrosForm.tipoOperacion" class="form-select" required>
-          <option value="">Seleccione una operación</option>
-          <option value="contar">Contar registros (COUNT)</option>
-          <option value="distinto">Contar distintos (DISTINCT)</option>
-          <option value="sumar">Sumar valores (SUM)</option>
-          <option value="promedio">Promedio (AVG)</option>
-          <option value="maximo">Valor máximo (MAX)</option>
-          <option value="minimo">Valor mínimo (MIN)</option>
-        </select>
-      </div>
-      <div class="form-text">
-        <span v-if="parametrosForm.tipoOperacion === 'contar'">
-          Contará el número total de documentos
-        </span>
-        <span v-else-if="parametrosForm.tipoOperacion === 'distinto'">
-          Contará el número total de documentos diferentes
-        </span>
-        <span v-else-if="parametrosForm.tipoOperacion === 'sumar'">
-          Sumará los valores del campo seleccionado
-        </span>
-        <span v-else-if="parametrosForm.tipoOperacion === 'promedio'">
-          Calculará el promedio del campo seleccionado
-        </span>
-        <span v-else-if="parametrosForm.tipoOperacion === 'maximo'">
-          Encontrará el valor máximo del campo seleccionado
-        </span>
-        <span v-else-if="parametrosForm.tipoOperacion === 'minimo'">
-          Encontrará el valor mínimo del campo seleccionado
-        </span>
-        <span v-else>Selecciona la operación matemática a realizar</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Selección de campo con soporte para subconfiguración -->
-<div
-  class="form-section"
-  v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'contar'"
->
-  <h6 class="section-title">
-    <i class="fas fa-tag me-2"></i>
-    Campo a Procesar
-  </h6>
-  <div class="row g-3">
-    <div class="col-md-12">
-      <label class="form-label">Campo principal*</label>
-      <div class="input-group modern-input">
-        <span class="input-group-text">
-          <i class="fas fa-columns"></i>
-        </span>
-        <select
-          v-model="parametrosForm.campoSeleccionado"
-          @change="onCampoPrincipalSelected"
-          class="form-select"
-          required
+        <!-- Selección de sección -->
+        <div
+          class="form-section"
+          v-if="parametrosForm.plantillaSeleccionada && seccionesDisponibles.length > 0"
         >
-          <option value="">Seleccione un campo</option>
-          <option v-for="campo in camposDisponibles" :key="campo.name" :value="campo.name">
-            {{ campo.alias || campo.name }} ({{ getTipoCampo(campo) }})
-          </option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Subconfiguración para campos de tipo subform (excepto contarDistinto) -->
-    <div
-      v-if="mostrarSubcampos && parametrosForm.tipoOperacion !== 'contarDistinto'"
-      class="subform-config-section"
-    >
-      <h6 class="mt-3 mb-3">
-        <i class="fas fa-layer-group me-2"></i>
-        Configuración del Subformulario
-      </h6>
-
-      <!-- Operación para subformulario -->
-      <div class="row g-3">
-        <div class="col-md-12">
-          <label class="form-label">Operación para Subformulario*</label>
-          <div class="input-group modern-input">
-            <span class="input-group-text">
-              <i class="fas fa-calculator"></i>
-            </span>
-            <select
-              v-model="parametrosForm.subConfiguracion.tipoOperacion"
-              class="form-select"
-              required
-            >
-              <option value="">Seleccione operación</option>
-              <option value="contar">Contar registros (COUNT)</option>
-              <option value="sumar">Sumar valores (SUM)</option>
-              <option value="promedio">Promedio (AVG)</option>
-              <option value="maximo">Valor máximo (MAX)</option>
-              <option value="minimo">Valor mínimo (MIN)</option>
-            </select>
+          <h6 class="section-title">
+            <i class="fas fa-layer-group me-2"></i>
+            Seleccionar Sección
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label class="form-label">Sección*</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-folder"></i>
+                </span>
+                <select
+                  v-model="parametrosForm.seccionSeleccionada"
+                  class="form-select"
+                  @change="onSeccionSelected"
+                  required
+                >
+                  <option value="">Seleccione una sección</option>
+                  <option
+                    v-for="seccion in seccionesDisponibles"
+                    :key="seccion.nombre"
+                    :value="seccion.nombre"
+                  >
+                    {{ seccion.nombre }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-text">
+                Selecciona la sección de la plantilla que contiene los campos a analizar
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Campo para subformulario -->
-      <div
-        class="row g-3 mt-3"
-        v-if="
-          parametrosForm.subConfiguracion.tipoOperacion &&
-          parametrosForm.subConfiguracion.tipoOperacion !== 'contar'
-        "
-      >
-        <div class="col-md-12">
-          <label class="form-label">Campo en Subformulario*</label>
-          <div class="input-group modern-input">
-            <span class="input-group-text">
-              <i class="fas fa-tag"></i>
-            </span>
-            <select
-              v-model="parametrosForm.subConfiguracion.campoSeleccionado"
-              class="form-select"
-              required
+        <!-- Selección de operación -->
+        <div class="form-section" v-if="parametrosForm.seccionSeleccionada">
+          <h6 class="section-title">
+            <i class="fas fa-calculator me-2"></i>
+            Tipo de Operación
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label class="form-label">Operación*</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-function"></i>
+                </span>
+                <select v-model="parametrosForm.tipoOperacion" class="form-select" required>
+                  <option value="">Seleccione una operación</option>
+                  <option value="contar">Contar registros (COUNT)</option>
+                  <option value="distinto">Contar distintos (DISTINCT)</option>
+                  <option value="sumar">Sumar valores (SUM)</option>
+                  <option value="promedio">Promedio (AVG)</option>
+                  <option value="maximo">Valor máximo (MAX)</option>
+                  <option value="minimo">Valor mínimo (MIN)</option>
+                </select>
+              </div>
+              <div class="form-text">
+                <span v-if="parametrosForm.tipoOperacion === 'contar'">
+                  Contará el número total de documentos
+                </span>
+                <span v-else-if="parametrosForm.tipoOperacion === 'distinto'">
+                  Contará el número total de documentos diferentes
+                </span>
+                <span v-else-if="parametrosForm.tipoOperacion === 'sumar'">
+                  Sumará los valores del campo seleccionado
+                </span>
+                <span v-else-if="parametrosForm.tipoOperacion === 'promedio'">
+                  Calculará el promedio del campo seleccionado
+                </span>
+                <span v-else-if="parametrosForm.tipoOperacion === 'maximo'">
+                  Encontrará el valor máximo del campo seleccionado
+                </span>
+                <span v-else-if="parametrosForm.tipoOperacion === 'minimo'">
+                  Encontrará el valor mínimo del campo seleccionado
+                </span>
+                <span v-else>Selecciona la operación matemática a realizar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selección de campo con soporte para subconfiguración -->
+        <div
+          class="form-section"
+          v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'contar'"
+        >
+          <h6 class="section-title">
+            <i class="fas fa-tag me-2"></i>
+            Campo a Procesar
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label class="form-label">Campo principal*</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-columns"></i>
+                </span>
+                <select
+                  v-model="parametrosForm.campoSeleccionado"
+                  @change="onCampoPrincipalSelected"
+                  class="form-select"
+                  required
+                >
+                  <option value="">Seleccione un campo</option>
+                  <option v-for="campo in camposDisponibles" :key="campo.name" :value="campo.name">
+                    {{ campo.alias || campo.name }} ({{ getTipoCampo(campo) }})
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Subconfiguración para campos de tipo subform (excepto contarDistinto) -->
+            <div
+              v-if="mostrarSubcampos && parametrosForm.tipoOperacion !== 'contarDistinto'"
+              class="subform-config-section"
             >
-              <option value="">Seleccione un campo</option>
-              <option
-                v-for="subcampo in subcamposDisponibles"
-                :key="subcampo.name"
-                :value="subcampo.name"
-                :disabled="!esCampoNumerico(subcampo)"
+              <h6 class="mt-3 mb-3">
+                <i class="fas fa-layer-group me-2"></i>
+                Configuración del Subformulario
+              </h6>
+
+              <!-- Operación para subformulario -->
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Operación para Subformulario*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-calculator"></i>
+                    </span>
+                    <select
+                      v-model="parametrosForm.subConfiguracion.tipoOperacion"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Seleccione operación</option>
+                      <option value="contar">Contar registros (COUNT)</option>
+                      <option value="sumar">Sumar valores (SUM)</option>
+                      <option value="promedio">Promedio (AVG)</option>
+                      <option value="maximo">Valor máximo (MAX)</option>
+                      <option value="minimo">Valor mínimo (MIN)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Campo para subformulario -->
+              <div
+                class="row g-3 mt-3"
+                v-if="
+                  parametrosForm.subConfiguracion.tipoOperacion &&
+                  parametrosForm.subConfiguracion.tipoOperacion !== 'contar'
+                "
               >
-                {{ subcampo.alias || subcampo.name }} ({{ getTipoCampo(subcampo) }})
-                <span v-if="!esCampoNumerico(subcampo)"> (No numérico) </span>
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
+                <div class="col-md-12">
+                  <label class="form-label">Campo en Subformulario*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-tag"></i>
+                    </span>
+                    <select
+                      v-model="parametrosForm.subConfiguracion.campoSeleccionado"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Seleccione un campo</option>
+                      <option
+                        v-for="subcampo in subcamposDisponibles"
+                        :key="subcampo.name"
+                        :value="subcampo.name"
+                        :disabled="!esCampoNumerico(subcampo)"
+                      >
+                        {{ subcampo.alias || subcampo.name }} ({{ getTipoCampo(subcampo) }})
+                        <span v-if="!esCampoNumerico(subcampo)"> (No numérico) </span>
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-    <!-- Campo en subformulario para contarDistinto -->
-    <div
-      v-if="mostrarSubcampos && parametrosForm.tipoOperacion === 'contarDistinto'"
-      class="subform-config-section"
-    >
-      <h6 class="mt-3 mb-3">
-        <i class="fas fa-layer-group me-2"></i>
-        Campo Distinto en Subformulario
-      </h6>
-
-      <div class="row g-3">
-        <div class="col-md-12">
-          <label class="form-label">Campo en Subformulario*</label>
-          <div class="input-group modern-input">
-            <span class="input-group-text">
-              <i class="fas fa-columns"></i>
-            </span>
-            <select
-              v-model="parametrosForm.subConfiguracion.campoSeleccionado"
-              class="form-select"
-              required
+            <!-- Campo en subformulario para contarDistinto -->
+            <div
+              v-if="mostrarSubcampos && parametrosForm.tipoOperacion === 'contarDistinto'"
+              class="subform-config-section"
             >
-              <option value="">Seleccione un campo</option>
-              <option
-                v-for="subcampo in subcamposDisponibles"
-                :key="subcampo.name"
-                :value="subcampo.name"
-              >
-                {{ subcampo.alias || subcampo.name }} ({{ getTipoCampo(subcampo) }})
-              </option>
-            </select>
+              <h6 class="mt-3 mb-3">
+                <i class="fas fa-layer-group me-2"></i>
+                Campo Distinto en Subformulario
+              </h6>
+
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label">Campo en Subformulario*</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-columns"></i>
+                    </span>
+                    <select
+                      v-model="parametrosForm.subConfiguracion.campoSeleccionado"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Seleccione un campo</option>
+                      <option
+                        v-for="subcampo in subcamposDisponibles"
+                        :key="subcampo.name"
+                        :value="subcampo.name"
+                      >
+                        {{ subcampo.alias || subcampo.name }} ({{ getTipoCampo(subcampo) }})
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
 
         <!-- Sección de condiciones -->
         <div
@@ -472,6 +511,7 @@ export default {
     return {
       plantillasDisponibles: [],
       camposDisponibles: [],
+      seccionesDisponibles: [],
       subcamposDisponibles: [],
       subcamposFiltrables: [],
       camposFiltrables: [],
@@ -479,6 +519,7 @@ export default {
       cargandoConfiguracion: false,
       parametrosForm: {
         plantillaSeleccionada: '',
+        seccionSeleccionada: '',
         tipoOperacion: '',
         campoSeleccionado: '',
         condiciones: [],
@@ -498,7 +539,11 @@ export default {
       return campoSeleccionado && campoSeleccionado.type === 'subform'
     },
     isFormComplete() {
-      if (!this.parametrosForm.plantillaSeleccionada || !this.parametrosForm.tipoOperacion) {
+      if (
+        !this.parametrosForm.plantillaSeleccionada ||
+        !this.parametrosForm.seccionSeleccionada ||
+        !this.parametrosForm.tipoOperacion
+      ) {
         return false
       }
 
@@ -555,7 +600,6 @@ export default {
           },
         )
 
-        // Verificar que la respuesta tenga la estructura correcta
         if (!response.data || !response.data.configuracion) {
           console.log('No hay configuración existente para este indicador')
           return
@@ -563,54 +607,61 @@ export default {
 
         const config = response.data.configuracion
 
-        // Verificar que config tenga las propiedades necesarias
         if (!config || typeof config !== 'object') {
           console.log('Configuración inválida o vacía')
           return
         }
 
-        // Verificar que exista la colección antes de procesarla
         if (!config.coleccion) {
           console.log('No se encontró información de colección en la configuración')
           return
         }
 
-        // Extraer nombre de plantilla de la colección
-        //const nombrePlantilla = config.coleccion.replace('template_', '').replace('_data', '')
-
-        // Buscar plantilla por nombre
+        // Buscar plantilla por nombre de colección
         const plantilla = this.plantillasDisponibles.find(
           (p) => p.nombre_coleccion == config.coleccion,
         )
 
         if (!plantilla) {
-          console.log(`No se encontró la plantilla: ${nombrePlantilla}`)
-          this.mostrarNotificacion(
-            'Advertencia',
-            `No se encontró la plantilla "${nombrePlantilla}" asociada a esta configuración`,
-            'warning',
-          )
+          console.log(`No se encontró la plantilla con colección: ${config.coleccion}`)
           return
         }
 
         // Establecer plantilla seleccionada
         this.parametrosForm.plantillaSeleccionada = plantilla.id
 
-        // Cargar campos de la plantilla
+        // Cargar secciones de la plantilla
         await this.onPlantillaSelected()
 
-        // Establecer operación principal
+        // NUEVO: Buscar la sección que contiene el campo
+        if (config.campo) {
+          const seccionConCampo = this.seccionesDisponibles.find((seccion) =>
+            seccion.fields.some((field) => field.name === config.campo),
+          )
+
+          if (seccionConCampo) {
+            this.parametrosForm.seccionSeleccionada = seccionConCampo.nombre
+            this.onSeccionSelected()
+          }
+        } else {
+          // Si no hay campo específico, seleccionar la primera sección
+          if (this.seccionesDisponibles.length > 0) {
+            this.parametrosForm.seccionSeleccionada = this.seccionesDisponibles[0].nombre
+            this.onSeccionSelected()
+          }
+        }
+
+        // Continuar con el resto de la configuración...
         if (config.operacion) {
           this.parametrosForm.tipoOperacion = config.operacion
         }
 
-        // Establecer campo principal si existe
         if (config.campo) {
           this.parametrosForm.campoSeleccionado = config.campo
           await this.onCampoPrincipalSelected()
         }
 
-        // Mapear condiciones principales
+        // Mapear condiciones y subconfiguración como antes...
         if (config.condicion && Array.isArray(config.condicion)) {
           this.parametrosForm.condiciones = config.condicion.map((c) => ({
             campo: c.campo || '',
@@ -619,7 +670,6 @@ export default {
           }))
         }
 
-        // Mapear subconfiguración si existe
         if (config.subConfiguracion && typeof config.subConfiguracion === 'object') {
           this.parametrosForm.subConfiguracion = {
             tipoOperacion: config.subConfiguracion.operacion || '',
@@ -856,6 +906,7 @@ export default {
     resetParametrosForm() {
       this.parametrosForm = {
         plantillaSeleccionada: '',
+        seccionSeleccionada: '',
         tipoOperacion: '',
         campoSeleccionado: '',
         condiciones: [],
@@ -865,6 +916,7 @@ export default {
           condiciones: [],
         },
       }
+      this.seccionesDisponibles = []
       this.subcamposDisponibles = []
       this.camposFiltrables = []
     },
@@ -896,6 +948,7 @@ export default {
     async onPlantillaSelected() {
       if (this.parametrosForm.plantillaSeleccionada) {
         if (!this.cargandoConfiguracion) {
+          this.parametrosForm.seccionSeleccionada = '' // NUEVO
           this.parametrosForm.tipoOperacion = ''
           this.parametrosForm.campoSeleccionado = ''
           this.parametrosForm.condiciones = []
@@ -909,7 +962,7 @@ export default {
         try {
           const token = localStorage.getItem('apiToken')
           const response = await axios.get(
-            `http://127.0.0.1:8000/api/plantillas/${this.parametrosForm.plantillaSeleccionada}/campos`,
+            `http://127.0.0.1:8000/api/plantillas/${this.parametrosForm.plantillaSeleccionada}/secciones`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -919,19 +972,54 @@ export default {
             },
           )
 
-          if (response.data && response.data.campos) {
-            this.camposDisponibles = response.data.campos.filter((campo) => campo.name !== '_id')
-            // Solo campos normales y subforms (NO subcampos)
-            this.camposFiltrables = this.camposDisponibles.filter(
-              (campo) => campo.type !== 'subform' || campo.type === 'subform',
-            )
+          if (response.data && response.data.secciones) {
+            this.seccionesDisponibles = response.data.secciones
+            this.camposDisponibles = [] // Limpiar campos hasta que se seleccione sección
+            this.camposFiltrables = []
           }
         } catch (error) {
-          console.error('Error al obtener los campos:', error)
-          this.mostrarNotificacion('Error', 'Error al cargar los campos de la plantilla', 'error')
+          console.error('Error al obtener las secciones:', error)
+          this.mostrarNotificacion(
+            'Error',
+            'Error al cargar las secciones de la plantilla',
+            'error',
+          )
+        }
+      } else {
+        this.seccionesDisponibles = []
+        this.camposDisponibles = []
+      }
+    },
+
+    onSeccionSelected() {
+      if (this.parametrosForm.seccionSeleccionada) {
+        if (!this.cargandoConfiguracion) {
+          this.parametrosForm.tipoOperacion = ''
+          this.parametrosForm.campoSeleccionado = ''
+          this.parametrosForm.condiciones = []
+          this.parametrosForm.subConfiguracion = {
+            tipoOperacion: '',
+            campoSeleccionado: '',
+            condiciones: [],
+          }
+        }
+
+        // Buscar la sección seleccionada
+        const seccionSeleccionada = this.seccionesDisponibles.find(
+          (s) => s.nombre === this.parametrosForm.seccionSeleccionada,
+        )
+
+        if (seccionSeleccionada && seccionSeleccionada.fields) {
+          this.camposDisponibles = seccionSeleccionada.fields.filter(
+            (campo) => campo.name !== '_id',
+          )
+          this.camposFiltrables = this.camposDisponibles.filter(
+            (campo) => campo.type !== 'subform' || campo.type === 'subform',
+          )
         }
       } else {
         this.camposDisponibles = []
+        this.camposFiltrables = []
       }
     },
 
