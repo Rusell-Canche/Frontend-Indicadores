@@ -308,11 +308,11 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeEditModal">
+            <button type="button" class="btn btn-cancel" @click="closeEditModal">
               <i class="fas fa-times me-2"></i>
               Cancelar
             </button>
-            <button type="button" class="btn btn-primary" @click="updateRole">
+            <button type="button" class="btn btn-save" @click="updateRole">
               <i class="fas fa-save me-2"></i>
               Guardar Cambios
             </button>
@@ -681,12 +681,22 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos del header */
+/* Estilos base del diseño moderno */
+.card {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  background: white;
+  position: relative;
+}
+
+/* Header con el diseño moderno - ACTUALIZADO CON PALETA VERDE */
 .medico-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   padding: 2rem;
-  border-radius: 12px 12px 0 0;
-  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   position: relative;
   overflow: hidden;
 }
@@ -694,70 +704,98 @@ export default {
 .medico-header::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
-  pointer-events: none;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
 }
 
 .header-content {
   display: flex;
   align-items: center;
-  position: relative;
+  gap: 1rem;
   z-index: 1;
 }
 
 .header-icon {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
   width: 60px;
   height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 1.5rem;
+  font-size: 1.5rem;
+  color: white;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.header-icon i {
-  font-size: 24px;
-}
-
 .header-title-section h3 {
   margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .header-subtitle {
-  margin: 0.5rem 0 0 0;
-  opacity: 0.9;
-  font-size: 0.95rem;
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
 }
 
-/* Estilos del body */
+/* Body con el diseño moderno */
 .medico-body {
   padding: 2rem;
-  background: #f8f9fa;
+  background: white;
+}
+
+/* Estilos de inputs modernos - ACTUALIZADOS CON PALETA VERDE */
+.modern-input {
+  position: relative;
+}
+
+.modern-input .input-group-text {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  border: none;
+  color: white;
+  border-radius: 12px 0 0 12px;
+  width: 50px;
+  justify-content: center;
+}
+
+.modern-input .form-control {
+  border: 2px solid #e9ecef;
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.modern-input .form-control:focus {
+  border-color: #047857;
+  box-shadow: 0 0 0 0.2rem rgba(4, 120, 87, 0.25);
+  transform: translateY(-1px);
 }
 
 /* Estilos de las tarjetas de roles */
 .role-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   transition: all 0.3s ease;
-  border: 1px solid #e9ecef;
+  border: 1px solid rgba(4, 120, 87, 0.1);
 }
 
 .role-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(4, 120, 87, 0.15);
 }
 
 .role-header {
@@ -765,7 +803,7 @@ export default {
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .role-info {
@@ -774,7 +812,7 @@ export default {
 
 .role-name {
   margin: 0 0 0.5rem 0;
-  color: #495057;
+  color: #2c3e50;
   font-size: 1.2rem;
   font-weight: 600;
 }
@@ -800,23 +838,27 @@ export default {
 /* Estilos de los detalles del rol */
 .role-details {
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-top: 3px solid #047857;
 }
 
 .permission-detail {
   background: white;
-  border-radius: 8px;
-  padding: 1rem;
-  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid rgba(4, 120, 87, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .permission-resource {
   margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .resource-name {
   margin: 0 0 0.5rem 0;
-  color: #495057;
+  color: #2c3e50;
   font-size: 1rem;
   font-weight: 600;
 }
@@ -836,52 +878,64 @@ export default {
 .action-badge .badge {
   font-size: 0.8rem;
   padding: 0.4rem 0.8rem;
+  border-radius: 8px;
 }
 
 /* Estilos del modal y formularios */
 .form-section {
   margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #047857, #065f46);
+  border-radius: 16px 16px 0 0;
 }
 
 .section-title {
-  color: #495057;
-  font-size: 1.1rem;
+  color: #2c3e50;
   font-weight: 600;
   margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e9ecef;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
 }
 
-.modern-input {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+.section-title i {
+  color: #047857;
 }
 
-.modern-input .input-group-text {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  color: #6c757d;
-}
-
-.modern-input .form-control {
-  border: 1px solid #dee2e6;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-}
-
-.modern-input .form-control:focus {
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  border-color: #007bff;
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
 }
 
 /* Estilos de permisos */
 .resource-permission-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  border: 1px solid #e9ecef;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(4, 120, 87, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.resource-permission-card:hover {
+  box-shadow: 0 4px 15px rgba(4, 120, 87, 0.1);
+  transform: translateY(-1px);
 }
 
 .resource-header {
@@ -889,26 +943,40 @@ export default {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .permissions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
 }
 
 .permission-item {
-  background: #f8f9fa;
-  border-radius: 6px;
   padding: 0.75rem;
-  border: 1px solid #e9ecef;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
+.permission-item:hover {
+  background: #f8f9fa;
+  border-color: rgba(4, 120, 87, 0.1);
+}
+
+/* Checkbox personalizado mejorado - ACTUALIZADO CON PALETA VERDE */
 .checkbox-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
   position: relative;
+  padding-left: 2.75rem;
+  width: 100%;
+  line-height: 1.4;
 }
 
 .custom-checkbox {
@@ -920,96 +988,132 @@ export default {
 }
 
 .checkmark {
-  height: 18px;
-  width: 18px;
-  background-color: #eee;
-  border: 2px solid #ddd;
-  border-radius: 3px;
-  margin-right: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+  position: absolute;
+  left: 0;
+  top: 2px;
+  height: 22px;
+  width: 22px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .checkbox-container:hover .checkmark {
-  background-color: #f0f0f0;
-  border-color: #007bff;
+  border-color: #047857;
+  box-shadow: 0 4px 8px rgba(4, 120, 87, 0.15);
+  transform: translateY(-1px);
 }
 
 .custom-checkbox:checked ~ .checkmark {
-  background-color: #007bff;
-  border-color: #007bff;
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  border-color: #047857;
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
 }
 
 .checkmark:after {
   content: '';
   position: absolute;
   display: none;
+  left: 7px;
+  top: 3px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .custom-checkbox:checked ~ .checkmark:after {
   display: block;
 }
 
-.checkmark:after {
-  left: 4px;
-  top: 1px;
-  width: 4px;
-  height: 8px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
 .permission-content {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 0.5rem;
 }
 
 .permission-title {
-  display: block;
   font-weight: 600;
-  color: #495057;
-  font-size: 0.9rem;
+  color: #2c3e50;
   margin-bottom: 0.25rem;
+  font-size: 0.9rem;
 }
 
 .permission-description {
-  display: block;
-  color: #6c757d;
   font-size: 0.8rem;
-  line-height: 1.3;
+  color: #6c757d;
 }
 
 /* Estados vacíos */
 .no-roles-state {
-  padding: 3rem 1rem;
-  text-align: center;
   background: white;
-  border-radius: 8px;
   border: 2px dashed #dee2e6;
+  border-radius: 12px;
+  margin-top: 1rem;
 }
 
-.no-roles-state i {
-  color: #adb5bd;
-}
-
-/* Botones personalizados */
-.btn-save {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+/* Botones personalizados - ACTUALIZADOS CON PALETA VERDE */
+.btn-primary {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   border: none;
   color: white;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(4, 120, 87, 0.4);
+  color: white;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
   position: relative;
   overflow: hidden;
 }
 
-.btn-save:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+.btn-save::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-save:hover::before {
+  left: 100%;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(4, 120, 87, 0.4);
+  color: white;
 }
 
 .btn-cancel {
@@ -1017,56 +1121,152 @@ export default {
   border: none;
   color: white;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .btn-cancel:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+  color: white;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .medico-header {
-    padding: 1.5rem;
-  }
+/* Badges personalizados - ACTUALIZADOS CON PALETA VERDE */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
 
-  .header-content {
-    flex-direction: column;
-    text-align: center;
-  }
+.bg-primary {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%) !important;
+}
 
-  .header-icon {
-    margin-right: 0;
-    margin-bottom: 1rem;
-  }
+.bg-info {
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+}
 
-  .medico-body {
-    padding: 1rem;
-  }
+.bg-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+}
 
-  .role-header {
-    flex-direction: column;
-    gap: 1rem;
-  }
+/* Modal personalizado - ACTUALIZADO CON PALETA VERDE */
+.modal-content {
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
 
-  .role-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
+.modal-header {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  color: white;
+  border-radius: 0;
+  padding: 1.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
 
-  .permissions-grid {
-    grid-template-columns: 1fr;
-  }
+.modal-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
 
-  .actions-grid {
-    justify-content: flex-start;
-  }
+.modal-title {
+  font-weight: 600;
+  margin: 0;
+  z-index: 1;
+  position: relative;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: white;
+  opacity: 0.8;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  z-index: 1;
+  position: relative;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  padding: 2rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: white;
+}
+
+.modal-footer {
+  padding: 1.5rem 2rem;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* Spinner personalizado - ACTUALIZADO CON PALETA VERDE */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.text-primary {
+  color: #047857 !important;
+}
+
+/* Efectos de hover en botones outline - ACTUALIZADOS CON PALETA VERDE */
+.btn-outline-primary {
+  color: #047857;
+  border-color: #047857;
+}
+
+.btn-outline-primary:hover {
+  background-color: #047857;
+  border-color: #047857;
+  transform: translateY(-1px);
+  color: white;
+}
+
+.btn-outline-warning:hover {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  transform: translateY(-1px);
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  transform: translateY(-1px);
 }
 
 /* Animaciones */
+@keyframes shimmer {
+  0%,
+  100% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  50% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1082,76 +1282,15 @@ export default {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Spinner personalizado */
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
+/* Transiciones suaves */
+.btn {
+  transition: all 0.2s ease;
 }
 
-/* Badges personalizados */
-.badge {
-  font-size: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 500;
-}
-
-.bg-primary {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
-}
-
-.bg-info {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
-}
-
-.bg-secondary {
-  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
-}
-
-/* Modal personalizado */
-.modal-content {
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px 12px 0 0;
-  padding: 1.5rem;
-}
-
-.modal-title {
-  font-weight: 600;
-  margin: 0;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: white;
-  opacity: 0.8;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-}
-
-.btn-close:hover {
-  opacity: 1;
-}
-
-.modal-body {
-  padding: 2rem;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.modal-footer {
-  padding: 1rem 2rem;
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
+.role-card,
+.permission-detail,
+.resource-permission-card {
+  transition: all 0.3s ease;
 }
 
 /* Scrollbar personalizada */
@@ -1165,103 +1304,115 @@ export default {
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #047857;
   border-radius: 4px;
 }
 
 .modal-body::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Efectos de hover en botones */
-.btn-outline-primary:hover {
-  background-color: #007bff;
-  border-color: #007bff;
-  transform: translateY(-1px);
-}
-
-.btn-outline-warning:hover {
-  background-color: #ffc107;
-  border-color: #ffc107;
-  transform: translateY(-1px);
-}
-
-.btn-outline-danger:hover {
-  background-color: #dc3545;
-  border-color: #dc3545;
-  transform: translateY(-1px);
-}
-
-/* Transiciones suaves */
-.btn {
-  transition: all 0.2s ease;
-}
-
-.role-card,
-.permission-detail,
-.resource-permission-card {
-  transition: all 0.3s ease;
+  background: #065f46;
 }
 
 /* Mejoras en la accesibilidad */
 .btn:focus,
 .form-control:focus,
 .custom-checkbox:focus ~ .checkmark {
-  outline: 2px solid #007bff;
+  outline: 2px solid #047857;
   outline-offset: 2px;
 }
 
-/* Estados de loading */
-.loading-overlay {
-  position: relative;
-}
-
-.loading-overlay::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-/* Mejoras en el contraste */
-.text-muted {
-  color: #6c757d !important;
-}
-
-.form-text {
-  color: #6c757d;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
-/* Estilos adicionales para la búsqueda */
-.search-highlight {
-  background-color: #fff3cd;
-  padding: 0.1rem 0.2rem;
-  border-radius: 2px;
-}
-
-/* Animación de carga */
-@keyframes pulse {
-  0% {
-    opacity: 1;
+/* Responsive mejorado */
+@media (max-width: 768px) {
+  .medico-header {
+    padding: 1.5rem;
   }
-  50% {
-    opacity: 0.5;
+
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
-  100% {
-    opacity: 1;
+
+  .header-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .header-title-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .medico-body {
+    padding: 1.5rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .role-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .role-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .permissions-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .actions-grid {
+    justify-content: flex-start;
+  }
+
+  .modal-footer {
+    padding: 1rem;
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-save {
+    width: 100%;
+    justify-content: center;
   }
 }
 
-.loading .role-card {
-  animation: pulse 1.5s ease-in-out infinite;
+@media (max-width: 576px) {
+  .medico-header {
+    padding: 1rem;
+  }
+
+  .medico-body {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 0.75rem;
+  }
+
+  .modern-input .form-control {
+    font-size: 0.9rem;
+  }
+
+  .checkbox-container {
+    padding-left: 2.5rem;
+  }
+
+  .checkmark {
+    height: 20px;
+    width: 20px;
+  }
+
+  .checkmark:after {
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 9px;
+  }
 }
 </style>
