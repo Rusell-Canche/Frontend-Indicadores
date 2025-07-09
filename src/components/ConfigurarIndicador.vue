@@ -172,7 +172,7 @@
 
             <!-- Subconfiguración para campos de tipo subform (excepto contarDistinto) -->
             <div
-              v-if="mostrarSubcampos && parametrosForm.tipoOperacion !== 'contarDistinto'"
+              v-if="mostrarSubcampos && parametrosForm.tipoOperacion !== 'distinto'"
               class="subform-config-section"
             >
               <h6 class="mt-3 mb-3">
@@ -241,7 +241,7 @@
 
             <!-- Campo en subformulario para contarDistinto -->
             <div
-              v-if="mostrarSubcampos && parametrosForm.tipoOperacion === 'contarDistinto'"
+              v-if="mostrarSubcampos && parametrosForm.tipoOperacion === 'distinto'"
               class="subform-config-section"
             >
               <h6 class="mt-3 mb-3">
