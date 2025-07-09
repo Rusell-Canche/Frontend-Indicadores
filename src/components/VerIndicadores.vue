@@ -27,178 +27,259 @@
   <div class="container-fluid py-4">
     <!-- Contenido principal -->
     <div class="card shadow border-0 rounded-3">
-      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h2 class="card-title h5 text-primary mb-0">
-          <i class="fas fa-chart-bar me-2"></i>Panel de Indicadores
-        </h2>
-        <div class="d-flex align-items-center gap-2">
-          <span class="badge bg-primary rounded-pill px-3 py-2">
-            <i class="fas fa-list-check me-1"></i>{{ indicadores.length }} Total
-          </span>
-          <span v-if="fechaInicio || fechaFin" class="badge bg-success rounded-pill px-3 py-2">
-            <i class="fas fa-filter me-1"></i>Filtrado
-          </span>
+      <div class="card-header bg-white py-3">
+        <div
+          class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3"
+        >
+          <h2 class="card-title h5 text-primary mb-0">
+            <i class="fas fa-chart-bar me-2"></i>{{ obtenerTituloVista() }}
+          </h2>
+
+          <!-- Botones de vista -->
+          <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
+            <div class="btn-group view-toggle" role="group">
+              <button
+                type="button"
+                class="btn btn-sm"
+                :class="vistaActual === 'accion' ? 'btn-success' : 'btn-outline-success'"
+                @click="cambiarVista('accion')"
+                title="Ver solo plan de acción"
+              >
+                <i class="fas fa-tasks me-1"></i>
+                Plan de Acción
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm"
+                :class="vistaActual === 'resumen' ? 'btn-info' : 'btn-outline-info'"
+                @click="cambiarVista('resumen')"
+                title="Ver resumen sin plan de acción"
+              >
+                <i class="fas fa-eye me-1"></i>
+                Resumen
+              </button>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-primary rounded-pill px-3 py-2">
+                <i class="fas fa-list-check me-1"></i>{{ indicadores.length }} Total
+              </span>
+              <span v-if="fechaInicio || fechaFin" class="badge bg-success rounded-pill px-3 py-2">
+                <i class="fas fa-filter me-1"></i>Filtrado
+              </span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table modern-table align-middle mb-0">
-            <thead>
-              <tr>
-                <th class="ps-4">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-folder text-primary me-2"></i>
-                    Proyecto
-                  </div>
-                </th>
-                <th>
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-hashtag text-primary me-2"></i>
-                    No.
-                  </div>
-                </th>
-                <th>
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-tag text-primary me-2"></i>
-                    Indicador
-                  </div>
-                </th>
-                <th>
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-tag text-primary me-2"></i>
-                    Departamento
-                  </div>
-                </th>
-                <th>
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-arrow-up text-success me-2"></i>
-                    Denominador
-                  </div>
-                </th>
-                <th>
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-arrow-down text-danger me-2"></i>
-                    Numerador
-                  </div>
-                </th>
-                <th class="text-center">
-                  <div class="d-flex align-items-center justify-content-center">
-                    <i class="fas fa-cogs text-primary me-2"></i>
-                    Acciones
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(indicador, index) in paginatedData"
-                :key="indicador._id"
-                class="table-row"
-              >
-                <td class="ps-4">
-                  <div class="d-flex align-items-center">
-                    <div class="project-icon me-3">
-                      <i class="fas fa-folder"></i>
+        <div class="table-responsive-wrapper">
+          <div class="table-responsive">
+            <table class="table modern-table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th v-if="mostrarColumnaProyecto" class="ps-4">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-folder text-primary me-2"></i>
+                      Proyecto
                     </div>
+                  </th>
+                  <th v-if="mostrarColumnaNumero">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-hashtag text-primary me-2"></i>
+                      No.
+                    </div>
+                  </th>
+                  <th v-if="mostrarColumnaIndicador">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-tag text-primary me-2"></i>
+                      Indicador
+                    </div>
+                  </th>
+                  <th v-if="mostrarColumnaDepartamento">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-tag text-primary me-2"></i>
+                      Departamento
+                    </div>
+                  </th>
+                  <th v-if="mostrarColumnasAccion">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-arrow-up text-success me-2"></i>
+                      Actividad
+                    </div>
+                  </th>
+                  <th v-if="mostrarColumnasAccion">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-arrow-up text-success me-2"></i>
+                      Causa
+                    </div>
+                  </th>
+                  <th v-if="mostrarColumnasAccion">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-arrow-up text-success me-2"></i>
+                      Accion
+                    </div>
+                  </th>
+                  <th v-if="mostrarColumnasMetricas">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-arrow-up text-success me-2"></i>
+                      Denominador
+                    </div>
+                  </th>
+                  <th v-if="mostrarColumnasMetricas">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-arrow-down text-danger me-2"></i>
+                      Numerador
+                    </div>
+                  </th>
+                  <th v-if="mostrarColumnaAcciones" class="text-center">
+                    <div class="d-flex align-items-center justify-content-center">
+                      <i class="fas fa-cogs text-primary me-2"></i>
+                      Acciones
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(indicador, index) in paginatedData"
+                  :key="indicador._id"
+                  class="table-row"
+                >
+                  <td v-if="mostrarColumnaProyecto" class="ps-4">
+                    <div class="d-flex align-items-center">
+                      <div class="project-icon me-3">
+                        <i class="fas fa-folder"></i>
+                      </div>
+                      <div>
+                        <div class="fw-semibold text-dark">{{ indicador._idProyecto }}</div>
+                        <small class="text-muted">Proyecto</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td v-if="mostrarColumnaNumero">
+                    <div class="number-circle">
+                      {{ indicador.numero }}
+                    </div>
+                  </td>
+                  <td v-if="mostrarColumnaIndicador">
                     <div>
-                      <div class="fw-semibold text-dark">{{ indicador._idProyecto }}</div>
-                      <small class="text-muted">Proyecto</small>
+                      <div class="fw-semibold text-dark">{{ indicador.nombreIndicador }}</div>
+                      <small class="text-muted">Indicador principal</small>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="number-circle">
-                    {{ indicador.numero }}
-                  </div>
-                </td>
-                <td>
-                  <div>
-                    <div class="fw-semibold text-dark">{{ indicador.nombreIndicador }}</div>
-                    <small class="text-muted">Indicador principal</small>
-                  </div>
-                </td>
-                <td>
-                  <div>
-                    <div class="fw-semibold text-dark">{{ indicador.departamento }}</div>
-                  </div>
-                </td>
-                <td>
-                  <div class="d-flex align-items-center">
-                    <div class="metric-icon success me-2">
-                      <i class="fas fa-arrow-up"></i>
+                  </td>
+                  <td v-if="mostrarColumnaDepartamento">
+                    <div>
+                      <div class="fw-semibold text-dark">{{ indicador.departamento }}</div>
                     </div>
-                    <span class="metric-value text-success fw-bold">{{
-                      indicador.denominador || 0
-                    }}</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="d-flex align-items-center">
-                    <div class="metric-icon danger me-2">
-                      <i class="fas fa-arrow-down"></i>
+                  </td>
+                  <td v-if="mostrarColumnasAccion">
+                    <div class="d-flex align-items-center">
+                      <div class="metric-icon success me-2">
+                        <i class="fas fa-arrow-up"></i>
+                      </div>
+                      <span class="metric-value text-success fw-bold">{{
+                        indicador.actividad || 'N/A'
+                      }}</span>
                     </div>
-                    <span class="metric-value text-danger fw-bold">{{
-                      indicador.numerador || 0
-                    }}</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="d-flex justify-content-center gap-2">
-                    <router-link
-                      :to="{
-                        name: 'configurar-indicador',
-                        params: { id: indicador._id || indicador.id },
-                      }"
-                      class="action-btn config-btn"
-                      title="Configurar indicador"
-                    >
-                      <i class="fas fa-cog"></i>
-                    </router-link>
-                    <router-link
-                      :to="{
-                        name: 'editar-indicador',
-                        params: { id: indicador._id || indicador.id },
-                      }"
-                      class="action-btn edit-btn"
-                      title="Editar indicador"
-                    >
-                      <i class="fas fa-edit"></i>
-                    </router-link>
-                    <button
-                      @click="eliminarIndicador(indicador)"
-                      class="action-btn delete-btn"
-                      title="Eliminar indicador"
-                    >
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="indicadores.length === 0">
-                <td colspan="7" class="text-center py-5">
-                  <div class="empty-state">
-                    <div class="empty-icon">
-                      <i class="fas fa-chart-bar"></i>
+                  </td>
+                  <td v-if="mostrarColumnasAccion">
+                    <div class="d-flex align-items-center">
+                      <div class="metric-icon success me-2">
+                        <i class="fas fa-arrow-up"></i>
+                      </div>
+                      <span class="metric-value text-success fw-bold">{{
+                        indicador.causa || 'N/A'
+                      }}</span>
                     </div>
-                    <h5 class="text-muted mb-2">
-                      {{
-                        fechaInicio || fechaFin
-                          ? 'No hay indicadores en el rango de fechas seleccionado'
-                          : 'No hay indicadores registrados'
-                      }}
-                    </h5>
-                    <p class="text-muted mb-3">
-                      {{
-                        fechaInicio || fechaFin
-                          ? 'Prueba con un rango de fechas diferente'
-                          : 'Los indicadores aparecerán aquí una vez que sean creados'
-                      }}
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  </td>
+                  <td v-if="mostrarColumnasAccion">
+                    <div class="d-flex align-items-center">
+                      <div class="metric-icon success me-2">
+                        <i class="fas fa-arrow-up"></i>
+                      </div>
+                      <span class="metric-value text-success fw-bold">{{
+                        indicador.accion || 'N/A'
+                      }}</span>
+                    </div>
+                  </td>
+                  <td v-if="mostrarColumnasMetricas">
+                    <div class="d-flex align-items-center">
+                      <div class="metric-icon success me-2">
+                        <i class="fas fa-arrow-up"></i>
+                      </div>
+                      <span class="metric-value text-success fw-bold">{{
+                        indicador.denominador || 0
+                      }}</span>
+                    </div>
+                  </td>
+                  <td v-if="mostrarColumnasMetricas">
+                    <div class="d-flex align-items-center">
+                      <div class="metric-icon danger me-2">
+                        <i class="fas fa-arrow-down"></i>
+                      </div>
+                      <span class="metric-value text-danger fw-bold">{{
+                        indicador.numerador || 0
+                      }}</span>
+                    </div>
+                  </td>
+                  <td v-if="mostrarColumnaAcciones">
+                    <div class="d-flex justify-content-center gap-2">
+                      <router-link
+                        :to="{
+                          name: 'configurar-indicador',
+                          params: { id: indicador._id || indicador.id },
+                        }"
+                        class="action-btn config-btn"
+                        title="Configurar indicador"
+                      >
+                        <i class="fas fa-cog"></i>
+                      </router-link>
+                      <router-link
+                        :to="{
+                          name: 'editar-indicador',
+                          params: { id: indicador._id || indicador.id },
+                        }"
+                        class="action-btn edit-btn"
+                        title="Editar indicador"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </router-link>
+                      <button
+                        @click="eliminarIndicador(indicador)"
+                        class="action-btn delete-btn"
+                        title="Eliminar indicador"
+                      >
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="indicadores.length === 0">
+                  <td colspan="7" class="text-center py-5">
+                    <div class="empty-state">
+                      <div class="empty-icon">
+                        <i class="fas fa-chart-bar"></i>
+                      </div>
+                      <h5 class="text-muted mb-2">
+                        {{
+                          fechaInicio || fechaFin
+                            ? 'No hay indicadores en el rango de fechas seleccionado'
+                            : 'No hay indicadores registrados'
+                        }}
+                      </h5>
+                      <p class="text-muted mb-3">
+                        {{
+                          fechaInicio || fechaFin
+                            ? 'Prueba con un rango de fechas diferente'
+                            : 'Los indicadores aparecerán aquí una vez que sean creados'
+                        }}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -282,6 +363,7 @@ export default {
       itemsPerPage: 12,
       fechaInicio: '2025-01-01',
       fechaFin: fechaActual,
+      vistaActual: 'resumen', // Nueva propiedad para controlar la vista
     }
   },
   computed: {
@@ -313,6 +395,27 @@ export default {
         pages.push(i)
       }
       return pages
+    },
+    mostrarColumnaProyecto() {
+      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
+    },
+    mostrarColumnaNumero() {
+      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
+    },
+    mostrarColumnaIndicador() {
+      return true // Siempre visible
+    },
+    mostrarColumnaDepartamento() {
+      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
+    },
+    mostrarColumnasAccion() {
+      return this.vistaActual === 'completa' || this.vistaActual === 'accion'
+    },
+    mostrarColumnasMetricas() {
+      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
+    },
+    mostrarColumnaAcciones() {
+      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
     },
   },
   mounted() {
@@ -624,6 +727,19 @@ export default {
     },
     goToPage(page) {
       this.currentPage = page
+    },
+    cambiarVista(vista) {
+      this.vistaActual = vista
+    },
+    obtenerTituloVista() {
+      switch (this.vistaActual) {
+        case 'accion':
+          return 'Plan de Acción'
+        case 'resumen':
+          return 'Vista Resumen'
+        default:
+          return 'Panel de Indicadores'
+      }
     },
   },
 }
@@ -1863,5 +1979,288 @@ export default {
 
 .date-input:focus::-webkit-calendar-picker-indicator {
   filter: invert(0.2);
+}
+
+/* Mejoras para tabla responsiva con muchas columnas */
+.table-responsive-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #667eea #f1f1f1;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+/* Asegurar ancho mínimo para todas las columnas */
+.modern-table {
+  min-width: 1200px; /* Ajusta según el número de columnas */
+  white-space: nowrap;
+}
+
+.modern-table thead th,
+.modern-table tbody td {
+  min-width: 120px; /* Ancho mínimo por columna */
+  max-width: 200px; /* Ancho máximo por columna */
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+/* Columnas específicas con anchos optimizados */
+.modern-table thead th:nth-child(1),
+.modern-table tbody td:nth-child(1) {
+  min-width: 180px; /* Proyecto */
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 10;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.modern-table thead th:nth-child(2),
+.modern-table tbody td:nth-child(2) {
+  min-width: 80px; /* Número */
+  text-align: center;
+}
+
+.modern-table thead th:nth-child(3),
+.modern-table tbody td:nth-child(3) {
+  min-width: 200px; /* Indicador */
+}
+
+.modern-table thead th:nth-child(4),
+.modern-table tbody td:nth-child(4) {
+  min-width: 150px; /* Departamento */
+}
+
+.modern-table thead th:nth-child(5),
+.modern-table tbody td:nth-child(5),
+.modern-table thead th:nth-child(6),
+.modern-table tbody td:nth-child(6),
+.modern-table thead th:nth-child(7),
+.modern-table tbody td:nth-child(7) {
+  min-width: 140px; /* Actividad, Causa, Acción */
+}
+
+.modern-table thead th:nth-child(8),
+.modern-table tbody td:nth-child(8),
+.modern-table thead th:nth-child(9),
+.modern-table tbody td:nth-child(9) {
+  min-width: 120px; /* Denominador, Numerador */
+}
+
+.modern-table thead th:nth-child(10),
+.modern-table tbody td:nth-child(10) {
+  min-width: 140px; /* Acciones */
+  position: sticky;
+  right: 0;
+  background: white;
+  z-index: 10;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Mejorar el sticky header */
+.modern-table thead th {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  z-index: 11;
+}
+
+.modern-table thead th:nth-child(1) {
+  z-index: 12; /* Mayor z-index para la intersección */
+}
+
+.modern-table thead th:nth-child(10) {
+  z-index: 12; /* Mayor z-index para la intersección */
+}
+
+/* Responsive breakpoints mejorados */
+@media (max-width: 1200px) {
+  .modern-table {
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 992px) {
+  .modern-table {
+    min-width: 900px;
+  }
+
+  .modern-table thead th,
+  .modern-table tbody td {
+    min-width: 100px;
+    font-size: 0.85rem;
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .modern-table {
+    min-width: 800px;
+  }
+
+  .modern-table thead th,
+  .modern-table tbody td {
+    min-width: 90px;
+    font-size: 0.8rem;
+    padding: 0.6rem 0.4rem;
+  }
+
+  /* Hacer las columnas sticky más estrechas en móvil */
+  .modern-table thead th:nth-child(1),
+  .modern-table tbody td:nth-child(1) {
+    min-width: 150px;
+  }
+
+  .modern-table thead th:nth-child(10),
+  .modern-table tbody td:nth-child(10) {
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 576px) {
+  .modern-table {
+    min-width: 700px;
+  }
+
+  .modern-table thead th,
+  .modern-table tbody td {
+    min-width: 80px;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.3rem;
+  }
+
+  .modern-table thead th:nth-child(1),
+  .modern-table tbody td:nth-child(1) {
+    min-width: 130px;
+  }
+
+  .modern-table thead th:nth-child(10),
+  .modern-table tbody td:nth-child(10) {
+    min-width: 100px;
+  }
+
+  /* Hacer los botones de acción más pequeños */
+  .action-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 0.7rem;
+    margin: 0 1px;
+  }
+}
+
+/* Indicador visual para scroll horizontal */
+.table-responsive-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.8), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.table-responsive-wrapper:hover::after {
+  opacity: 1;
+}
+
+/* Mejorar la experiencia de scroll en touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .table-responsive {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  .table-responsive-wrapper::after {
+    display: none;
+  }
+}
+
+/* Estilos para botones de vista */
+.view-toggle {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.view-toggle .btn {
+  border-radius: 0;
+  border: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.view-toggle .btn:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.view-toggle .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.view-toggle .btn:hover::before {
+  left: 100%;
+}
+
+.view-toggle .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive para botones de vista */
+@media (max-width: 768px) {
+  .view-toggle {
+    width: 100%;
+  }
+
+  .view-toggle .btn {
+    flex: 1;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .view-toggle .btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .view-toggle .btn i {
+    display: none;
+  }
 }
 </style>

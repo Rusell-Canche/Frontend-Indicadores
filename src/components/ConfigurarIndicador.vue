@@ -172,7 +172,7 @@
 
             <!-- Subconfiguración para campos de tipo subform (excepto contarDistinto) -->
             <div
-              v-if="mostrarSubcampos && parametrosForm.tipoOperacion !== 'contarDistinto'"
+              v-if="mostrarSubcampos && parametrosForm.tipoOperacion !== 'distinto'"
               class="subform-config-section"
             >
               <h6 class="mt-3 mb-3">
@@ -195,6 +195,7 @@
                     >
                       <option value="">Seleccione operación</option>
                       <option value="contar">Contar registros (COUNT)</option>
+                      <option value="distinto">Contar distintos (DISTINCT)</option>
                       <option value="sumar">Sumar valores (SUM)</option>
                       <option value="promedio">Promedio (AVG)</option>
                       <option value="maximo">Valor máximo (MAX)</option>
@@ -241,7 +242,7 @@
 
             <!-- Campo en subformulario para contarDistinto -->
             <div
-              v-if="mostrarSubcampos && parametrosForm.tipoOperacion === 'contarDistinto'"
+              v-if="mostrarSubcampos && parametrosForm.tipoOperacion === 'distinto'"
               class="subform-config-section"
             >
               <h6 class="mt-3 mb-3">
