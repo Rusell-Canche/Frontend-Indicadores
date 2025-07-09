@@ -119,6 +119,12 @@
                       Accion
                     </div>
                   </th>
+                  <th v-if="mostrarColumnasAccion">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-arrow-up text-success me-2"></i>
+                      Denominador Calculado
+                    </div>
+                  </th>
                   <th v-if="mostrarColumnasMetricas">
                     <div class="d-flex align-items-center">
                       <i class="fas fa-arrow-up text-success me-2"></i>
@@ -129,6 +135,12 @@
                     <div class="d-flex align-items-center">
                       <i class="fas fa-arrow-down text-danger me-2"></i>
                       Numerador
+                    </div>
+                  </th>
+                  <th v-if="mostrarColumnasMetricas">
+                    <div class="d-flex align-items-center">
+                      <i class="fa fa-percent text-danger me-2"></i>
+                      Porcentaje
                     </div>
                   </th>
                   <th v-if="mostrarColumnaAcciones" class="text-center">
@@ -202,6 +214,16 @@
                       }}</span>
                     </div>
                   </td>
+                  <td v-if="mostrarColumnasAccion">
+                    <div class="d-flex align-items-center">
+                      <div class="metric-icon success me-2">
+                        <i class="fas fa-arrow-up"></i>
+                      </div>
+                      <span class="metric-value text-success fw-bold">{{
+                        indicador.denominadorCalculado || 'N/A'
+                      }}</span>
+                    </div>
+                  </td>
                   <td v-if="mostrarColumnasMetricas">
                     <div class="d-flex align-items-center">
                       <div class="metric-icon success me-2">
@@ -219,6 +241,16 @@
                       </div>
                       <span class="metric-value text-danger fw-bold">{{
                         indicador.numerador || 0
+                      }}</span>
+                    </div>
+                  </td>
+                  <td v-if="mostrarColumnasMetricas">
+                    <div class="d-flex align-items-center">
+                      <div class="metric-icon danger me-2">
+                        <i class="fa fa-percent"></i>
+                      </div>
+                      <span class="metric-value text-danger fw-bold">{{
+                        indicador.porcentaje ? `${indicador.porcentaje}%` : 'N/A'
                       }}</span>
                     </div>
                   </td>
