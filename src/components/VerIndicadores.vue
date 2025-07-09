@@ -69,6 +69,25 @@
                     Departamento
                   </div>
                 </th>
+                <!-- Actividad del indicador -->
+                <th>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-arrow-up text-success me-2"></i>
+                    Actividad
+                  </div>
+                </th>
+                <th>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-arrow-up text-success me-2"></i>
+                    Causa
+                  </div>
+                </th>
+                <th>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-arrow-up text-success me-2"></i>
+                    Accion
+                  </div>
+                </th>
                 <th>
                   <div class="d-flex align-items-center">
                     <i class="fas fa-arrow-up text-success me-2"></i>
@@ -120,6 +139,36 @@
                 <td>
                   <div>
                     <div class="fw-semibold text-dark">{{ indicador.departamento }}</div>
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="metric-icon success me-2">
+                      <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <span class="metric-value text-success fw-bold">{{
+                      indicador.actividad || 'N/A'
+                    }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="metric-icon success me-2">
+                      <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <span class="metric-value text-success fw-bold">{{
+                      indicador.causa || 'N/A'
+                    }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="metric-icon success me-2">
+                      <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <span class="metric-value text-success fw-bold">{{
+                      indicador.accion || 'N/A'
+                    }}</span>
                   </div>
                 </td>
                 <td>
