@@ -250,7 +250,7 @@
                           class="form-control"
                           :id="campo.name"
                           v-model="documentData[campo.name]"
-                          :required="campo.require || campo.filterable"
+                          :required="campo.required || campo.filterable"
                         />
                       </div>
                     </div>
@@ -465,7 +465,7 @@
                       class="form-control"
                       :id="campo.name"
                       v-model="documentData[campo.name]"
-                      :required="campo.require || campo.filterable"
+                      :required="campo.required || campo.filterable"
                     />
                   </div>
                 </div>
