@@ -195,6 +195,7 @@
                     >
                       <option value="">Seleccione operación</option>
                       <option value="contar">Contar registros (COUNT)</option>
+                      <option value="distinto">Contar distintos (DISTINCT)</option>
                       <option value="sumar">Sumar valores (SUM)</option>
                       <option value="promedio">Promedio (AVG)</option>
                       <option value="maximo">Valor máximo (MAX)</option>
