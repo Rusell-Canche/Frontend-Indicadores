@@ -397,25 +397,25 @@ export default {
       return pages
     },
     mostrarColumnaProyecto() {
-      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
+      return this.vistaActual === 'resumen'
     },
     mostrarColumnaNumero() {
-      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
+      return this.vistaActual === 'resumen'
     },
     mostrarColumnaIndicador() {
       return true // Siempre visible
     },
     mostrarColumnaDepartamento() {
-      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
+      return this.vistaActual === 'resumen'
     },
     mostrarColumnasAccion() {
-      return this.vistaActual === 'completa' || this.vistaActual === 'accion'
+      return this.vistaActual === 'accion'
     },
     mostrarColumnasMetricas() {
-      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
+      return this.vistaActual === 'resumen'
     },
     mostrarColumnaAcciones() {
-      return this.vistaActual === 'completa' || this.vistaActual === 'resumen'
+      return this.vistaActual === 'resumen'
     },
   },
   mounted() {
