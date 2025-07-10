@@ -966,13 +966,27 @@ initializeEditData(documento) {
     console.warn('⚠️ camposPlantilla.secciones no es un arreglo válido')
   }
 
-  // Inicializar campos normales
-  campos
-    .filter((campo) => campo.type !== 'subform')
-    .forEach((campo) => {
-      const nombreCampo = campo.name
-      this.documentoEdit[nombreCampo] = documento[nombreCampo] ?? ''
-    })
+// Inicializar campos normales desde documento.secciones[*].fields
+campos
+  .filter((campo) => campo.type !== 'subform')
+  .forEach((campo) => {
+    const nombreCampo = campo.name
+    let valorCampo = ''
+
+    if (Array.isArray(documento.secciones)) {
+      for (const seccion of documento.secciones) {
+        if (seccion.fields && typeof seccion.fields === 'object') {
+          if (nombreCampo in seccion.fields) {
+            valorCampo = seccion.fields[nombreCampo]
+            break
+          }
+        }
+      }
+    }
+
+    this.documentoEdit[nombreCampo] = valorCampo ?? ''
+  })
+
 
   // Inicializar campos tipo subform
   campos
@@ -981,15 +995,20 @@ initializeEditData(documento) {
       const nombreCampo = campo.name
       let valorInicial = []
 
-      if (documento[nombreCampo]) {
-        try {
-          valorInicial = JSON.parse(documento[nombreCampo])
-        } catch (e) {
-          valorInicial = Array.isArray(documento[nombreCampo])
-            ? [...documento[nombreCampo]]
-            : []
-        }
+if (Array.isArray(documento.secciones)) {
+  for (const seccion of documento.secciones) {
+    if (seccion.fields && nombreCampo in seccion.fields) {
+      const raw = seccion.fields[nombreCampo]
+      try {
+        valorInicial = JSON.parse(raw)
+      } catch (e) {
+        valorInicial = Array.isArray(raw) ? [...raw] : []
       }
+      break
+    }
+  }
+}
+
 
       this.documentoEdit[nombreCampo] = [...valorInicial]
     })
@@ -1341,43 +1360,66 @@ async submitEdit() {
 },
 
 prepararFormData() {
-  const documentoParaActualizar = { ...this.documentoEdit }
-
-  // Obtener todos los campos de tipo subform desde las secciones
-  let camposSubform = []
-
-  if (
-    this.camposPlantilla &&
-    Array.isArray(this.camposPlantilla.secciones)
-  ) {
-    this.camposPlantilla.secciones.forEach((seccion) => {
-      if (Array.isArray(seccion.fields)) {
-        camposSubform.push(...seccion.fields.filter(campo => campo.type === 'subform'))
-      } else if (typeof seccion.fields === 'object') {
-        Object.entries(seccion.fields).forEach(([key, value]) => {
-          if (value.type === 'subform') {
-            camposSubform.push({ name: key, ...value })
-          }
-        })
-      }
-    })
-  }
-
-  // Procesar subformularios
-  camposSubform.forEach(campo => {
-    if (this.editSubformData[campo.name]) {
-      documentoParaActualizar[campo.name] = this.combinarSubformData(campo.name)
-    }
-  })
-
   const formData = new FormData()
 
-  Object.keys(documentoParaActualizar).forEach(campo => {
-    this.agregarCampoAFormData(formData, campo, documentoParaActualizar[campo])
+  if (!Array.isArray(this.camposPlantilla.secciones)) {
+    console.warn('❌ Plantilla sin secciones')
+    return formData
+  }
+
+  this.camposPlantilla.secciones.forEach((seccion, indexSeccion) => {
+    const nombreSeccion = seccion.nombre
+    const fields = seccion.fields
+
+    if (Array.isArray(fields)) {
+      fields.forEach(campo => {
+        const nombreCampo = campo.name
+        const valor = this.documentoEdit[nombreCampo]
+
+        const clave = `document_data[secciones][${indexSeccion}][fields][${nombreCampo}]`
+
+        if (campo.type === 'subform' && Array.isArray(valor)) {
+          valor.forEach((row, rowIndex) => {
+            Object.entries(row).forEach(([subcampo, subvalor]) => {
+              const subClave = `${clave}[${rowIndex}][${subcampo}]`
+              formData.append(subClave, subvalor)
+            })
+          })
+        } else if (campo.type === 'file' && valor instanceof File) {
+          formData.append(clave, valor)
+        } else if (valor !== null && valor !== undefined) {
+          const valorFinal = typeof valor === 'object' ? JSON.stringify(valor) : valor
+          formData.append(clave, valorFinal)
+        }
+      })
+    } else if (typeof fields === 'object') {
+      Object.entries(fields).forEach(([nombreCampo, configCampo]) => {
+        const valor = this.documentoEdit[nombreCampo]
+        const clave = `document_data[secciones][${indexSeccion}][fields][${nombreCampo}]`
+
+        if (configCampo.type === 'subform' && Array.isArray(valor)) {
+          valor.forEach((row, rowIndex) => {
+            Object.entries(row).forEach(([subcampo, subvalor]) => {
+              const subClave = `${clave}[${rowIndex}][${subcampo}]`
+              formData.append(subClave, subvalor)
+            })
+          })
+        } else if (configCampo.type === 'file' && valor instanceof File) {
+          formData.append(clave, valor)
+        } else if (valor !== null && valor !== undefined) {
+          const valorFinal = typeof valor === 'object' ? JSON.stringify(valor) : valor
+          formData.append(clave, valorFinal)
+        }
+      })
+    }
+
+    // Opcional: incluir el nombre de la sección si el backend lo requiere
+    formData.append(`document_data[secciones][${indexSeccion}][nombre]`, nombreSeccion)
   })
 
   return formData
-},
+}
+,
 
 agregarCampoAFormData(formData, campo, valor) {
   if (campo === '_id') return
