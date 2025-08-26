@@ -341,7 +341,7 @@
     </button>
   </div>
 
-                      <div class="select-options-body">
+                      <div v-if="campo.mostrarOpcionesManuales" class="select-options-body">
                         <div
                           v-for="(option, optionIndex) in campo.options || []"
                           :key="optionIndex"
@@ -647,6 +647,7 @@ export default {
       opcionesPreview: [],
       cargandoOpciones: false,
       campoActual: null,
+      mostrarOpcionesManuales: false   // 👈 bandera de visibilidad
     }
   },
 
@@ -887,7 +888,7 @@ export default {
           }),
         )
 
-        if (camposInvalidos) {
+        if (camposInvalidos && this.mostrarOpcionesManuales) {
           Swal.fire({
             icon: 'warning',
             title: 'Campos incompletos',
@@ -1036,6 +1037,9 @@ export default {
         campoMostrar: this.campoMostrar,
         campoGuardar: this.campoGuardar || this.campoMostrar
       };
+
+        // 👇 Aquí apagamos la parte manual
+  this.campoActual.mostrarOpcionesManuales = false;
       
       this.cerrarModalPlantilla();
       
