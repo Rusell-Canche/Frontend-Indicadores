@@ -341,7 +341,7 @@
     </button>
   </div>
 
-                      <div v-if="campo.mostrarOpcionesManuales" class="select-options-body">
+                      <div v-if="mostrarOpcionesManuales" class="select-options-body">
                         <div
                           v-for="(option, optionIndex) in campo.options || []"
                           :key="optionIndex"
@@ -647,7 +647,7 @@ export default {
       opcionesPreview: [],
       cargandoOpciones: false,
       campoActual: null,
-      mostrarOpcionesManuales: false   // 👈 bandera de visibilidad
+      mostrarOpcionesManuales: true   // 👈 bandera de visibilidad
     }
   },
 
@@ -1039,7 +1039,7 @@ export default {
       };
 
         // 👇 Aquí apagamos la parte manual
-  this.campoActual.mostrarOpcionesManuales = false;
+  this.mostrarOpcionesManuales = false;
       
       this.cerrarModalPlantilla();
       
