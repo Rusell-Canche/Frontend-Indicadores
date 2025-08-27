@@ -1,125 +1,126 @@
 <template>
   <!-- Modal para seleccionar plantilla y sección -->
-<div v-if="modalPlantillaVisible" class="medico-modal-backdrop" @click.self="cerrarModalPlantilla">
-  <div class="medico-modal-content" @click.stop style="max-width: 600px;">
-    <!-- Header del modal -->
-    <div class="medico-modal-header">
-      <div class="modal-header-content">
-        <div class="modal-icon">
-          <i class="fas fa-database"></i>
+  <div
+    v-if="modalPlantillaVisible"
+    class="medico-modal-backdrop"
+    @click.self="cerrarModalPlantilla"
+  >
+    <div class="medico-modal-content" @click.stop style="max-width: 600px">
+      <!-- Header del modal -->
+      <div class="medico-modal-header">
+        <div class="modal-header-content">
+          <div class="modal-icon">
+            <i class="fas fa-database"></i>
+          </div>
+          <div class="modal-title-section">
+            <h3>Seleccionar Origen de Datos</h3>
+            <p class="modal-subtitle">Selecciona la plantilla y sección para cargar las opciones</p>
+          </div>
         </div>
-        <div class="modal-title-section">
-          <h3>Seleccionar Origen de Datos</h3>
-          <p class="modal-subtitle">Selecciona la plantilla y sección para cargar las opciones</p>
-        </div>
+        <button @click="cerrarModalPlantilla" class="medico-close-button">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      <button @click="cerrarModalPlantilla" class="medico-close-button">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
 
-    <!-- Body del modal -->
-    <div class="medico-modal-body">
-      <div class="form-section">
-        <!-- Selección de plantilla -->
-        <div class="mb-3">
-          <label class="form-label">Plantilla*</label>
-          <select 
-            v-model="plantillaSeleccionada" 
-            class="form-select"
-            @change="cargarSeccionesPlantilla"
-          >
-            <option value="">Seleccione una plantilla</option>
-            <option 
-              v-for="plantilla in plantillasDisponibles" 
-              :key="plantilla.id" 
-              :value="plantilla.id"
+      <!-- Body del modal -->
+      <div class="medico-modal-body">
+        <div class="form-section">
+          <!-- Selección de plantilla -->
+          <div class="mb-3">
+            <label class="form-label">Plantilla*</label>
+            <select
+              v-model="plantillaSeleccionada"
+              class="form-select"
+              @change="cargarSeccionesPlantilla"
             >
-              {{ plantilla.nombre_plantilla || plantilla.title }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Selección de sección -->
-        <div class="mb-3" v-if="seccionesPlantilla.length > 0">
-          <label class="form-label">Sección*</label>
-          <select v-model="seccionSeleccionada" class="form-select">
-            <option value="">Seleccione una sección</option>
-            <option 
-              v-for="seccion in seccionesPlantilla" 
-              :key="seccion.nombre" 
-              :value="seccion.nombre"
-            >
-              {{ seccion.nombre }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Campos disponibles -->
-        <div v-if="camposSeccion.length > 0">
-          <label class="form-label">Campo a mostrar*</label>
-          <select v-model="campoMostrar" class="form-select mb-2">
-            <option value="">Seleccione campo a mostrar</option>
-            <option 
-              v-for="campo in camposSeccion" 
-              :key="campo.name" 
-              :value="campo.name"
-            >
-              {{ campo.name }} ({{ campo.type }})
-            </option>
-          </select>
-          
-          <label class="form-label">Campo a guardar (opcional)</label>
-          <select v-model="campoGuardar" class="form-select">
-            <option value="">Mismo que campo a mostrar</option>
-            <option 
-              v-for="campo in camposSeccion" 
-              :key="campo.name" 
-              :value="campo.name"
-            >
-              {{ campo.name }} ({{ campo.type }})
-            </option>
-          </select>
-          <div class="form-text">
-            El campo a guardar es el valor interno que se almacenará. Si se deja vacío, se usará el mismo valor que el campo a mostrar.
+              <option value="">Seleccione una plantilla</option>
+              <option
+                v-for="plantilla in plantillasDisponibles"
+                :key="plantilla.id"
+                :value="plantilla.id"
+              >
+                {{ plantilla.nombre_plantilla || plantilla.title }}
+              </option>
+            </select>
           </div>
-        </div>
 
-        <!-- Vista previa -->
-        <div v-if="campoMostrar" class="mt-3 p-3 bg-light rounded">
-          <h6>Vista previa de opciones:</h6>
-          <div v-if="cargandoOpciones" class="text-center">
-            <i class="fas fa-spinner fa-spin"></i> Cargando...
+          <!-- Selección de sección -->
+          <div class="mb-3" v-if="seccionesPlantilla.length > 0">
+            <label class="form-label">Sección*</label>
+            <select v-model="seccionSeleccionada" class="form-select">
+              <option value="">Seleccione una sección</option>
+              <option
+                v-for="seccion in seccionesPlantilla"
+                :key="seccion.nombre"
+                :value="seccion.nombre"
+              >
+                {{ seccion.nombre }}
+              </option>
+            </select>
           </div>
-          <div v-else>
-            <div v-for="(opcion, index) in opcionesPreview" :key="index" class="badge bg-info me-1 mb-1">
-              {{ opcion }}
-            </div>
-            <div v-if="opcionesPreview.length === 0" class="text-muted">
-              No hay datos disponibles en esta sección
+
+          <!-- Campos disponibles -->
+          <div v-if="camposSeccion.length > 0">
+            <label class="form-label">Campo a mostrar*</label>
+            <select v-model="campoMostrar" class="form-select mb-2">
+              <option value="">Seleccione campo a mostrar</option>
+              <option v-for="campo in camposSeccion" :key="campo.name" :value="campo.name">
+                {{ campo.name }} ({{ campo.type }})
+              </option>
+            </select>
+
+            <label class="form-label">Campo a guardar (opcional)</label>
+            <select v-model="campoGuardar" class="form-select">
+              <option value="">Mismo que campo a mostrar</option>
+              <option v-for="campo in camposSeccion" :key="campo.name" :value="campo.name">
+                {{ campo.name }} ({{ campo.type }})
+              </option>
+            </select>
+            <div class="form-text">
+              El campo a guardar es el valor interno que se almacenará. Si se deja vacío, se usará
+              el mismo valor que el campo a mostrar.
             </div>
           </div>
+
+          <!-- Vista previa -->
+          <div v-if="campoMostrar" class="mt-3 p-3 bg-light rounded">
+            <h6>Vista previa de opciones:</h6>
+            <div v-if="cargandoOpciones" class="text-center">
+              <i class="fas fa-spinner fa-spin"></i> Cargando...
+            </div>
+            <div v-else>
+              <div
+                v-for="(opcion, index) in opcionesPreview"
+                :key="index"
+                class="badge bg-info me-1 mb-1"
+              >
+                {{ opcion }}
+              </div>
+              <div v-if="opcionesPreview.length === 0" class="text-muted">
+                No hay datos disponibles en esta sección
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Footer del modal -->
-    <div class="medico-modal-footer">
-      <button @click="cerrarModalPlantilla" class="btn btn-cancel">
-        <i class="fas fa-times me-2"></i>
-        Cancelar
-      </button>
-      <button 
-        @click="aplicarConfiguracionPlantilla" 
-        class="btn btn-save" 
-        :disabled="!configuracionValida"
-      >
-        <i class="fas fa-check me-2"></i>
-        Aplicar Configuración
-      </button>
+      <!-- Footer del modal -->
+      <div class="medico-modal-footer">
+        <button @click="cerrarModalPlantilla" class="btn btn-cancel">
+          <i class="fas fa-times me-2"></i>
+          Cancelar
+        </button>
+        <button
+          @click="aplicarConfiguracionPlantilla"
+          class="btn btn-save"
+          :disabled="!configuracionValida"
+        >
+          <i class="fas fa-check me-2"></i>
+          Aplicar Configuración
+        </button>
+      </div>
     </div>
   </div>
-</div>
   <div class="container-fluid py-4">
     <!-- Contenedor principal-->
     <div class="card shadow border-0 rounded-3">
@@ -330,30 +331,34 @@
                       </div>
 
                       <!-- Botón para cargar desde otra plantilla -->
-  <div class="mb-3">
-    <button 
-      type="button" 
-      @click="abrirModalPlantilla(campo)" 
-      class="btn btn-outline-primary btn-sm"
-    >
-      <i class="fas fa-database me-1"></i>
-      Cargar opciones desde otra plantilla
-    </button>
-  </div>
+                      <div class="mb-3">
+                        <button
+                          type="button"
+                          @click="abrirModalPlantilla(campo)"
+                          class="btn btn-outline-primary btn-sm"
+                        >
+                          <i class="fas fa-database me-1"></i>
+                          Cargar opciones desde otra plantilla
+                        </button>
+                      </div>
 
-  <!-- Alert de configuración aplicada -->
+                      <!-- Alert de configuración aplicada -->
                       <div v-if="campo.dataSource" class="alert alert-info mb-3">
                         <div class="d-flex align-items-start">
                           <i class="fas fa-lightbulb me-3 mt-1"></i>
                           <div>
                             <strong>Configuración de opciones dinámicas:</strong><br />
-                            Las opciones se cargarán desde la plantilla 
-                            <strong>"{{ getNombrePlantillaDataSource(campo.dataSource.plantillaId) }}"</strong>,
-                            sección <strong>"{{ campo.dataSource.seccion }}"</strong><br />
+                            Las opciones se cargarán desde la plantilla
+                            <strong
+                              >"{{
+                                getNombrePlantillaDataSource(campo.dataSource.plantillaId)
+                              }}"</strong
+                            >, sección <strong>"{{ campo.dataSource.seccion }}"</strong><br />
                             <span class="mt-1 d-block">
                               <small>
-                                Campo mostrado: <strong>{{ campo.dataSource.campoMostrar }}</strong> | 
-                                Campo guardado: <strong>{{ campo.dataSource.campoGuardar }}</strong>
+                                Campo mostrado:
+                                <strong>{{ campo.dataSource.campoMostrar }}</strong> | Campo
+                                guardado: <strong>{{ campo.dataSource.campoGuardar }}</strong>
                               </small>
                             </span>
                           </div>
@@ -538,42 +543,49 @@
                                 </div>
                               </div>
 
-  <!-- Botón para cargar desde otra plantilla -->
-  <div class="mb-3">
-    <button 
-      type="button" 
-      @click="abrirModalPlantilla(subcampo)" 
-      class="btn btn-outline-primary btn-sm"
-    >
-      <i class="fas fa-database me-1"></i>
-      Cargar opciones desde otra plantilla
-    </button>
-  </div>
+                              <!-- Botón para cargar desde otra plantilla -->
+                              <div class="mb-3">
+                                <button
+                                  type="button"
+                                  @click="abrirModalPlantilla(subcampo)"
+                                  class="btn btn-outline-primary btn-sm"
+                                >
+                                  <i class="fas fa-database me-1"></i>
+                                  Cargar opciones desde otra plantilla
+                                </button>
+                              </div>
 
-  
-  <!-- Alert de configuración aplicada -->
-                      <div v-if="subcampo.dataSource" class="alert alert-info mb-3">
-                        <div class="d-flex align-items-start">
-                          <i class="fas fa-lightbulb me-3 mt-1"></i>
-                          <div>
-                            <strong>Configuración de opciones dinámicas:</strong><br />
-                            Las opciones se cargarán desde la plantilla 
-                            <strong>"{{ getNombrePlantillaDataSource(subcampo.dataSource.plantillaId) }}"</strong>,
-                            sección <strong>"{{ subcampo.dataSource.seccion }}"</strong><br />
-                            <span class="mt-1 d-block">
-                              <small>
-                                Campo mostrado: <strong>{{ subcampo.dataSource.campoMostrar }}</strong> | 
-                                Campo guardado: <strong>{{ subcampo.dataSource.campoGuardar }}</strong>
-                              </small>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                              <!-- Alert de configuración aplicada -->
+                              <div v-if="subcampo.dataSource" class="alert alert-info mb-3">
+                                <div class="d-flex align-items-start">
+                                  <i class="fas fa-lightbulb me-3 mt-1"></i>
+                                  <div>
+                                    <strong>Configuración de opciones dinámicas:</strong><br />
+                                    Las opciones se cargarán desde la plantilla
+                                    <strong
+                                      >"{{
+                                        getNombrePlantillaDataSource(
+                                          subcampo.dataSource.plantillaId,
+                                        )
+                                      }}"</strong
+                                    >, sección <strong>"{{ subcampo.dataSource.seccion }}"</strong
+                                    ><br />
+                                    <span class="mt-1 d-block">
+                                      <small>
+                                        Campo mostrado:
+                                        <strong>{{ subcampo.dataSource.campoMostrar }}</strong> |
+                                        Campo guardado:
+                                        <strong>{{ subcampo.dataSource.campoGuardar }}</strong>
+                                      </small>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
 
-
-
-
-                              <div v-if="subcampo.mostrarOpcionesManuales" class="select-options-body">
+                              <div
+                                v-if="subcampo.mostrarOpcionesManuales"
+                                class="select-options-body"
+                              >
                                 <div
                                   v-for="(option, optionIndex) in subcampo.options || []"
                                   :key="optionIndex"
@@ -701,7 +713,6 @@ export default {
       opcionesPreview: [],
       cargandoOpciones: false,
       campoActual: null,
-     
     }
   },
 
@@ -716,39 +727,41 @@ export default {
       }
     },
     configuracionValida() {
-      return this.plantillaSeleccionada && 
-             this.seccionSeleccionada && 
-             this.campoMostrar;
+      return this.plantillaSeleccionada && this.seccionSeleccionada && this.campoMostrar
     },
   },
 
   watch: {
     seccionSeleccionada: 'onSeccionSeleccionada',
-    campoMostrar: 'cargarVistaPrevia'
+    campoMostrar: 'cargarVistaPrevia',
   },
 
   methods: {
     // Nuevo método para obtener nombre de plantilla por ID
-  getNombrePlantillaDataSource(plantillaId) {
-    if (!plantillaId) return 'Plantilla no especificada';
-    
-    const plantilla = this.plantillasDisponibles.find(p => p.id === plantillaId);
-    return plantilla ? (plantilla.nombre_plantilla || plantilla.title) : `Plantilla ID: ${plantillaId}`;
-  },
+    getNombrePlantillaDataSource(plantillaId) {
+      if (!plantillaId) return 'Plantilla no especificada'
 
-  // Método alternativo si quieres cargar el nombre desde el servidor
-  async cargarNombrePlantilla(plantillaId) {
-    try {
-      const token = localStorage.getItem('apiToken');
-      const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${plantillaId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data.nombre_plantilla || response.data.title || `Plantilla ID: ${plantillaId}`;
-    } catch (error) {
-      console.error('Error al cargar nombre de plantilla:', error);
-      return `Plantilla ID: ${plantillaId}`;
-    }
-  },
+      const plantilla = this.plantillasDisponibles.find((p) => p.id === plantillaId)
+      return plantilla
+        ? plantilla.nombre_plantilla || plantilla.title
+        : `Plantilla ID: ${plantillaId}`
+    },
+
+    // Método alternativo si quieres cargar el nombre desde el servidor
+    async cargarNombrePlantilla(plantillaId) {
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${plantillaId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        return (
+          response.data.nombre_plantilla || response.data.title || `Plantilla ID: ${plantillaId}`
+        )
+      } catch (error) {
+        console.error('Error al cargar nombre de plantilla:', error)
+        return `Plantilla ID: ${plantillaId}`
+      }
+    },
     agregarSeccion() {
       this.secciones.push({
         nombre: '',
@@ -879,12 +892,11 @@ export default {
               }
 
               if (campo.type === 'select' && campo.dataSource) {
-                campoLimpio.dataSource = campo.dataSource;
-              }
-              else if (campo.type === 'select' && campo.options) {
+                campoLimpio.dataSource = campo.dataSource
+              } else if (campo.type === 'select' && campo.options) {
                 campoLimpio.options = campo.options.filter(
                   (option) => option !== null && option !== undefined && option.trim() !== '',
-                );
+                )
               }
 
               if (campo.type === 'subform' && campo.subcampos) {
@@ -896,14 +908,13 @@ export default {
                     filterable: subcampo.filterable || false,
                   }
 
-              if (subcampo.type === 'select' && subcampo.dataSource) {
-                subcampoLimpio.dataSource = subcampo.dataSource;
-              }
-              else if (subcampo.type === 'select' && subcampo.options) {
-                subcampoLimpio.options = subcampo.options.filter(
-                  (option) => option !== null && option !== undefined && option.trim() !== '',
-                );
-              }
+                  if (subcampo.type === 'select' && subcampo.dataSource) {
+                    subcampoLimpio.dataSource = subcampo.dataSource
+                  } else if (subcampo.type === 'select' && subcampo.options) {
+                    subcampoLimpio.options = subcampo.options.filter(
+                      (option) => option !== null && option !== undefined && option.trim() !== '',
+                    )
+                  }
 
                   return subcampoLimpio
                 })
@@ -1011,126 +1022,129 @@ export default {
 
     // MODAL METHODS - Now properly inside the methods object
     async abrirModalPlantilla(campo) {
-      this.campoActual = campo;
-      this.modalPlantillaVisible = true;
-      
+      this.campoActual = campo
+      this.modalPlantillaVisible = true
+
       try {
-        const token = localStorage.getItem('apiToken');
+        const token = localStorage.getItem('apiToken')
         const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        this.plantillasDisponibles = response.data || [];
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        this.plantillasDisponibles = response.data || []
       } catch (error) {
-        console.error('Error al cargar plantillas:', error);
+        console.error('Error al cargar plantillas:', error)
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudieron cargar las plantillas disponibles'
-        });
+          text: 'No se pudieron cargar las plantillas disponibles',
+        })
       }
     },
-    
+
     cerrarModalPlantilla() {
-      this.modalPlantillaVisible = false;
-      this.resetModalPlantilla();
+      this.modalPlantillaVisible = false
+      this.resetModalPlantilla()
     },
-    
+
     resetModalPlantilla() {
-      this.plantillaSeleccionada = '';
-      this.seccionesPlantilla = [];
-      this.seccionSeleccionada = '';
-      this.camposSeccion = [];
-      this.campoMostrar = '';
-      this.campoGuardar = '';
-      this.opcionesPreview = [];
-      this.campoActual = null;
+      this.plantillaSeleccionada = ''
+      this.seccionesPlantilla = []
+      this.seccionSeleccionada = ''
+      this.camposSeccion = []
+      this.campoMostrar = ''
+      this.campoGuardar = ''
+      this.opcionesPreview = []
+      this.campoActual = null
     },
-    
+
     async cargarSeccionesPlantilla() {
-      if (!this.plantillaSeleccionada) return;
-      
+      if (!this.plantillaSeleccionada) return
+
       try {
-        const token = localStorage.getItem('apiToken');
+        const token = localStorage.getItem('apiToken')
         const response = await axios.get(
           `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/secciones`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        
-        this.seccionesPlantilla = response.data?.secciones || [];
-        this.seccionSeleccionada = '';
-        this.camposSeccion = [];
-        this.campoMostrar = '';
-        this.campoGuardar = '';
-        this.opcionesPreview = [];
+          { headers: { Authorization: `Bearer ${token}` } },
+        )
+
+        this.seccionesPlantilla = response.data?.secciones || []
+        this.seccionSeleccionada = ''
+        this.camposSeccion = []
+        this.campoMostrar = ''
+        this.campoGuardar = ''
+        this.opcionesPreview = []
       } catch (error) {
-        console.error('Error al cargar secciones:', error);
+        console.error('Error al cargar secciones:', error)
       }
     },
-    
+
     async onSeccionSeleccionada() {
-      if (!this.seccionSeleccionada) return;
-      
-      const seccion = this.seccionesPlantilla.find(s => s.nombre === this.seccionSeleccionada);
+      if (!this.seccionSeleccionada) return
+
+      const seccion = this.seccionesPlantilla.find((s) => s.nombre === this.seccionSeleccionada)
       if (seccion && seccion.fields) {
-        this.camposSeccion = seccion.fields;
-        await this.cargarVistaPrevia();
+        this.camposSeccion = seccion.fields
+        await this.cargarVistaPrevia()
       }
     },
-    
+
     async cargarVistaPrevia() {
-      if (!this.plantillaSeleccionada || !this.seccionSeleccionada || !this.campoMostrar) return;
-      
-      this.cargandoOpciones = true;
+      if (!this.plantillaSeleccionada || !this.seccionSeleccionada || !this.campoMostrar) return
+
+      this.cargandoOpciones = true
       try {
-        const token = localStorage.getItem('apiToken');
+        const token = localStorage.getItem('apiToken')
         const response = await axios.get(
           `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/datos`,
           {
             params: {
               seccion: this.seccionSeleccionada,
-              campo: this.campoMostrar
+              campo: this.campoMostrar,
             },
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-        
-        const valores = response.data || [];
-        this.opcionesPreview = [...new Set(valores.map(item => item[this.campoMostrar]))].slice(0, 10);
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        )
+
+        const valores = response.data || []
+        this.opcionesPreview = [...new Set(valores.map((item) => item[this.campoMostrar]))].slice(
+          0,
+          10,
+        )
       } catch (error) {
-        console.error('Error al cargar vista previa:', error);
-        this.opcionesPreview = [];
+        console.error('Error al cargar vista previa:', error)
+        this.opcionesPreview = []
       } finally {
-        this.cargandoOpciones = false;
+        this.cargandoOpciones = false
       }
     },
-    
-    aplicarConfiguracionPlantilla() {
-    if (!this.configuracionValida) return;
-    
-    this.campoActual.options = [];
-    this.campoActual.dataSource = {
-      plantillaId: this.plantillaSeleccionada,
-      plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada), // Agregado
-      seccion: this.seccionSeleccionada,
-      campoMostrar: this.campoMostrar,
-      campoGuardar: this.campoGuardar || this.campoMostrar
-    };
 
-    // Ocultar opciones manuales cuando se configura desde plantilla
-    this.campoActual.mostrarOpcionesManuales = false;
-    
-    this.cerrarModalPlantilla();
-    
-    Swal.fire({
-      icon: 'success',
-      title: 'Configuración aplicada',
-      text: 'Las opciones se cargarán desde la plantilla seleccionada',
-      timer: 2000,
-      showConfirmButton: false
-    });
-  }
-},
+    aplicarConfiguracionPlantilla() {
+      if (!this.configuracionValida) return
+
+      this.campoActual.options = []
+      this.campoActual.dataSource = {
+        plantillaId: this.plantillaSeleccionada,
+        plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada), // Agregado
+        seccion: this.seccionSeleccionada,
+        campoMostrar: this.campoMostrar,
+        campoGuardar: this.campoGuardar || this.campoMostrar,
+      }
+
+      // Ocultar opciones manuales cuando se configura desde plantilla
+      this.campoActual.mostrarOpcionesManuales = false
+
+      this.cerrarModalPlantilla()
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Configuración aplicada',
+        text: 'Las opciones se cargarán desde la plantilla seleccionada',
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    },
+  },
 
   mounted() {},
 }
