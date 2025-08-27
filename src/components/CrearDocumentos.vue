@@ -162,17 +162,37 @@
                           :required="campo.required"
                         >
                           <option value="" disabled selected>Seleccione una opción</option>
-                          <option
-                            v-for="(option, index) in campo.options"
-                            :key="index"
-                            :value="option"
-                          >
-                            {{ option }}
-                          </option>
+                          <!-- Select Manual (array de strings) -->
+                          <template v-if="isManualSelect(campo)">
+                            <option
+                              v-for="(option, index) in campo.options"
+                              :key="index"
+                              :value="option"
+                            >
+                              {{ option }}
+                            </option>
+                          </template>
+                          <!-- Select Dinámico (objetos con campoMostrar y campoGuardar) -->
+                          <template v-else>
+                            <option
+                              v-for="(option, index) in campo.options"
+                              :key="index"
+                              :value="option.campoGuardar"
+                            >
+                              {{ option.campoMostrar }}
+                            </option>
+                          </template>
                         </select>
                       </div>
+                      <!-- Información adicional para selects dinámicos -->
+                      <div v-if="!isManualSelect(campo) && campo.dataSource" class="form-text mt-1">
+                        <small class="text-info">
+                          <i class="fas fa-database me-1"></i>
+                          Datos de: {{ campo.dataSource.plantillaNombre }} -
+                          {{ campo.dataSource.seccion }}
+                        </small>
+                      </div>
                     </div>
-
                     <!-- Campo de archivos -->
                     <div v-else-if="campo.type === 'file'" class="mt-2">
                       <div class="input-group modern-input">
@@ -385,10 +405,35 @@
                       :required="campo.required"
                     >
                       <option value="" disabled selected>Seleccione una opción</option>
-                      <option v-for="(option, index) in campo.options" :key="index" :value="option">
-                        {{ option }}
-                      </option>
+                      <!-- Select Manual (array de strings) -->
+                      <template v-if="isManualSelect(campo)">
+                        <option
+                          v-for="(option, index) in campo.options"
+                          :key="index"
+                          :value="option"
+                        >
+                          {{ option }}
+                        </option>
+                      </template>
+                      <!-- Select Dinámico (objetos con campoMostrar y campoGuardar) -->
+                      <template v-else>
+                        <option
+                          v-for="(option, index) in campo.options"
+                          :key="index"
+                          :value="option.campoGuardar"
+                        >
+                          {{ option.campoMostrar }}
+                        </option>
+                      </template>
                     </select>
+                  </div>
+                  <!-- Información adicional para selects dinámicos -->
+                  <div v-if="!isManualSelect(campo) && campo.dataSource" class="form-text mt-1">
+                    <small class="text-info">
+                      <i class="fas fa-database me-1"></i>
+                      Datos de: {{ campo.dataSource.plantillaNombre }} -
+                      {{ campo.dataSource.seccion }}
+                    </small>
                   </div>
                 </div>
 
@@ -628,17 +673,40 @@
                         :required="subcampo.required"
                       >
                         <option value="" disabled selected>Seleccione una opción</option>
-                        <option
-                          v-for="(option, index) in subcampo.options"
-                          :key="index"
-                          :value="option"
-                        >
-                          {{ option }}
-                        </option>
+                        <!-- Select Manual -->
+                        <template v-if="isManualSelect(subcampo)">
+                          <option
+                            v-for="(option, index) in subcampo.options"
+                            :key="index"
+                            :value="option"
+                          >
+                            {{ option }}
+                          </option>
+                        </template>
+                        <!-- Select Dinámico -->
+                        <template v-else>
+                          <option
+                            v-for="(option, index) in subcampo.options"
+                            :key="index"
+                            :value="option.campoGuardar"
+                          >
+                            {{ option.campoMostrar }}
+                          </option>
+                        </template>
                       </select>
                     </div>
+                    <!-- Información adicional para selects dinámicos en modal -->
+                    <div
+                      v-if="!isManualSelect(subcampo) && subcampo.dataSource"
+                      class="form-text mt-1"
+                    >
+                      <small class="text-info">
+                        <i class="fas fa-database me-1"></i>
+                        Datos de: {{ subcampo.dataSource.plantillaNombre }} -
+                        {{ subcampo.dataSource.seccion }}
+                      </small>
+                    </div>
                   </div>
-
                   <!-- Campo fecha en modal -->
                   <div v-else-if="subcampo.type === 'date'" class="form-field">
                     <label class="form-label">
@@ -723,6 +791,78 @@ export default {
     }
   },
   methods: {
+    /**
+     * Determina si un campo select es manual o dinámico
+     * @param {Object} campo - El campo a evaluar
+     * @returns {Boolean} - true si es manual, false si es dinámico
+     */
+    isManualSelect(campo) {
+      // Si no tiene options, no es un select válido
+      if (!campo.options || !Array.isArray(campo.options) || campo.options.length === 0) {
+        return true // Por defecto, tratamos como manual
+      }
+
+      // Si el primer elemento es un string, es manual
+      // Si es un objeto con campoMostrar y campoGuardar, es dinámico
+      const firstOption = campo.options[0]
+
+      if (typeof firstOption === 'string') {
+        return true // Manual
+      }
+
+      if (
+        typeof firstOption === 'object' &&
+        firstOption.hasOwnProperty('campoMostrar') &&
+        firstOption.hasOwnProperty('campoGuardar')
+      ) {
+        return false // Dinámico
+      }
+
+      // Si no cumple ningún patrón, tratamos como manual por seguridad
+      return true
+    },
+
+    /**
+     * Obtiene el valor a mostrar de una opción (para debugging o logs)
+     * @param {Object|String} option - La opción
+     * @param {Object} campo - El campo
+     * @returns {String} - El valor para mostrar
+     */
+    getDisplayValue(option, campo) {
+      if (this.isManualSelect(campo)) {
+        return option
+      }
+      return option.campoMostrar || option
+    },
+
+    /**
+     * Obtiene el valor a guardar de una opción
+     * @param {Object|String} option - La opción
+     * @param {Object} campo - El campo
+     * @returns {String} - El valor para guardar
+     */
+    getSaveValue(option, campo) {
+      if (this.isManualSelect(campo)) {
+        return option
+      }
+      return option.campoGuardar || option
+    },
+
+    // Método auxiliar para validación de selects dinámicos
+    validateDynamicSelect(campo) {
+      if (!this.isManualSelect(campo) && campo.dataSource) {
+        // Validaciones adicionales para selects dinámicos
+        if (
+          !campo.dataSource.plantillaId ||
+          !campo.dataSource.campoMostrar ||
+          !campo.dataSource.campoGuardar
+        ) {
+          console.warn(`Select dinámico mal configurado: ${campo.name}`, campo.dataSource)
+          return false
+        }
+      }
+      return true
+    },
     async fetchPlantillas() {
       try {
         const token = localStorage.getItem('apiToken')
@@ -959,6 +1099,14 @@ export default {
       }
     },
     async onSubmit() {
+      const invalidSelects = this.camposPlantilla.filter(
+        (campo) => campo.type === 'select' && !this.validateDynamicSelect(campo),
+      )
+
+      if (invalidSelects.length > 0) {
+        this.showError('Algunos campos select están mal configurados')
+        return
+      }
       // Validaciones previas (esto no cambia)
       const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
         if (campo.type === 'select' && campo.required) {
