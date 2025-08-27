@@ -341,6 +341,25 @@
     </button>
   </div>
 
+  <!-- Alert de configuración aplicada -->
+                      <div v-if="campo.dataSource" class="alert alert-info mb-3">
+                        <div class="d-flex align-items-start">
+                          <i class="fas fa-lightbulb me-3 mt-1"></i>
+                          <div>
+                            <strong>Configuración de opciones dinámicas:</strong><br />
+                            Las opciones se cargarán desde la plantilla 
+                            <strong>"{{ getNombrePlantillaDataSource(campo.dataSource.plantillaId) }}"</strong>,
+                            sección <strong>"{{ campo.dataSource.seccion }}"</strong><br />
+                            <span class="mt-1 d-block">
+                              <small>
+                                Campo mostrado: <strong>{{ campo.dataSource.campoMostrar }}</strong> | 
+                                Campo guardado: <strong>{{ campo.dataSource.campoGuardar }}</strong>
+                              </small>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
                       <div v-if="mostrarOpcionesManuales" class="select-options-body">
                         <div
                           v-for="(option, optionIndex) in campo.options || []"
@@ -674,6 +693,27 @@ export default {
   },
 
   methods: {
+    // Nuevo método para obtener nombre de plantilla por ID
+  getNombrePlantillaDataSource(plantillaId) {
+    if (!plantillaId) return 'Plantilla no especificada';
+    
+    const plantilla = this.plantillasDisponibles.find(p => p.id === plantillaId);
+    return plantilla ? (plantilla.nombre_plantilla || plantilla.title) : `Plantilla ID: ${plantillaId}`;
+  },
+
+  // Método alternativo si quieres cargar el nombre desde el servidor
+  async cargarNombrePlantilla(plantillaId) {
+    try {
+      const token = localStorage.getItem('apiToken');
+      const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${plantillaId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data.nombre_plantilla || response.data.title || `Plantilla ID: ${plantillaId}`;
+    } catch (error) {
+      console.error('Error al cargar nombre de plantilla:', error);
+      return `Plantilla ID: ${plantillaId}`;
+    }
+  },
     agregarSeccion() {
       this.secciones.push({
         nombre: '',
@@ -1028,30 +1068,31 @@ export default {
     },
     
     aplicarConfiguracionPlantilla() {
-      if (!this.configuracionValida) return;
-      
-      this.campoActual.options = [];
-      this.campoActual.dataSource = {
-        plantillaId: this.plantillaSeleccionada,
-        seccion: this.seccionSeleccionada,
-        campoMostrar: this.campoMostrar,
-        campoGuardar: this.campoGuardar || this.campoMostrar
-      };
+    if (!this.configuracionValida) return;
+    
+    this.campoActual.options = [];
+    this.campoActual.dataSource = {
+      plantillaId: this.plantillaSeleccionada,
+      plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada), // Agregado
+      seccion: this.seccionSeleccionada,
+      campoMostrar: this.campoMostrar,
+      campoGuardar: this.campoGuardar || this.campoMostrar
+    };
 
-        // 👇 Aquí apagamos la parte manual
-  this.mostrarOpcionesManuales = false;
-      
-      this.cerrarModalPlantilla();
-      
-      Swal.fire({
-        icon: 'success',
-        title: 'Configuración aplicada',
-        text: 'Las opciones se cargarán desde la plantilla seleccionada',
-        timer: 2000,
-        showConfirmButton: false
-      });
-    },
-  },
+    // Ocultar opciones manuales cuando se configura desde plantilla
+    this.mostrarOpcionesManuales = false;
+    
+    this.cerrarModalPlantilla();
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Configuración aplicada',
+      text: 'Las opciones se cargarán desde la plantilla seleccionada',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  }
+},
 
   mounted() {},
 }
