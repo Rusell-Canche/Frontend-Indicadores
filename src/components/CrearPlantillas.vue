@@ -360,7 +360,7 @@
                         </div>
                       </div>
 
-                      <div v-if="mostrarOpcionesManuales" class="select-options-body">
+                      <div v-if="campo.mostrarOpcionesManuales" class="select-options-body">
                         <div
                           v-for="(option, optionIndex) in campo.options || []"
                           :key="optionIndex"
@@ -538,7 +538,42 @@
                                 </div>
                               </div>
 
-                              <div class="select-options-body">
+  <!-- Botón para cargar desde otra plantilla -->
+  <div class="mb-3">
+    <button 
+      type="button" 
+      @click="abrirModalPlantilla(subcampo)" 
+      class="btn btn-outline-primary btn-sm"
+    >
+      <i class="fas fa-database me-1"></i>
+      Cargar opciones desde otra plantilla
+    </button>
+  </div>
+
+  
+  <!-- Alert de configuración aplicada -->
+                      <div v-if="subcampo.dataSource" class="alert alert-info mb-3">
+                        <div class="d-flex align-items-start">
+                          <i class="fas fa-lightbulb me-3 mt-1"></i>
+                          <div>
+                            <strong>Configuración de opciones dinámicas:</strong><br />
+                            Las opciones se cargarán desde la plantilla 
+                            <strong>"{{ getNombrePlantillaDataSource(subcampo.dataSource.plantillaId) }}"</strong>,
+                            sección <strong>"{{ subcampo.dataSource.seccion }}"</strong><br />
+                            <span class="mt-1 d-block">
+                              <small>
+                                Campo mostrado: <strong>{{ subcampo.dataSource.campoMostrar }}</strong> | 
+                                Campo guardado: <strong>{{ subcampo.dataSource.campoGuardar }}</strong>
+                              </small>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+
+
+
+                              <div v-if="subcampo.mostrarOpcionesManuales" class="select-options-body">
                                 <div
                                   v-for="(option, optionIndex) in subcampo.options || []"
                                   :key="optionIndex"
@@ -666,7 +701,7 @@ export default {
       opcionesPreview: [],
       cargandoOpciones: false,
       campoActual: null,
-      mostrarOpcionesManuales: true   // 👈 bandera de visibilidad
+     
     }
   },
 
@@ -861,11 +896,14 @@ export default {
                     filterable: subcampo.filterable || false,
                   }
 
-                  if (subcampo.type === 'select' && subcampo.options) {
-                    subcampoLimpio.options = subcampo.options.filter(
-                      (option) => option !== null && option !== undefined && option.trim() !== '',
-                    )
-                  }
+              if (subcampo.type === 'select' && subcampo.dataSource) {
+                subcampoLimpio.dataSource = subcampo.dataSource;
+              }
+              else if (subcampo.type === 'select' && subcampo.options) {
+                subcampoLimpio.options = subcampo.options.filter(
+                  (option) => option !== null && option !== undefined && option.trim() !== '',
+                );
+              }
 
                   return subcampoLimpio
                 })
@@ -1080,7 +1118,7 @@ export default {
     };
 
     // Ocultar opciones manuales cuando se configura desde plantilla
-    this.mostrarOpcionesManuales = false;
+    this.campoActual.mostrarOpcionesManuales = false;
     
     this.cerrarModalPlantilla();
     
