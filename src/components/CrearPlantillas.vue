@@ -68,18 +68,6 @@
                 {{ campo.name }} ({{ campo.type }})
               </option>
             </select>
-
-            <label class="form-label">Campo a guardar (opcional)</label>
-            <select v-model="campoGuardar" class="form-select">
-              <option value="">Mismo que campo a mostrar</option>
-              <option v-for="campo in camposSeccion" :key="campo.name" :value="campo.name">
-                {{ campo.name }} ({{ campo.type }})
-              </option>
-            </select>
-            <div class="form-text">
-              El campo a guardar es el valor interno que se almacenará. Si se deja vacío, se usará
-              el mismo valor que el campo a mostrar.
-            </div>
           </div>
 
           <!-- Vista previa -->
@@ -357,8 +345,7 @@
                             <span class="mt-1 d-block">
                               <small>
                                 Campo mostrado:
-                                <strong>{{ campo.dataSource.campoMostrar }}</strong> | Campo
-                                guardado: <strong>{{ campo.dataSource.campoGuardar }}</strong>
+                                <strong>{{ campo.dataSource.campoMostrar }}</strong>
                               </small>
                             </span>
                           </div>
@@ -709,7 +696,6 @@ export default {
       seccionSeleccionada: '',
       camposSeccion: [],
       campoMostrar: '',
-      campoGuardar: '',
       opcionesPreview: [],
       cargandoOpciones: false,
       campoActual: null,
@@ -1053,7 +1039,6 @@ export default {
       this.seccionSeleccionada = ''
       this.camposSeccion = []
       this.campoMostrar = ''
-      this.campoGuardar = ''
       this.opcionesPreview = []
       this.campoActual = null
     },
@@ -1072,7 +1057,6 @@ export default {
         this.seccionSeleccionada = ''
         this.camposSeccion = []
         this.campoMostrar = ''
-        this.campoGuardar = ''
         this.opcionesPreview = []
       } catch (error) {
         console.error('Error al cargar secciones:', error)
@@ -1128,7 +1112,6 @@ export default {
         plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada), // Agregado
         seccion: this.seccionSeleccionada,
         campoMostrar: this.campoMostrar,
-        campoGuardar: this.campoGuardar || this.campoMostrar,
       }
 
       // Ocultar opciones manuales cuando se configura desde plantilla
