@@ -585,13 +585,8 @@ export default {
                 'No se encontraron indicadores en el rango de fechas seleccionado.',
                 'info',
               )
-            } else if (mostrarNotificacion) {
-              this.mostrarNotificacion(
-                'Éxito',
-                `Se encontraron ${this.indicadores.length} indicadores en el rango seleccionado.`,
-                'success',
-              )
-            }
+            } 
+            
           } else {
             this.indicadores = []
           }
