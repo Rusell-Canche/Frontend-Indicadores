@@ -48,6 +48,118 @@
       </div>
     </div>
 
+    <!-- Modal para seleccionar origen de datos (select dinámicos) -->
+    <div
+      v-if="modalPlantillaVisible"
+      class="medico-modal-backdrop"
+      @click.self="cerrarModalPlantilla"
+      style="z-index: 1060;"
+    >
+      <div class="medico-modal-content" @click.stop style="max-width: 600px; z-index: 1061;">
+        <!-- Header del modal -->
+        <div class="medico-modal-header">
+          <div class="modal-header-content">
+            <div class="modal-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <div class="modal-title-section">
+              <h3>Seleccionar Origen de Datos</h3>
+              <p class="modal-subtitle">Selecciona la plantilla y sección para cargar las opciones</p>
+            </div>
+          </div>
+          <button @click="cerrarModalPlantilla" class="medico-close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Body del modal -->
+        <div class="medico-modal-body">
+          <div class="form-section">
+            <!-- Selección de plantilla -->
+            <div class="mb-3">
+              <label class="form-label">Plantilla*</label>
+              <select
+                v-model="plantillaSeleccionada"
+                class="form-select"
+                @change="cargarSeccionesPlantilla"
+              >
+                <option value="">Seleccione una plantilla</option>
+                <option
+                  v-for="plantilla in plantillasDisponibles"
+                  :key="plantilla.id"
+                  :value="plantilla.id"
+                >
+                  {{ plantilla.nombre_plantilla || plantilla.title }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Selección de sección -->
+            <div class="mb-3" v-if="seccionesPlantillaModal.length > 0">
+              <label class="form-label">Sección*</label>
+              <select v-model="seccionSeleccionada" class="form-select">
+                <option value="">Seleccione una sección</option>
+                <option
+                  v-for="seccion in seccionesPlantillaModal"
+                  :key="seccion.nombre"
+                  :value="seccion.nombre"
+                >
+                  {{ seccion.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Campos disponibles -->
+            <div v-if="camposSeccion.length > 0">
+              <label class="form-label">Campo a mostrar*</label>
+              <select v-model="campoMostrar" class="form-select mb-2">
+                <option value="">Seleccione campo a mostrar</option>
+                <option v-for="campo in camposSeccion" :key="campo.name" :value="campo.name">
+                  {{ campo.name }} ({{ campo.type }})
+                </option>
+              </select>
+            </div>
+
+            <!-- Vista previa -->
+            <div v-if="campoMostrar" class="mt-3 p-3 bg-light rounded">
+              <h6>Vista previa de opciones:</h6>
+              <div v-if="cargandoOpciones" class="text-center">
+                <i class="fas fa-spinner fa-spin"></i> Cargando...
+              </div>
+              <div v-else>
+                <div
+                  v-for="(opcion, index) in opcionesPreview"
+                  :key="index"
+                  class="badge bg-info me-1 mb-1"
+                >
+                  {{ opcion }}
+                </div>
+                <div v-if="opcionesPreview.length === 0" class="text-muted">
+                  No hay datos disponibles en esta sección
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer del modal -->
+        <div class="medico-modal-footer">
+          <button @click="cerrarModalPlantilla" class="btn btn-cancel">
+            <i class="fas fa-times me-2"></i>
+            Cancelar
+          </button>
+          <button
+            @click="aplicarConfiguracionPlantilla"
+            class="btn btn-save"
+            :disabled="!configuracionValida"
+          >
+            <i class="fas fa-check me-2"></i>
+            Aplicar Configuración
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal para editar plantilla con diseño mejorado -->
     <div
       v-if="mostrarModalEdit"
@@ -244,7 +356,49 @@
                           </div>
                         </div>
 
-                        <div class="select-options-body">
+                        <!-- Botón para cargar desde otra plantilla -->
+                        <div v-if="campo.type === 'select'">
+                          <button
+                            type="button"
+                            @click="abrirModalPlantilla(campo, false)"
+                            class="btn btn-outline-primary btn-sm config-select-btn"
+                          >
+                            <i class="fas fa-database me-1"></i>
+                            Cargar opciones desde otra plantilla
+                          </button>
+                        </div>
+
+                        <!-- Alert de configuración aplicada -->
+                        <div v-if="campo.dataSource" class="alert alert-info mb-3">
+                          <div class="d-flex align-items-start">
+                            <i class="fas fa-lightbulb me-3 mt-1"></i>
+                            <div>
+                              <strong>Configuración de opciones dinámicas:</strong><br />
+                              Las opciones se cargarán desde la plantilla
+                              <strong
+                                >"{{
+                                  getNombrePlantillaDataSource(campo.dataSource.plantillaId)
+                                }}"</strong
+                              >, sección <strong>"{{ campo.dataSource.seccion }}"</strong><br />
+                              <span class="mt-1 d-block">
+                                <small>
+                                  Campo mostrado:
+                                  <strong>{{ campo.dataSource.campoMostrar }}</strong>
+                                </small>
+                              </span>
+                              <button
+                                type="button"
+                                @click="campo.dataSource = null; campo.mostrarOpcionesManuales = true"
+                                class="btn btn-sm btn-outline-danger mt-2 remove-config-btn"
+                              >
+                                <i class="fas fa-times me-1"></i>
+                                Eliminar configuración
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div v-if="campo.mostrarOpcionesManuales" class="select-options-body">
                           <div
                             v-for="(option, optionIndex) in campo.options || []"
                             :key="optionIndex"
@@ -423,7 +577,52 @@
                                   </div>
                                 </div>
 
-                                <div class="select-options-body">
+                                <!-- Botón para cargar desde otra plantilla -->
+                                <div class="mb-3">
+                                  <button
+                                    type="button"
+                                    @click="abrirModalPlantilla(subcampo, true)"
+                                    class="btn btn-outline-primary btn-sm config-select-btn"
+                                  >
+                                    <i class="fas fa-database me-1"></i>
+                                    Cargar opciones desde otra plantilla
+                                  </button>
+                                </div>
+
+                                <!-- Alert de configuración aplicada -->
+                                <div v-if="subcampo.dataSource" class="alert alert-info mb-3">
+                                  <div class="d-flex align-items-start">
+                                    <i class="fas fa-lightbulb me-3 mt-1"></i>
+                                    <div>
+                                      <strong>Configuración de opciones dinámicas:</strong><br />
+                                      Las opciones se cargarán desde la plantilla
+                                      <strong
+                                        >"{{
+                                          getNombrePlantillaDataSource(subcampo.dataSource.plantillaId)
+                                        }}"</strong
+                                      >, sección <strong>"{{ subcampo.dataSource.seccion }}"</strong><br />
+                                      <span class="mt-1 d-block">
+                                        <small>
+                                          Campo mostrado:
+                                          <strong>{{ subcampo.dataSource.campoMostrar }}</strong>
+                                        </small>
+                                      </span>
+                                      <button
+                                        type="button"
+                                        @click="subcampo.dataSource = null; subcampo.mostrarOpcionesManuales = true"
+                                        class="btn btn-sm btn-outline-danger mt-2 remove-config-btn"
+                                      >
+                                        <i class="fas fa-times me-1"></i>
+                                        Eliminar configuración
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div
+                                  v-if="subcampo.mostrarOpcionesManuales"
+                                  class="select-options-body"
+                                >
                                   <div
                                     v-for="(option, optionIndex) in subcampo.options || []"
                                     :key="optionIndex"
@@ -534,7 +733,29 @@ export default {
       idPlantilla: '', // ID de la plantilla seleccionada para edición
       seccionesPlantilla: [], // Secciones de la plantilla seleccionada para edición
       mostrarModalEdit: false, // Control de visibilidad del modal de edición
+      
+      // Variables para el modal de plantilla (select dinámicos)
+      modalPlantillaVisible: false,
+      plantillasDisponibles: [],
+      plantillaSeleccionada: '',
+      seccionesPlantillaModal: [], // Cambiado para evitar conflicto con seccionesPlantilla existente
+      seccionSeleccionada: '',
+      camposSeccion: [],
+      campoMostrar: '',
+      opcionesPreview: [],
+      cargandoOpciones: false,
+      campoActual: null,
+      esSubcampo: false, // Para identificar si es un campo o subcampo
     }
+  },
+  computed: {
+    configuracionValida() {
+      return this.plantillaSeleccionada && this.seccionSeleccionada && this.campoMostrar
+    },
+  },
+  watch: {
+    seccionSeleccionada: 'onSeccionSeleccionada',
+    campoMostrar: 'cargarVistaPrevia',
   },
   methods: {
     async fetchPlantillas() {
@@ -580,6 +801,35 @@ export default {
         this.nombrePlantilla = response.data.nombre_plantilla
         this.idPlantilla = id
         this.seccionesPlantilla = response.data.secciones || []
+        
+        // Inicializar mostrarOpcionesManuales para campos select existentes
+        this.seccionesPlantilla.forEach(seccion => {
+          seccion.fields.forEach(campo => {
+            if (campo.type === 'select') {
+              if (campo.dataSource) {
+                campo.mostrarOpcionesManuales = false
+              } else {
+                campo.mostrarOpcionesManuales = true
+                campo.options = campo.options || []
+              }
+            }
+            
+            // Inicializar para subcampos también
+            if (campo.type === 'subform' && campo.subcampos) {
+              campo.subcampos.forEach(subcampo => {
+                if (subcampo.type === 'select') {
+                  if (subcampo.dataSource) {
+                    subcampo.mostrarOpcionesManuales = false
+                  } else {
+                    subcampo.mostrarOpcionesManuales = true
+                    subcampo.options = subcampo.options || []
+                  }
+                }
+              })
+            }
+          })
+        })
+        
         this.mostrarModalEdit = true
       } catch (error) {
         Swal.fire({
@@ -619,8 +869,12 @@ export default {
                     }
 
                     // Agregar opciones si el campo es de tipo select
-                    if (campo.type === 'select' && campo.options) {
-                      campoData.options = campo.options.filter((option) => option.trim() !== '')
+                    if (campo.type === 'select') {
+                      if (campo.dataSource) {
+                        campoData.dataSource = campo.dataSource
+                      } else if (campo.options) {
+                        campoData.options = campo.options.filter((option) => option.trim() !== '')
+                      }
                     }
 
                     // Procesar subcampos si es un subformulario
@@ -634,10 +888,14 @@ export default {
                         }
 
                         // Agregar opciones si el subcampo es de tipo select
-                        if (subcampo.type === 'select' && subcampo.options) {
-                          subcampoData.options = subcampo.options.filter(
-                            (option) => option.trim() !== '',
-                          )
+                        if (subcampo.type === 'select') {
+                          if (subcampo.dataSource) {
+                            subcampoData.dataSource = subcampo.dataSource
+                          } else if (subcampo.options) {
+                            subcampoData.options = subcampo.options.filter(
+                              (option) => option.trim() !== '',
+                            )
+                          }
                         }
 
                         return subcampoData
@@ -737,8 +995,9 @@ export default {
         campo.subcampos = []
         this.agregarSubcampo(campo)
       } else if (campo.type === 'select' && !campo.options) {
-        campo.options = ['']
+        campo.options = []
         campo.newOption = ''
+        campo.mostrarOpcionesManuales = true
       }
 
       if (campo.type !== 'date') {
@@ -881,12 +1140,155 @@ export default {
         }
       }
     },
+
+    // Métodos para select dinámicos
+    getNombrePlantillaDataSource(plantillaId) {
+      if (!plantillaId) return 'Plantilla no especificada'
+
+      const plantilla = this.plantillasDisponibles.find((p) => p.id === plantillaId)
+      return plantilla
+        ? plantilla.nombre_plantilla || plantilla.title
+        : `Plantilla ID: ${plantillaId}`
+    },
+
+    async abrirModalPlantilla(campo, esSubcampo = false) {
+      this.campoActual = campo
+      this.esSubcampo = esSubcampo
+      this.modalPlantillaVisible = true
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        this.plantillasDisponibles = response.data || []
+        
+        // Si ya hay una configuración previa, cargarla
+        if (campo.dataSource) {
+          this.plantillaSeleccionada = campo.dataSource.plantillaId
+          await this.cargarSeccionesPlantilla()
+          this.seccionSeleccionada = campo.dataSource.seccion
+          await this.onSeccionSeleccionada()
+          this.campoMostrar = campo.dataSource.campoMostrar
+        }
+      } catch (error) {
+        console.error('Error al cargar plantillas:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar las plantillas disponibles',
+        })
+      }
+    },
+
+    cerrarModalPlantilla() {
+      this.modalPlantillaVisible = false
+      this.resetModalPlantilla()
+    },
+
+    resetModalPlantilla() {
+      this.plantillaSeleccionada = ''
+      this.seccionesPlantillaModal = []
+      this.seccionSeleccionada = ''
+      this.camposSeccion = []
+      this.campoMostrar = ''
+      this.opcionesPreview = []
+      this.campoActual = null
+      this.esSubcampo = false
+    },
+
+    async cargarSeccionesPlantilla() {
+      if (!this.plantillaSeleccionada) return
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/secciones`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        )
+
+        this.seccionesPlantillaModal = response.data?.secciones || []
+        this.seccionSeleccionada = ''
+        this.camposSeccion = []
+        this.campoMostrar = ''
+        this.opcionesPreview = []
+      } catch (error) {
+        console.error('Error al cargar secciones:', error)
+      }
+    },
+
+    async onSeccionSeleccionada() {
+      if (!this.seccionSeleccionada) return
+
+      const seccion = this.seccionesPlantillaModal.find((s) => s.nombre === this.seccionSeleccionada)
+      if (seccion && seccion.fields) {
+        this.camposSeccion = seccion.fields
+        await this.cargarVistaPrevia()
+      }
+    },
+
+    async cargarVistaPrevia() {
+      if (!this.plantillaSeleccionada || !this.seccionSeleccionada || !this.campoMostrar) return
+
+      this.cargandoOpciones = true
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/datos`,
+          {
+            params: {
+              seccion: this.seccionSeleccionada,
+              campo: this.campoMostrar,
+            },
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        )
+
+        const valores = response.data || []
+        this.opcionesPreview = [...new Set(valores.map((item) => item[this.campoMostrar]))].slice(
+          0,
+          10,
+        )
+      } catch (error) {
+        console.error('Error al cargar vista previa:', error)
+        this.opcionesPreview = []
+      } finally {
+        this.cargandoOpciones = false
+      }
+    },
+
+    aplicarConfiguracionPlantilla() {
+      if (!this.configuracionValida) return
+
+      this.campoActual.options = []
+      this.campoActual.dataSource = {
+        plantillaId: this.plantillaSeleccionada,
+        plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada),
+        seccion: this.seccionSeleccionada,
+        campoMostrar: this.campoMostrar,
+      }
+
+      // Ocultar opciones manuales cuando se configura desde plantilla
+      this.campoActual.mostrarOpcionesManuales = false
+
+      this.cerrarModalPlantilla()
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Configuración aplicada',
+        text: 'Las opciones se cargarán desde la plantilla seleccionada',
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    },
   },
   created() {
     this.fetchPlantillas()
   },
 }
 </script>
+
 
 <style scoped>
 /* Estilos base del diseño moderno */
@@ -2208,5 +2610,62 @@ export default {
     margin-top: 1rem;
     padding-top: 1rem;
   }
+}
+
+/* Estilos para el botón de configurar select */
+.config-select-btn {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.config-select-btn:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+  color: white;
+}
+
+.config-select-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+/* Estilos para el botón de eliminar configuración */
+.remove-config-btn {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+.remove-config-btn:hover {
+  background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+  color: white;
+}
+
+.remove-config-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+/* Asegurar que el modal de configuración aparezca por encima del modal de edición */
+.medico-modal-backdrop {
+  z-index: 1060 !important;
+}
+
+.medico-modal-content {
+  z-index: 1061 !important;
 }
 </style>
