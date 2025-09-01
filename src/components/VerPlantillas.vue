@@ -802,6 +802,7 @@ export default {
         this.idPlantilla = id
         this.seccionesPlantilla = response.data.secciones || []
         
+        
         // Inicializar mostrarOpcionesManuales para campos select existentes
         this.seccionesPlantilla.forEach(seccion => {
           seccion.fields.forEach(campo => {
@@ -829,6 +830,10 @@ export default {
             }
           })
         })
+        const respPlantillas = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        headers: { Authorization: `Bearer ${token}` },
+        })
+        this.plantillasDisponibles = respPlantillas.data || []
         
         this.mostrarModalEdit = true
       } catch (error) {
