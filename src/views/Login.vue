@@ -1,8 +1,112 @@
 <template>
-  <!-- Animación del avión de papel -->
-  <div v-if="showPaperPlane" class="paper-plane-container">
-    <div class="paper-plane jello-horizontal">
-      <i class="fas fa-paper-plane"></i>
+  <!-- Animación del mapache -->
+  <div v-if="showMapache" class="mapache-container">
+    <div class="mapache-animation">
+      <!-- SVG del Mapache -->
+      <svg
+        viewBox="0 0 400 400"
+        xmlns="http://www.w3.org/2000/svg"
+        class="mapache-svg"
+        role="img"
+        aria-labelledby="title desc"
+      >
+        <title id="title">Ilustración de un mapache en SVG</title>
+        <desc id="desc">Rostro y cuerpo estilizados de un mapache con cola anillada, máscaras y orejas.</desc>
+
+        <!-- Definiciones -->
+        <defs>
+          <radialGradient id="fur" cx="50%" cy="40%" r="70%">
+            <stop offset="0%" stop-color="#d1d5db" />
+            <stop offset="60%" stop-color="#9ca3af" />
+            <stop offset="100%" stop-color="#6b7280" />
+          </radialGradient>
+          <linearGradient id="shadow" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#0f172a" stop-opacity="0.0" />
+            <stop offset="100%" stop-color="#0f172a" stop-opacity="0.35" />
+          </linearGradient>
+          <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.6" />
+          </filter>
+        </defs>
+
+        <!-- Suelo/halo -->
+        <ellipse cx="200" cy="330" rx="120" ry="16" fill="url(#shadow)" />
+
+        <!-- Cuerpo -->
+        <g>
+          <ellipse cx="200" cy="255" rx="90" ry="75" fill="url(#fur)" />
+          <!-- Barriguita -->
+          <ellipse cx="200" cy="275" rx="46" ry="42" fill="#f2f4f7" />
+        </g>
+
+        <!-- Cola anillada -->
+        <g transform="translate(255,250) rotate(-10)">
+          <path d="M0 0 C 30 -10, 70 10, 80 40 C 90 75, 60 100, 25 95 C -10 90, -20 55, 0 40 Z" fill="url(#fur)" />
+          <!-- Anillos -->
+          <path d="M15 20 C 35 15, 60 25, 70 45 C 52 45, 30 40, 12 35 Z" fill="#374151" opacity="0.9" />
+          <path d="M22 48 C 40 46, 58 55, 66 68 C 46 67, 30 62, 16 57 Z" fill="#374151" opacity="0.9" />
+          <path d="M24 74 C 42 74, 55 83, 58 92 C 39 90, 28 86, 22 82 Z" fill="#374151" opacity="0.9" />
+        </g>
+
+        <!-- Cabeza -->
+        <g transform="translate(200,150)">
+          <!-- Forma base de la cabeza -->
+          <path d="M-85,10 C-80,-40,-35,-75,0,-75 C35,-75,80,-40,85,10 C80,55,45,80,0,80 C-45,80,-80,55,-85,10 Z" fill="url(#fur)" />
+
+          <!-- Orejas -->
+          <g>
+            <path d="M-55,-55 C-75,-80,-90,-40,-65,-25 C-50,-15,-40,-25,-55,-55 Z" fill="#6b7280" />
+            <ellipse cx="-56" cy="-45" rx="10" ry="12" fill="#e5e7eb" />
+            <path d="M55,-55 C75,-80,90,-40,65,-25 C50,-15,40,-25,55,-55 Z" fill="#6b7280" />
+            <ellipse cx="56" cy="-45" rx="10" ry="12" fill="#e5e7eb" />
+          </g>
+
+          <!-- Máscara característica -->
+          <g>
+            <path d="M-80,5 C-60,-15,-30,-25,0,-20 C30,-25,60,-15,80,5 C70,30,40,50,0,45 C-40,50,-70,30,-80,5 Z" fill="#111827" />
+
+            <!-- Mejillas claras debajo de la máscara -->
+            <ellipse cx="-35" cy="20" rx="28" ry="22" fill="#e5e7eb" />
+            <ellipse cx="35" cy="20" rx="28" ry="22" fill="#e5e7eb" />
+          </g>
+
+          <!-- Ojos -->
+          <g>
+            <circle cx="-28" cy="10" r="12" fill="#0b1020" />
+            <circle cx="28" cy="10" r="12" fill="#0b1020" />
+            <!-- Brillos -->
+            <circle cx="-24" cy="6" r="3.5" fill="#ffffff" />
+            <circle cx="24" cy="6" r="3.5" fill="#ffffff" />
+          </g>
+
+          <!-- Hocico y nariz -->
+          <g>
+            <ellipse cx="0" cy="30" rx="16" ry="12" fill="#f3f4f6" />
+            <path d="M-10,32 Q0,42 10,32" stroke="#1f2937" stroke-width="3" fill="none" stroke-linecap="round" />
+            <path d="M-6,26 C-2,22, 2,22, 6,26 C 6,30, 3,33, 0,33 C -3,33,-6,30,-6,26 Z" fill="#111827" filter="url(#soft)" />
+          </g>
+
+          <!-- Bigotes -->
+          <g stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" opacity="0.8">
+            <path d="M-12,36 q-22,0 -42, -6" fill="none" />
+            <path d="M-12,40 q-24,6 -45, 0" fill="none" />
+            <path d="M12,36 q22,0 42,-6" fill="none" />
+            <path d="M12,40 q24,6 45,0" fill="none" />
+          </g>
+        </g>
+
+        <!-- Brazos / patitas delanteras -->
+        <g>
+          <path d="M130,250 q-20,25 -35,35 q15,6 30,-6 q8,-6 5,-29 Z" fill="#6b7280" />
+          <path d="M270,250 q20,25 35,35 q-15,6 -30,-6 q-8,-6 -5,-29 Z" fill="#6b7280" />
+        </g>
+
+        <!-- Sombras suaves -->
+        <g opacity="0.3">
+          <ellipse cx="160" cy="255" rx="14" ry="10" fill="#000" />
+          <ellipse cx="240" cy="255" rx="14" ry="10" fill="#000" />
+        </g>
+      </svg>
     </div>
     <div class="success-message">
       <h3>¡Bienvenido al Sistema!</h3>
@@ -249,7 +353,7 @@ export default {
       showPassword: false,
       rememberMe: false,
       isLoading: false,
-      showPaperPlane: false,
+      showMapache: false, // Cambiado de showPaperPlane a showMapache
       errors: {},
       apiBaseUrl: 'http://127.0.0.1:8000/api/',
     }
@@ -267,12 +371,12 @@ export default {
         // Guarda el token recibido (corrección principal)
         localStorage.setItem('apiToken', response.data.token)
 
-        // Mostrar animación del avión de papel
-        this.showPaperPlane = true
+        // Mostrar animación del mapache
+        this.showMapache = true
 
         // Esperar a que termine la animación antes de redirigir
         setTimeout(() => {
-          this.showPaperPlane = false
+          this.showMapache = false
           this.$router.push('/PanelDeControl')
         }, 3000)
       } catch (error) {
@@ -1278,6 +1382,97 @@ export default {
   /* Ajustar más el tamaño del avión en pantallas muy pequeñas */
   .paper-plane {
     font-size: 7rem;
+  }
+}
+/* Estilos para la animación del mapache */
+.mapache-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.mapache-animation {
+  width: 300px;
+  height: 300px;
+  margin-bottom: 2rem;
+  animation: mapacheBounce 2s ease-in-out infinite;
+}
+
+.mapache-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+}
+
+.success-message {
+  text-align: center;
+  color: white;
+  animation: slideInUp 0.8s ease-out 0.5s both;
+}
+
+.success-message h3 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #10b981;
+}
+
+.success-message p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mapacheBounce {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mapache-animation {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .success-message h3 {
+    font-size: 1.5rem;
+  }
+  
+  .success-message p {
+    font-size: 1rem;
   }
 }
 </style>
