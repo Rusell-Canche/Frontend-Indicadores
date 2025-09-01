@@ -688,7 +688,7 @@
                           <option
                             v-for="(option, index) in subcampo.options"
                             :key="index"
-                            :value="option.campoGuardar"
+                            :value="option.campoMostrar"
                           >
                             {{ option.campoMostrar }}
                           </option>
