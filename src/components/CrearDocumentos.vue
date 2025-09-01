@@ -123,6 +123,17 @@
                                 <template v-if="subcampo.type === 'file'">
                                   {{ row[subcampo.name]?.name || 'Sin archivo' }}
                                 </template>
+                                <template
+                                  v-else-if="
+                                    subcampo.type === 'select' && !isManualSelect(subcampo)
+                                  "
+                                >
+                                  {{
+                                    subcampo.options.find(
+                                      (opt) => opt.campoGuardar === row[subcampo.name],
+                                    )?.campoMostrar || row[subcampo.name]
+                                  }}
+                                </template>
                                 <template v-else>
                                   {{ row[subcampo.name] }}
                                 </template>
@@ -688,7 +699,7 @@
                           <option
                             v-for="(option, index) in subcampo.options"
                             :key="index"
-                            :value="option.campoMostrar"
+                            :value="option.campoGuardar"
                           >
                             {{ option.campoMostrar }}
                           </option>
