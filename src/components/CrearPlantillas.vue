@@ -365,7 +365,7 @@
                         </div>
                       </div>
 
-                      <div v-if="campo.mostrarOpcionesManuales" class="select-options-body">
+                      <div v-if="!campo.dataSource" class="select-options-body">
                         <div
                           v-for="(option, optionIndex) in campo.options || []"
                           :key="optionIndex"
@@ -583,7 +583,7 @@
                               </div>
 
                               <div
-                                v-if="subcampo.mostrarOpcionesManuales"
+                                v-if="!subcampo.dataSource"
                                 class="select-options-body"
                               >
                                 <div
