@@ -88,14 +88,17 @@
                             </thead>
                             <tbody>
                               <tr v-for="(row, rowIndex) in getSubformDataForEdit(campo.name)" :key="rowIndex">
-                                <td v-for="subcampo in campo.subcampos" :key="subcampo.name">
-                                  <template v-if="subcampo.type === 'file'">
-                                    {{ row[subcampo.name]?.name || 'Sin archivo' }}
-                                  </template>
-                                  <template v-else>
-                                    {{ row[subcampo.name] }}
-                                  </template>
-                                </td>
+<td v-for="subcampo in campo.subcampos" :key="subcampo.name">
+  <template v-if="subcampo.type === 'file'">
+    {{ row[subcampo.name]?.name || 'Sin archivo' }}
+  </template>
+  <template v-else>
+    {{ subcampo.type === 'select' && !isManualSelect(subcampo)
+        ? subcampo.options.find(o => o.campoGuardar === row[subcampo.name])?.campoMostrar
+        : row[subcampo.name] }}
+  </template>
+</td>
+
                                 <td class="text-center">
                                   <button
                                     type="button"
@@ -132,14 +135,14 @@
                             v-model="documentoEdit[campo.name]"
                             :required="campo.required"
                           >
-                            <option value="">Seleccione una opción</option>
-                            <option
-                              v-for="(option, index) in campo.options"
-                              :key="index"
-                              :value="option"
-                            >
-                              {{ option }}
-                            </option>
+                           <option
+  v-for="(option, index) in campo.options"
+  :key="index"
+  :value="isManualSelect(campo) ? option : option.campoGuardar"
+>
+  {{ isManualSelect(campo) ? option : option.campoMostrar }}
+</option>
+
                           </select>
                         </div>
                       </div>
@@ -985,6 +988,13 @@ campos
     }
 
     this.documentoEdit[nombreCampo] = valorCampo ?? ''
+    if (campo.type === 'select' && !this.isManualSelect(campo)) {
+  const option = campo.options.find(o => o.campoGuardar === valorCampo)
+  if (option) {
+    this.documentoEdit[nombreCampo] = option.campoGuardar
+  }
+}
+
   })
 
 
@@ -1019,6 +1029,27 @@ if (Array.isArray(documento.secciones)) {
   this.prepareSubformDataForEdit()
 }
 ,
+isManualSelect(campo) {
+  if (!campo.options || !Array.isArray(campo.options) || campo.options.length === 0) {
+    return true
+  }
+
+  const firstOption = campo.options[0]
+
+  if (typeof firstOption === 'string') {
+    return true
+  }
+
+  if (
+    typeof firstOption === 'object' &&
+    firstOption.hasOwnProperty('campoMostrar') &&
+    firstOption.hasOwnProperty('campoGuardar')
+  ) {
+    return false
+  }
+
+  return true
+},
 
 
     resetData() {
@@ -1167,6 +1198,19 @@ prepareSubformDataForEdit() {
           Object.assign(this.currentEditSubformData, fileData)
         }
       }
+      // Normalizar valores de selects dinámicos dentro del subform
+if (campo.subcampos) {
+  campo.subcampos.forEach(sub => {
+    if (sub.type === 'select' && !this.isManualSelect(sub)) {
+      const valor = this.currentEditSubformData[sub.name]
+      const option = sub.options.find(o => o.campoGuardar === valor)
+      if (option) {
+        this.currentEditSubformData[sub.name] = option.campoGuardar
+      }
+    }
+  })
+}
+
       
       this.showEditSubformModal = true
     },

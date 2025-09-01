@@ -114,13 +114,14 @@
                       :required="subcampo.required"
                     >
                       <option value="">Seleccione una opción</option>
-                      <option 
-                        v-for="(option, index) in subcampo.options" 
-                        :key="index" 
-                        :value="option"
-                      >
-                        {{ option }}
-                      </option>
+                     <option 
+  v-for="(option, index) in subcampo.options" 
+  :key="index" 
+  :value="isManualSelect(subcampo) ? option : option.campoGuardar"
+>
+  {{ isManualSelect(subcampo) ? option : option.campoMostrar }}
+</option>
+
                     </select>
                   </div>
                 </div>
@@ -696,6 +697,23 @@ export default {
       
       // Combinar con datos existentes
       this.localData = { ...emptyData, ...this.subformData }
+      // Normalizar valores de selects dinámicos (para que se muestren bien en el <select>)
+if (this.subformField?.subcampos) {
+  this.subformField.subcampos.forEach(subcampo => {
+    if (subcampo.type === 'select' && !this.isManualSelect(subcampo)) {
+      const valor = this.localData[subcampo.name]
+      if (valor) {
+        // Buscar la opción que coincide con el campoGuardar
+        const option = subcampo.options.find(o => o.campoGuardar === valor)
+        if (option) {
+          // Guardamos el ID, pero Vue mostrará el campoMostrar en el <option>
+          this.localData[subcampo.name] = option.campoGuardar
+        }
+      }
+    }
+  })
+}
+
       console.log('🟡 localData inicializado:', this.localData)
     },
 
@@ -724,6 +742,28 @@ export default {
       
       return 'image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx'
     },
+    isManualSelect(campo) {
+  if (!campo.options || !Array.isArray(campo.options) || campo.options.length === 0) {
+    return true
+  }
+
+  const firstOption = campo.options[0]
+
+  if (typeof firstOption === 'string') {
+    return true
+  }
+
+  if (
+    typeof firstOption === 'object' &&
+    firstOption.hasOwnProperty('campoMostrar') &&
+    firstOption.hasOwnProperty('campoGuardar')
+  ) {
+    return false
+  }
+
+  return true
+},
+
 
     handleFileChange(event, fieldName) {
       const file = event.target.files[0]

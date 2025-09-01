@@ -143,7 +143,7 @@
                         </span>
                         <!-- Otros campos -->
                         <span v-else class="table-text">{{
-                          getFieldValueFromDocument(documento, campo) || '-'
+                          getPrettyFieldValue(documento, campo) || '-'
                         }}</span>
                       </td>
                       <td class="table-cell text-center">
@@ -501,6 +501,44 @@ export default {
     },
 
     // ========== CAMPO HELPERS ==========
+
+        /**
+     * Busca la definición de un campo dentro de la plantilla actual
+     */
+    getCampoDefinition(fieldName) {
+      if (!this.camposPlantilla?.secciones) return null
+
+      for (const seccion of this.camposPlantilla.secciones) {
+        if (seccion.fields && Array.isArray(seccion.fields)) {
+          const campo = seccion.fields.find(f => f.name === fieldName)
+          if (campo) return campo
+        }
+      }
+      return null
+    },
+
+    /**
+     * Obtiene un valor "bonito" para mostrar en la tabla
+     */
+    getPrettyFieldValue(documento, fieldName) {
+      const valor = this.getFieldValueFromDocument(documento, fieldName)
+      if (!valor) return null
+
+      const campo = this.getCampoDefinition(fieldName)
+      if (!campo) return valor
+
+      // Si el campo es dinámico (select con campoGuardar/campoMostrar)
+      if (campo.options && Array.isArray(campo.options)) {
+        const option = campo.options.find(o => o.campoGuardar === valor)
+        return option ? option.campoMostrar : valor
+      }
+
+      // Si es manual o normal, lo mostramos directo
+      return valor
+    },
+
+
+
     formatFieldName(fieldName) {
       const fieldMap = {
         created_at: 'Fecha de creación',
