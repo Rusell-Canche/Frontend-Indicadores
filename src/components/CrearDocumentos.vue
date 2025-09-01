@@ -865,8 +865,7 @@ export default {
         // Validaciones adicionales para selects dinámicos
         if (
           !campo.dataSource.plantillaId ||
-          !campo.dataSource.campoMostrar ||
-          !campo.dataSource.campoGuardar
+          !campo.dataSource.campoMostrar
         ) {
           console.warn(`Select dinámico mal configurado: ${campo.name}`, campo.dataSource)
           return false
