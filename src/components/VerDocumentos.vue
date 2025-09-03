@@ -142,9 +142,23 @@
                           {{ getFieldValueFromDocument(documento, campo) }}
                         </span>
                         <!-- Otros campos -->
-                        <span v-else class="table-text">{{
-                          getPrettyFieldValue(documento, campo) || '-'
-                        }}</span>
+                   <!-- Otros campos y subformularios -->
+<span v-else>
+  <!-- Si el campo es un subform -->
+  <template v-if="getCampoDefinition(campo)?.type === 'subform'">
+    <i
+      class="fa-regular fa-magnifying-glass-plus cursor-pointer"
+      @click="abrirModalSubform(getFieldValueFromDocument(documento, campo))"
+      title="Ver subformulario"
+    ></i>
+  </template>
+
+  <!-- Si no es subform, mostramos normalmente -->
+  <template v-else>
+    {{ getPrettyFieldValue(documento, campo) || '-' }}
+  </template>
+</span>
+
                       </td>
                       <td class="table-cell text-center">
                         <div class="action-buttons">
@@ -445,40 +459,18 @@ export default {
 
         if (seccion.fields && Array.isArray(seccion.fields)) {
           seccion.fields.forEach((campo) => {
-            // Solo agregar campos que NO sean subform
-            if (campo.type !== 'subform') {
-              todosLosCampos.push(campo)
-              console.log(`  - Campo agregado: ${campo.name} (required: ${campo.required})`)
-            } else {
-              console.log(`  - Campo omitido (subform): ${campo.name}`)
-            }
-          })
-        }
+                 // 🔹 Ahora agregamos todos, incluso subforms
+        todosLosCampos.push(campo)
+        console.log(`  - Campo agregado: ${campo.name} (type: ${campo.type}, required: ${campo.required})`)
       })
+    }
+  })
 
-      // Separar los campos requeridos y no requeridos
-      const requeridos = todosLosCampos
-        .filter((campo) => campo.required === true)
-        .map((campo) => campo.name)
-
-      const noRequeridos = todosLosCampos
-        .filter((campo) => campo.required !== true)
-        .map((campo) => campo.name)
-
-      // Seleccionar máximo 3: primero requeridos, luego no requeridos
-      let seleccionados = requeridos.slice(0, 3)
-      if (seleccionados.length < 3) {
-        const restantes = 3 - seleccionados.length
-        seleccionados = [...seleccionados, ...noRequeridos.slice(0, restantes)]
-      }
-
-      this.camposDocumento = seleccionados
-
-      console.log('=== RESULTADO PROCESAMIENTO ===')
-      console.log('Total campos encontrados:', todosLosCampos.length)
-      console.log('Campos requeridos:', requeridos)
-      console.log('Campos no requeridos:', noRequeridos)
-      console.log('Campos seleccionados para mostrar:', seleccionados)
+     // 🔹 Ya no limitar a 3, solo devolver todos los names
+  this.camposDocumento = todosLosCampos.map(campo => campo.name)
+    console.log('=== RESULTADO PROCESAMIENTO ===')
+  console.log('Total campos encontrados:', todosLosCampos.length)
+  console.log('Campos seleccionados para mostrar:', this.camposDocumento)
     },
 
     getFieldValueFromDocument(documento, fieldName) {
@@ -526,6 +518,11 @@ export default {
 
       const campo = this.getCampoDefinition(fieldName)
       if (!campo) return valor
+
+       // 🔹 Si es subform, solo mostrar el nombre del campo (no su contenido)
+  if (campo.type === 'subform') {
+    return campo.name
+  }
 
       // Si el campo es dinámico (select con campoGuardar/campoMostrar)
       if (campo.options && Array.isArray(campo.options)) {
