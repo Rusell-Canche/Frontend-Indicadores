@@ -146,8 +146,8 @@
 <span v-else>
   <!-- Si el campo es un subform -->
   <template v-if="getCampoDefinition(campo)?.type === 'subform'">
+    <i class="fa-solid fa-magnifying-glass"></i>
     <i
-      class="fa-regular fa-magnifying-glass-plus cursor-pointer"
       @click="abrirModalSubform(getFieldValueFromDocument(documento, campo))"
       title="Ver subformulario"
     ></i>
