@@ -94,11 +94,12 @@
 
       <!-- Footer del modal -->
       <div class="medico-modal-footer">
-        <button @click="cerrarModalPlantilla" class="btn btn-cancel">
+        <button type="button" @click="cerrarModalPlantilla" class="btn btn-cancel">
           <i class="fas fa-times me-2"></i>
           Cancelar
         </button>
         <button
+          type="button"
           @click="aplicarConfiguracionPlantilla"
           class="btn btn-save"
           :disabled="!configuracionValida"
@@ -243,8 +244,7 @@
                   <span class="mt-1 d-block">
                     <small>
                       Campo mostrado:
-                      <strong>{{ subcampo.dataSource.campoMostrar }}</strong> | Campo guardado:
-                      <strong>{{ subcampo.dataSource.campoGuardar }}</strong>
+                      <strong>{{ subcampo.dataSource.campoMostrar }}</strong>
                     </small>
                   </span>
                 </div>
@@ -332,24 +332,24 @@ export default {
   props: {
     campo: {
       type: Object,
-      required: true
+      required: true,
     },
     seccionIndex: {
       type: Number,
-      required: true
+      required: true,
     },
     campoIndex: {
       type: Number,
-      required: true
+      required: true,
     },
     subcampoIndex: {
       type: Number,
-      default: null
+      default: null,
     },
     nivel: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   data() {
     return {
@@ -362,10 +362,18 @@ export default {
       campoMostrar: '',
       opcionesPreview: [],
       cargandoOpciones: false,
-      campoActual: null
+      campoActual: null,
     }
   },
   methods: {
+    getNombrePlantillaDataSource(plantillaId) {
+      if (!plantillaId) return 'Plantilla no especificada'
+
+      const plantilla = this.plantillasDisponibles.find((p) => p.id === plantillaId)
+      return plantilla
+        ? plantilla.nombre_plantilla || plantilla.title
+        : `Plantilla ID: ${plantillaId}`
+    },
     handleTypeChange(campo) {
       if (campo.type === 'subform' && !campo.subcampos) {
         campo.subcampos = []
@@ -388,7 +396,7 @@ export default {
         name: '',
         type: 'string',
         required: false,
-        filterable: false
+        filterable: false,
       })
     },
 
@@ -407,7 +415,7 @@ export default {
         const opcionTrimmed = campo.newOption.trim()
 
         const existeOpcion = campo.options.some(
-          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase()
+          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
         )
 
         if (existeOpcion) {
@@ -415,7 +423,7 @@ export default {
             icon: 'warning',
             title: 'Opción duplicada',
             text: 'Esta opción ya existe',
-            confirmButtonColor: '#f39c12'
+            confirmButtonColor: '#f39c12',
           })
           return
         }
@@ -443,7 +451,7 @@ export default {
       try {
         const token = localStorage.getItem('apiToken')
         const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         })
 
         this.plantillasDisponibles = response.data || []
@@ -452,7 +460,7 @@ export default {
         Swal({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudieron cargar las plantillas disponibles'
+          text: 'No se pudieron cargar las plantillas disponibles',
         })
       }
     },
@@ -479,7 +487,7 @@ export default {
         const token = localStorage.getItem('apiToken')
         const response = await axios.get(
           `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/secciones`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         )
 
         this.seccionesPlantilla = response.data?.secciones || []
@@ -513,16 +521,16 @@ export default {
           {
             params: {
               seccion: this.seccionSeleccionada,
-              campo: this.campoMostrar
+              campo: this.campoMostrar,
             },
-            headers: { Authorization: `Bearer ${token}` }
-          }
+            headers: { Authorization: `Bearer ${token}` },
+          },
         )
 
         const valores = response.data || []
         this.opcionesPreview = [...new Set(valores.map((item) => item[this.campoMostrar]))].slice(
           0,
-          10
+          10,
         )
       } catch (error) {
         console.error('Error al cargar vista previa:', error)
@@ -539,7 +547,7 @@ export default {
       this.campoActual.dataSource = {
         plantillaId: this.plantillaSeleccionada,
         seccion: this.seccionSeleccionada,
-        campoMostrar: this.campoMostrar
+        campoMostrar: this.campoMostrar,
       }
 
       this.cerrarModalPlantilla()
@@ -549,18 +557,18 @@ export default {
         title: 'Configuración aplicada',
         text: 'Las opciones se cargarán desde la plantilla seleccionada',
         timer: 2000,
-        showConfirmButton: false
+        showConfirmButton: false,
       })
-    }
+    },
   },
   computed: {
     configuracionValida() {
       return this.plantillaSeleccionada && this.seccionSeleccionada && this.campoMostrar
-    }
+    },
   },
   watch: {
     seccionSeleccionada: 'onSeccionSeleccionada',
-    campoMostrar: 'cargarVistaPrevia'
-  }
+    campoMostrar: 'cargarVistaPrevia',
+  },
 }
 </script>
