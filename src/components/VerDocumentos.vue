@@ -146,10 +146,12 @@
 <span v-else>
   <!-- Si el campo es un subform -->
   <template v-if="getCampoDefinition(campo)?.type === 'subform'">
-    <i class="fa-solid fa-magnifying-glass"></i>
+    
     <i
-      @click="abrirModalSubform(getFieldValueFromDocument(documento, campo))"
+      class="fa-solid fa-magnifying-glass"
+  @click="abrirModalSubform(getFieldValueFromDocument(documento, campo), campo)"
       title="Ver subformulario"
+      style="cursor: pointer; color: #0d6efd;"
     ></i>
   </template>
 
@@ -222,6 +224,56 @@
       @error="handleEditError"
     />
   </div>
+  <!-- Modal para ver subformularios -->
+<div v-if="showSubformModal" class="modal-backdrop">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content modern-modal">
+      <!-- Header con botón de cerrar estilo "Editar Documento" -->
+      <div class="medico-header modal-header-custom">
+        <div class="header-content">
+          <div class="header-icon">
+            <i class="fas fa-table"></i>
+          </div>
+          <div class="header-title-section">
+            <h3>Subformulario: {{ subformDefinition?.alias || subformDefinition?.name }}</h3>
+            <p class="header-subtitle">Contenido del subformulario</p>
+          </div>
+        </div>
+        <!-- Botón de cerrar -->
+        <button type="button" @click="cerrarSubformModal" class="close-button" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <div v-if="subformData.length > 0 && subformDefinition?.subcampos" class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
+                  {{ subcampo.alias || subcampo.name }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, rowIndex) in subformData" :key="rowIndex">
+                <td v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
+  {{ getDisplayValue(row[subcampo.name]) }}
+</td>
+
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="text-muted text-center py-3">
+          No hay entradas en este subformulario
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </template>
 
 <script>
@@ -238,6 +290,9 @@ export default {
 
   data() {
     return {
+       showSubformModal: false,
+    subformData: [],
+    subformDefinition: null, // los subcampos del subform
       // Estado principal
       colecciones: [],
       selectedColeccion: null,
@@ -325,6 +380,28 @@ export default {
   },
 
   methods: {
+    
+    // ========== SUBFORMULARIOS ==========
+    abrirModalSubform(contenido, fieldName) {
+      if (!contenido) return
+
+      // Guardar datos del subform
+      this.subformData = Array.isArray(contenido) ? contenido : []
+
+      // Buscar la definición del campo subform por su nombre
+      this.subformDefinition = this.getCampoDefinition(fieldName) || null
+
+      this.showSubformModal = true
+    },
+
+    cerrarSubformModal() {
+      this.showSubformModal = false
+      this.subformData = []
+      this.subformDefinition = null
+    },
+
+
+
     // ========== API CALLS ==========
     async apiCall(endpoint, options = {}) {
       const token = localStorage.getItem('apiToken')
@@ -493,7 +570,13 @@ export default {
     },
 
     // ========== CAMPO HELPERS ==========
-
+getDisplayValue(value) {
+  if (value === null || value === undefined || value === '' || value === 'null') {
+    return '-'
+  }
+  return value
+}
+,
         /**
      * Busca la definición de un campo dentro de la plantilla actual
      */
