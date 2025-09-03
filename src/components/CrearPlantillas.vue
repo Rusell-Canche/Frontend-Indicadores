@@ -407,236 +407,14 @@
                     </div>
 
                     <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
-                    <div v-if="campo.type === 'subform'" class="subform-container">
-                      <div class="subform-header">
-                        <div class="subform-header-content">
-                          <i class="fas fa-indent"></i>
-                          <span>Subformulario para {{ campo.name || 'este campo' }}</span>
-                        </div>
-                      </div>
-
-                      <div class="subform-body">
-                        <div
-                          v-for="(subcampo, subindex) in campo.subcampos || []"
-                          :key="subindex"
-                          class="subcampo-container"
-                        >
-                          <div class="subcampo-header">
-                            <div class="subcampo-header-content">
-                              <div class="subcampo-title-wrapper">
-                                <div class="subcampo-icon">
-                                  <i class="fas fa-angle-right"></i>
-                                </div>
-                                <div class="subcampo-info">
-                                  <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
-                                  <span class="subcampo-description">Configure este apartado</span>
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                @click="quitarSubcampo(campo, subindex)"
-                                class="btn-delete-subcampo"
-                              >
-                                <i class="fas fa-times"></i>
-                              </button>
-                            </div>
-                          </div>
-
-                          <div class="subcampo-body">
-                            <div class="row g-3">
-                              <div class="col-md-6">
-                                <label class="form-label">Nombre del Apartado*</label>
-                                <div class="input-group modern-input">
-                                  <span class="input-group-text">
-                                    <i class="fas fa-edit"></i>
-                                  </span>
-                                  <input
-                                    v-solo-texto-y-numeros
-                                    v-model="subcampo.name"
-                                    class="form-control"
-                                    required
-                                    placeholder="Ej: nombre, cantidad, descripción"
-                                  />
-                                </div>
-                              </div>
-
-                              <div class="col-md-6">
-                                <label class="form-label">Tipo del Apartado*</label>
-                                <div class="input-group modern-input">
-                                  <span class="input-group-text">
-                                    <i class="fas fa-cog"></i>
-                                  </span>
-                                  <select v-model="subcampo.type" class="form-select" required>
-                                    <option value="">Seleccione un tipo</option>
-                                    <option value="string">Texto</option>
-                                    <option value="number">Numérico</option>
-                                    <option value="file">Archivo</option>
-                                    <option value="date">Fecha</option>
-                                    <option value="select">Lista de Selección</option>
-                                  </select>
-                                </div>
-                              </div>
-
-                              <div class="col-md-12">
-                                <div class="subcampo-options">
-                                  <div class="campo-checkbox">
-                                    <label class="checkbox-container">
-                                      <input
-                                        type="checkbox"
-                                        class="custom-checkbox"
-                                        v-model="subcampo.required"
-                                      />
-                                      <span class="checkmark"></span>
-                                      <span class="checkbox-label">Obligatorio</span>
-                                    </label>
-                                  </div>
-                                  <div class="campo-radio" v-if="subcampo.type === 'date'">
-                                    <label class="radio-container">
-                                      <input
-                                        type="radio"
-                                        :name="
-                                          'filterOptionSubform_' +
-                                          seccionIndex +
-                                          '_' +
-                                          campoIndex +
-                                          '_' +
-                                          subindex
-                                        "
-                                        class="custom-radio"
-                                        v-model="subcampo.filterable"
-                                        :value="true"
-                                      />
-                                      <span class="radiomark"></span>
-                                      <span class="radio-label">Aplicar para filtro</span>
-                                    </label>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <!-- Opciones para subcampos de tipo select -->
-                            <div
-                              v-if="subcampo.type === 'select'"
-                              class="select-options-container subcampo-select"
-                            >
-                              <div class="select-options-header">
-                                <div class="options-header-content">
-                                  <i class="fas fa-list-ul"></i>
-                                  <span
-                                    >Opciones para subcampo "{{
-                                      subcampo.name || 'este subcampo'
-                                    }}"</span
-                                  >
-                                </div>
-                              </div>
-
-                              <!-- Botón para cargar desde otra plantilla -->
-                              <div class="mb-3">
-                                <button
-                                  type="button"
-                                  @click="abrirModalPlantilla(subcampo)"
-                                  class="btn btn-outline-primary btn-sm"
-                                >
-                                  <i class="fas fa-database me-1"></i>
-                                  Cargar opciones desde otra plantilla
-                                </button>
-                              </div>
-
-                              <!-- Alert de configuración aplicada -->
-                              <div v-if="subcampo.dataSource" class="alert alert-info mb-3">
-                                <div class="d-flex align-items-start">
-                                  <i class="fas fa-lightbulb me-3 mt-1"></i>
-                                  <div>
-                                    <strong>Configuración de opciones dinámicas:</strong><br />
-                                    Las opciones se cargarán desde la plantilla
-                                    <strong
-                                      >"{{
-                                        getNombrePlantillaDataSource(
-                                          subcampo.dataSource.plantillaId,
-                                        )
-                                      }}"</strong
-                                    >, sección <strong>"{{ subcampo.dataSource.seccion }}"</strong
-                                    ><br />
-                                    <span class="mt-1 d-block">
-                                      <small>
-                                        Campo mostrado:
-                                        <strong>{{ subcampo.dataSource.campoMostrar }}</strong> |
-                                        Campo guardado:
-                                        <strong>{{ subcampo.dataSource.campoGuardar }}</strong>
-                                      </small>
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div
-                                v-if="!subcampo.dataSource"
-                                class="select-options-body"
-                              >
-                                <div
-                                  v-for="(option, optionIndex) in subcampo.options || []"
-                                  :key="optionIndex"
-                                  class="option-item"
-                                >
-                                  <div class="option-content">
-                                    <div class="input-group modern-input-small">
-                                      <span class="input-group-text">
-                                        <i class="fas fa-tag"></i>
-                                      </span>
-                                      <input
-                                        v-solo-texto-y-numeros
-                                        v-model="subcampo.options[optionIndex]"
-                                        class="form-control"
-                                        placeholder="Texto de la opción"
-                                        required
-                                      />
-                                      <button
-                                        type="button"
-                                        @click="quitarOpcion(subcampo, optionIndex)"
-                                        class="btn-delete-option"
-                                      >
-                                        <i class="fas fa-trash"></i>
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div class="add-option-section">
-                                  <div class="add-option-wrapper">
-                                    <div class="add-option-input">
-                                      <input
-                                        v-model="subcampo.newOption"
-                                        class="form-control modern-input-standalone"
-                                        placeholder="Texto de la opción"
-                                        @keyup.enter="agregarOpcion(subcampo)"
-                                      />
-                                    </div>
-                                    <button
-                                      type="button"
-                                      @click="agregarOpcion(subcampo)"
-                                      class="btn-add-option"
-                                      :disabled="!subcampo.newOption"
-                                    >
-                                      <i class="fas fa-plus"></i>
-                                      <span>Agregar</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          @click="agregarSubcampo(campo)"
-                          class="btn-add-subcampo"
-                        >
-                          <i class="fas fa-plus"></i>
-                          <span>Agregar Apartado</span>
-                        </button>
-                      </div>
-                    </div>
+                    <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
+<Subformulario
+  v-if="campo.type === 'subform'"
+  :campo="campo"
+  :seccionIndex="seccionIndex"
+  :campoIndex="campoIndex"
+  @abrir-modal-plantilla="abrirModalPlantilla"
+/>
                   </div>
                 </div>
 
@@ -673,6 +451,7 @@
 <script>
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import Subformulario from './Subformulario.vue'
 
 export default {
   data() {
@@ -715,6 +494,9 @@ export default {
     configuracionValida() {
       return this.plantillaSeleccionada && this.seccionSeleccionada && this.campoMostrar
     },
+  },
+  components: {
+    Subformulario
   },
 
   watch: {
@@ -865,61 +647,46 @@ export default {
     },
 
     prepararDatosParaEnvio() {
-      return this.secciones
-        .map((seccion) => {
-          const seccionLimpia = {
-            nombre: seccion.nombre,
-            fields: seccion.fields.map((campo) => {
-              const campoLimpio = {
-                name: campo.name,
-                type: campo.type,
-                required: campo.required,
-                filterable: campo.filterable || false,
-              }
+  const limpiarCampo = (campo) => {
+    const campoLimpio = {
+      name: campo.name,
+      type: campo.type,
+      required: campo.required,
+      filterable: campo.filterable || false,
+    }
 
-              if (campo.type === 'select' && campo.dataSource) {
-                campoLimpio.dataSource = campo.dataSource
-              } else if (campo.type === 'select' && campo.options) {
-                campoLimpio.options = campo.options.filter(
-                  (option) => option !== null && option !== undefined && option.trim() !== '',
-                )
-              }
+    if (campo.type === 'select' && campo.dataSource) {
+      campoLimpio.dataSource = campo.dataSource
+    } else if (campo.type === 'select' && campo.options) {
+      campoLimpio.options = campo.options.filter(
+        (option) => option !== null && option !== undefined && option.trim() !== '',
+      )
+    }
 
-              if (campo.type === 'subform' && campo.subcampos) {
-                campoLimpio.subcampos = campo.subcampos.map((subcampo) => {
-                  const subcampoLimpio = {
-                    name: subcampo.name,
-                    type: subcampo.type,
-                    required: subcampo.required,
-                    filterable: subcampo.filterable || false,
-                  }
+    if (campo.type === 'subform' && campo.subcampos) {
+      campoLimpio.subcampos = campo.subcampos.map((subcampo) => limpiarCampo(subcampo))
+    }
 
-                  if (subcampo.type === 'select' && subcampo.dataSource) {
-                    subcampoLimpio.dataSource = subcampo.dataSource
-                  } else if (subcampo.type === 'select' && subcampo.options) {
-                    subcampoLimpio.options = subcampo.options.filter(
-                      (option) => option !== null && option !== undefined && option.trim() !== '',
-                    )
-                  }
+    return campoLimpio
+  }
 
-                  return subcampoLimpio
-                })
-              }
+  return this.secciones
+    .map((seccion) => {
+      const seccionLimpia = {
+        nombre: seccion.nombre,
+        fields: seccion.fields.map(limpiarCampo),
+      }
 
-              return campoLimpio
-            }),
-          }
+      seccionLimpia.fields = seccionLimpia.fields.filter(
+        (campo) => campo.name && campo.name.trim() !== '',
+      )
 
-          seccionLimpia.fields = seccionLimpia.fields.filter(
-            (campo) => campo.name && campo.name.trim() !== '',
-          )
-
-          return seccionLimpia
-        })
-        .filter(
-          (seccion) => seccion.nombre && seccion.nombre.trim() !== '' && seccion.fields.length > 0,
-        )
-    },
+      return seccionLimpia
+    })
+    .filter(
+      (seccion) => seccion.nombre && seccion.nombre.trim() !== '' && seccion.fields.length > 0,
+    )
+},
 
     async crearPlantilla() {
       try {
@@ -1133,7 +900,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 /* Estilos base del diseño moderno */
 .card {
   border-radius: 20px;
