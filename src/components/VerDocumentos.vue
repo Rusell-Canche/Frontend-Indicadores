@@ -104,7 +104,7 @@
                         <div v-if="campo === 'Recurso Digital'" class="file-badges">
                           <template
                             v-if="
-                              getFieldValueFromDocument(documento, campo) &&
+                              getPrettyFieldValue(documento, campo) &&
                               Array.isArray(getFieldValueFromDocument(documento, campo))
                             "
                           >
@@ -258,9 +258,11 @@
             </thead>
             <tbody>
               <tr v-for="(row, rowIndex) in subformData" :key="rowIndex">
-                <td v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
-  {{ getDisplayValue(row[subcampo.name]) }}
+               <td v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
+  {{ getPrettySubcampoValue(row, subcampo.name) }}
 </td>
+
+
 
               </tr>
             </tbody>
@@ -399,8 +401,25 @@ export default {
       this.subformData = []
       this.subformDefinition = null
     },
+getSubcampoWithOptions(subcampoName) {
+  if (!this.subformDefinition?.subcampos) return null
+  return this.subformDefinition.subcampos.find(s => s.name === subcampoName) || null
+}
+,
+getPrettySubcampoValue(row, subcampoName) {
+  const subcampoDef = this.getSubcampoWithOptions(subcampoName)
+  const valor = row[subcampoName]
 
+  if (!valor || valor === 'null') return '-'
 
+  if (subcampoDef?.options && Array.isArray(subcampoDef.options)) {
+    const option = subcampoDef.options.find(o => o.campoGuardar === valor)
+    return option ? option.campoMostrar : valor
+  }
+
+  return valor
+}
+,
 
     // ========== API CALLS ==========
     async apiCall(endpoint, options = {}) {
