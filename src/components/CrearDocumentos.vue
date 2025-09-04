@@ -91,74 +91,20 @@
                     </h6>
 
                     <!-- Campo de tipo subform -->
-                    <div v-if="campo.type === 'subform'" class="subform-container">
-                      <div class="subform-header">
-                        <i class="fas fa-indent me-2"></i>
-                        <span>Subformulario para {{ campo.name || 'este campo' }}</span>
-                      </div>
-                      <button type="button" @click="openModal(campo)" class="add-campo-button">
-                        <i class="fas fa-plus me-2"></i> Agregar entrada
-                      </button>
-
-                      <!-- Tabla para mostrar entradas existentes -->
-                      <div
-                        class="table-responsive mt-3"
-                        v-if="getSubformRows(campo.name).length > 0"
-                      >
-                        <table class="table table-bordered table-hover">
-                          <thead class="table-light">
-                            <tr>
-                              <th v-for="subcampo in campo.subcampos" :key="subcampo.name">
-                                {{ subcampo.alias || subcampo.name }}
-                              </th>
-                              <th class="text-center">Acciones</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr
-                              v-for="(row, rowIndex) in getSubformRows(campo.name)"
-                              :key="rowIndex"
-                            >
-                              <td v-for="subcampo in campo.subcampos" :key="subcampo.name">
-                                <template v-if="subcampo.type === 'file'">
-                                  {{ row[subcampo.name]?.name || 'Sin archivo' }}
-                                </template>
-                                <template
-                                  v-else-if="
-                                    subcampo.type === 'select' && !isManualSelect(subcampo)
-                                  "
-                                >
-                                  {{
-                                    subcampo.options.find(
-                                      (opt) => opt.campoGuardar === row[subcampo.name],
-                                    )?.campoMostrar || row[subcampo.name]
-                                  }}
-                                </template>
-                                <template v-else>
-                                  {{ row[subcampo.name] }}
-                                </template>
-                              </td>
-                              <td class="text-center">
-                                <button
-                                  type="button"
-                                  class="btn btn-sm btn-outline-secondary me-2"
-                                  @click="openModal(campo, rowIndex)"
-                                >
-                                  <i class="fas fa-edit"></i>
-                                </button>
-                                <button
-                                  type="button"
-                                  class="btn btn-sm btn-outline-danger"
-                                  @click="removeSubformRow(campo.name, rowIndex)"
-                                >
-                                  <i class="fas fa-trash-alt"></i>
-                                </button>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                    <!-- En la sección donde renderizas los campos -->
+<div v-if="campo.type === 'subform'" class="form-section">
+  <h6 class="section-title">
+    <i class="fas fa-edit me-2"></i>
+    {{ campo.alias || campo.name }}
+    <span v-if="campo.required || campo.filterable" class="text-danger">*</span>
+  </h6>
+  
+  <SubFormularioDocumento
+    :campo="campo"
+    :valor="subformData[campo.name] || []"
+    @actualizar="actualizarSubformulario(campo.name, $event)"
+  />
+</div>
 
                     <!-- Campo de tipo select -->
                     <div v-else-if="campo.type === 'select'" class="mt-2">
@@ -332,448 +278,6 @@
             </div>
           </form>
         </div>
-
-        <!-- Renderizar campos directamente si no hay secciones (compatibilidad hacia atrás) -->
-        <div v-else-if="camposPlantilla.length > 0">
-          <!-- Nota de campos requeridos -->
-          <div class="alert alert-info mb-4">
-            <i class="fas fa-info-circle me-2"></i>Los campos marcados con
-            <span class="text-danger">*</span> son obligatorios
-          </div>
-
-          <form ref="form" @submit.prevent="onSubmit" enctype="multipart/form-data">
-            <div v-for="(campo, campoIndex) in camposPlantilla" :key="campo.name">
-              <div v-if="campo.name !== '_id'" class="form-section">
-                <h6 class="section-title">
-                  <i class="fas fa-edit me-2"></i>
-                  {{ campo.alias || campo.name }}
-                  <span v-if="campo.required || campo.filterable" class="text-danger">*</span>
-                </h6>
-
-                <!-- Campo de tipo subform -->
-                <div v-if="campo.type === 'subform'" class="subform-container">
-                  <div class="subform-header">
-                    <i class="fas fa-indent me-2"></i>
-                    <span>Subformulario para {{ campo.name || 'este campo' }}</span>
-                  </div>
-                  <button type="button" @click="openModal(campo)" class="add-campo-button">
-                    <i class="fas fa-plus me-2"></i> Agregar entrada
-                  </button>
-
-                  <!-- Tabla para mostrar entradas existentes -->
-                  <div class="table-responsive mt-3" v-if="getSubformRows(campo.name).length > 0">
-                    <table class="table table-bordered table-hover">
-                      <thead class="table-light">
-                        <tr>
-                          <th v-for="subcampo in campo.subcampos" :key="subcampo.name">
-                            {{ subcampo.alias || subcampo.name }}
-                          </th>
-                          <th class="text-center">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="(row, rowIndex) in getSubformRows(campo.name)" :key="rowIndex">
-                          <td v-for="subcampo in campo.subcampos" :key="subcampo.name">
-                            <template v-if="subcampo.type === 'file'">
-                              {{ row[subcampo.name]?.name || 'Sin archivo' }}
-                            </template>
-                            <template v-else>
-                              {{ row[subcampo.name] }}
-                            </template>
-                          </td>
-                          <td class="text-center">
-                            <button
-                              type="button"
-                              class="btn btn-sm btn-outline-secondary me-2"
-                              @click="openModal(campo, rowIndex)"
-                            >
-                              <i class="fas fa-edit"></i>
-                            </button>
-                            <button
-                              type="button"
-                              class="btn btn-sm btn-outline-danger"
-                              @click="removeSubformRow(campo.name, rowIndex)"
-                            >
-                              <i class="fas fa-trash-alt"></i>
-                            </button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <!-- Campo de tipo select -->
-                <div v-else-if="campo.type === 'select'" class="mt-2">
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-list-ul"></i>
-                    </span>
-                    <select
-                      class="form-select"
-                      :id="campo.name"
-                      v-model="documentData[campo.name]"
-                      :required="campo.required"
-                    >
-                      <option value="" disabled selected>Seleccione una opción</option>
-                      <!-- Select Manual (array de strings) -->
-                      <template v-if="isManualSelect(campo)">
-                        <option
-                          v-for="(option, index) in campo.options"
-                          :key="index"
-                          :value="option"
-                        >
-                          {{ option }}
-                        </option>
-                      </template>
-                      <!-- Select Dinámico (objetos con campoMostrar y campoGuardar) -->
-                      <template v-else>
-                        <option
-                          v-for="(option, index) in campo.options"
-                          :key="index"
-                          :value="option.campoGuardar"
-                        >
-                          {{ option.campoMostrar }}
-                        </option>
-                      </template>
-                    </select>
-                  </div>
-                  <!-- Información adicional para selects dinámicos -->
-                  <div v-if="!isManualSelect(campo) && campo.dataSource" class="form-text mt-1">
-                    <small class="text-info">
-                      <i class="fas fa-database me-1"></i>
-                      Datos de: {{ campo.dataSource.plantillaNombre }} -
-                      {{ campo.dataSource.seccion }}
-                    </small>
-                  </div>
-                </div>
-
-                <!-- Campo de archivos -->
-                <div v-else-if="campo.type === 'file'" class="mt-2">
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-paperclip"></i>
-                    </span>
-                    <input
-                      type="file"
-                      class="form-control"
-                      :id="campo.name"
-                      :name="campo.name"
-                      @change="onFileChange($event, campo.name)"
-                      multiple
-                    />
-                  </div>
-                  <!-- Vista previa de archivos -->
-                  <div v-if="files[campo.name]" class="file-preview mt-3">
-                    <h6 class="preview-title">Archivos seleccionados:</h6>
-                    <div class="d-flex flex-wrap gap-3">
-                      <div
-                        class="file-item"
-                        v-for="(file, index) in files[campo.name]"
-                        :key="index"
-                      >
-                        <div class="file-content">
-                          <div v-if="isImageFile(file)" class="file-thumbnail">
-                            <img :src="getThumbnailUrl(file)" alt="Miniatura" class="img-fluid" />
-                          </div>
-                          <div v-else class="file-icon">
-                            <i class="fas fa-file-alt"></i>
-                          </div>
-                          <span class="file-name">{{ file.name }}</span>
-                        </div>
-                        <button
-                          type="button"
-                          class="delete-button"
-                          @click="removeFile(campo.name, index)"
-                        >
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Campo numérico -->
-                <div v-else-if="campo.type === 'number'" class="mt-2">
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-hashtag"></i>
-                    </span>
-                    <input
-                      type="number"
-                      class="form-control"
-                      :id="campo.name"
-                      v-model="documentData[campo.name]"
-                      :required="campo.required"
-                      placeholder="Ingrese un valor numérico"
-                    />
-                  </div>
-                </div>
-
-                <!-- Campo de fecha -->
-                <div v-else-if="campo.type === 'date'" class="mt-2">
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-calendar-alt"></i>
-                    </span>
-                    <input
-                      type="date"
-                      class="form-control"
-                      :id="campo.name"
-                      v-model="documentData[campo.name]"
-                      :required="campo.required || campo.filterable"
-                    />
-                  </div>
-                </div>
-
-                <!-- Campo de texto -->
-                <div v-else class="mt-2">
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-font"></i>
-                    </span>
-                    <input
-                      v-solo-texto
-                      type="text"
-                      class="form-control"
-                      :id="campo.name"
-                      v-model="documentData[campo.name]"
-                      :required="campo.required"
-                      placeholder="Ingrese texto"
-                    />
-                  </div>
-                </div>
-                <div class="d-flex">
-                  <div class="form-text mt-1 me-4">
-                    <small v-if="campo.required" class="text-danger">Campo obligatorio</small>
-                    <small v-else class="text-muted">Campo opcional</small>
-                  </div>
-                  <div class="form-text mt-1">
-                    <small v-if="campo.filterable" class="text-danger"
-                      >Campo para filtro de fecha</small
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Footer con botones -->
-            <div class="medico-footer">
-              <button @click="resetForm" class="btn btn-cancel" type="button">
-                <i class="fas fa-eraser me-2"></i>
-                Limpiar Formulario
-              </button>
-              <button type="submit" class="btn btn-save">
-                <i class="fas fa-save me-2"></i>
-                Crear Documento
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal para subformulario con diseño moderno -->
-    <div v-if="showSubformModal" class="modal fade show" style="display: block">
-      <div class="modal-dialog modal-xl">
-        <div class="modal-content modern-modal">
-          <!-- Header del modal con el diseño moderno -->
-          <div class="medico-header modal-header-custom">
-            <div class="header-content">
-              <div class="header-icon">
-                <i class="fas fa-plus-circle" v-if="editingIndex === -1"></i>
-                <i class="fas fa-edit" v-else></i>
-              </div>
-              <div class="header-title-section">
-                <h3>{{ editingIndex === -1 ? 'Agregar' : 'Editar' }} entrada</h3>
-                <p class="header-subtitle">{{ currentSubformField?.name || 'Subformulario' }}</p>
-              </div>
-            </div>
-            <button type="button" @click="closeModal" class="close-button" aria-label="Close">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-
-          <!-- Body del modal con el diseño moderno -->
-          <div class="medico-body modal-body-custom">
-            <!-- Nota informativa -->
-            <div class="alert alert-info mb-4">
-              <i class="fas fa-info-circle me-2"></i>
-              Complete los campos del subformulario según sus necesidades
-            </div>
-
-            <!-- Sección para los campos del subformulario -->
-            <div class="form-section">
-              <h6 class="section-title">
-                <i class="fas fa-list me-2"></i>
-                Campos del Subformulario
-              </h6>
-
-              <div
-                v-for="subcampo in currentSubformField?.subcampos"
-                :key="subcampo.name"
-                class="campo-container"
-              >
-                <div class="campo-header">
-                  <div class="campo-title">
-                    <i class="fas fa-grip-vertical me-2"></i>
-                    <span class="campo-index">{{ subcampo.alias || subcampo.name }}</span>
-                    <span v-if="subcampo.required" class="required-badge">*</span>
-                  </div>
-                </div>
-
-                <div class="campo-body">
-                  <!-- Campo de archivo en modal -->
-                  <div v-if="subcampo.type === 'file'" class="form-field">
-                    <label class="form-label">
-                      {{ subcampo.alias || subcampo.name }}
-                      <span v-if="subcampo.required" class="text-danger">*</span>
-                    </label>
-                    <div class="input-group modern-input">
-                      <span class="input-group-text">
-                        <i class="fas fa-paperclip"></i>
-                      </span>
-                      <input
-                        type="file"
-                        class="form-control"
-                        @change="onModalFileChange($event, subcampo.name)"
-                      />
-                    </div>
-                    <div v-if="currentSubformData[subcampo.name]?.name" class="file-info mt-2">
-                      <div class="current-file">
-                        <i class="fas fa-file me-2"></i>
-                        <span>{{ currentSubformData[subcampo.name].name }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Campo numérico en modal -->
-                  <div v-else-if="subcampo.type === 'number'" class="form-field">
-                    <label class="form-label">
-                      {{ subcampo.alias || subcampo.name }}
-                      <span v-if="subcampo.required" class="text-danger">*</span>
-                    </label>
-                    <div class="input-group modern-input">
-                      <span class="input-group-text">
-                        <i class="fas fa-hashtag"></i>
-                      </span>
-                      <input
-                        v-solo-numeros
-                        type="number"
-                        class="form-control"
-                        v-model="currentSubformData[subcampo.name]"
-                        :required="subcampo.required"
-                        placeholder="Ingrese un valor numérico"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Campo select en modal -->
-                  <div v-else-if="subcampo.type === 'select'" class="form-field">
-                    <label class="form-label">
-                      {{ subcampo.alias || subcampo.name }}
-                      <span v-if="subcampo.required" class="text-danger">*</span>
-                    </label>
-                    <div class="input-group modern-input">
-                      <span class="input-group-text">
-                        <i class="fas fa-list-ul"></i>
-                      </span>
-                      <select
-                        class="form-select"
-                        v-model="currentSubformData[subcampo.name]"
-                        :required="subcampo.required"
-                      >
-                        <option value="" disabled selected>Seleccione una opción</option>
-                        <!-- Select Manual -->
-                        <template v-if="isManualSelect(subcampo)">
-                          <option
-                            v-for="(option, index) in subcampo.options"
-                            :key="index"
-                            :value="option"
-                          >
-                            {{ option }}
-                          </option>
-                        </template>
-                        <!-- Select Dinámico -->
-                        <template v-else>
-                          <option
-                            v-for="(option, index) in subcampo.options"
-                            :key="index"
-                            :value="option.campoGuardar"
-                          >
-                            {{ option.campoMostrar }}
-                          </option>
-                        </template>
-                      </select>
-                    </div>
-                    <!-- Información adicional para selects dinámicos en modal -->
-                    <div
-                      v-if="!isManualSelect(subcampo) && subcampo.dataSource"
-                      class="form-text mt-1"
-                    >
-                      <small class="text-info">
-                        <i class="fas fa-database me-1"></i>
-                        Datos de: {{ subcampo.dataSource.plantillaNombre }} -
-                        {{ subcampo.dataSource.seccion }}
-                      </small>
-                    </div>
-                  </div>
-                  <!-- Campo fecha en modal -->
-                  <div v-else-if="subcampo.type === 'date'" class="form-field">
-                    <label class="form-label">
-                      {{ subcampo.alias || subcampo.name }}
-                      <span v-if="subcampo.required" class="text-danger">*</span>
-                    </label>
-                    <div class="input-group modern-input">
-                      <span class="input-group-text">
-                        <i class="fas fa-calendar-alt"></i>
-                      </span>
-                      <input
-                        type="date"
-                        class="form-control"
-                        v-model="currentSubformData[subcampo.name]"
-                        :required="subcampo.required || subcampo.filterable"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Campo texto en modal -->
-                  <div v-else class="form-field">
-                    <label class="form-label">
-                      {{ subcampo.alias || subcampo.name }}
-                      <span v-if="subcampo.required" class="text-danger">*</span>
-                    </label>
-                    <div class="input-group modern-input">
-                      <span class="input-group-text">
-                        <i class="fas fa-font"></i>
-                      </span>
-                      <input
-                        v-solo-texto
-                        type="text"
-                        class="form-control"
-                        v-model="currentSubformData[subcampo.name]"
-                        :required="subcampo.required"
-                        placeholder="Ingrese texto"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Footer con botones -->
-              <div class="medico-footer">
-                <button type="button" class="btn btn-cancel" @click="closeModal">
-                  <i class="fas fa-times me-2"></i>
-                  Cancelar
-                </button>
-                <button type="button" class="btn btn-save" @click="saveSubformEntry">
-                  <i class="fas fa-check me-2"></i>
-                  {{ editingIndex === -1 ? 'Agregar' : 'Guardar' }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -782,8 +286,10 @@
 <script>
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import SubFormularioDocumento from './SubFormularioDocumento.vue'
 
 export default {
+  components: { SubFormularioDocumento },
   data() {
     return {
       plantillas: [],
@@ -802,6 +308,9 @@ export default {
     }
   },
   methods: {
+    actualizarSubformulario(nombreCampo, nuevoValor) {
+  this.subformData[nombreCampo] = nuevoValor;
+},
     /**
      * Determina si un campo select es manual o dinámico
      * @param {Object} campo - El campo a evaluar
@@ -1151,63 +660,72 @@ export default {
         return
       }
 
-      const formData = new FormData()
-
-      // 👇👇 Nueva parte: Construir estructura por secciones 👇👇
-      const seccionesData = []
-
-      this.seccionesPlantilla.forEach((seccion) => {
-        const camposDeSeccion = seccion.fields || []
-        const fields = {}
-
-        camposDeSeccion.forEach((campo) => {
-          if (campo.type === 'subform') {
-            // Si es subform, lo guardamos como array
-            fields[campo.name] = this.subformData[campo.name] || []
-          } else if (campo.type === 'file') {
-            // Para archivos, solo marcamos que existe, pero el archivo va aparte
-            fields[campo.name] = null
-          } else {
-            // Otros tipos de campos
-            fields[campo.name] = this.documentData[campo.name] || ''
-          }
-        })
-
-        seccionesData.push({
-          nombre: seccion.nombre,
-          fields,
-        })
-      })
-
-      // Adjuntar la estructura final al formData
-      formData.append('document_data[secciones]', JSON.stringify(seccionesData))
-
-      // Enviar solicitud
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.post(
-          `http://127.0.0.1:8000/api/documentos/${this.selectedPlantilla}`,
-          formData,
-          {
-            headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
-          },
-        )
-
-        Swal.fire({
-          title: 'Éxito',
-          text: 'Documento creado correctamente',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-        })
-        this.resetForm()
-      } catch (error) {
-        console.error('Error al crear documento:', error)
-        this.showError(
-          'Error al crear el documento: ' +
-            (error.response?.data?.message || error.message || 'Error desconocido'),
-        )
+      const formData = new FormData();
+  
+  // Construir estructura por secciones con soporte para subformularios anidados
+  const seccionesData = [];
+  
+  this.seccionesPlantilla.forEach((seccion) => {
+    const camposDeSeccion = seccion.fields || [];
+    const fields = {};
+    
+    camposDeSeccion.forEach((campo) => {
+      if (campo.type === 'subform') {
+        // Para subformularios, usar la estructura anidada
+        fields[campo.name] = this.subformData[campo.name] || [];
+      } else if (campo.type === 'file') {
+        // Para archivos, el manejo sigue igual
+        fields[campo.name] = null;
+      } else {
+        fields[campo.name] = this.documentData[campo.name] || '';
       }
-    },
+    });
+    
+    seccionesData.push({
+      nombre: seccion.nombre,
+      fields,
+    });
+  });
+  
+  // Adjuntar la estructura final al formData
+  formData.append('document_data[secciones]', JSON.stringify(seccionesData));
+  
+  // Adjuntar archivos
+  for (const fieldName in this.files) {
+    this.files[fieldName].forEach((file, index) => {
+      formData.append(`archivos[${fieldName}][${index}]`, file);
+    });
+  }
+  
+  // Enviar solicitud
+  try {
+    const token = localStorage.getItem('apiToken');
+    const response = await axios.post(
+      `http://127.0.0.1:8000/api/documentos/${this.selectedPlantilla}`,
+      formData,
+      {
+        headers: { 
+          'Content-Type': 'multipart/form-data', 
+          Authorization: `Bearer ${token}` 
+        },
+      }
+    );
+    
+    Swal.fire({
+      title: 'Éxito',
+      text: 'Documento creado correctamente',
+      icon: 'success',
+      confirmButtonText: 'Aceptar',
+    });
+    this.resetForm();
+  } catch (error) {
+    console.error('Error al crear documento:', error);
+    this.showError(
+      'Error al crear el documento: ' +
+        (error.response?.data?.message || error.message || 'Error desconocido')
+    );
+  }
+},
 
     resetForm() {
       this.documentData = {}
