@@ -451,14 +451,14 @@
                           </div>
                         </div>
                       </div>
-
+<!-- Usamos el componente Subformulario para manejar recursividad -->
 <Subformulario
   v-if="campo.type === 'subform'"
   :campo="campo"
   :seccionIndex="seccionIndex"
   :campoIndex="campoIndex"
-  :nivel="0"
-  @abrir-modal-plantilla="handleAbrirModalPlantilla"
+  :nivel="1"
+  @abrir-modal-plantilla="abrirModalPlantilla"
 />
                     </div>
                   </div>
@@ -495,16 +495,11 @@
 </template>
 
 <script>
-// 1. IMPORTACIÓN DEL COMPONENTE (agregar al inicio del script)
-import Subformulario from './Subformulario.vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import Subformulario from './Subformulario.vue' // Ajusta la ruta según tu estructura
 
 export default {
-   // 2. REGISTRO DEL COMPONENTE (agregar en la sección components)
-  components: {
-    Subformulario
-  },
   data() {
     return {
       plantillas: [], // Lista de plantillas obtenidas del servidor
@@ -513,12 +508,32 @@ export default {
       seccionesPlantilla: [], // Secciones de la plantilla seleccionada para edición
       mostrarModalEdit: false, // Control de visibilidad del modal de edición
       
-      
-      
+      // Variables para el modal de plantilla (select dinámicos)
+      modalPlantillaVisible: false,
+      plantillasDisponibles: [],
+      plantillaSeleccionada: '',
+      seccionesPlantillaModal: [], // Cambiado para evitar conflicto con seccionesPlantilla existente
+      seccionSeleccionada: '',
+      camposSeccion: [],
+      campoMostrar: '',
+      opcionesPreview: [],
+      cargandoOpciones: false,
+      campoActual: null,
+      esSubcampo: false, // Para identificar si es un campo o subcampo
     }
   },
- 
- 
+  computed: {
+    configuracionValida() {
+      return this.plantillaSeleccionada && this.seccionSeleccionada && this.campoMostrar
+    },
+  },
+  watch: {
+    seccionSeleccionada: 'onSeccionSeleccionada',
+    campoMostrar: 'cargarVistaPrevia',
+  },
+  components: {
+    Subformulario,
+  },
   methods: {
     async fetchPlantillas() {
       try {
@@ -592,7 +607,10 @@ export default {
             }
           })
         })
-       
+        const respPlantillas = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        headers: { Authorization: `Bearer ${token}` },
+        })
+        this.plantillasDisponibles = respPlantillas.data || []
         
         this.mostrarModalEdit = true
       } catch (error) {
@@ -604,88 +622,70 @@ export default {
         console.log('Error al obtener los campos de la plantilla:', error)
       }
     },
+async submitEditForm() {
+  const token = localStorage.getItem('apiToken')
+  const result = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: '¿Quieres actualizar la plantilla?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, actualizar',
+    cancelButtonText: 'Cancelar',
+  })
 
-    async submitEditForm() {
-      const token = localStorage.getItem('apiToken')
-      const result = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: '¿Quieres actualizar la plantilla?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, actualizar',
-        cancelButtonText: 'Cancelar',
+  if (result.isConfirmed) {
+    try {
+      const updateData = {
+        nombre_plantilla: this.nombrePlantilla,
+        secciones: this.seccionesPlantilla
+          .map(seccion => {
+            const seccionLimpia = {
+              nombre: seccion.nombre,
+              fields: seccion.fields
+                .filter(campo => campo.name && campo.name.trim() !== '')
+                .map(campo => this.limpiarCampo(campo)) // ✅ Usa la función recursiva
+            }
+
+            // Filtra secciones vacías
+            return seccionLimpia
+          })
+          .filter(
+            seccion =>
+              seccion.nombre && seccion.nombre.trim() !== '' && seccion.fields.length > 0
+          ),
+      }
+
+      console.log('Datos a enviar:', updateData) // Verifica que ahora sí tenga subcampos anidados
+
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/plantillas/${this.idPlantilla}`,
+        updateData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        },
+      )
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Actualizado',
+        text: response.data.message || 'Plantilla actualizada correctamente',
       })
-
-      if (result.isConfirmed) {
-        try {
-          const updateData = {
-  nombre_plantilla: this.nombrePlantilla,
-  secciones: this.seccionesPlantilla
-    .map(seccion => {
-      return {
-        nombre: seccion.nombre,
-        fields: seccion.fields
-          .map(campo => this.limpiarCampo(campo))
-          .filter(campo => campo.name && campo.name.trim() !== '')
-      }
-    })
-    .filter(
-      seccion => seccion.nombre && seccion.nombre.trim() !== '' && seccion.fields.length > 0
-    )
-}
-          console.log('Datos a enviar:', updateData)
-
-          const response = await axios.put(
-            `http://127.0.0.1:8000/api/plantillas/${this.idPlantilla}`,
-            updateData,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-                Accept: 'application/json',
-              },
-            },
-          )
-
-          Swal.fire({
-            icon: 'success',
-            title: 'Actualizado',
-            text: response.data.message || 'Plantilla actualizada correctamente',
-          })
-          this.closeEditModal()
-          this.fetchPlantillas()
-        } catch (error) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error al actualizar la plantilla',
-          })
-          console.error('Error al actualizar la plantilla:', error)
-        }
-      }
-    },
-
-    // Función recursiva para limpiar campos y subcampos (igual que en CrearPlantillas.vue)
-limpiarCampo(campo) {
-  const campoLimpio = {
-    name: campo.name,
-    type: campo.type,
-    required: Boolean(campo.required),
-    filterable: Boolean(campo.filterable),
+      this.closeEditModal()
+      this.fetchPlantillas()
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error al actualizar la plantilla',
+      })
+      console.error('Error al actualizar la plantilla:', error)
+    }
   }
-
- 
-
-  // Para subformularios: procesar subcampos recursivamente
-  if (campo.type === 'subform' && campo.subcampos) {
-    campoLimpio.subcampos = campo.subcampos
-      .map(subcampo => this.limpiarCampo(subcampo))
-      .filter(subcampo => subcampo.name && subcampo.name.trim() !== '')
-  }
-
-  return campoLimpio
 },
-
     agregarSeccion() {
       this.seccionesPlantilla.push({
         nombre: '',
@@ -726,22 +726,14 @@ limpiarCampo(campo) {
       }
     },
 
-    
-
-  
     handleTypeChange(campo) {
       if (campo.type === 'subform' && !campo.subcampos) {
         campo.subcampos = []
         this.agregarSubcampo(campo)
-      } else if (campo.type === 'select') {
-        if (!campo.options) {
-          campo.options = []
-          campo.newOption = ''
-        }
-        // Mostrar opciones manuales por defecto si no hay dataSource
-        if (!campo.dataSource) {
-          campo.mostrarOpcionesManuales = true
-        }
+      } else if (campo.type === 'select' && !campo.options) {
+        campo.options = []
+        campo.newOption = ''
+        campo.mostrarOpcionesManuales = true
       }
 
       if (campo.type !== 'date') {
@@ -758,7 +750,6 @@ limpiarCampo(campo) {
         type: 'string',
         required: false,
         filterable: false,
-         mostrarOpcionesManuales: true // Agregar esta línea
       })
     },
 
@@ -771,6 +762,72 @@ limpiarCampo(campo) {
           title: 'No se puede eliminar',
           text: 'Debe haber al menos un apartado en el subformulario',
         })
+      }
+    },
+
+    addSelectOption(campo) {
+      if (!campo.options) {
+        campo.options = []
+      }
+
+      if (campo.newOption && campo.newOption.trim() !== '') {
+        const opcionTrimmed = campo.newOption.trim()
+
+        const existeOpcion = campo.options.some(
+          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
+        )
+
+        if (existeOpcion) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Opción duplicada',
+            text: 'Esta opción ya existe',
+            confirmButtonColor: '#f39c12',
+          })
+          return
+        }
+
+        campo.options.push(opcionTrimmed)
+        campo.newOption = ''
+      }
+    },
+
+    removeSelectOption(campo, index) {
+      if (campo.options && campo.options.length > 1) {
+        campo.options.splice(index, 1)
+      }
+    },
+
+    addSubcampoSelectOption(subcampo) {
+      if (!subcampo.options) {
+        subcampo.options = []
+      }
+
+      if (subcampo.newOption && subcampo.newOption.trim() !== '') {
+        const opcionTrimmed = subcampo.newOption.trim()
+
+        const existeOpcion = subcampo.options.some(
+          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
+        )
+
+        if (existeOpcion) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Opción duplicada',
+            text: 'Esta opción ya existe',
+            confirmButtonColor: '#f39c12',
+          })
+          return
+        }
+
+        subcampo.options.push(opcionTrimmed)
+        subcampo.newOption = ''
+      }
+    },
+
+    removeSubcampoSelectOption(subcampo, index) {
+      if (subcampo.options && subcampo.options.length > 1) {
+        subcampo.options.splice(index, 1)
       }
     },
 
@@ -819,11 +876,176 @@ limpiarCampo(campo) {
         }
       }
     },
+
+    // Métodos para select dinámicos
+    getNombrePlantillaDataSource(plantillaId) {
+      if (!plantillaId) return 'Plantilla no especificada'
+
+      const plantilla = this.plantillasDisponibles.find((p) => p.id === plantillaId)
+      return plantilla
+        ? plantilla.nombre_plantilla || plantilla.title
+        : `Plantilla ID: ${plantillaId}`
+    },
+
+    async abrirModalPlantilla(campo, esSubcampo = false) {
+      this.campoActual = campo
+      this.esSubcampo = esSubcampo
+      this.modalPlantillaVisible = true
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        this.plantillasDisponibles = response.data || []
+        
+        // Si ya hay una configuración previa, cargarla
+        if (campo.dataSource) {
+          this.plantillaSeleccionada = campo.dataSource.plantillaId
+          await this.cargarSeccionesPlantilla()
+          this.seccionSeleccionada = campo.dataSource.seccion
+          await this.onSeccionSeleccionada()
+          this.campoMostrar = campo.dataSource.campoMostrar
+        }
+      } catch (error) {
+        console.error('Error al cargar plantillas:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar las plantillas disponibles',
+        })
+      }
+    },
+
+    cerrarModalPlantilla() {
+      this.modalPlantillaVisible = false
+      this.resetModalPlantilla()
+    },
+
+    resetModalPlantilla() {
+      this.plantillaSeleccionada = ''
+      this.seccionesPlantillaModal = []
+      this.seccionSeleccionada = ''
+      this.camposSeccion = []
+      this.campoMostrar = ''
+      this.opcionesPreview = []
+      this.campoActual = null
+      this.esSubcampo = false
+    },
+
+    async cargarSeccionesPlantilla() {
+      if (!this.plantillaSeleccionada) return
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/secciones`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        )
+
+        this.seccionesPlantillaModal = response.data?.secciones || []
+        this.seccionSeleccionada = ''
+        this.camposSeccion = []
+        this.campoMostrar = ''
+        this.opcionesPreview = []
+      } catch (error) {
+        console.error('Error al cargar secciones:', error)
+      }
+    },
+
+    async onSeccionSeleccionada() {
+      if (!this.seccionSeleccionada) return
+
+      const seccion = this.seccionesPlantillaModal.find((s) => s.nombre === this.seccionSeleccionada)
+      if (seccion && seccion.fields) {
+        this.camposSeccion = seccion.fields
+        await this.cargarVistaPrevia()
+      }
+    },
+    limpiarCampo(campo) {
+  const campoLimpio = {
+    name: campo.name,
+    type: campo.type,
+    required: Boolean(campo.required),
+    filterable: Boolean(campo.filterable),
+  }
+
+  // Para select
+  if (campo.type === 'select') {
+    if (campo.dataSource) {
+      campoLimpio.dataSource = campo.dataSource
+    } else if (campo.options && Array.isArray(campo.options)) {
+      campoLimpio.options = campo.options.filter(option => option && option.trim() !== '')
+    }
+  }
+
+  // Para subformularios (recursivo)
+  if (campo.type === 'subform' && campo.subcampos && Array.isArray(campo.subcampos)) {
+    campoLimpio.subcampos = campo.subcampos.map(subcampo => this.limpiarCampo(subcampo))
+  }
+
+  return campoLimpio
+},
+
+    async cargarVistaPrevia() {
+      if (!this.plantillaSeleccionada || !this.seccionSeleccionada || !this.campoMostrar) return
+
+      this.cargandoOpciones = true
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/datos`,
+          {
+            params: {
+              seccion: this.seccionSeleccionada,
+              campo: this.campoMostrar,
+            },
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        )
+
+        const valores = response.data || []
+        this.opcionesPreview = [...new Set(valores.map((item) => item[this.campoMostrar]))].slice(
+          0,
+          10,
+        )
+      } catch (error) {
+        console.error('Error al cargar vista previa:', error)
+        this.opcionesPreview = []
+      } finally {
+        this.cargandoOpciones = false
+      }
+    },
+
+    aplicarConfiguracionPlantilla() {
+      if (!this.configuracionValida) return
+
+      this.campoActual.options = []
+      this.campoActual.dataSource = {
+        plantillaId: this.plantillaSeleccionada,
+        plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada),
+        seccion: this.seccionSeleccionada,
+        campoMostrar: this.campoMostrar,
+      }
+
+      // Ocultar opciones manuales cuando se configura desde plantilla
+      this.campoActual.mostrarOpcionesManuales = false
+
+      this.cerrarModalPlantilla()
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Configuración aplicada',
+        text: 'Las opciones se cargarán desde la plantilla seleccionada',
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    },
   },
   created() {
     this.fetchPlantillas()
   },
-  
 }
 </script>
 
