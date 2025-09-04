@@ -452,241 +452,14 @@
                         </div>
                       </div>
 
-                      <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
-                      <div v-if="campo.type === 'subform'" class="subform-container">
-                        <div class="subform-header">
-                          <div class="subform-header-content">
-                            <i class="fas fa-indent"></i>
-                            <span>Subformulario para {{ campo.name || 'este campo' }}</span>
-                          </div>
-                        </div>
-
-                        <div class="subform-body">
-                          <div
-                            v-for="(subcampo, subindex) in campo.subcampos || []"
-                            :key="subindex"
-                            class="subcampo-container"
-                          >
-                            <div class="subcampo-header">
-                              <div class="subcampo-header-content">
-                                <div class="subcampo-title-wrapper">
-                                  <div class="subcampo-icon">
-                                    <i class="fas fa-angle-right"></i>
-                                  </div>
-                                  <div class="subcampo-info">
-                                    <span class="subcampo-index">Apartado #{{ subindex + 1 }}</span>
-                                    <span class="subcampo-description"
-                                      >Configure este apartado</span
-                                    >
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  @click="quitarSubcampo(campo, subindex)"
-                                  class="btn-delete-subcampo"
-                                >
-                                  <i class="fas fa-times"></i>
-                                </button>
-                              </div>
-                            </div>
-
-                            <div class="subcampo-body">
-                              <div class="row g-3">
-                                <div class="col-md-6">
-                                  <label class="form-label">Nombre del Apartado*</label>
-                                  <div class="input-group modern-input">
-                                    <span class="input-group-text">
-                                      <i class="fas fa-edit"></i>
-                                    </span>
-                                    <input
-                                      v-solo-texto-y-numeros
-                                      v-model="subcampo.name"
-                                      class="form-control"
-                                      required
-                                      placeholder="Ej: nombre, cantidad, descripción"
-                                    />
-                                  </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                  <label class="form-label">Tipo del Apartado*</label>
-                                  <div class="input-group modern-input">
-                                    <span class="input-group-text">
-                                      <i class="fas fa-cog"></i>
-                                    </span>
-                                    <select v-model="subcampo.type" class="form-select" required>
-                                      <option value="string">Texto</option>
-                                      <option value="number">Numérico</option>
-                                      <option value="file">Archivo</option>
-                                      <option value="date">Fecha</option>
-                                      <option value="select">Lista de Selección</option>
-                                    </select>
-                                  </div>
-                                </div>
-
-                                <div class="col-md-12">
-                                  <div class="subcampo-options">
-                                    <div class="campo-checkbox">
-                                      <label class="checkbox-container">
-                                        <input
-                                          type="checkbox"
-                                          class="custom-checkbox"
-                                          v-model="subcampo.required"
-                                        />
-                                        <span class="checkmark"></span>
-                                        <span class="checkbox-label">Obligatorio</span>
-                                      </label>
-                                    </div>
-                                    <div class="campo-radio" v-if="subcampo.type === 'date'">
-                                      <label class="radio-container">
-                                        <input
-                                          type="radio"
-                                          :name="
-                                            'filterOptionSubform_' +
-                                            seccionIndex +
-                                            '_' +
-                                            campoIndex +
-                                            '_' +
-                                            subindex
-                                          "
-                                          class="custom-radio"
-                                          v-model="subcampo.filterable"
-                                          :value="true"
-                                        />
-                                        <span class="radiomark"></span>
-                                        <span class="radio-label">Aplicar para filtro</span>
-                                      </label>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <!-- Opciones para subcampos de tipo select -->
-                              <div
-                                v-if="subcampo.type === 'select'"
-                                class="select-options-container subcampo-select"
-                              >
-                                <div class="select-options-header">
-                                  <div class="options-header-content">
-                                    <i class="fas fa-list-ul"></i>
-                                    <span
-                                      >Opciones para subcampo "{{
-                                        subcampo.name || 'este subcampo'
-                                      }}"</span
-                                    >
-                                  </div>
-                                </div>
-
-                                <!-- Botón para cargar desde otra plantilla -->
-                                <div class="mb-3">
-                                  <button
-                                    type="button"
-                                    @click="abrirModalPlantilla(subcampo, true)"
-                                    class="btn btn-outline-primary btn-sm config-select-btn"
-                                  >
-                                    <i class="fas fa-database me-1"></i>
-                                    Cargar opciones desde otra plantilla
-                                  </button>
-                                </div>
-
-                                <!-- Alert de configuración aplicada -->
-                                <div v-if="subcampo.dataSource" class="alert alert-info mb-3">
-                                  <div class="d-flex align-items-start">
-                                    <i class="fas fa-lightbulb me-3 mt-1"></i>
-                                    <div>
-                                      <strong>Configuración de opciones dinámicas:</strong><br />
-                                      Las opciones se cargarán desde la plantilla
-                                      <strong
-                                        >"{{
-                                          getNombrePlantillaDataSource(subcampo.dataSource.plantillaId)
-                                        }}"</strong
-                                      >, sección <strong>"{{ subcampo.dataSource.seccion }}"</strong><br />
-                                      <span class="mt-1 d-block">
-                                        <small>
-                                          Campo mostrado:
-                                          <strong>{{ subcampo.dataSource.campoMostrar }}</strong>
-                                        </small>
-                                      </span>
-                                      <button
-                                        type="button"
-                                        @click="subcampo.dataSource = null; subcampo.mostrarOpcionesManuales = true"
-                                        class="btn btn-sm btn-outline-danger mt-2 remove-config-btn"
-                                      >
-                                        <i class="fas fa-times me-1"></i>
-                                        Eliminar configuración
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div
-                                  v-if="subcampo.mostrarOpcionesManuales"
-                                  class="select-options-body"
-                                >
-                                  <div
-                                    v-for="(option, optionIndex) in subcampo.options || []"
-                                    :key="optionIndex"
-                                    class="option-item"
-                                  >
-                                    <div class="option-content">
-                                      <div class="input-group modern-input-small">
-                                        <span class="input-group-text">
-                                          <i class="fas fa-tag"></i>
-                                        </span>
-                                        <input
-                                          v-solo-texto-y-numeros
-                                          v-model="subcampo.options[optionIndex]"
-                                          class="form-control"
-                                          placeholder="Texto de la opción"
-                                          required
-                                        />
-                                        <button
-                                          type="button"
-                                          @click="removeSubcampoSelectOption(subcampo, optionIndex)"
-                                          class="btn-delete-option"
-                                        >
-                                          <i class="fas fa-trash"></i>
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div class="add-option-section">
-                                    <div class="add-option-wrapper">
-                                      <div class="add-option-input">
-                                        <input
-                                          v-model="subcampo.newOption"
-                                          class="form-control modern-input-standalone"
-                                          placeholder="Texto de la opción"
-                                          @keyup.enter="addSubcampoSelectOption(subcampo)"
-                                        />
-                                      </div>
-                                      <button
-                                        type="button"
-                                        @click="addSubcampoSelectOption(subcampo)"
-                                        class="btn-add-option"
-                                        :disabled="!subcampo.newOption"
-                                      >
-                                        <i class="fas fa-plus"></i>
-                                        <span>Agregar</span>
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            @click="agregarSubcampo(campo)"
-                            class="btn-add-subcampo"
-                          >
-                            <i class="fas fa-plus"></i>
-                            <span>Agregar Apartado</span>
-                          </button>
-                        </div>
-                      </div>
+<Subformulario
+  v-if="campo.type === 'subform'"
+  :campo="campo"
+  :seccionIndex="seccionIndex"
+  :campoIndex="campoIndex"
+  :nivel="0"
+  @abrir-modal-plantilla="handleAbrirModalPlantilla"
+/>
                     </div>
                   </div>
 
@@ -722,10 +495,16 @@
 </template>
 
 <script>
+// 1. IMPORTACIÓN DEL COMPONENTE (agregar al inicio del script)
+import Subformulario from './Subformulario.vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 
 export default {
+   // 2. REGISTRO DEL COMPONENTE (agregar en la sección components)
+  components: {
+    Subformulario
+  },
   data() {
     return {
       plantillas: [], // Lista de plantillas obtenidas del servidor
@@ -734,29 +513,12 @@ export default {
       seccionesPlantilla: [], // Secciones de la plantilla seleccionada para edición
       mostrarModalEdit: false, // Control de visibilidad del modal de edición
       
-      // Variables para el modal de plantilla (select dinámicos)
-      modalPlantillaVisible: false,
-      plantillasDisponibles: [],
-      plantillaSeleccionada: '',
-      seccionesPlantillaModal: [], // Cambiado para evitar conflicto con seccionesPlantilla existente
-      seccionSeleccionada: '',
-      camposSeccion: [],
-      campoMostrar: '',
-      opcionesPreview: [],
-      cargandoOpciones: false,
-      campoActual: null,
-      esSubcampo: false, // Para identificar si es un campo o subcampo
+      
+      
     }
   },
-  computed: {
-    configuracionValida() {
-      return this.plantillaSeleccionada && this.seccionSeleccionada && this.campoMostrar
-    },
-  },
-  watch: {
-    seccionSeleccionada: 'onSeccionSeleccionada',
-    campoMostrar: 'cargarVistaPrevia',
-  },
+ 
+ 
   methods: {
     async fetchPlantillas() {
       try {
@@ -830,10 +592,7 @@ export default {
             }
           })
         })
-        const respPlantillas = await axios.get('http://127.0.0.1:8000/api/plantillas', {
-        headers: { Authorization: `Bearer ${token}` },
-        })
-        this.plantillasDisponibles = respPlantillas.data || []
+       
         
         this.mostrarModalEdit = true
       } catch (error) {
@@ -860,69 +619,20 @@ export default {
       if (result.isConfirmed) {
         try {
           const updateData = {
-            nombre_plantilla: this.nombrePlantilla,
-            secciones: this.seccionesPlantilla
-              .map((seccion) => {
-                const seccionData = {
-                  nombre: seccion.nombre,
-                  fields: seccion.fields.map((campo) => {
-                    const campoData = {
-                      name: campo.name,
-                      type: campo.type,
-                      required: Boolean(campo.required),
-                      filterable: Boolean(campo.filterable),
-                    }
-
-                    // Agregar opciones si el campo es de tipo select
-                    if (campo.type === 'select') {
-                      if (campo.dataSource) {
-                        campoData.dataSource = campo.dataSource
-                      } else if (campo.options) {
-                        campoData.options = campo.options.filter((option) => option.trim() !== '')
-                      }
-                    }
-
-                    // Procesar subcampos si es un subformulario
-                    if (campo.type === 'subform' && campo.subcampos) {
-                      campoData.subcampos = campo.subcampos.map((subcampo) => {
-                        const subcampoData = {
-                          name: subcampo.name,
-                          type: subcampo.type,
-                          required: Boolean(subcampo.required),
-                          filterable: Boolean(subcampo.filterable),
-                        }
-
-                        // Agregar opciones si el subcampo es de tipo select
-                        if (subcampo.type === 'select') {
-                          if (subcampo.dataSource) {
-                            subcampoData.dataSource = subcampo.dataSource
-                          } else if (subcampo.options) {
-                            subcampoData.options = subcampo.options.filter(
-                              (option) => option.trim() !== '',
-                            )
-                          }
-                        }
-
-                        return subcampoData
-                      })
-                    }
-
-                    return campoData
-                  }),
-                }
-
-                // Filtrar campos vacíos
-                seccionData.fields = seccionData.fields.filter(
-                  (campo) => campo.name && campo.name.trim() !== '',
-                )
-                return seccionData
-              })
-              .filter(
-                (seccion) =>
-                  seccion.nombre && seccion.nombre.trim() !== '' && seccion.fields.length > 0,
-              ),
-          }
-
+  nombre_plantilla: this.nombrePlantilla,
+  secciones: this.seccionesPlantilla
+    .map(seccion => {
+      return {
+        nombre: seccion.nombre,
+        fields: seccion.fields
+          .map(campo => this.limpiarCampo(campo))
+          .filter(campo => campo.name && campo.name.trim() !== '')
+      }
+    })
+    .filter(
+      seccion => seccion.nombre && seccion.nombre.trim() !== '' && seccion.fields.length > 0
+    )
+}
           console.log('Datos a enviar:', updateData)
 
           const response = await axios.put(
@@ -954,6 +664,27 @@ export default {
         }
       }
     },
+
+    // Función recursiva para limpiar campos y subcampos (igual que en CrearPlantillas.vue)
+limpiarCampo(campo) {
+  const campoLimpio = {
+    name: campo.name,
+    type: campo.type,
+    required: Boolean(campo.required),
+    filterable: Boolean(campo.filterable),
+  }
+
+ 
+
+  // Para subformularios: procesar subcampos recursivamente
+  if (campo.type === 'subform' && campo.subcampos) {
+    campoLimpio.subcampos = campo.subcampos
+      .map(subcampo => this.limpiarCampo(subcampo))
+      .filter(subcampo => subcampo.name && subcampo.name.trim() !== '')
+  }
+
+  return campoLimpio
+},
 
     agregarSeccion() {
       this.seccionesPlantilla.push({
@@ -995,14 +726,22 @@ export default {
       }
     },
 
+    
+
+  
     handleTypeChange(campo) {
       if (campo.type === 'subform' && !campo.subcampos) {
         campo.subcampos = []
         this.agregarSubcampo(campo)
-      } else if (campo.type === 'select' && !campo.options) {
-        campo.options = []
-        campo.newOption = ''
-        campo.mostrarOpcionesManuales = true
+      } else if (campo.type === 'select') {
+        if (!campo.options) {
+          campo.options = []
+          campo.newOption = ''
+        }
+        // Mostrar opciones manuales por defecto si no hay dataSource
+        if (!campo.dataSource) {
+          campo.mostrarOpcionesManuales = true
+        }
       }
 
       if (campo.type !== 'date') {
@@ -1019,6 +758,7 @@ export default {
         type: 'string',
         required: false,
         filterable: false,
+         mostrarOpcionesManuales: true // Agregar esta línea
       })
     },
 
@@ -1031,72 +771,6 @@ export default {
           title: 'No se puede eliminar',
           text: 'Debe haber al menos un apartado en el subformulario',
         })
-      }
-    },
-
-    addSelectOption(campo) {
-      if (!campo.options) {
-        campo.options = []
-      }
-
-      if (campo.newOption && campo.newOption.trim() !== '') {
-        const opcionTrimmed = campo.newOption.trim()
-
-        const existeOpcion = campo.options.some(
-          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
-        )
-
-        if (existeOpcion) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Opción duplicada',
-            text: 'Esta opción ya existe',
-            confirmButtonColor: '#f39c12',
-          })
-          return
-        }
-
-        campo.options.push(opcionTrimmed)
-        campo.newOption = ''
-      }
-    },
-
-    removeSelectOption(campo, index) {
-      if (campo.options && campo.options.length > 1) {
-        campo.options.splice(index, 1)
-      }
-    },
-
-    addSubcampoSelectOption(subcampo) {
-      if (!subcampo.options) {
-        subcampo.options = []
-      }
-
-      if (subcampo.newOption && subcampo.newOption.trim() !== '') {
-        const opcionTrimmed = subcampo.newOption.trim()
-
-        const existeOpcion = subcampo.options.some(
-          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
-        )
-
-        if (existeOpcion) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Opción duplicada',
-            text: 'Esta opción ya existe',
-            confirmButtonColor: '#f39c12',
-          })
-          return
-        }
-
-        subcampo.options.push(opcionTrimmed)
-        subcampo.newOption = ''
-      }
-    },
-
-    removeSubcampoSelectOption(subcampo, index) {
-      if (subcampo.options && subcampo.options.length > 1) {
-        subcampo.options.splice(index, 1)
       }
     },
 
@@ -1145,152 +819,11 @@ export default {
         }
       }
     },
-
-    // Métodos para select dinámicos
-    getNombrePlantillaDataSource(plantillaId) {
-      if (!plantillaId) return 'Plantilla no especificada'
-
-      const plantilla = this.plantillasDisponibles.find((p) => p.id === plantillaId)
-      return plantilla
-        ? plantilla.nombre_plantilla || plantilla.title
-        : `Plantilla ID: ${plantillaId}`
-    },
-
-    async abrirModalPlantilla(campo, esSubcampo = false) {
-      this.campoActual = campo
-      this.esSubcampo = esSubcampo
-      this.modalPlantillaVisible = true
-
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        this.plantillasDisponibles = response.data || []
-        
-        // Si ya hay una configuración previa, cargarla
-        if (campo.dataSource) {
-          this.plantillaSeleccionada = campo.dataSource.plantillaId
-          await this.cargarSeccionesPlantilla()
-          this.seccionSeleccionada = campo.dataSource.seccion
-          await this.onSeccionSeleccionada()
-          this.campoMostrar = campo.dataSource.campoMostrar
-        }
-      } catch (error) {
-        console.error('Error al cargar plantillas:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar las plantillas disponibles',
-        })
-      }
-    },
-
-    cerrarModalPlantilla() {
-      this.modalPlantillaVisible = false
-      this.resetModalPlantilla()
-    },
-
-    resetModalPlantilla() {
-      this.plantillaSeleccionada = ''
-      this.seccionesPlantillaModal = []
-      this.seccionSeleccionada = ''
-      this.camposSeccion = []
-      this.campoMostrar = ''
-      this.opcionesPreview = []
-      this.campoActual = null
-      this.esSubcampo = false
-    },
-
-    async cargarSeccionesPlantilla() {
-      if (!this.plantillaSeleccionada) return
-
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/secciones`,
-          { headers: { Authorization: `Bearer ${token}` } },
-        )
-
-        this.seccionesPlantillaModal = response.data?.secciones || []
-        this.seccionSeleccionada = ''
-        this.camposSeccion = []
-        this.campoMostrar = ''
-        this.opcionesPreview = []
-      } catch (error) {
-        console.error('Error al cargar secciones:', error)
-      }
-    },
-
-    async onSeccionSeleccionada() {
-      if (!this.seccionSeleccionada) return
-
-      const seccion = this.seccionesPlantillaModal.find((s) => s.nombre === this.seccionSeleccionada)
-      if (seccion && seccion.fields) {
-        this.camposSeccion = seccion.fields
-        await this.cargarVistaPrevia()
-      }
-    },
-
-    async cargarVistaPrevia() {
-      if (!this.plantillaSeleccionada || !this.seccionSeleccionada || !this.campoMostrar) return
-
-      this.cargandoOpciones = true
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/datos`,
-          {
-            params: {
-              seccion: this.seccionSeleccionada,
-              campo: this.campoMostrar,
-            },
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        )
-
-        const valores = response.data || []
-        this.opcionesPreview = [...new Set(valores.map((item) => item[this.campoMostrar]))].slice(
-          0,
-          10,
-        )
-      } catch (error) {
-        console.error('Error al cargar vista previa:', error)
-        this.opcionesPreview = []
-      } finally {
-        this.cargandoOpciones = false
-      }
-    },
-
-    aplicarConfiguracionPlantilla() {
-      if (!this.configuracionValida) return
-
-      this.campoActual.options = []
-      this.campoActual.dataSource = {
-        plantillaId: this.plantillaSeleccionada,
-        plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada),
-        seccion: this.seccionSeleccionada,
-        campoMostrar: this.campoMostrar,
-      }
-
-      // Ocultar opciones manuales cuando se configura desde plantilla
-      this.campoActual.mostrarOpcionesManuales = false
-
-      this.cerrarModalPlantilla()
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Configuración aplicada',
-        text: 'Las opciones se cargarán desde la plantilla seleccionada',
-        timer: 2000,
-        showConfirmButton: false,
-      })
-    },
   },
   created() {
     this.fetchPlantillas()
   },
+  
 }
 </script>
 
