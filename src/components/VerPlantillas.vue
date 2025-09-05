@@ -53,9 +53,9 @@
       v-if="modalPlantillaVisible"
       class="medico-modal-backdrop"
       @click.self="cerrarModalPlantilla"
-      style="z-index: 1060;"
+      
     >
-      <div class="medico-modal-content" @click.stop style="max-width: 600px; z-index: 1061;">
+      <div class="medico-modal-content" @click.stop style="max-width: 600px;">
         <!-- Header del modal -->
         <div class="medico-modal-header">
           <div class="modal-header-content">
@@ -457,7 +457,6 @@
   :campo="campo"
   :seccionIndex="seccionIndex"
   :campoIndex="campoIndex"
-  :nivel="1"
   @abrir-modal-plantilla="abrirModalPlantilla"
 />
                     </div>
@@ -1256,7 +1255,7 @@ async submitEditForm() {
 /* Modal con diseño moderno */
 .modal.fade.show {
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(5px);
+  
 }
 
 .modern-modal {
