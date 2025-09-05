@@ -93,12 +93,6 @@
                     <!-- Campo de tipo subform -->
                     <!-- En la sección donde renderizas los campos -->
 <div v-if="campo.type === 'subform'" class="form-section">
-  <h6 class="section-title">
-    <i class="fas fa-edit me-2"></i>
-    {{ campo.alias || campo.name }}
-    <span v-if="campo.required || campo.filterable" class="text-danger">*</span>
-  </h6>
-  
   <SubFormularioDocumento
     :campo="campo"
     :valor="subformData[campo.name] || []"
