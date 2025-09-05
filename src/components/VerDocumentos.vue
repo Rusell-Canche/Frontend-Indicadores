@@ -96,7 +96,7 @@
                   <tbody>
                     <tr
                       v-for="documento in paginatedDocumentos"
-                      :key="documento._id.$oid || documento._id || documento.id"
+                      :key="documento._id?.$oid || documento._id || documento.id"
                       class="table-row"
                     >
                       <td v-for="campo in camposDocumento" :key="campo" class="table-cell">
