@@ -419,7 +419,7 @@ export default {
         )
 
         if (existeOpcion) {
-          Swal({
+          Swal.fire({
             icon: 'warning',
             title: 'Opción duplicada',
             text: 'Esta opción ya existe',
@@ -457,7 +457,7 @@ export default {
         this.plantillasDisponibles = response.data || []
       } catch (error) {
         console.error('Error al cargar plantillas:', error)
-        Swal({
+        Swal.fire({
           icon: 'error',
           title: 'Error',
           text: 'No se pudieron cargar las plantillas disponibles',
@@ -506,39 +506,11 @@ export default {
       const seccion = this.seccionesPlantilla.find((s) => s.nombre === this.seccionSeleccionada)
       if (seccion && seccion.fields) {
         this.camposSeccion = seccion.fields
-        await this.cargarVistaPrevia()
+        
       }
     },
 
-    async cargarVistaPrevia() {
-      if (!this.plantillaSeleccionada || !this.seccionSeleccionada || !this.campoMostrar) return
-
-      this.cargandoOpciones = true
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/datos`,
-          {
-            params: {
-              seccion: this.seccionSeleccionada,
-              campo: this.campoMostrar,
-            },
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        )
-
-        const valores = response.data || []
-        this.opcionesPreview = [...new Set(valores.map((item) => item[this.campoMostrar]))].slice(
-          0,
-          10,
-        )
-      } catch (error) {
-        console.error('Error al cargar vista previa:', error)
-        this.opcionesPreview = []
-      } finally {
-        this.cargandoOpciones = false
-      }
-    },
+    
 
     aplicarConfiguracionPlantilla() {
       if (!this.configuracionValida) return
@@ -552,7 +524,7 @@ export default {
 
       this.cerrarModalPlantilla()
 
-      Swal({
+      Swal.fire({
         icon: 'success',
         title: 'Configuración aplicada',
         text: 'Las opciones se cargarán desde la plantilla seleccionada',
@@ -568,7 +540,7 @@ export default {
   },
   watch: {
     seccionSeleccionada: 'onSeccionSeleccionada',
-    campoMostrar: 'cargarVistaPrevia',
+    
   },
 }
 </script>
