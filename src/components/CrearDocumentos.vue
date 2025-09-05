@@ -92,7 +92,7 @@
 
                     <!-- Campo de tipo subform -->
                     <!-- En la sección donde renderizas los campos -->
-<div v-if="campo.type === 'subform'" class="form-section">
+<div v-if="campo.type === 'subform'">
   <SubFormularioDocumento
     :campo="campo"
     :valor="subformData[campo.name] || []"
