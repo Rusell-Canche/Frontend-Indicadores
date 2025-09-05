@@ -455,6 +455,16 @@ export default {
         })
 
         this.plantillasDisponibles = response.data || []
+
+            // Si ya hay una configuración previa, cargarla
+        if (campo.dataSource) {
+          this.plantillaSeleccionada = campo.dataSource.plantillaId
+          await this.cargarSeccionesPlantilla()
+          this.seccionSeleccionada = campo.dataSource.seccion
+          await this.onSeccionSeleccionada()
+          this.campoMostrar = campo.dataSource.campoMostrar
+        }
+        
       } catch (error) {
         console.error('Error al cargar plantillas:', error)
         Swal.fire({
