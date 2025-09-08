@@ -172,7 +172,7 @@
                             <i class="fas fa-edit"></i>
                           </button>
                           <button
-                            @click="eliminarDocumento(documento._id.$oid)"
+                            @click="eliminarDocumento(documento._id?.$oid || documento._id || documento.id)"
                             class="action-button delete-button"
                             title="Eliminar documento"
                           >
@@ -727,7 +727,7 @@ getDisplayValue(value) {
           { method: 'DELETE' },
         )
 
-        this.documentos = this.documentos.filter((doc) => doc._id?.$oid || doc._id || doc.id !== documentoId)
+        this.documentos = this.documentos.filter((doc) => doc._id.$oid !== documentoId)
         this.showSuccess('El documento se ha eliminado exitosamente.')
       } catch (error) {
         this.showError('Hubo un problema al eliminar el documento.')
