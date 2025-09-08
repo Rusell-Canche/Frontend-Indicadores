@@ -727,7 +727,7 @@ getDisplayValue(value) {
           { method: 'DELETE' },
         )
 
-        this.documentos = this.documentos.filter((doc) => doc._id.$oid !== documentoId)
+        this.documentos = this.documentos.filter((doc) => doc._id?.$oid || doc._id || doc.id !== documentoId)
         this.showSuccess('El documento se ha eliminado exitosamente.')
       } catch (error) {
         this.showError('Hubo un problema al eliminar el documento.')
