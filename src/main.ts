@@ -4,6 +4,8 @@ import router from './router'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import 'bootstrap'
+import PrimeVue from 'primevue/config';
+import Material from '@primeuix/themes/material';
 
 //Importar las directivas
 import SoloNumeros from './directives/SoloNumeros.js' 
@@ -14,6 +16,17 @@ import SoloCorreo from './directives/SoloCorreo.js'
 const app = createApp(App)
 
 app.use(router)
+
+app.use(PrimeVue, {
+    theme: {
+        preset: Material,
+        options: {
+            prefix: 'p',
+            darkModeSelector: 'none',
+            cssLayer: false
+        }
+    }
+});
 
 // Registrar las directivas globalmente
 app.directive('solo-numeros', SoloNumeros) // nombre que usarás: v-numeros

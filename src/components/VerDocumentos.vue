@@ -75,138 +75,126 @@
             </div>
           </div>
 
-          <!-- Tabla de documentos -->
+          <!-- Tabla PrimeVue -->
           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-file-text me-2"></i>
               Documentos ({{ filteredDocuments.length }})
             </h6>
 
-            <div v-if="paginatedDocumentos.length > 0" class="table-container">
-              <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                  <thead class="table-header">
-                    <tr>
-                      <th v-for="campo in camposDocumento" :key="campo" class="table-header-cell">
-                        {{ formatFieldName(campo) }}
-                      </th>
-                      <th class="table-header-cell text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="documento in paginatedDocumentos"
-                      :key="documento._id?.$oid || documento._id || documento.id"
-                      class="table-row"
-                    >
-                      <td v-for="campo in camposDocumento" :key="campo" class="table-cell">
-                        <!-- Recurso Digital -->
-                        <div v-if="campo === 'Recurso Digital'" class="file-badges">
-                          <template
-                            v-if="
-                              getPrettyFieldValue(documento, campo) &&
-                              Array.isArray(getFieldValueFromDocument(documento, campo))
-                            "
-                          >
-                            <span
-                              v-for="(file, index) in getFieldValueFromDocument(documento, campo)"
-                              :key="index"
-                              class="file-badge"
-                            >
-                              <i v-if="isImage(file)" class="fas fa-image me-1"></i>
-                              <i v-else-if="isVideo(file)" class="fas fa-video me-1"></i>
-                              <i v-else-if="isAudio(file)" class="fas fa-volume-up me-1"></i>
-                              <i v-else-if="isPDF(file)" class="fas fa-file-pdf me-1"></i>
-                              <i v-else class="fas fa-file me-1"></i>
-                              <span class="file-extension">{{
-                                file.split('.').pop()?.toUpperCase()
-                              }}</span>
-                            </span>
-                          </template>
-                          <span v-else class="no-files">Sin archivos</span>
-                        </div>
-                        <!-- Estado -->
-                        <span
-                          v-else-if="campo === 'Estado'"
-                          class="status-badge"
-                          :class="{
-                            'status-active':
-                              getFieldValueFromDocument(documento, campo) === 'Activo',
-                            'status-pending':
-                              getFieldValueFromDocument(documento, campo) === 'Pendiente',
-                            'status-default':
-                              getFieldValueFromDocument(documento, campo) !== 'Activo' &&
-                              getFieldValueFromDocument(documento, campo) !== 'Pendiente',
-                          }"
-                        >
-                          {{ getFieldValueFromDocument(documento, campo) }}
-                        </span>
-                        <!-- Otros campos -->
-                   <!-- Otros campos y subformularios -->
-<span v-else>
-  <!-- Si el campo es un subform -->
-  <template v-if="getCampoDefinition(campo)?.type === 'subform'">
-    
-    <i
-      class="fa-solid fa-magnifying-glass"
-  @click="abrirModalSubform(getFieldValueFromDocument(documento, campo), campo)"
-      title="Ver subformulario"
-      style="cursor: pointer; color: #0d6efd;"
-    ></i>
-  </template>
-
-  <!-- Si no es subform, mostramos normalmente -->
-  <template v-else>
-    {{ getPrettyFieldValue(documento, campo) || '-' }}
-  </template>
-</span>
-
-                      </td>
-                      <td class="table-cell text-center">
-                        <div class="action-buttons">
-                          <button
-                            @click="editarDocumento(documento)"
-                            class="action-button edit-button"
-                            title="Editar documento"
-                          >
-                            <i class="fas fa-edit"></i>
-                          </button>
-                          <button
-                            @click="eliminarDocumento(documento._id?.$oid || documento._id || documento.id)"
-                            class="action-button delete-button"
-                            title="Eliminar documento"
-                          >
-                            <i class="fas fa-trash-alt"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Estado vacío -->
-            <div v-else class="empty-state">
-              <div class="empty-icon">
-                <i class="fas fa-file-text"></i>
-              </div>
-              <h5 class="empty-title">No se encontraron documentos</h5>
-              <p class="empty-text">No hay documentos que coincidan con tu búsqueda</p>
-            </div>
-
-            <!-- Paginación -->
-            <div v-if="totalPages > 1" class="pagination-container">
-              <button
-                v-for="page in totalPages"
-                :key="page"
-                @click="changePage(page)"
-                class="pagination-button"
-                :class="{ active: currentPage === page }"
+            <DataTable
+              :value="filteredDocuments"
+              :paginator="true"
+              :rows="itemsPerPage"
+              :globalFilterFields="camposDocumento"
+              :globalFilter="palabraClave"
+              tableStyle="min-width: 50rem"
+              :sortMode="'multiple'"
+              removableSort
+            >
+              <!-- Columnas dinámicas -->
+              <Column
+                v-for="campo in camposDocumento"
+                :key="campo"
+                :field="campo"
+                :header="formatFieldName(campo)"
+                :sortable="true"
               >
-                {{ page }}
-              </button>
-            </div>
+                <template #body="slotProps">
+                  <!-- Recurso Digital -->
+                  <div v-if="campo === 'Recurso Digital'" class="file-badges">
+                    <template
+                      v-if="
+                        getPrettyFieldValue(slotProps.data, campo) &&
+                        Array.isArray(getFieldValueFromDocument(slotProps.data, campo))
+                      "
+                    >
+                      <span
+                        v-for="(file, index) in getFieldValueFromDocument(slotProps.data, campo)"
+                        :key="index"
+                        class="file-badge"
+                      >
+                        <i v-if="isImage(file)" class="fas fa-image me-1"></i>
+                        <i v-else-if="isVideo(file)" class="fas fa-video me-1"></i>
+                        <i v-else-if="isAudio(file)" class="fas fa-volume-up me-1"></i>
+                        <i v-else-if="isPDF(file)" class="fas fa-file-pdf me-1"></i>
+                        <i v-else class="fas fa-file me-1"></i>
+                        <span class="file-extension">{{
+                          file.split('.').pop()?.toUpperCase()
+                        }}</span>
+                      </span>
+                    </template>
+                    <span v-else class="no-files">Sin archivos</span>
+                  </div>
+
+                  <!-- Estado -->
+                  <Tag
+                    v-else-if="campo === 'Estado'"
+                    :severity="getStatusSeverity(getFieldValueFromDocument(slotProps.data, campo))"
+                    :value="getFieldValueFromDocument(slotProps.data, campo)"
+                  />
+
+                  <!-- Subformularios -->
+                  <span v-else-if="getCampoDefinition(campo)?.type === 'subform'">
+                    <Button
+                      icon="fa-solid fa-magnifying-glass"
+                      @click="
+                        abrirModalSubform(getFieldValueFromDocument(slotProps.data, campo), campo)
+                      "
+                      text
+                      severity="info"
+                      size="small"
+                      v-tooltip="'Ver subformulario'"
+                    />
+                  </span>
+
+                  <!-- Otros campos -->
+                  <span v-else>
+                    {{ getPrettyFieldValue(slotProps.data, campo) || '-' }}
+                  </span>
+                </template>
+              </Column>
+
+              <!-- Columna de acciones -->
+              <Column header="Acciones" :exportable="false" style="min-width: 8rem">
+                <template #body="slotProps">
+                  <Button
+                    icon="fas fa-edit"
+                    @click="editarDocumento(slotProps.data)"
+                    text
+                    severity="info"
+                    size="small"
+                    v-tooltip="'Editar documento'"
+                    class="me-2"
+                  />
+                  <Button
+                    icon="fas fa-trash-alt"
+                    @click="
+                      eliminarDocumento(
+                        slotProps.data._id?.$oid || slotProps.data._id || slotProps.data.id,
+                      )
+                    "
+                    text
+                    severity="danger"
+                    size="small"
+                    v-tooltip="'Eliminar documento'"
+                  />
+                </template>
+              </Column>
+
+              <!-- Template para cuando no hay datos -->
+              <template #empty>
+                <div class="empty-state text-center py-4">
+                  <div class="empty-icon">
+                    <i class="fas fa-file-text" style="font-size: 3rem; color: #6c757d"></i>
+                  </div>
+                  <h5 class="empty-title mt-3">No se encontraron documentos</h5>
+                  <p class="empty-text text-muted">
+                    No hay documentos que coincidan con tu búsqueda
+                  </p>
+                </div>
+              </template>
+            </DataTable>
           </div>
         </div>
       </div>
@@ -225,76 +213,89 @@
     />
   </div>
   <!-- Modal para ver subformularios -->
-<div v-if="showSubformModal" class="modal-backdrop">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content modern-modal">
-      <!-- Header con botón de cerrar estilo "Editar Documento" -->
-      <div class="medico-header modal-header-custom">
-        <div class="header-content">
-          <div class="header-icon">
-            <i class="fas fa-table"></i>
+  <div v-if="showSubformModal" class="modal-backdrop">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content modern-modal">
+        <!-- Header con botón de cerrar estilo "Editar Documento" -->
+        <div class="medico-header modal-header-custom">
+          <div class="header-content">
+            <div class="header-icon">
+              <i class="fas fa-table"></i>
+            </div>
+            <div class="header-title-section">
+              <h3>Subformulario: {{ subformDefinition?.alias || subformDefinition?.name }}</h3>
+              <p class="header-subtitle">Contenido del subformulario</p>
+            </div>
           </div>
-          <div class="header-title-section">
-            <h3>Subformulario: {{ subformDefinition?.alias || subformDefinition?.name }}</h3>
-            <p class="header-subtitle">Contenido del subformulario</p>
+          <!-- Botón de cerrar -->
+          <button type="button" @click="cerrarSubformModal" class="close-button" aria-label="Close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+          <div
+            v-if="subformData.length > 0 && subformDefinition?.subcampos"
+            class="table-responsive"
+          >
+            <table class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <th v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
+                    {{ subcampo.alias || subcampo.name }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, rowIndex) in subformData" :key="rowIndex">
+                  <td v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
+                    {{ getPrettySubcampoValue(row, subcampo.name) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-        <!-- Botón de cerrar -->
-        <button type="button" @click="cerrarSubformModal" class="close-button" aria-label="Close">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <!-- Body -->
-      <div class="modal-body">
-        <div v-if="subformData.length > 0 && subformDefinition?.subcampos" class="table-responsive">
-          <table class="table table-bordered table-hover">
-            <thead>
-              <tr>
-                <th v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
-                  {{ subcampo.alias || subcampo.name }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, rowIndex) in subformData" :key="rowIndex">
-               <td v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
-  {{ getPrettySubcampoValue(row, subcampo.name) }}
-</td>
-
-
-
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div v-else class="text-muted text-center py-3">
-          No hay entradas en este subformulario
+          <div v-else class="text-muted text-center py-3">
+            No hay entradas en este subformulario
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-
 </template>
 
 <script>
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import EditDocumentModal from './EditDocumentModal.vue'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
+import Button from 'primevue/button'
+import Tag from 'primevue/tag'
 
 export default {
   name: 'VerDocumentos',
 
   components: {
     EditDocumentModal,
+    DataTable,
+    Column,
+    InputText,
+    IconField,
+    InputIcon,
+    Button,
+    Tag,
   },
 
   data() {
     return {
-       showSubformModal: false,
-    subformData: [],
-    subformDefinition: null, // los subcampos del subform
+      showSubformModal: false,
+      subformData: [],
+      subformDefinition: null, // los subcampos del subform
       // Estado principal
       colecciones: [],
       selectedColeccion: null,
@@ -307,7 +308,7 @@ export default {
 
       // Paginación
       currentPage: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 2,
 
       // Modal de edición
       isModalOpen: false,
@@ -382,7 +383,16 @@ export default {
   },
 
   methods: {
-    
+    getStatusSeverity(estado) {
+      switch (estado) {
+        case 'Activo':
+          return 'success'
+        case 'Pendiente':
+          return 'warning'
+        default:
+          return 'info'
+      }
+    },
     // ========== SUBFORMULARIOS ==========
     abrirModalSubform(contenido, fieldName) {
       if (!contenido) return
@@ -401,26 +411,23 @@ export default {
       this.subformData = []
       this.subformDefinition = null
     },
-getSubcampoWithOptions(subcampoName) {
-  if (!this.subformDefinition?.subcampos) return null
-  return this.subformDefinition.subcampos.find(s => s.name === subcampoName) || null
-}
-,
-getPrettySubcampoValue(row, subcampoName) {
-  const subcampoDef = this.getSubcampoWithOptions(subcampoName)
-  const valor = row[subcampoName]
+    getSubcampoWithOptions(subcampoName) {
+      if (!this.subformDefinition?.subcampos) return null
+      return this.subformDefinition.subcampos.find((s) => s.name === subcampoName) || null
+    },
+    getPrettySubcampoValue(row, subcampoName) {
+      const subcampoDef = this.getSubcampoWithOptions(subcampoName)
+      const valor = row[subcampoName]
 
-  if (!valor || valor === 'null') return '-'
+      if (!valor || valor === 'null') return '-'
 
-  if (subcampoDef?.options && Array.isArray(subcampoDef.options)) {
-    const option = subcampoDef.options.find(o => o.campoGuardar === valor)
-    return option ? option.campoMostrar : valor
-  }
+      if (subcampoDef?.options && Array.isArray(subcampoDef.options)) {
+        const option = subcampoDef.options.find((o) => o.campoGuardar === valor)
+        return option ? option.campoMostrar : valor
+      }
 
-  return valor
-}
-,
-
+      return valor
+    },
     // ========== API CALLS ==========
     async apiCall(endpoint, options = {}) {
       const token = localStorage.getItem('apiToken')
@@ -555,18 +562,20 @@ getPrettySubcampoValue(row, subcampoName) {
 
         if (seccion.fields && Array.isArray(seccion.fields)) {
           seccion.fields.forEach((campo) => {
-                 // 🔹 Ahora agregamos todos, incluso subforms
-        todosLosCampos.push(campo)
-        console.log(`  - Campo agregado: ${campo.name} (type: ${campo.type}, required: ${campo.required})`)
+            // 🔹 Ahora agregamos todos, incluso subforms
+            todosLosCampos.push(campo)
+            console.log(
+              `  - Campo agregado: ${campo.name} (type: ${campo.type}, required: ${campo.required})`,
+            )
+          })
+        }
       })
-    }
-  })
 
-     // 🔹 Ya no limitar a 3, solo devolver todos los names
-  this.camposDocumento = todosLosCampos.map(campo => campo.name)
-    console.log('=== RESULTADO PROCESAMIENTO ===')
-  console.log('Total campos encontrados:', todosLosCampos.length)
-  console.log('Campos seleccionados para mostrar:', this.camposDocumento)
+      // 🔹 Ya no limitar a 3, solo devolver todos los names
+      this.camposDocumento = todosLosCampos.map((campo) => campo.name)
+      console.log('=== RESULTADO PROCESAMIENTO ===')
+      console.log('Total campos encontrados:', todosLosCampos.length)
+      console.log('Campos seleccionados para mostrar:', this.camposDocumento)
     },
 
     getFieldValueFromDocument(documento, fieldName) {
@@ -589,14 +598,13 @@ getPrettySubcampoValue(row, subcampoName) {
     },
 
     // ========== CAMPO HELPERS ==========
-getDisplayValue(value) {
-  if (value === null || value === undefined || value === '' || value === 'null') {
-    return '-'
-  }
-  return value
-}
-,
-        /**
+    getDisplayValue(value) {
+      if (value === null || value === undefined || value === '' || value === 'null') {
+        return '-'
+      }
+      return value
+    },
+    /**
      * Busca la definición de un campo dentro de la plantilla actual
      */
     getCampoDefinition(fieldName) {
@@ -604,7 +612,7 @@ getDisplayValue(value) {
 
       for (const seccion of this.camposPlantilla.secciones) {
         if (seccion.fields && Array.isArray(seccion.fields)) {
-          const campo = seccion.fields.find(f => f.name === fieldName)
+          const campo = seccion.fields.find((f) => f.name === fieldName)
           if (campo) return campo
         }
       }
@@ -621,22 +629,20 @@ getDisplayValue(value) {
       const campo = this.getCampoDefinition(fieldName)
       if (!campo) return valor
 
-       // 🔹 Si es subform, solo mostrar el nombre del campo (no su contenido)
-  if (campo.type === 'subform') {
-    return campo.name
-  }
+      // 🔹 Si es subform, solo mostrar el nombre del campo (no su contenido)
+      if (campo.type === 'subform') {
+        return campo.name
+      }
 
       // Si el campo es dinámico (select con campoGuardar/campoMostrar)
       if (campo.options && Array.isArray(campo.options)) {
-        const option = campo.options.find(o => o.campoGuardar === valor)
+        const option = campo.options.find((o) => o.campoGuardar === valor)
         return option ? option.campoMostrar : valor
       }
 
       // Si es manual o normal, lo mostramos directo
       return valor
     },
-
-
 
     formatFieldName(fieldName) {
       const fieldMap = {
@@ -727,7 +733,9 @@ getDisplayValue(value) {
           { method: 'DELETE' },
         )
 
-        this.documentos = this.documentos.filter((doc) => doc._id?.$oid || doc._id || doc.id  !== documentoId)
+        this.documentos = this.documentos.filter(
+          (doc) => doc._id?.$oid || doc._id || doc.id !== documentoId,
+        )
         this.showSuccess('El documento se ha eliminado exitosamente.')
       } catch (error) {
         this.showError('Hubo un problema al eliminar el documento.')
