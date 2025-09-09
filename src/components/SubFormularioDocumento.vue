@@ -39,14 +39,17 @@
                 </template>
               </template>
               
-              <!-- Renderizar subformulario anidado (recursivo) -->
+              <!-- Botón para abrir modal del subformulario anidado -->
               <template v-else>
-                <SubFormularioDocumento
-                  :campo="subcampo"
-                  :valor="fila[subcampo.name] || []"
-                  @actualizar="actualizarSubformularioAnidado(index, subcampo.name, $event)"
-                  :nivel="nivel + 1"
-                />
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  @click="abrirModalSubformulario(index, subcampo.name, subcampo)"
+                  :title="`Ver/Editar ${subcampo.alias || subcampo.name}`"
+                >
+                  <i class="fa-solid fa-magnifying-glass me-1"></i>
+                  <span class="d-none d-md-inline">Ver/Editar</span>
+                </button>
               </template>
             </td>
             <td class="text-center">
@@ -70,7 +73,7 @@
       </table>
     </div>
 
-    <!-- Modal para editar/agregar entrada -->
+    <!-- Modal principal para editar/agregar entrada -->
     <div v-if="mostrarModal" class="modal fade show" style="display: block">
       <div class="modal-dialog modal-xl">
         <div class="modal-content modern-modal">
@@ -252,18 +255,25 @@
                     </div>
                   </template>
 
-                  <!-- Renderizar subformulario anidado en el modal -->
+                  <!-- Botón para subformulario anidado en el modal principal -->
                   <div v-else class="form-field">
                     <label class="form-label">
                       {{ subcampo.alias || subcampo.name }}
                       <span v-if="subcampo.required" class="text-danger">*</span>
                     </label>
-                    <SubFormularioDocumento
-                      :campo="subcampo"
-                      :valor="datosTemporales[subcampo.name] || []"
-                      @actualizar="(nuevoValor) => actualizarSubcampoAnidado(subcampo.name, nuevoValor)"
-                      :nivel="nivel + 1"
-                    />
+                    <div class="d-flex align-items-center">
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary me-3"
+                        @click="abrirModalSubformularioDesdeModal(subcampo.name, subcampo)"
+                      >
+                        <i class="fa-solid fa-magnifying-glass me-2"></i>
+                        Ver/Editar {{ subcampo.alias || subcampo.name }}
+                      </button>
+                      <small class="text-muted">
+                        {{ (datosTemporales[subcampo.name] || []).length }} entradas
+                      </small>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -280,6 +290,52 @@
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para subformulario anidado -->
+    <div v-if="mostrarModalSubformulario" class="modal fade show" style="display: block">
+      <div class="modal-dialog modal-xxl">
+        <div class="modal-content modern-modal">
+          <!-- Header del modal de subformulario -->
+          <div class="medico-header modal-header-custom">
+            <div class="header-content">
+              <div class="header-icon">
+                <i class="fas fa-list-ul"></i>
+              </div>
+              <div class="header-title-section">
+                <h3>Gestionar {{ subformularioActual?.alias || subformularioActual?.name }}</h3>
+                <p class="header-subtitle">Subformulario anidado</p>
+              </div>
+            </div>
+            <button type="button" @click="cerrarModalSubformulario" class="close-button" aria-label="Close">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Body del modal de subformulario -->
+          <div class="medico-body modal-body-custom">
+            <SubFormularioDocumento
+              v-if="subformularioActual"
+              :campo="subformularioActual"
+              :valor="valoresSubformulario"
+              @actualizar="actualizarValoresSubformulario"
+              :nivel="nivel + 1"
+            />
+          </div>
+
+          <!-- Footer del modal de subformulario -->
+          <div class="medico-footer">
+            <button type="button" class="btn btn-cancel" @click="cerrarModalSubformulario">
+              <i class="fas fa-times me-2"></i>
+              Cerrar
+            </button>
+            <button type="button" class="btn btn-save" @click="guardarSubformulario">
+              <i class="fas fa-check me-2"></i>
+              Guardar cambios
+            </button>
           </div>
         </div>
       </div>
@@ -309,7 +365,13 @@ export default {
       filas: [...this.valor],
       mostrarModal: false,
       indiceEditando: -1,
-      datosTemporales: {}
+      datosTemporales: {},
+      // Nuevas variables reactivas
+mostrarModalSubformulario: false,
+subformularioActual: null,
+valoresSubformulario: [],
+indiceFilaSubformulario: null,
+nombreCampoSubformulario: null,
     }
   },
   watch: {
@@ -321,6 +383,45 @@ export default {
     }
   },
   methods: {
+    // Nuevos métodos
+abrirModalSubformulario(indice, nombreCampo, campo) {
+  this.indiceFilaSubformulario = indice;
+  this.nombreCampoSubformulario = nombreCampo;
+  this.subformularioActual = campo;
+  this.valoresSubformulario = [...(this.filas[indice][nombreCampo] || [])];
+  this.mostrarModalSubformulario = true;
+},
+
+abrirModalSubformularioDesdeModal(nombreCampo, campo) {
+  this.nombreCampoSubformulario = nombreCampo;
+  this.subformularioActual = campo;
+  this.valoresSubformulario = [...(this.datosTemporales[nombreCampo] || [])];
+  this.mostrarModalSubformulario = true;
+},
+
+cerrarModalSubformulario() {
+  this.mostrarModalSubformulario = false;
+  this.subformularioActual = null;
+  this.valoresSubformulario = [];
+  this.indiceFilaSubformulario = null;
+  this.nombreCampoSubformulario = null;
+},
+
+actualizarValoresSubformulario(nuevosValores) {
+  this.valoresSubformulario = nuevosValores;
+},
+
+guardarSubformulario() {
+  if (this.indiceFilaSubformulario !== null) {
+    // Actualizar desde la tabla
+    this.filas[this.indiceFilaSubformulario][this.nombreCampoSubformulario] = [...this.valoresSubformulario];
+    this.actualizarSubformularioAnidado(this.indiceFilaSubformulario, this.nombreCampoSubformulario, this.valoresSubformulario);
+  } else {
+    // Actualizar desde el modal principal
+    this.datosTemporales[this.nombreCampoSubformulario] = [...this.valoresSubformulario];
+  }
+  this.cerrarModalSubformulario();
+},
     isManualSelect(campo) {
       if (!campo.options || !Array.isArray(campo.options) || campo.options.length === 0) {
         return true;
