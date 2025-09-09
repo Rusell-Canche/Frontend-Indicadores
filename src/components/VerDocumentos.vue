@@ -677,7 +677,7 @@ export default {
         return
       }
 
-      const docId = this.documentoParaEditar._id?.$oid || this.documentoParaEditar._id
+      const docId = this.documentoParaEditar._id?.$oid || this.documentoParaEditar._id || this.documentoParaEditar.id
       if (!docId) {
         this.showError('ID de documento inválido')
         return
