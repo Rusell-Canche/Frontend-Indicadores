@@ -308,7 +308,7 @@ export default {
 
       // Paginación
       currentPage: 1,
-      itemsPerPage: 2,
+      itemsPerPage: 10,
 
       // Modal de edición
       isModalOpen: false,
