@@ -653,11 +653,14 @@ export default {
         const date = new Date(dateString)
         if (isNaN(date.getTime())) return dateString // Si es inválida, devolver original
 
-        const dia = date.getDate().toString().padStart(2, '0')
-        const mes = (date.getMonth() + 1).toString().padStart(2, '0')
-        const año = date.getFullYear().toString().slice(-2)
-
-        return `${dia}-${mes}-${año}`
+        // Formato usando toLocaleString
+        return date
+          .toLocaleString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+          })
+          .replace(/\//g, '-')
       } catch (e) {
         return dateString
       }
