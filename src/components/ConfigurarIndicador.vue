@@ -821,6 +821,7 @@ export default {
         const configuracion = {
           coleccion: nombrePlantilla,
           operacion: this.parametrosForm.tipoOperacion,
+          secciones: this.parametrosForm.seccionSeleccionada,
           campo:
             this.parametrosForm.tipoOperacion === 'contar'
               ? null
