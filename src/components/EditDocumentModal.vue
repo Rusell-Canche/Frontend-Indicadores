@@ -729,48 +729,31 @@ prepararFormData() {
         }
       }
     },
-    
-// 3. Nuevo método para procesar subformularios en FormData
+    // Método recursivo para procesar subformularios en FormData
 procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
-  if (!Array.isArray(valor)) {
-    console.warn('⚠️ Valor de subformulario no es array:', valor)
-    return
-  }
+  if (Array.isArray(valor)) {
+    // Si es un array, iteramos sus elementos
+    valor.forEach((fila, filaIndex) => {
+      if (!fila || typeof fila !== 'object') return
 
-  valor.forEach((fila, filaIndex) => {
-    if (!fila || typeof fila !== 'object') {
-      console.warn('⚠️ Fila inválida en subformulario:', fila)
-      return
-    }
+      Object.entries(fila).forEach(([subcampoNombre, subcampoValor]) => {
+        const claveCompleta = `${claveBase}[${filaIndex}][${subcampoNombre}]`
+        const subcampoConfig = campo.subcampos?.find(sc => sc.name === subcampoNombre)
 
-    Object.entries(fila).forEach(([subcampoNombre, subcampoValor]) => {
-      const claveCompleta = `${claveBase}[${filaIndex}][${subcampoNombre}]`
-      
-      // Buscar la configuración del subcampo
-      const subcampoConfig = campo.subcampos?.find(sc => sc.name === subcampoNombre)
-      
-      if (subcampoConfig?.type === 'file' && subcampoValor instanceof File) {
-        // Archivo nuevo
-        formData.append(claveCompleta, subcampoValor)
-      } else if (subcampoConfig?.type === 'subform' && Array.isArray(subcampoValor)) {
-        // Subformulario anidado
-        subcampoValor.forEach((subFila, subFilaIndex) => {
-          Object.entries(subFila).forEach(([subSubCampo, subSubValor]) => {
-            const claveSubSub = `${claveCompleta}[${subFilaIndex}][${subSubCampo}]`
-            if (subSubValor instanceof File) {
-              formData.append(claveSubSub, subSubValor)
-            } else if (subSubValor !== null && subSubValor !== undefined && subSubValor !== '') {
-              formData.append(claveSubSub, subSubValor)
-            }
-          })
-        })
-      } else if (subcampoValor !== null && subcampoValor !== undefined && subcampoValor !== '') {
-        // Valor normal
-        const valorFinal = typeof subcampoValor === 'object' ? JSON.stringify(subcampoValor) : subcampoValor
-        formData.append(claveCompleta, valorFinal)
-      }
+        // Llamada recursiva si es subform
+        if (subcampoConfig?.type === 'subform' && Array.isArray(subcampoValor)) {
+          this.procesarSubformularioEnFormData(formData, claveCompleta, subcampoValor, subcampoConfig)
+        } else if (subcampoConfig?.type === 'file' && subcampoValor instanceof File) {
+          formData.append(claveCompleta, subcampoValor)
+        } else if (subcampoValor !== null && subcampoValor !== undefined && subcampoValor !== '') {
+          const valorFinal = typeof subcampoValor === 'object' ? JSON.stringify(subcampoValor) : subcampoValor
+          formData.append(claveCompleta, valorFinal)
+        }
+      })
     })
-  })
+  } else {
+    console.warn('⚠️ Valor de subformulario no es array:', valor)
+  }
 },
 
     procesarArchivosRecurso(formData, archivos) {
