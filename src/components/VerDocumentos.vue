@@ -212,57 +212,104 @@
       @error="handleEditError"
     />
   </div>
-  <!-- Modal para ver subformularios -->
-  <div v-if="showSubformModal" class="modal-backdrop">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content modern-modal">
-        <!-- Header con botón de cerrar estilo "Editar Documento" -->
-        <div class="medico-header modal-header-custom">
-          <div class="header-content">
-            <div class="header-icon">
-              <i class="fas fa-table"></i>
-            </div>
-            <div class="header-title-section">
-              <h3>Subformulario: {{ subformDefinition?.alias || subformDefinition?.name }}</h3>
-              <p class="header-subtitle">Contenido del subformulario</p>
-            </div>
+<!-- Modal para ver subformularios - REEMPLAZAR el modal existente -->
+<div v-if="showSubformModal" class="modal-backdrop" >
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content modern-modal">
+      <!-- Header con botón de cerrar estilo "Editar Documento" -->
+      <div class="medico-header modal-header-custom">
+        <div class="header-content">
+          <div class="header-icon">
+            <i class="fas fa-table"></i>
           </div>
-          <!-- Botón de cerrar -->
-          <button type="button" @click="cerrarSubformModal" class="close-button" aria-label="Close">
+          <div class="header-title-section">
+            <h3>Subformulario: {{ currentSubformDefinition?.alias || currentSubformDefinition?.name }}</h3>
+            <p class="header-subtitle">
+              Contenido del subformulario 
+              <span v-if="currentModalLevel > 0" class="badge badge-info ml-2">
+                Nivel {{ currentModalLevel + 1 }}
+              </span>
+            </p>
+          </div>
+        </div>
+        
+        <!-- Botones de navegación -->
+        <div class="modal-nav-buttons">
+          <!-- Botón para volver al modal anterior (solo si hay más de un nivel) -->
+          <button 
+            v-if="currentModalLevel > 0"
+            type="button" 
+            @click="cerrarSubformModal" 
+            class="nav-button back-button" 
+            v-tooltip="'Volver al nivel anterior'"
+            aria-label="Back">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          
+          <!-- Botón de cerrar todo -->
+          <button 
+            type="button" 
+            @click="cerrarTodosLosModales" 
+            class="close-button" 
+            aria-label="Close">
             <i class="fas fa-times"></i>
           </button>
         </div>
+      </div>
 
-        <!-- Body -->
-        <div class="modal-body">
-          <div
-            v-if="subformData.length > 0 && subformDefinition?.subcampos"
-            class="table-responsive"
-          >
-            <table class="table table-bordered table-hover">
-              <thead>
-                <tr>
-                  <th v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
-                    {{ subcampo.alias || subcampo.name }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(row, rowIndex) in subformData" :key="rowIndex">
-                  <td v-for="subcampo in subformDefinition.subcampos" :key="subcampo.name">
+      <!-- Body -->
+      <div class="modal-body">
+        <div
+          v-if="currentSubformData.length > 0 && currentSubformDefinition?.subcampos"
+          class="table-responsive"
+        >
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th v-for="subcampo in currentSubformDefinition.subcampos" :key="subcampo.name">
+                  {{ subcampo.alias || subcampo.name }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, rowIndex) in currentSubformData" :key="rowIndex">
+                <td v-for="subcampo in currentSubformDefinition.subcampos" :key="subcampo.name">
+                  <!-- Si es un subform, mostrar botón -->
+                  <span v-if="subcampo.type === 'subform'">
+                    <Button
+                      icon="fa-solid fa-magnifying-glass"
+                      @click="abrirModalSubform(row[subcampo.name], subcampo.name)"
+                      text
+                      severity="info"
+                      size="small"
+                      v-tooltip="'Ver subformulario anidado'"
+                    />
+                  </span>
+
+                  <!-- Si es valor normal -->
+                  <span v-else>
                     {{ getPrettySubcampoValue(row, subcampo.name) }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-else class="text-muted text-center py-3">
-            No hay entradas en este subformulario
-          </div>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+        <div v-else class="text-muted text-center py-3">
+          No hay entradas en este subformulario
+        </div>
+      </div>
+      
+      <!-- Footer con información del nivel actual (opcional) -->
+      <div v-if="currentModalLevel > 0" class="modal-footer text-muted">
+        <small>
+          <i class="fas fa-info-circle"></i>
+          Navegando en subformulario anidado (Nivel {{ currentModalLevel + 1 }})
+        </small>
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <script>
@@ -293,9 +340,10 @@ export default {
 
   data() {
     return {
-      showSubformModal: false,
-      subformData: [],
-      subformDefinition: null, // los subcampos del subform
+      // Por estas que manejan múltiples niveles:
+      modalStack: [], // Array que contiene información de cada modal abierto
+      currentModalLevel: -1, // Índice del modal actual
+      
       // Estado principal
       colecciones: [],
       selectedColeccion: null,
@@ -337,6 +385,19 @@ export default {
   },
 
   computed: {
+    // Computed properties para acceder al modal actual
+    showSubformModal() {
+      return this.currentModalLevel >= 0
+    },
+    
+    currentSubformData() {
+      return this.currentModalLevel >= 0 ? this.modalStack[this.currentModalLevel].data : []
+    },
+    
+    currentSubformDefinition() {
+      return this.currentModalLevel >= 0 ? this.modalStack[this.currentModalLevel].definition : null
+    },
+
     coleccionesFiltradas() {
       return this.colecciones.filter(
         (col) => !this.excludedCollections.includes(col.nombre_coleccion),
@@ -361,6 +422,7 @@ export default {
         return matchInVisibleFields || matchInId
       })
     },
+    
     paginatedDocumentos() {
       const start = (this.currentPage - 1) * this.itemsPerPage
       return this.filteredDocuments.slice(start, start + this.itemsPerPage)
@@ -393,30 +455,88 @@ export default {
           return 'info'
       }
     },
-    // ========== SUBFORMULARIOS ==========
-    abrirModalSubform(contenido, fieldName) {
-      if (!contenido) return
+    
+    // ========== SUBFORMULARIOS - MÉTODOS CORREGIDOS ==========
+  abrirModalSubform(contenido, fieldName) {
+  console.log('=== ABRIENDO MODAL SUBFORM ===');
+  console.log('Contenido recibido:', contenido);
+  console.log('Field name:', fieldName);
+  console.log('Nivel actual antes de abrir:', this.currentModalLevel);
 
-      // Guardar datos del subform
-      this.subformData = Array.isArray(contenido) ? contenido : []
+  // Buscar la definición del subcampo
+  let subformDefinition = null;
+  if (this.currentModalLevel >= 0) {
+    const currentDef = this.currentSubformDefinition;
+    if (currentDef?.subcampos) {
+      subformDefinition = currentDef.subcampos.find(f => f.name === fieldName);
+    }
+  }
+  if (!subformDefinition) {
+    subformDefinition = this.getCampoDefinition(fieldName);
+  }
+  if (!subformDefinition) {
+    console.error('No se encontró definición para el campo:', fieldName);
+    return;
+  }
 
-      // Buscar la definición del campo subform por su nombre
-      this.subformDefinition = this.getCampoDefinition(fieldName) || null
+  // Inicializar datos correctamente
+  let modalData = [];
+  if (Array.isArray(contenido) && contenido.length > 0) {
+    // Solo tomar filas válidas que tengan al menos un valor
+    modalData = contenido.filter(row => Object.values(row).some(val => val !== null && val !== ''));
+  } else if (subformDefinition?.subcampos) {
+    // Crear un objeto base con los campos del subform
+    const baseObj = {};
+    subformDefinition.subcampos.forEach(sc => (baseObj[sc.name] = sc.default || null));
+    modalData = [baseObj];
+  }
 
-      this.showSubformModal = true
-    },
+  const newModalData = {
+    data: modalData,
+    definition: subformDefinition,
+    fieldName: fieldName,
+  };
+
+  this.modalStack.push(newModalData);
+  this.currentModalLevel = this.modalStack.length - 1;
+
+  console.log('Modal agregado al stack');
+  console.log('Nuevo nivel:', this.currentModalLevel);
+  console.log('Stack actual:', this.modalStack);
+  console.log('Datos del nuevo modal:', newModalData);
+},
 
     cerrarSubformModal() {
-      this.showSubformModal = false
-      this.subformData = []
-      this.subformDefinition = null
+      console.log('=== CERRANDO MODAL ===')
+      console.log('Nivel actual antes de cerrar:', this.currentModalLevel)
+      
+      if (this.currentModalLevel >= 0) {
+        // Remover el modal actual del stack
+        this.modalStack.pop()
+        this.currentModalLevel = this.modalStack.length - 1
+        
+        console.log('Modal cerrado, nuevo nivel:', this.currentModalLevel)
+        console.log('Stack después de cerrar:', this.modalStack)
+      }
     },
-    getSubcampoWithOptions(subcampoName) {
-      if (!this.subformDefinition?.subcampos) return null
-      return this.subformDefinition.subcampos.find((s) => s.name === subcampoName) || null
+
+    cerrarTodosLosModales() {
+      console.log('=== CERRANDO TODOS LOS MODALES ===')
+      this.modalStack = []
+      this.currentModalLevel = -1
+      console.log('Todos los modales cerrados')
     },
+
+    // Método actualizado para obtener subcampo del modal actual
+    getCurrentSubcampoWithOptions(subcampoName) {
+      const currentDef = this.currentSubformDefinition
+      if (!currentDef?.subcampos) return null
+      return currentDef.subcampos.find((s) => s.name === subcampoName) || null
+    },
+
+    // Método actualizado para mostrar valores bonitos
     getPrettySubcampoValue(row, subcampoName) {
-      const subcampoDef = this.getSubcampoWithOptions(subcampoName)
+      const subcampoDef = this.getCurrentSubcampoWithOptions(subcampoName)
       const valor = row[subcampoName]
 
       if (!valor || valor === 'null') return '-'
@@ -428,7 +548,9 @@ export default {
 
       return valor
     },
+
     // ========== API CALLS ==========
+    
     async apiCall(endpoint, options = {}) {
       const token = localStorage.getItem('apiToken')
       const config = {
@@ -562,7 +684,7 @@ export default {
 
         if (seccion.fields && Array.isArray(seccion.fields)) {
           seccion.fields.forEach((campo) => {
-            // 🔹 Ahora agregamos todos, incluso subforms
+            // Agregamos todos los campos, incluso subforms
             todosLosCampos.push(campo)
             console.log(
               `  - Campo agregado: ${campo.name} (type: ${campo.type}, required: ${campo.required})`,
@@ -571,7 +693,7 @@ export default {
         }
       })
 
-      // 🔹 Ya no limitar a 3, solo devolver todos los names
+      // Devolver todos los names
       this.camposDocumento = todosLosCampos.map((campo) => campo.name)
       console.log('=== RESULTADO PROCESAMIENTO ===')
       console.log('Total campos encontrados:', todosLosCampos.length)
@@ -597,25 +719,38 @@ export default {
       return null
     },
 
-    // ========== CAMPO HELPERS ==========
+    // ========== CAMPO HELPERS - MÉTODO MEJORADO ==========
     getDisplayValue(value) {
       if (value === null || value === undefined || value === '' || value === 'null') {
         return '-'
       }
       return value
     },
+
     /**
-     * Busca la definición de un campo dentro de la plantilla actual
+     * Busca la definición de un campo (MÉTODO MEJORADO)
      */
     getCampoDefinition(fieldName) {
-      if (!this.camposPlantilla?.secciones) return null
+      console.log('=== BUSCANDO DEFINICIÓN DE CAMPO ===')
+      console.log('Campo buscado:', fieldName)
+      
+      // Buscar en la plantilla principal
+      if (!this.camposPlantilla?.secciones) {
+        console.log('No hay secciones en camposPlantilla')
+        return null
+      }
 
       for (const seccion of this.camposPlantilla.secciones) {
         if (seccion.fields && Array.isArray(seccion.fields)) {
           const campo = seccion.fields.find((f) => f.name === fieldName)
-          if (campo) return campo
+          if (campo) {
+            console.log('Campo encontrado en plantilla principal:', campo)
+            return campo
+          }
         }
       }
+      
+      console.log('Campo no encontrado en plantilla principal')
       return null
     },
 
@@ -629,7 +764,7 @@ export default {
       const campo = this.getCampoDefinition(fieldName)
       if (!campo) return valor
 
-      // 🔹 Si es subform, solo mostrar el nombre del campo (no su contenido)
+      // Si es subform, solo mostrar el nombre del campo (no su contenido)
       if (campo.type === 'subform') {
         return campo.name
       }
@@ -787,6 +922,8 @@ export default {
   },
 }
 </script>
+
+
 <style scoped>
 /* Estilos base del diseño moderno */
 .card {
@@ -1466,5 +1603,87 @@ export default {
   .modern-input .form-select {
     font-size: 0.9rem;
   }
+}
+
+/* Estilos para la navegación de modales anidados */
+.modal-nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-button {
+  background: none;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.nav-button:hover {
+  background-color: #f8f9fa;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.back-button {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+  color: #1976d2;
+}
+
+.back-button:hover {
+  background-color: #bbdefb;
+  border-color: #1976d2;
+  color: #0d47a1;
+}
+
+.close-button {
+  background: none;
+  border: 1px solid #dc3545;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #dc3545;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.close-button:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Badge para mostrar el nivel */
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.4em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
+}
+
+.badge-info {
+  color: #fff;
+  background-color: #17a2b8;
+}
+
+/* Estilos para el modal backdrop con múltiples niveles */
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1050;
+}
+
+/* Ajustar z-index para modales anidados */
+.modal-backdrop + .modal-backdrop {
+  z-index: 1055;
+  background-color: rgba(0, 0, 0, 0.3);
 }
 </style>
