@@ -161,23 +161,13 @@ export default {
   position: sticky;
   top: 0;
   z-index: 100;
-  border-radius: 0 0 20px 20px;
-  margin: 0 auto;
-  max-width: 1600px; /* Aumentado para más ancho horizontal */
-  width: 95%;
-}
-
-.tabs-container {
-  max-width: 1600px; /* Aumentado para más ancho horizontal */
-  margin: 0 auto;
-  padding: 0 3rem; /* Aumentado para más espacio horizontal */
+  width: 100%;
 }
 
 .tabs-header {
   display: flex;
   position: relative;
   background: white;
-  border-radius: 0 0 20px 20px;
   overflow: hidden;
   justify-content: space-around; /* Distribuye el espacio uniformemente */
 }
@@ -189,7 +179,7 @@ export default {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
   gap: 2rem; /* Aumentado para más espacio horizontal entre icono y texto */
   position: relative;
   background: transparent;

@@ -82,6 +82,8 @@
               <span class="tab-description">Visualiza los roles que se han creado</span>
             </div>
           </div>
+          <!-- Indicador deslizante mejorado -->
+          <div class="tab-indicator" :style="indicatorStyle"></div>
         </div>
       </div>
     </div>
@@ -105,7 +107,18 @@ export default {
       this.$router.replace('/Usuarios/CrearUsuarios')
     }
   },
-  computed: {},
+  computed: {
+    indicatorStyle() {
+      // Calcula el índice según la ruta activa
+      const tabNames = ['CrearUsuarios', 'CrearRoles', 'AsignarPermisos', 'VerUsuarios', 'VerRoles']
+      const index = tabNames.indexOf(this.$route.name)
+      const width = 100 / tabNames.length
+      return {
+        transform: `translateX(${index * 100}%)`,
+        width: `${width}%`,
+      }
+    }
+  },
   methods: {
     handleLogout() {
       this.showLogoutModal = false
@@ -187,30 +200,15 @@ export default {
   position: sticky;
   top: 0;
   z-index: 100;
-  border-radius: 0 0 20px 20px;
-  margin: 0 auto;
-  max-width: 100%;
-  width: 95%;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-.tabs-container {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0 1rem;
-  min-width: fit-content;
+  width: 100%;
 }
 
 .tabs-header {
   display: flex;
   position: relative;
   background: white;
-  border-radius: 0 0 20px 20px;
-  overflow: visible;
-  min-width: fit-content;
-  gap: 0;
-  justify-content: space-between;
+  overflow: hidden;
+  justify-content: space-around;
 }
 
 .tab {
@@ -220,7 +218,7 @@ export default {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
   gap: 1rem;
   position: relative;
   background: transparent;
@@ -229,7 +227,6 @@ export default {
   font-weight: 500;
   min-height: 90px;
   min-width: 200px;
-  max-width: 300px;
 }
 
 .tab::before {
@@ -321,6 +318,18 @@ export default {
   text-overflow: ellipsis;
   width: 100%;
   max-width: 200px;
+}
+
+/* Indicador */
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #75ea66 0%, #4ba252 100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 -2px 8px rgba(102, 126, 234, 0.3);
 }
 
 /* Contenido de pestañas mejorado */
@@ -458,6 +467,10 @@ export default {
 
   .tab-content-text {
     min-width: 100px;
+  }
+
+  .tab-indicator {
+    display: none;
   }
 
   .tab-title {
