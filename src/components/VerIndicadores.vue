@@ -4,32 +4,55 @@
     <div class="filter-row">
       <div class="date-field">
         <label for="fechaInicio" class="date-label">Fecha Inicio:</label>
-        <input type="date" id="fechaInicio" class="date-input" v-model="fechaInicio" />
+        <Calendar
+          id="fechaInicio"
+          v-model="fechaInicio"
+          dateFormat="dd-mm-yy"
+          placeholder="Seleccionar fecha"
+          :showIcon="true"
+        />
       </div>
 
       <div class="date-field">
         <label for="fechaFin" class="date-label">Fecha Fin:</label>
-        <input type="date" id="fechaFin" class="date-input" v-model="fechaFin" />
+        <Calendar
+          id="fechaFin"
+          v-model="fechaFin"
+          dateFormat="dd-mm-yy"
+          placeholder="Seleccionar fecha"
+          :showIcon="true"
+        />
       </div>
 
       <div class="filter-buttons">
-        <button class="btn-filter-simple" @click="filtrarPorFecha" :disabled="loading">
-          <i class="fas fa-filter me-1"></i>
-          {{ loading ? 'Filtrando...' : 'Filtrar' }}
-        </button>
-        <button class="btn-clear-filter" @click="limpiarFiltro" v-if="fechaInicio || fechaFin">
-          <i class="fas fa-times me-1"></i>
-          Limpiar
-        </button>
+        <Button
+          label="Filtrar"
+          icon="pi pi-filter"
+          @click="filtrarPorFecha"
+          :loading="loading"
+          class="p-button-primary"
+        />
+        <Button
+          label="Limpiar"
+          icon="pi pi-times"
+          @click="limpiarFiltro"
+          v-if="fechaInicio || fechaFin"
+          class="p-button-secondary ml-2"
+        />
       </div>
     </div>
   </div>
+
   <div class="container-fluid py-4">
+    <!-- Toast y ConfirmDialog -->
+    <Toast />
+    <ConfirmDialog />
+
     <!-- Contenido principal -->
-    <div class="card shadow border-0 rounded-3">
-      <div class="card-header bg-white py-3">
+    <Panel class="shadow border-0 rounded-3">
+      <template #header>
         <div
-          class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3"
+          class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 w-100"
         >
           <h2 class="card-title h5 text-primary mb-0">
             <i class="fas fa-chart-bar me-2"></i>{{ obtenerTituloVista() }}
@@ -38,338 +61,296 @@
           <!-- Botones de vista -->
           <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
             <div class="btn-group view-toggle" role="group">
-              <button
-                type="button"
-                class="btn btn-sm"
-                :class="vistaActual === 'accion' ? 'btn-success' : 'btn-outline-success'"
+              <Button
+                :label="'Plan de Acción'"
+                icon="pi pi-list"
                 @click="cambiarVista('accion')"
-                title="Ver solo plan de acción"
-              >
-                <i class="fas fa-tasks me-1"></i>
-                Plan de Acción
-              </button>
-              <button
-                type="button"
-                class="btn btn-sm"
-                :class="vistaActual === 'resumen' ? 'btn-info' : 'btn-outline-info'"
+                :class="
+                  vistaActual === 'accion'
+                    ? 'p-button-success'
+                    : 'p-button-outlined p-button-success'
+                "
+                size="small"
+              />
+              <Button
+                :label="'Resumen'"
+                icon="pi pi-eye"
                 @click="cambiarVista('resumen')"
-                title="Ver resumen sin plan de acción"
-              >
-                <i class="fas fa-eye me-1"></i>
-                Resumen
-              </button>
+                :class="
+                  vistaActual === 'resumen' ? 'p-button-info' : 'p-button-outlined p-button-info'
+                "
+                size="small"
+                class="ml-2"
+              />
             </div>
 
             <div class="d-flex align-items-center gap-2">
-              <span class="badge bg-primary rounded-pill px-3 py-2">
-                <i class="fas fa-list-check me-1"></i>{{ indicadores.length }} Total
-              </span>
-              <span v-if="fechaInicio || fechaFin" class="badge bg-success rounded-pill px-3 py-2">
-                <i class="fas fa-filter me-1"></i>Filtrado
-              </span>
+              <Badge :value="`${indicadores.length} Total`" severity="info" size="large"></Badge>
+              <Badge
+                v-if="fechaInicio || fechaFin"
+                value="Filtrado"
+                severity="success"
+                size="large"
+              ></Badge>
             </div>
           </div>
         </div>
-      </div>
-      <div class="card-body p-0">
-        <div class="table-responsive-wrapper">
-          <div class="table-responsive">
-            <table class="table modern-table align-middle mb-0">
-              <thead>
-                <tr>
-                  <th v-if="mostrarColumnaProyecto" class="ps-4">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-folder text-primary me-2"></i>
-                      Proyecto
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnaNumero">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-hashtag text-primary me-2"></i>
-                      No.
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnaIndicador">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-tag text-primary me-2"></i>
-                      Indicador
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnaDepartamento">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-tag text-primary me-2"></i>
-                      Departamento
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnasAccion">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-arrow-up text-success me-2"></i>
-                      Actividad
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnasAccion">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-arrow-up text-success me-2"></i>
-                      Causa
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnasAccion">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-arrow-up text-success me-2"></i>
-                      Accion
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnasAccion">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-arrow-up text-success me-2"></i>
-                      Denominador Calculado
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnasMetricas">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-arrow-up text-success me-2"></i>
-                      Denominador
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnasMetricas">
-                    <div class="d-flex align-items-center">
-                      <i class="fas fa-arrow-down text-danger me-2"></i>
-                      Numerador
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnasMetricas">
-                    <div class="d-flex align-items-center">
-                      <i class="fa fa-percent text-danger me-2"></i>
-                      Porcentaje
-                    </div>
-                  </th>
-                  <th v-if="mostrarColumnaAcciones" class="text-center">
-                    <div class="d-flex align-items-center justify-content-center">
-                      <i class="fas fa-cogs text-primary me-2"></i>
-                      Acciones
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(indicador, index) in paginatedData"
-                  :key="indicador._id"
-                  class="table-row"
-                >
-                  <td v-if="mostrarColumnaProyecto" class="ps-4">
-                    <div class="d-flex align-items-center">
-                      <div class="project-icon me-3">
-                        <i class="fas fa-folder"></i>
-                      </div>
-                      <div>
-                        <div class="fw-semibold text-dark">{{ indicador._idProyecto }}</div>
-                        <small class="text-muted">Proyecto</small>
-                      </div>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnaNumero">
-                    <div class="number-circle">
-                      {{ indicador.numero }}
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnaIndicador">
-                    <div>
-                      <div class="fw-semibold text-dark">{{ indicador.nombreIndicador }}</div>
-                      <small class="text-muted">Indicador principal</small>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnaDepartamento">
-                    <div>
-                      <div class="fw-semibold text-dark">{{ indicador.departamento }}</div>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnasAccion">
-                    <div class="d-flex align-items-center">
-                      <div class="metric-icon success me-2">
-                        <i class="fas fa-arrow-up"></i>
-                      </div>
-                      <span class="metric-value text-success fw-bold">{{
-                        indicador.actividad || 'N/A'
-                      }}</span>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnasAccion">
-                    <div class="d-flex align-items-center">
-                      <div class="metric-icon success me-2">
-                        <i class="fas fa-arrow-up"></i>
-                      </div>
-                      <span class="metric-value text-success fw-bold">{{
-                        indicador.causa || 'N/A'
-                      }}</span>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnasAccion">
-                    <div class="d-flex align-items-center">
-                      <div class="metric-icon success me-2">
-                        <i class="fas fa-arrow-up"></i>
-                      </div>
-                      <span class="metric-value text-success fw-bold">{{
-                        indicador.accion || 'N/A'
-                      }}</span>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnasAccion">
-                    <div class="d-flex align-items-center">
-                      <div class="metric-icon success me-2">
-                        <i class="fas fa-arrow-up"></i>
-                      </div>
-                      <span class="metric-value text-success fw-bold">{{
-                        indicador.denominadorCalculado || 'N/A'
-                      }}</span>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnasMetricas">
-                    <div class="d-flex align-items-center">
-                      <div class="metric-icon success me-2">
-                        <i class="fas fa-arrow-up"></i>
-                      </div>
-                      <span class="metric-value text-success fw-bold">{{
-                        indicador.denominador || 0
-                      }}</span>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnasMetricas">
-                    <div class="d-flex align-items-center">
-                      <div class="metric-icon danger me-2">
-                        <i class="fas fa-arrow-down"></i>
-                      </div>
-                      <span class="metric-value text-danger fw-bold">{{
-                        indicador.numerador || 0
-                      }}</span>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnasMetricas">
-                    <div class="d-flex align-items-center">
-                      <div class="metric-icon danger me-2">
-                        <i class="fa fa-percent"></i>
-                      </div>
-                      <span class="metric-value text-danger fw-bold">{{
-                        indicador.porcentaje ? `${indicador.porcentaje}%` : 'N/A'
-                      }}</span>
-                    </div>
-                  </td>
-                  <td v-if="mostrarColumnaAcciones">
-                    <div class="d-flex justify-content-center gap-2">
-                      <router-link
-                        :to="{
-                          name: 'configurar-indicador',
-                          params: { id: indicador._id || indicador.id },
-                        }"
-                        class="action-btn config-btn"
-                        title="Configurar indicador"
-                      >
-                        <i class="fas fa-cog"></i>
-                      </router-link>
-                      <router-link
-                        :to="{
-                          name: 'editar-indicador',
-                          params: { id: indicador._id || indicador.id },
-                        }"
-                        class="action-btn edit-btn"
-                        title="Editar indicador"
-                      >
-                        <i class="fas fa-edit"></i>
-                      </router-link>
-                      <button
-                        @click="eliminarIndicador(indicador)"
-                        class="action-btn delete-btn"
-                        title="Eliminar indicador"
-                      >
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-if="indicadores.length === 0">
-                  <td colspan="7" class="text-center py-5">
-                    <div class="empty-state">
-                      <div class="empty-icon">
-                        <i class="fas fa-chart-bar"></i>
-                      </div>
-                      <h5 class="text-muted mb-2">
-                        {{
-                          fechaInicio || fechaFin
-                            ? 'No hay indicadores en el rango de fechas seleccionado'
-                            : 'No hay indicadores registrados'
-                        }}
-                      </h5>
-                      <p class="text-muted mb-3">
-                        {{
-                          fechaInicio || fechaFin
-                            ? 'Prueba con un rango de fechas diferente'
-                            : 'Los indicadores aparecerán aquí una vez que sean creados'
-                        }}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      </template>
 
-      <!-- Paginación -->
-      <div class="card-footer bg-white border-0 p-4" v-if="totalPages > 1">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-          <div class="pagination-info mb-3 mb-md-0">
-            <span class="text-muted">
-              <i class="fas fa-info-circle me-2 text-primary"></i>
-              Mostrando <strong class="text-primary">{{ startItem }}-{{ endItem }}</strong> de
-              <strong class="text-primary">{{ indicadores.length }}</strong> registros
-            </span>
-          </div>
-          <nav aria-label="Paginación">
-            <ul class="pagination pagination-modern justify-content-center mb-0">
-              <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                <button
-                  class="page-link page-nav"
-                  @click="prevPage"
-                  :disabled="currentPage === 1"
-                  aria-label="Anterior"
-                >
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-              </li>
-              <li
-                class="page-item"
-                v-for="page in pages"
-                :key="page"
-                :class="{ active: page === currentPage }"
-              >
-                <button class="page-link page-number" @click="goToPage(page)">
-                  {{ page }}
-                </button>
-              </li>
-              <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                <button
-                  class="page-link page-nav"
-                  @click="nextPage"
-                  :disabled="currentPage === totalPages"
-                  aria-label="Siguiente"
-                >
-                  <i class="fas fa-chevron-right"></i>
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
+      <DataTable
+        :value="indicadores"
+        :paginator="true"
+        :rows="itemsPerPage"
+        :totalRecords="indicadores.length"
+        paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+        :rowsPerPageOptions="[5, 10, 15, 20]"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        responsiveLayout="scroll"
+        stripedRows
+        class="p-datatable-lg"
+        :loading="loading"
+        emptyMessage="No se encontraron indicadores"
+      >
+        <!-- Columna Proyecto -->
+        <Column v-if="mostrarColumnaProyecto" field="_idProyecto">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-folder text-primary me-2"></i>
+              Proyecto
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="d-flex align-items-center">
+              <div class="project-icon me-3">
+                <i class="fas fa-folder"></i>
+              </div>
+              <div>
+                <div class="fw-semibold text-dark">{{ slotProps.data._idProyecto }}</div>
+                <small class="text-muted">Proyecto</small>
+              </div>
+            </div>
+          </template>
+        </Column>
 
-      <!-- Footer con información -->
-      <div class="card-footer bg-white text-muted small py-2">
+        <!-- Columna Número -->
+        <Column v-if="mostrarColumnaNumero" field="numero">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-hashtag text-primary me-2"></i>
+              No.
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="number-circle">
+              {{ slotProps.data.numero }}
+            </div>
+          </template>
+        </Column>
+
+        <!-- Columna Indicador -->
+        <Column v-if="mostrarColumnaIndicador" field="nombreIndicador">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-tag text-primary me-2"></i>
+              Indicador
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div>
+              <div class="fw-semibold text-dark">{{ slotProps.data.nombreIndicador }}</div>
+              <small class="text-muted">Indicador principal</small>
+            </div>
+          </template>
+        </Column>
+
+        <!-- Columna Departamento -->
+        <Column v-if="mostrarColumnaDepartamento" field="departamento">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-building text-primary me-2"></i>
+              Departamento
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="fw-semibold text-dark">{{ slotProps.data.departamento }}</div>
+          </template>
+        </Column>
+
+        <!-- Columnas del Plan de Acción -->
+        <Column v-if="mostrarColumnasAccion" field="actividad">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-tasks text-success me-2"></i>
+              Actividad
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="d-flex align-items-center">
+              <div class="metric-icon success me-2">
+                <i class="fas fa-arrow-up"></i>
+              </div>
+              <span class="metric-value text-success fw-bold">
+                {{ slotProps.data.actividad || 'N/A' }}
+              </span>
+            </div>
+          </template>
+        </Column>
+
+        <Column v-if="mostrarColumnasAccion" field="causa">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+              Causa
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="d-flex align-items-center">
+              <div class="metric-icon warning me-2">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <span class="metric-value text-warning fw-bold">
+                {{ slotProps.data.causa || 'N/A' }}
+              </span>
+            </div>
+          </template>
+        </Column>
+
+        <Column v-if="mostrarColumnasAccion" field="accion">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-play text-success me-2"></i>
+              Acción
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="d-flex align-items-center">
+              <div class="metric-icon success me-2">
+                <i class="fas fa-play"></i>
+              </div>
+              <span class="metric-value text-success fw-bold">
+                {{ slotProps.data.accion || 'N/A' }}
+              </span>
+            </div>
+          </template>
+        </Column>
+
+        <Column v-if="mostrarColumnasAccion" field="denominadorCalculado">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-calculator text-info me-2"></i>
+              Denominador Calculado
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="d-flex align-items-center">
+              <div class="metric-icon info me-2">
+                <i class="fas fa-calculator"></i>
+              </div>
+              <span class="metric-value text-info fw-bold">
+                {{ slotProps.data.denominadorCalculado || 'N/A' }}
+              </span>
+            </div>
+          </template>
+        </Column>
+
+        <!-- Columnas de Métricas -->
+        <Column v-if="mostrarColumnasMetricas" field="denominador">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-arrow-up text-success me-2"></i>
+              Denominador
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="d-flex align-items-center">
+              <div class="metric-icon success me-2">
+                <i class="fas fa-arrow-up"></i>
+              </div>
+              <span class="metric-value text-success fw-bold">
+                {{ slotProps.data.denominador || 0 }}
+              </span>
+            </div>
+          </template>
+        </Column>
+
+        <Column v-if="mostrarColumnasMetricas" field="numerador">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-arrow-down text-danger me-2"></i>
+              Numerador
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="d-flex align-items-center">
+              <div class="metric-icon danger me-2">
+                <i class="fas fa-arrow-down"></i>
+              </div>
+              <span class="metric-value text-danger fw-bold">
+                {{ slotProps.data.numerador || 0 }}
+              </span>
+            </div>
+          </template>
+        </Column>
+
+        <Column v-if="mostrarColumnasMetricas" field="porcentaje">
+          <template #header>
+            <div class="d-flex align-items-center">
+              <i class="fas fa-percent text-danger me-2"></i>
+              Porcentaje
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="d-flex align-items-center">
+              <div class="metric-icon danger me-2">
+                <i class="fas fa-percent"></i>
+              </div>
+              <span class="metric-value text-danger fw-bold">
+                {{ slotProps.data.porcentaje ? `${slotProps.data.porcentaje}%` : 'N/A' }}
+              </span>
+            </div>
+          </template>
+        </Column>
+
+        <!-- Columna Acciones -->
+        <Column v-if="mostrarColumnaAcciones">
+          <template #header>
+            <div class="d-flex align-items-center justify-content-center">
+              <i class="fas fa-cogs text-primary me-2"></i>
+              Acciones
+            </div>
+          </template>
+          <template #body="slotProps">
+            <div class="d-flex justify-content-center gap-2">
+              <Button
+                icon="fas fa-cog"
+                class="p-button-rounded p-button-info p-button-sm"
+                @click="navegarAConfiguracion(slotProps.data)"
+                v-tooltip.top="'Configurar indicador'"
+              />
+              <Button
+                icon="fas fa-edit"
+                class="p-button-rounded p-button-warning p-button-sm"
+                @click="navegarAEdicion(slotProps.data)"
+                v-tooltip.top="'Editar indicador'"
+              />
+              <Button
+                icon="fas fa-trash-alt"
+                class="p-button-rounded p-button-danger p-button-sm"
+                @click="confirmarEliminacion(slotProps.data)"
+                v-tooltip.top="'Eliminar indicador'"
+              />
+            </div>
+          </template>
+        </Column>
+      </DataTable>
+
+      <template #footer>
         <div class="d-flex justify-content-between align-items-center">
           <span>Total: {{ indicadores.length }} indicadores</span>
           <span>Última actualización: {{ new Date().toLocaleString() }}</span>
         </div>
-      </div>
-    </div>
+      </template>
+    </Panel>
 
     <!-- Vista para componentes hijos -->
     <router-view @indicador-actualizado="fetchIndicadores"></router-view>
@@ -378,56 +359,48 @@
 
 <script>
 import axios from 'axios'
-import Swal from 'sweetalert2'
+import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import Calendar from 'primevue/calendar'
+import Panel from 'primevue/panel'
+import Badge from 'primevue/badge'
+import Toast from 'primevue/toast'
+import ConfirmDialog from 'primevue/confirmdialog'
 
 export default {
+  components: {
+    DataTable,
+    Column,
+    Button,
+    Calendar,
+    Panel,
+    Badge,
+    Toast,
+    ConfirmDialog,
+  },
+  setup() {
+    const toast = useToast()
+    const confirm = useConfirm()
+    return { toast, confirm }
+  },
   data() {
-    // Obtener la fecha actual en formato YYYY-MM-DD
+    // Obtener la fecha actual
     const hoy = new Date()
-    const yyyy = hoy.getFullYear()
-    const mm = String(hoy.getMonth() + 1).padStart(2, '0')
-    const dd = String(hoy.getDate()).padStart(2, '0')
-    const fechaActual = `${yyyy}-${mm}-${dd}`
+    const inicioAno = new Date(hoy.getFullYear(), 0, 1) // 1 de enero del año actual
+
     return {
       indicadores: [],
       loading: true,
-      currentPage: 1,
       itemsPerPage: 12,
-      fechaInicio: '2025-01-01',
-      fechaFin: fechaActual,
-      vistaActual: 'resumen', // Nueva propiedad para controlar la vista
+      fechaInicio: inicioAno,
+      fechaFin: hoy,
+      vistaActual: 'resumen',
     }
   },
   computed: {
-    totalPages() {
-      return Math.ceil(this.indicadores.length / this.itemsPerPage)
-    },
-    paginatedData() {
-      const start = (this.currentPage - 1) * this.itemsPerPage
-      const end = start + this.itemsPerPage
-      return this.indicadores.slice(start, end)
-    },
-    startItem() {
-      return (this.currentPage - 1) * this.itemsPerPage + 1
-    },
-    endItem() {
-      const end = this.currentPage * this.itemsPerPage
-      return end > this.indicadores.length ? this.indicadores.length : end
-    },
-    pages() {
-      const pages = []
-      let startPage = Math.max(1, this.currentPage - 2)
-      let endPage = Math.min(this.totalPages, startPage + 4)
-
-      if (endPage - startPage < 4 && startPage > 1) {
-        startPage = Math.max(1, endPage - 4)
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i)
-      }
-      return pages
-    },
     mostrarColumnaProyecto() {
       return this.vistaActual === 'resumen'
     },
@@ -468,11 +441,7 @@ export default {
         const token = localStorage.getItem('apiToken')
 
         if (!token) {
-          this.mostrarNotificacion(
-            'Error',
-            'No hay sesión activa. Por favor inicia sesión.',
-            'error',
-          )
+          this.mostrarNotificacion('No hay sesión activa. Por favor inicia sesión.', 'error')
           this.$router.push('/')
           return
         }
@@ -500,7 +469,6 @@ export default {
 
           if (status === 401) {
             this.mostrarNotificacion(
-              'Error',
               'Sesión expirada. Por favor inicia sesión nuevamente.',
               'error',
             )
@@ -508,37 +476,28 @@ export default {
             localStorage.removeItem('user')
             this.$router.push('/')
           } else {
-            this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
+            this.mostrarNotificacion(`Error inesperado: ${status}`, 'error')
           }
         } else if (error.request) {
-          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
-          console.error('Sin respuesta del servidor:', error.request)
+          this.mostrarNotificacion('No se pudo conectar con el servidor', 'error')
         } else {
-          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
-          console.error('Error inesperado:', error)
+          this.mostrarNotificacion('Error inesperado en la petición', 'error')
         }
       } finally {
         this.loading = false
       }
     },
+
     async filtrarPorFecha(mostrarNotificacion = true) {
       // Validar que al menos una fecha esté seleccionada
       if (!this.fechaInicio && !this.fechaFin) {
-        this.mostrarNotificacion(
-          'Advertencia',
-          'Por favor selecciona al menos una fecha para filtrar.',
-          'warning',
-        )
+        this.mostrarNotificacion('Por favor selecciona al menos una fecha para filtrar.', 'warn')
         return
       }
 
       // Validar que fecha inicio no sea mayor que fecha fin
       if (this.fechaInicio && this.fechaFin && this.fechaInicio > this.fechaFin) {
-        this.mostrarNotificacion(
-          'Advertencia',
-          'La fecha de inicio no puede ser mayor que la fecha fin.',
-          'warning',
-        )
+        this.mostrarNotificacion('La fecha de inicio no puede ser mayor que la fecha fin.', 'warn')
         return
       }
 
@@ -547,19 +506,25 @@ export default {
         const token = localStorage.getItem('apiToken')
 
         if (!token) {
-          this.mostrarNotificacion(
-            'Error',
-            'No hay sesión activa. Por favor inicia sesión.',
-            'error',
-          )
+          this.mostrarNotificacion('No hay sesión activa. Por favor inicia sesión.', 'error')
           this.$router.push('/')
           return
         }
 
+        // Formatear fechas para la API
+        const formatearFecha = (fecha) => {
+          if (!fecha) return null
+          const d = new Date(fecha)
+          const year = d.getFullYear()
+          const month = String(d.getMonth() + 1).padStart(2, '0')
+          const day = String(d.getDate()).padStart(2, '0')
+          return `${year}-${month}-${day}`
+        }
+
         // Preparar el objeto de fechas
         const fechas = {
-          inicio: this.fechaInicio || null,
-          fin: this.fechaFin || null,
+          inicio: formatearFecha(this.fechaInicio),
+          fin: formatearFecha(this.fechaFin),
         }
 
         const response = await axios.post(
@@ -577,187 +542,179 @@ export default {
         if (response.status === 200) {
           if (Array.isArray(response.data.indicadores)) {
             this.indicadores = response.data.indicadores
-            this.currentPage = 1 // Resetear a la primera página
 
             if (this.indicadores.length === 0 && mostrarNotificacion) {
               this.mostrarNotificacion(
-                'Información',
                 'No se encontraron indicadores en el rango de fechas seleccionado.',
                 'info',
               )
-            } 
-            
+            }
           } else {
             this.indicadores = []
           }
         }
       } catch (error) {
         console.error('Error completo:', error)
+        this.manejarErrores(error)
+      } finally {
+        this.loading = false
+      }
+    },
 
-        if (error.response) {
-          const status = error.response.status
+    limpiarFiltro() {
+      this.fechaInicio = null
+      this.fechaFin = null
+      this.fetchIndicadores() // Recargar todos los indicadores
+    },
 
-          if (status === 401) {
+    // Método separado para navegar a configuración
+    navegarAConfiguracion(indicador) {
+      const id = indicador._id || indicador.id
+      if (id) {
+        this.$router.push({ name: 'configurar-indicador', params: { id } })
+      } else {
+        this.mostrarNotificacion('Error: ID del indicador no válido', 'error')
+      }
+    },
+
+    // Método separado para navegar a edición
+    navegarAEdicion(indicador) {
+      const id = indicador._id || indicador.id
+      if (id) {
+        this.$router.push({ name: 'editar-indicador', params: { id } })
+      } else {
+        this.mostrarNotificacion('Error: ID del indicador no válido', 'error')
+      }
+    },
+
+    // Método separado para confirmar eliminación
+    confirmarEliminacion(indicador) {
+      console.log('Indicador a eliminar:', indicador) // Debug
+
+      this.confirm.require({
+        message: `¿Estás seguro que quieres eliminar el indicador "${indicador.nombreIndicador || 'Sin nombre'}"?`,
+        header: 'Confirmar eliminación',
+        icon: 'pi pi-info-circle',
+        acceptClass: 'p-button-danger',
+        acceptLabel: 'Eliminar',
+        rejectLabel: 'Cancelar',
+        accept: () => {
+          this.eliminarIndicador(indicador)
+        },
+        reject: () => {
+          console.log('Eliminación cancelada')
+        },
+      })
+    },
+
+    async eliminarIndicador(indicador) {
+      console.log('Ejecutando eliminación para:', indicador) // Debug
+
+      try {
+        const token = localStorage.getItem('apiToken')
+
+        if (!token) {
+          this.mostrarNotificacion('No hay sesión activa. Por favor inicia sesión.', 'error')
+          this.$router.push('/')
+          return
+        }
+
+        const idIndicador = indicador._id || indicador.id
+
+        if (!idIndicador) {
+          this.mostrarNotificacion('Error: ID del indicador no válido', 'error')
+          return
+        }
+
+        console.log('Eliminando indicador con ID:', idIndicador) // Debug
+
+        const response = await axios.delete(
+          `http://127.0.0.1:8000/api/indicadores/${idIndicador}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+          },
+        )
+
+        if (response.status === 200) {
+          this.mostrarNotificacion('Indicador eliminado exitosamente', 'success')
+          // Si hay filtros activos, aplicar el filtro nuevamente, si no, recargar todos
+          if (this.fechaInicio || this.fechaFin) {
+            this.filtrarPorFecha(false)
+          } else {
+            this.fetchIndicadores()
+          }
+        }
+      } catch (error) {
+        console.error('Error completo al eliminar:', error)
+
+        // Mostrar error con SweetAlert2
+        await Swal.fire({
+          title: 'Error',
+          text: 'No se pudo eliminar el indicador. Por favor, intenta nuevamente.',
+          icon: 'error',
+          confirmButtonColor: '#3085d6',
+        })
+
+        this.manejarErrores(error)
+      }
+    },
+
+    manejarErrores(error) {
+      if (error.response) {
+        const status = error.response.status
+
+        switch (status) {
+          case 401:
             this.mostrarNotificacion(
-              'Error',
               'Sesión expirada. Por favor inicia sesión nuevamente.',
               'error',
             )
             localStorage.removeItem('apiToken')
             localStorage.removeItem('user')
             this.$router.push('/')
-          } else if (status === 400) {
-            this.mostrarNotificacion(
-              'Error',
-              'Datos de fecha inválidos. Verifica el formato de las fechas.',
-              'error',
-            )
-          } else if (status === 500) {
-            this.mostrarNotificacion(
-              'Error',
-              'Error interno del servidor. Inténtalo más tarde.',
-              'error',
-            )
-          } else {
-            this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
-          }
-        } else if (error.request) {
-          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
-          console.error('Sin respuesta del servidor:', error.request)
-        } else {
-          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
-          console.error('Error inesperado:', error)
+            break
+          case 404:
+            this.mostrarNotificacion('Recurso no encontrado', 'error')
+            break
+          case 500:
+            this.mostrarNotificacion('Error interno del servidor', 'error')
+            break
+          default:
+            this.mostrarNotificacion(`Error inesperado: ${status}`, 'error')
+            break
         }
-      } finally {
-        this.loading = false
+      } else if (error.request) {
+        this.mostrarNotificacion('No se pudo conectar con el servidor', 'error')
+      } else {
+        this.mostrarNotificacion('Error inesperado en la petición', 'error')
       }
     },
-    limpiarFiltro() {
-      this.fechaInicio = ''
-      this.fechaFin = ''
-      this.fetchIndicadores() // Recargar todos los indicadores
-    },
-    async eliminarIndicador(indicador) {
-      try {
-        const token = localStorage.getItem('apiToken')
 
-        if (!token) {
-          this.mostrarNotificacion(
-            'Error',
-            'No hay sesión activa. Por favor inicia sesión.',
-            'error',
-          )
-          this.$router.push('/')
-          return
-        }
-
-        const respuesta = await Swal.fire({
-          title: '¿Estás seguro que quieres borrarlo?',
-          text: 'No podrás revertir esto.',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar',
-        })
-
-        if (respuesta.isConfirmed) {
-          const idIndicador = indicador._id || indicador.id
-
-          const response = await axios.delete(
-            `http://127.0.0.1:8000/api/indicadores/${idIndicador}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-              },
-            },
-          )
-
-          if (response.status === 200) {
-            this.mostrarNotificacion('¡Completado!', 'Indicador eliminado exitosamente', 'success')
-            // Si hay filtros activos, aplicar el filtro nuevamente, si no, recargar todos
-            if (this.fechaInicio || this.fechaFin) {
-              this.filtrarPorFecha()
-            } else {
-              this.fetchIndicadores()
-            }
-          } else {
-            this.mostrarNotificacion(
-              'Advertencia',
-              'Estado inesperado: ' + response.status,
-              'warning',
-            )
-          }
-        }
-      } catch (error) {
-        console.error('Error completo:', error)
-
-        if (error.response) {
-          const status = error.response.status
-
-          switch (status) {
-            case 401:
-              this.mostrarNotificacion(
-                'Error',
-                'Sesión expirada. Por favor inicia sesión nuevamente.',
-                'error',
-              )
-              localStorage.removeItem('apiToken')
-              localStorage.removeItem('user')
-              this.$router.push('/')
-              break
-
-            case 404:
-              this.mostrarNotificacion('Error', 'Indicador no encontrado', 'error')
-              break
-
-            case 500:
-              this.mostrarNotificacion('Error', 'Error interno del servidor', 'error')
-              break
-
-            default:
-              this.mostrarNotificacion('Error', `Error inesperado: ${status}`, 'error')
-              break
-          }
-        } else if (error.request) {
-          this.mostrarNotificacion('Error', 'No se pudo conectar con el servidor', 'error')
-        } else {
-          this.mostrarNotificacion('Error', 'Error inesperado en la petición', 'error')
-        }
-      }
-    },
-    mostrarNotificacion(titulo, mensaje, tipo) {
-      Swal.fire({
-        title: titulo,
-        text: mensaje,
-        icon: tipo,
-        position: 'center',
-        showConfirmButton: true,
-        confirmButtonColor: tipo === 'success' ? '#3085d6' : '#d33',
-        timer: tipo === 'success' ? 2500 : undefined,
-        timerProgressBar: tipo === 'success',
+    mostrarNotificacion(mensaje, severidad) {
+      this.toast.add({
+        severity: severidad,
+        summary:
+          severidad === 'error'
+            ? 'Error'
+            : severidad === 'warn'
+              ? 'Advertencia'
+              : severidad === 'info'
+                ? 'Información'
+                : 'Éxito',
+        detail: mensaje,
+        life: 3000,
       })
     },
-    prevPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--
-      }
-    },
-    nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++
-      }
-    },
-    goToPage(page) {
-      this.currentPage = page
-    },
+
     cambiarVista(vista) {
       this.vistaActual = vista
     },
+
     obtenerTituloVista() {
       switch (this.vistaActual) {
         case 'accion':

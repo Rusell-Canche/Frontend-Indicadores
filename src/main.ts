@@ -6,6 +6,10 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import 'bootstrap'
 import PrimeVue from 'primevue/config';
 import Material from '@primeuix/themes/material';
+import ToastService from 'primevue/toastservice'
+import ConfirmationService from 'primevue/confirmationservice'
+import Tooltip from 'primevue/tooltip'
+
 
 //Importar las directivas
 import SoloNumeros from './directives/SoloNumeros.js' 
@@ -27,6 +31,9 @@ app.use(PrimeVue, {
         }
     }
 });
+app.use(ToastService)
+app.use(ConfirmationService)
+app.directive('tooltip', Tooltip)
 
 // Registrar las directivas globalmente
 app.directive('solo-numeros', SoloNumeros) // nombre que usarás: v-numeros

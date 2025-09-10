@@ -356,7 +356,7 @@ export default {
 
       // Paginación
       currentPage: 1,
-      itemsPerPage: 2,
+      itemsPerPage: 10,
 
       // Modal de edición
       isModalOpen: false,
@@ -769,6 +769,11 @@ export default {
         return campo.name
       }
 
+      // Si es campo de fecha
+      if (campo.type === 'date' && valor) {
+        return this.formatoFecha(valor)
+      }
+
       // Si el campo es dinámico (select con campoGuardar/campoMostrar)
       if (campo.options && Array.isArray(campo.options)) {
         const option = campo.options.find((o) => o.campoGuardar === valor)
@@ -777,6 +782,23 @@ export default {
 
       // Si es manual o normal, lo mostramos directo
       return valor
+    },
+    formatoFecha(dateString) {
+      try {
+        const date = new Date(dateString)
+        if (isNaN(date.getTime())) return dateString // Si es inválida, devolver original
+
+        // Formato usando toLocaleString
+        return date
+          .toLocaleString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+          })
+          .replace(/\//g, '-')
+      } catch (e) {
+        return dateString
+      }
     },
 
     formatFieldName(fieldName) {
@@ -812,7 +834,10 @@ export default {
         return
       }
 
-      const docId = this.documentoParaEditar._id?.$oid || this.documentoParaEditar._id
+      const docId =
+        this.documentoParaEditar._id?.$oid ||
+        this.documentoParaEditar._id ||
+        this.documentoParaEditar.id
       if (!docId) {
         this.showError('ID de documento inválido')
         return
