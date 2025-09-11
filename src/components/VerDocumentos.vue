@@ -1666,21 +1666,27 @@ export default {
   border-color: #1976d2;
   color: #0d47a1;
 }
-
 .close-button {
-  background: none;
-  border: 1px solid #dc3545;
-  border-radius: 6px;
-  padding: 8px 10px;
-  color: #dc3545;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 1;
 }
 
 .close-button:hover {
-  background-color: #dc3545;
-  color: white;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
 }
 
 /* Badge para mostrar el nivel */
