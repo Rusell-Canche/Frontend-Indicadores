@@ -159,7 +159,7 @@
               </Column>
 
               <!-- Columna de acciones -->
-              <Column header="Acciones" :exportable="false" frozen alignFrozen="right" style="min-width: 8rem">
+              <Column header="Acciones" :exportable="false" frozen alignFrozen="right" style="min-width: 8rem; border-left: 2px solid; background-color: azure;" >
                 <template #body="slotProps">
                   <Button
                     icon="fas fa-edit"
