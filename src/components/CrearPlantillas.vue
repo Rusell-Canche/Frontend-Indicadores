@@ -1,115 +1,117 @@
 <template>
-  <!-- Modal para seleccionar plantilla y sección -->
-  <div
-    v-if="modalPlantillaVisible"
-    class="medico-modal-backdrop"
-    @click.self="cerrarModalPlantilla"
-  >
-    <div class="medico-modal-content" @click.stop style="max-width: 600px">
-      <!-- Header del modal -->
-      <div class="medico-modal-header">
-        <div class="modal-header-content">
-          <div class="modal-icon">
-            <i class="fas fa-database"></i>
-          </div>
-          <div class="modal-title-section">
-            <h3>Seleccionar Origen de Datos</h3>
-            <p class="modal-subtitle">Selecciona la plantilla y sección para cargar las opciones</p>
-          </div>
-        </div>
-        <button @click="cerrarModalPlantilla" class="medico-close-button">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <!-- Body del modal -->
-      <div class="medico-modal-body">
-        <div class="form-section">
-          <!-- Selección de plantilla -->
-          <div class="mb-3">
-            <label class="form-label">Plantilla*</label>
-            <select
-              v-model="plantillaSeleccionada"
-              class="form-select"
-              @change="cargarSeccionesPlantilla"
-            >
-              <option value="">Seleccione una plantilla</option>
-              <option
-                v-for="plantilla in plantillasDisponibles"
-                :key="plantilla.id"
-                :value="plantilla.id"
-              >
-                {{ plantilla.nombre_plantilla || plantilla.title }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Selección de sección -->
-          <div class="mb-3" v-if="seccionesPlantilla.length > 0">
-            <label class="form-label">Sección*</label>
-            <select v-model="seccionSeleccionada" class="form-select">
-              <option value="">Seleccione una sección</option>
-              <option
-                v-for="seccion in seccionesPlantilla"
-                :key="seccion.nombre"
-                :value="seccion.nombre"
-              >
-                {{ seccion.nombre }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Campos disponibles -->
-          <div v-if="camposSeccion.length > 0">
-            <label class="form-label">Campo a mostrar*</label>
-            <select v-model="campoMostrar" class="form-select mb-2">
-              <option value="">Seleccione campo a mostrar</option>
-              <option v-for="campo in camposSeccion" :key="campo.name" :value="campo.name">
-                {{ campo.name }} ({{ campo.type }})
-              </option>
-            </select>
-          </div>
-
-          <!-- Vista previa -->
-          <div v-if="campoMostrar" class="mt-3 p-3 bg-light rounded">
-            <h6>Vista previa de opciones:</h6>
-            <div v-if="cargandoOpciones" class="text-center">
-              <i class="fas fa-spinner fa-spin"></i> Cargando...
+  <div class="container-fluid py-4">
+    <!-- Modal para seleccionar plantilla y sección -->
+    <div
+      v-if="modalPlantillaVisible"
+      class="medico-modal-backdrop"
+      @click.self="cerrarModalPlantilla"
+    >
+      <div class="medico-modal-content" @click.stop style="max-width: 600px">
+        <!-- Header del modal -->
+        <div class="medico-modal-header">
+          <div class="modal-header-content">
+            <div class="modal-icon">
+              <i class="fas fa-database"></i>
             </div>
-            <div v-else>
-              <div
-                v-for="(opcion, index) in opcionesPreview"
-                :key="index"
-                class="badge bg-info me-1 mb-1"
-              >
-                {{ opcion }}
-              </div>
-              <div v-if="opcionesPreview.length === 0" class="text-muted">
-                No hay datos disponibles en esta sección
-              </div>
+            <div class="modal-title-section">
+              <h3>Seleccionar Origen de Datos</h3>
+              <p class="modal-subtitle">
+                Selecciona la plantilla y sección para cargar las opciones
+              </p>
             </div>
           </div>
+          <button @click="cerrarModalPlantilla" class="medico-close-button">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
-      </div>
 
-      <!-- Footer del modal -->
-      <div class="medico-modal-footer">
-        <button @click="cerrarModalPlantilla" class="btn btn-cancel">
-          <i class="fas fa-times me-2"></i>
-          Cancelar
-        </button>
-        <button
-          @click="aplicarConfiguracionPlantilla"
-          class="btn btn-save"
-          :disabled="!configuracionValida"
-        >
-          <i class="fas fa-check me-2"></i>
-          Aplicar Configuración
-        </button>
+        <!-- Body del modal -->
+        <div class="medico-modal-body">
+          <div class="form-section">
+            <!-- Selección de plantilla -->
+            <div class="mb-3">
+              <label class="form-label">Plantilla*</label>
+              <select
+                v-model="plantillaSeleccionada"
+                class="form-select"
+                @change="cargarSeccionesPlantilla"
+              >
+                <option value="">Seleccione una plantilla</option>
+                <option
+                  v-for="plantilla in plantillasDisponibles"
+                  :key="plantilla.id"
+                  :value="plantilla.id"
+                >
+                  {{ plantilla.nombre_plantilla || plantilla.title }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Selección de sección -->
+            <div class="mb-3" v-if="seccionesPlantilla.length > 0">
+              <label class="form-label">Sección*</label>
+              <select v-model="seccionSeleccionada" class="form-select">
+                <option value="">Seleccione una sección</option>
+                <option
+                  v-for="seccion in seccionesPlantilla"
+                  :key="seccion.nombre"
+                  :value="seccion.nombre"
+                >
+                  {{ seccion.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Campos disponibles -->
+            <div v-if="camposSeccion.length > 0">
+              <label class="form-label">Campo a mostrar*</label>
+              <select v-model="campoMostrar" class="form-select mb-2">
+                <option value="">Seleccione campo a mostrar</option>
+                <option v-for="campo in camposSeccion" :key="campo.name" :value="campo.name">
+                  {{ campo.name }} ({{ campo.type }})
+                </option>
+              </select>
+            </div>
+
+            <!-- Vista previa -->
+            <div v-if="campoMostrar" class="mt-3 p-3 bg-light rounded">
+              <h6>Vista previa de opciones:</h6>
+              <div v-if="cargandoOpciones" class="text-center">
+                <i class="fas fa-spinner fa-spin"></i> Cargando...
+              </div>
+              <div v-else>
+                <div
+                  v-for="(opcion, index) in opcionesPreview"
+                  :key="index"
+                  class="badge bg-info me-1 mb-1"
+                >
+                  {{ opcion }}
+                </div>
+                <div v-if="opcionesPreview.length === 0" class="text-muted">
+                  No hay datos disponibles en esta sección
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer del modal -->
+        <div class="medico-modal-footer">
+          <button @click="cerrarModalPlantilla" class="btn btn-cancel">
+            <i class="fas fa-times me-2"></i>
+            Cancelar
+          </button>
+          <button
+            @click="aplicarConfiguracionPlantilla"
+            class="btn btn-save"
+            :disabled="!configuracionValida"
+          >
+            <i class="fas fa-check me-2"></i>
+            Aplicar Configuración
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="container-fluid py-4">
     <!-- Contenedor principal-->
     <div class="card shadow border-0 rounded-3">
       <!-- Header con el diseño moderno -->
@@ -408,13 +410,13 @@
 
                     <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
                     <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
-<Subformulario
-  v-if="campo.type === 'subform'"
-  :campo="campo"
-  :seccionIndex="seccionIndex"
-  :campoIndex="campoIndex"
-  @abrir-modal-plantilla="abrirModalPlantilla"
-/>
+                    <Subformulario
+                      v-if="campo.type === 'subform'"
+                      :campo="campo"
+                      :seccionIndex="seccionIndex"
+                      :campoIndex="campoIndex"
+                      @abrir-modal-plantilla="abrirModalPlantilla"
+                    />
                   </div>
                 </div>
 
@@ -496,7 +498,7 @@ export default {
     },
   },
   components: {
-    Subformulario
+    Subformulario,
   },
 
   watch: {
@@ -647,46 +649,46 @@ export default {
     },
 
     prepararDatosParaEnvio() {
-  const limpiarCampo = (campo) => {
-    const campoLimpio = {
-      name: campo.name,
-      type: campo.type,
-      required: campo.required,
-      filterable: campo.filterable || false,
-    }
+      const limpiarCampo = (campo) => {
+        const campoLimpio = {
+          name: campo.name,
+          type: campo.type,
+          required: campo.required,
+          filterable: campo.filterable || false,
+        }
 
-    if (campo.type === 'select' && campo.dataSource) {
-      campoLimpio.dataSource = campo.dataSource
-    } else if (campo.type === 'select' && campo.options) {
-      campoLimpio.options = campo.options.filter(
-        (option) => option !== null && option !== undefined && option.trim() !== '',
-      )
-    }
+        if (campo.type === 'select' && campo.dataSource) {
+          campoLimpio.dataSource = campo.dataSource
+        } else if (campo.type === 'select' && campo.options) {
+          campoLimpio.options = campo.options.filter(
+            (option) => option !== null && option !== undefined && option.trim() !== '',
+          )
+        }
 
-    if (campo.type === 'subform' && campo.subcampos) {
-      campoLimpio.subcampos = campo.subcampos.map((subcampo) => limpiarCampo(subcampo))
-    }
+        if (campo.type === 'subform' && campo.subcampos) {
+          campoLimpio.subcampos = campo.subcampos.map((subcampo) => limpiarCampo(subcampo))
+        }
 
-    return campoLimpio
-  }
-
-  return this.secciones
-    .map((seccion) => {
-      const seccionLimpia = {
-        nombre: seccion.nombre,
-        fields: seccion.fields.map(limpiarCampo),
+        return campoLimpio
       }
 
-      seccionLimpia.fields = seccionLimpia.fields.filter(
-        (campo) => campo.name && campo.name.trim() !== '',
-      )
+      return this.secciones
+        .map((seccion) => {
+          const seccionLimpia = {
+            nombre: seccion.nombre,
+            fields: seccion.fields.map(limpiarCampo),
+          }
 
-      return seccionLimpia
-    })
-    .filter(
-      (seccion) => seccion.nombre && seccion.nombre.trim() !== '' && seccion.fields.length > 0,
-    )
-},
+          seccionLimpia.fields = seccionLimpia.fields.filter(
+            (campo) => campo.name && campo.name.trim() !== '',
+          )
+
+          return seccionLimpia
+        })
+        .filter(
+          (seccion) => seccion.nombre && seccion.nombre.trim() !== '' && seccion.fields.length > 0,
+        )
+    },
 
     async crearPlantilla() {
       try {
