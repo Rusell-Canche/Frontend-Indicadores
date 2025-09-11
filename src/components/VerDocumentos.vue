@@ -211,8 +211,7 @@
       @success="handleEditSuccess"
       @error="handleEditError"
     />
-  </div>
-<!-- Modal para ver subformularios - REEMPLAZAR el modal existente -->
+    <!-- Modal para ver subformularios - REEMPLAZAR el modal existente -->
 <div v-if="showSubformModal" class="modal-backdrop" >
   <div class="modal-dialog modal-lg">
     <div class="modal-content modern-modal">
@@ -310,6 +309,8 @@
     </div>
   </div>
 </div>
+  </div>
+
 </template>
 
 <script>
