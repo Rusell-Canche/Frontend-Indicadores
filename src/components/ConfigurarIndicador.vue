@@ -19,6 +19,33 @@
 
       <!-- Body del modal -->
       <div class="medico-modal-body">
+        <!-- Control de nivel de subformulario -->
+        <div class="form-section nivel-control">
+          <h6 class="section-title">
+            <i class="fas fa-layer-group me-2"></i>
+            Configuración de Anidamiento
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nivel máximo de subformularios</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-sort-numeric-up"></i>
+                </span>
+                <select v-model="maxNivelSubformulario" class="form-select">
+                  <option :value="1">1 nivel</option>
+                  <option :value="2">2 niveles</option>
+                  <option :value="3">3 niveles</option>
+                  <option :value="4">4 niveles</option>
+                </select>
+              </div>
+              <div class="form-text">
+                Define qué tan profundo puede ser el anidamiento de subformularios
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Selección de plantilla -->
         <div class="form-section">
           <h6 class="section-title">
@@ -140,7 +167,7 @@
           </div>
         </div>
 
-        <!-- Selección de campo con soporte para subconfiguración -->
+        <!-- Selección de campo con soporte para subconfiguración recursiva -->
         <div
           class="form-section"
           v-if="parametrosForm.tipoOperacion && parametrosForm.tipoOperacion !== 'contar'"
@@ -170,74 +197,16 @@
               </div>
             </div>
 
-            <!-- Subconfiguración para campos de tipo subform (excepto contarDistinto) -->
-            <div
-              v-if="mostrarSubcampos && parametrosForm.tipoOperacion !== 'distinto'"
-              class="subform-config-section"
-            >
-              <h6 class="mt-3 mb-3">
-                <i class="fas fa-layer-group me-2"></i>
-                Configuración del Subformulario
-              </h6>
-
-              <!-- Operación para subformulario -->
-              <div class="row g-3">
-                <div class="col-md-12">
-                  <label class="form-label">Operación para Subformulario*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-calculator"></i>
-                    </span>
-                    <select
-                      v-model="parametrosForm.subConfiguracion.tipoOperacion"
-                      class="form-select"
-                      required
-                    >
-                      <option value="">Seleccione operación</option>
-                      <option value="contar">Contar registros (COUNT)</option>
-                      <option value="distinto">Contar distintos (DISTINCT)</option>
-                      <option value="sumar">Sumar valores (SUM)</option>
-                      <option value="promedio">Promedio (AVG)</option>
-                      <option value="maximo">Valor máximo (MAX)</option>
-                      <option value="minimo">Valor mínimo (MIN)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Campo para subformulario -->
-              <div
-                class="row g-3 mt-3"
-                v-if="
-                  parametrosForm.subConfiguracion.tipoOperacion &&
-                  parametrosForm.subConfiguracion.tipoOperacion !== 'contar'
-                "
-              >
-                <div class="col-md-12">
-                  <label class="form-label">Campo en Subformulario*</label>
-                  <div class="input-group modern-input">
-                    <span class="input-group-text">
-                      <i class="fas fa-tag"></i>
-                    </span>
-                    <select
-                      v-model="parametrosForm.subConfiguracion.campoSeleccionado"
-                      class="form-select"
-                      required
-                    >
-                      <option value="">Seleccione un campo</option>
-                      <option
-                        v-for="subcampo in subcamposDisponibles"
-                        :key="subcampo.name"
-                        :value="subcampo.name"
-                        :disabled="!esCampoNumerico(subcampo)"
-                      >
-                        {{ subcampo.alias || subcampo.name }} ({{ getTipoCampo(subcampo) }})
-                        <span v-if="!esCampoNumerico(subcampo)"> (No numérico) </span>
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+            <!-- Componente recursivo para subformularios -->
+            <div v-if="mostrarSubcampos && parametrosForm.tipoOperacion !== 'distinto'">
+              <SubformRecursivo
+                :configuracion="parametrosForm.subConfiguracion"
+                :subcampos-disponibles="subcamposDisponibles"
+                :nivel="1"
+                :ruta-campo="parametrosForm.campoSeleccionado"
+                :max-nivel-subformulario="maxNivelSubformulario"
+                @configuracion-updated="onSubconfiguracionUpdated"
+              />
             </div>
 
             <!-- Campo en subformulario para contarDistinto -->
@@ -278,7 +247,7 @@
           </div>
         </div>
 
-        <!-- Sección de condiciones -->
+        <!-- Sección de condiciones principales -->
         <div
           class="form-section"
           v-if="parametrosForm.campoSeleccionado || parametrosForm.tipoOperacion"
@@ -351,76 +320,6 @@
               <i class="fas fa-plus me-1"></i> Agregar Condición Principal
             </button>
           </div>
-
-          <!-- Condiciones de subformulario -->
-          <div
-            v-if="mostrarSubcampos && parametrosForm.subConfiguracion.tipoOperacion"
-            class="mt-4"
-          >
-            <h6>Condiciones de Subformulario</h6>
-            <div class="table-responsive subform-config-section">
-              <table class="table modern-table">
-                <thead>
-                  <tr>
-                    <th>Campo</th>
-                    <th>Operador</th>
-                    <th>Valor</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="(condicion, index) in parametrosForm.subConfiguracion.condiciones"
-                    :key="'sub-' + index"
-                  >
-                    <td>
-                      <select v-model="condicion.campo" class="form-select form-select-sm">
-                        <option
-                          v-for="campo in subcamposFiltrables"
-                          :key="campo.name"
-                          :value="campo.name"
-                        >
-                          {{ campo.alias || campo.name }}
-                        </option>
-                      </select>
-                    </td>
-                    <td>
-                      <select v-model="condicion.operador" class="form-select form-select-sm">
-                        <option value="igual">Igual a</option>
-                        <option value="diferente">Diferente de</option>
-                        <option value="mayor">Mayor que</option>
-                        <option value="menor">Menor que</option>
-                        <option value="mayor_igual">Mayor o igual</option>
-                        <option value="menor_igual">Menor o igual</option>
-                        <option value="contiene">Contiene</option>
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        v-model="condicion.valor"
-                        type="text"
-                        class="form-control form-control-sm"
-                        placeholder="Valor"
-                      />
-                    </td>
-                    <td>
-                      <button
-                        @click="eliminarCondicionSubform(index)"
-                        class="btn btn-sm btn-danger"
-                        title="Eliminar condición"
-                      >
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <button @click="agregarCondicionSubform" class="btn btn-sm btn-primary mt-2">
-              <i class="fas fa-plus me-1"></i> Agregar Condición Subform
-            </button>
-          </div>
         </div>
 
         <!-- Información del cálculo -->
@@ -445,15 +344,9 @@
                   <strong>"{{ getNombrePlantillaSeleccionada() }}"</strong>
                 </span>
 
-                <div
-                  v-if="mostrarSubcampos && parametrosForm.subConfiguracion.tipoOperacion"
-                  class="mt-2"
-                >
-                  <strong>Subconfiguración:</strong><br />
-                  Se aplicará la operación <strong>{{ getSubOperacionTexto() }}</strong>
-                  <span v-if="parametrosForm.subConfiguracion.tipoOperacion !== 'contar'">
-                    sobre el campo <strong>"{{ getNombreSubcampoSeleccionado() }}"</strong>
-                  </span>
+                <div v-if="tieneSubconfiguracion" class="mt-2">
+                  <strong>Configuración de subformularios:</strong><br />
+                  <div v-html="getResumenSubconfiguracion(parametrosForm.subConfiguracion, 1)"></div>
                 </div>
               </div>
             </div>
@@ -505,11 +398,16 @@
 <script>
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import SubformRecursivo from './SubformRecursivo.vue'
 
 export default {
+  components: {
+    SubformRecursivo
+  },
   props: ['id'],
   data() {
     return {
+      maxNivelSubformulario: 2, // Nueva variable para controlar el nivel máximo
       plantillasDisponibles: [],
       camposDisponibles: [],
       seccionesDisponibles: [],
@@ -528,23 +426,28 @@ export default {
           tipoOperacion: '',
           campoSeleccionado: '',
           condiciones: [],
-        },
-      },
+          subConfiguracion: null // Soporte recursivo
+        }
+      }
     }
   },
   computed: {
     mostrarSubcampos() {
       const campoSeleccionado = this.camposDisponibles.find(
-        (c) => c.name === this.parametrosForm.campoSeleccionado,
+        c => c.name === this.parametrosForm.campoSeleccionado
       )
       return campoSeleccionado && campoSeleccionado.type === 'subform'
     },
+    
+    tieneSubconfiguracion() {
+      return this.parametrosForm.subConfiguracion && 
+             this.parametrosForm.subConfiguracion.tipoOperacion
+    },
+    
     isFormComplete() {
-      if (
-        !this.parametrosForm.plantillaSeleccionada ||
-        !this.parametrosForm.seccionSeleccionada ||
-        !this.parametrosForm.tipoOperacion
-      ) {
+      if (!this.parametrosForm.plantillaSeleccionada || 
+          !this.parametrosForm.seccionSeleccionada || 
+          !this.parametrosForm.tipoOperacion) {
         return false
       }
 
@@ -556,21 +459,13 @@ export default {
         return false
       }
 
+      // Validar recursivamente la configuración de subformularios
       if (this.mostrarSubcampos) {
-        if (!this.parametrosForm.subConfiguracion.tipoOperacion) {
-          return false
-        }
-
-        if (
-          this.parametrosForm.subConfiguracion.tipoOperacion !== 'contar' &&
-          !this.parametrosForm.subConfiguracion.campoSeleccionado
-        ) {
-          return false
-        }
+        return this.validarSubconfiguracion(this.parametrosForm.subConfiguracion)
       }
 
       return true
-    },
+    }
   },
   mounted() {
     this.indicadorSeleccionado = { _id: this.id }
@@ -581,6 +476,111 @@ export default {
     })
   },
   methods: {
+    validarSubconfiguracion(subconfig) {
+      if (!subconfig.tipoOperacion) {
+        return false
+      }
+      
+      if (subconfig.tipoOperacion !== 'contar' && !subconfig.campoSeleccionado) {
+        return false
+      }
+      
+      // Si tiene más subconfiguraciones anidadas, validar recursivamente
+      if (subconfig.subConfiguracion && subconfig.subConfiguracion.tipoOperacion) {
+        return this.validarSubconfiguracion(subconfig.subConfiguracion)
+      }
+      
+      return true
+    },
+    
+    onSubconfiguracionUpdated(nuevaSubconfiguracion) {
+      this.parametrosForm.subConfiguracion = nuevaSubconfiguracion
+    },
+    
+    getResumenSubconfiguracion(subconfig, nivel) {
+      if (!subconfig || !subconfig.tipoOperacion) {
+        return ''
+      }
+      
+      let resumen = `Nivel ${nivel}: ${subconfig.tipoOperacion.toUpperCase()}`
+      
+      if (subconfig.campoSeleccionado) {
+        resumen += ` en campo "${subconfig.campoSeleccionado}"`
+      }
+      
+      if (subconfig.subConfiguracion && subconfig.subConfiguracion.tipoOperacion) {
+        resumen += '<br>' + this.getResumenSubconfiguracion(subconfig.subConfiguracion, nivel + 1)
+      }
+      
+      return resumen
+    },
+    
+    // Función recursiva para construir la configuración completa
+    construirConfiguracionRecursiva(subconfig) {
+      if (!subconfig || !subconfig.tipoOperacion) {
+        return null
+      }
+      
+      const config = {
+        operacion: subconfig.tipoOperacion,
+        campo: subconfig.tipoOperacion === 'contar' ? null : subconfig.campoSeleccionado,
+        condicion: subconfig.condiciones.map(cond => ({
+          campo: cond.campo,
+          operador: cond.operador,
+          valor: cond.valor
+        }))
+      }
+      
+      if (subconfig.subConfiguracion && subconfig.subConfiguracion.tipoOperacion) {
+        config.subConfiguracion = this.construirConfiguracionRecursiva(subconfig.subConfiguracion)
+      }
+      
+      return config
+    },
+    
+    // Función recursiva para cargar configuración existente
+    cargarSubconfiguracionRecursiva(configServer, subcamposDisponibles) {
+      if (!configServer) {
+        return {
+          tipoOperacion: '',
+          campoSeleccionado: '',
+          condiciones: [],
+          subConfiguracion: null
+        }
+      }
+      
+      const subconfig = {
+        tipoOperacion: configServer.operacion || '',
+        campoSeleccionado: configServer.campo || '',
+        condiciones: []
+      }
+      
+      if (configServer.condicion && Array.isArray(configServer.condicion)) {
+        subconfig.condiciones = configServer.condicion.map(c => ({
+          campo: c.campo || '',
+          operador: c.operador || 'igual',
+          valor: c.valor || ''
+        }))
+      }
+      
+      // Si hay subconfiguracion anidada
+      if (configServer.subConfiguracion) {
+        // Encontrar los subcampos del campo seleccionado
+        const campoSubform = subcamposDisponibles.find(c => c.name === subconfig.campoSeleccionado)
+        const siguientesSubcampos = campoSubform && campoSubform.type === 'subform' ? 
+          (campoSubform.subcampos || []) : []
+          
+        subconfig.subConfiguracion = this.cargarSubconfiguracionRecursiva(
+          configServer.subConfiguracion, 
+          siguientesSubcampos
+        )
+      } else {
+        subconfig.subConfiguracion = null
+      }
+      
+      return subconfig
+    },
+
     async cargarConfiguracionExistente() {
       this.cargandoConfiguracion = true
       try {
@@ -596,9 +596,9 @@ export default {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-          },
+              Accept: 'application/json'
+            }
+          }
         )
 
         if (!response.data || !response.data.configuracion) {
@@ -620,7 +620,7 @@ export default {
 
         // Buscar plantilla por nombre de colección
         const plantilla = this.plantillasDisponibles.find(
-          (p) => p.nombre_coleccion == config.coleccion,
+          p => p.nombre_coleccion == config.coleccion
         )
 
         if (!plantilla) {
@@ -634,10 +634,10 @@ export default {
         // Cargar secciones de la plantilla
         await this.onPlantillaSelected()
 
-        // NUEVO: Buscar la sección que contiene el campo
+        // Buscar la sección que contiene el campo
         if (config.campo) {
-          const seccionConCampo = this.seccionesDisponibles.find((seccion) =>
-            seccion.fields.some((field) => field.name === config.campo),
+          const seccionConCampo = this.seccionesDisponibles.find(seccion =>
+            seccion.fields.some(field => field.name === config.campo)
           )
 
           if (seccionConCampo) {
@@ -652,7 +652,7 @@ export default {
           }
         }
 
-        // Continuar con el resto de la configuración...
+        // Continuar con el resto de la configuración
         if (config.operacion) {
           this.parametrosForm.tipoOperacion = config.operacion
         }
@@ -662,58 +662,41 @@ export default {
           await this.onCampoPrincipalSelected()
         }
 
-        // Mapear condiciones y subconfiguración como antes...
+        // Mapear condiciones principales
         if (config.condicion && Array.isArray(config.condicion)) {
-          this.parametrosForm.condiciones = config.condicion.map((c) => ({
+          this.parametrosForm.condiciones = config.condicion.map(c => ({
             campo: c.campo || '',
             operador: c.operador || 'igual',
-            valor: c.valor || '',
+            valor: c.valor || ''
           }))
         }
 
+        // Cargar subconfiguracion recursivamente
         if (config.subConfiguracion && typeof config.subConfiguracion === 'object') {
-          this.parametrosForm.subConfiguracion = {
-            tipoOperacion: config.subConfiguracion.operacion || '',
-            campoSeleccionado: config.subConfiguracion.campo || '',
-            condiciones: [],
-          }
-
-          if (
-            config.subConfiguracion.condicion &&
-            Array.isArray(config.subConfiguracion.condicion)
-          ) {
-            this.parametrosForm.subConfiguracion.condiciones =
-              config.subConfiguracion.condicion.map((sc) => ({
-                campo: sc.campo || '',
-                operador: sc.operador || 'igual',
-                valor: sc.valor || '',
-              }))
-          }
+          this.parametrosForm.subConfiguracion = this.cargarSubconfiguracionRecursiva(
+            config.subConfiguracion,
+            this.subcamposDisponibles
+          )
         }
 
         console.log('Configuración cargada exitosamente')
       } catch (error) {
         console.error('Error al cargar configuración:', error)
 
-        // Manejar específicamente el error 404 (indicador sin configuración)
         if (error.response && error.response.status === 404) {
           console.log('Este indicador no tiene configuración guardada (404)')
-          // No mostrar notificación para indicadores nuevos sin configuración
-          // Esto es normal y esperado
           return
         }
 
-        // Manejar otros errores de respuesta del servidor
         if (error.response) {
           const status = error.response.status
-          const message =
-            error.response.data?.message || error.response.data?.error || 'Error desconocido'
+          const message = error.response.data?.message || error.response.data?.error || 'Error desconocido'
 
           if (status === 401) {
             this.mostrarNotificacion(
               'Sesión Expirada',
               'Su sesión ha expirado. Por favor inicie sesión nuevamente.',
-              'warning',
+              'warning'
             )
             localStorage.removeItem('apiToken')
             this.$router.push('/')
@@ -724,19 +707,17 @@ export default {
             this.mostrarNotificacion(
               'Sin Permisos',
               'No tiene permisos para acceder a esta configuración.',
-              'warning',
+              'warning'
             )
             return
           }
 
-          // Para otros errores del servidor, mostrar mensaje específico
           this.mostrarNotificacion('Error del Servidor', `Error ${status}: ${message}`, 'error')
         } else {
-          // Error de red o conexión
           this.mostrarNotificacion(
             'Error de Conexión',
             'No se pudo conectar con el servidor. Verifique su conexión a internet.',
-            'error',
+            'error'
           )
         }
       } finally {
@@ -750,26 +731,26 @@ export default {
           tipoOperacion: '',
           campoSeleccionado: '',
           condiciones: [],
+          subConfiguracion: null
         }
       }
 
       const campoSeleccionado = this.camposDisponibles.find(
-        (c) => c.name === this.parametrosForm.campoSeleccionado,
+        c => c.name === this.parametrosForm.campoSeleccionado
       )
 
       if (campoSeleccionado && campoSeleccionado.type === 'subform') {
         this.subcamposDisponibles = campoSeleccionado.subcampos || []
         this.subcamposFiltrables = this.subcamposDisponibles.filter(
-          (campo) => campo.type !== 'subform',
+          campo => campo.type !== 'subform'
         )
       } else {
         this.subcamposDisponibles = []
         this.subcamposFiltrables = []
       }
 
-      // Solo campos normales y subforms (NO subcampos)
       this.camposFiltrables = this.camposDisponibles.filter(
-        (campo) => campo.type !== 'subform' || campo.type === 'subform',
+        campo => campo.type !== 'subform' || campo.type === 'subform'
       )
     },
 
@@ -777,24 +758,12 @@ export default {
       this.parametrosForm.condiciones.push({
         campo: this.camposFiltrables[0]?.name || '',
         operador: 'igual',
-        valor: '',
+        valor: ''
       })
     },
 
     eliminarCondicion(index) {
       this.parametrosForm.condiciones.splice(index, 1)
-    },
-
-    agregarCondicionSubform() {
-      this.parametrosForm.subConfiguracion.condiciones.push({
-        campo: this.subcamposFiltrables[0]?.name || '',
-        operador: 'igual',
-        valor: '',
-      })
-    },
-
-    eliminarCondicionSubform(index) {
-      this.parametrosForm.subConfiguracion.condiciones.splice(index, 1)
     },
 
     async aplicarParametros() {
@@ -806,7 +775,7 @@ export default {
         }
 
         const plantillaSeleccionada = this.plantillasDisponibles.find(
-          (p) => p.id === this.parametrosForm.plantillaSeleccionada,
+          p => p.id === this.parametrosForm.plantillaSeleccionada
         )
 
         if (!plantillaSeleccionada) {
@@ -814,39 +783,26 @@ export default {
           return
         }
 
-        const nombrePlantilla =
-          plantillaSeleccionada.nombre_coleccion || plantillaSeleccionada.title
+        const nombrePlantilla = plantillaSeleccionada.nombre_coleccion || plantillaSeleccionada.title
 
         // Construir objeto de configuración
         const configuracion = {
           coleccion: nombrePlantilla,
           operacion: this.parametrosForm.tipoOperacion,
           secciones: this.parametrosForm.seccionSeleccionada,
-          campo:
-            this.parametrosForm.tipoOperacion === 'contar'
-              ? null
-              : this.parametrosForm.campoSeleccionado,
-          condicion: this.parametrosForm.condiciones.map((cond) => ({
+          campo: this.parametrosForm.tipoOperacion === 'contar' ? null : this.parametrosForm.campoSeleccionado,
+          condicion: this.parametrosForm.condiciones.map(cond => ({
             campo: cond.campo,
             operador: cond.operador,
-            valor: cond.valor,
-          })),
+            valor: cond.valor
+          }))
         }
 
-        // Agregar subconfiguración si es necesario
+        // Agregar subconfiguracion recursiva si es necesario
         if (this.mostrarSubcampos && this.parametrosForm.subConfiguracion.tipoOperacion) {
-          configuracion.subConfiguracion = {
-            operacion: this.parametrosForm.subConfiguracion.tipoOperacion,
-            campo:
-              this.parametrosForm.subConfiguracion.tipoOperacion === 'contar'
-                ? null
-                : this.parametrosForm.subConfiguracion.campoSeleccionado,
-            condicion: this.parametrosForm.subConfiguracion.condiciones.map((cond) => ({
-              campo: cond.campo,
-              operador: cond.operador,
-              valor: cond.valor,
-            })),
-          }
+          configuracion.subConfiguracion = this.construirConfiguracionRecursiva(
+            this.parametrosForm.subConfiguracion
+          )
         }
 
         const token = localStorage.getItem('apiToken')
@@ -857,7 +813,7 @@ export default {
         }
 
         const payload = {
-          configuracion: configuracion,
+          configuracion: configuracion
         }
 
         const response = await axios.put(
@@ -867,16 +823,16 @@ export default {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-          },
+              Accept: 'application/json'
+            }
+          }
         )
 
         if (response.status === 200) {
           this.mostrarNotificacion(
             '¡Configuración Guardada!',
             `La configuración se guardó exitosamente`,
-            'success',
+            'success'
           )
           this.$emit('indicador-actualizado')
           this.cerrarModal()
@@ -884,7 +840,7 @@ export default {
           this.mostrarNotificacion(
             'Advertencia',
             'El servidor respondió con un estado inesperado: ' + response.status,
-            'warning',
+            'warning'
           )
         }
       } catch (error) {
@@ -916,7 +872,8 @@ export default {
           tipoOperacion: '',
           campoSeleccionado: '',
           condiciones: [],
-        },
+          subConfiguracion: null
+        }
       }
       this.seccionesDisponibles = []
       this.subcamposDisponibles = []
@@ -936,8 +893,8 @@ export default {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
+            Accept: 'application/json'
+          }
         })
 
         this.plantillasDisponibles = response.data || []
@@ -950,7 +907,7 @@ export default {
     async onPlantillaSelected() {
       if (this.parametrosForm.plantillaSeleccionada) {
         if (!this.cargandoConfiguracion) {
-          this.parametrosForm.seccionSeleccionada = '' // NUEVO
+          this.parametrosForm.seccionSeleccionada = ''
           this.parametrosForm.tipoOperacion = ''
           this.parametrosForm.campoSeleccionado = ''
           this.parametrosForm.condiciones = []
@@ -958,6 +915,7 @@ export default {
             tipoOperacion: '',
             campoSeleccionado: '',
             condiciones: [],
+            subConfiguracion: null
           }
         }
 
@@ -969,14 +927,14 @@ export default {
               headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
-                Accept: 'application/json',
-              },
-            },
+                Accept: 'application/json'
+              }
+            }
           )
 
           if (response.data && response.data.secciones) {
             this.seccionesDisponibles = response.data.secciones
-            this.camposDisponibles = [] // Limpiar campos hasta que se seleccione sección
+            this.camposDisponibles = []
             this.camposFiltrables = []
           }
         } catch (error) {
@@ -984,7 +942,7 @@ export default {
           this.mostrarNotificacion(
             'Error',
             'Error al cargar las secciones de la plantilla',
-            'error',
+            'error'
           )
         }
       } else {
@@ -1003,20 +961,20 @@ export default {
             tipoOperacion: '',
             campoSeleccionado: '',
             condiciones: [],
+            subConfiguracion: null
           }
         }
 
-        // Buscar la sección seleccionada
         const seccionSeleccionada = this.seccionesDisponibles.find(
-          (s) => s.nombre === this.parametrosForm.seccionSeleccionada,
+          s => s.nombre === this.parametrosForm.seccionSeleccionada
         )
 
         if (seccionSeleccionada && seccionSeleccionada.fields) {
           this.camposDisponibles = seccionSeleccionada.fields.filter(
-            (campo) => campo.name !== '_id',
+            campo => campo.name !== '_id'
           )
           this.camposFiltrables = this.camposDisponibles.filter(
-            (campo) => campo.type !== 'subform' || campo.type === 'subform',
+            campo => campo.type !== 'subform' || campo.type === 'subform'
           )
         }
       } else {
@@ -1032,33 +990,28 @@ export default {
     getTipoCampo(campo) {
       const tipos = {
         text: 'Texto',
+        string: 'Texto', 
         number: 'Numérico',
         date: 'Fecha',
         file: 'Archivo',
         subform: 'Subformulario',
+        select: 'Selección'
       }
       return tipos[campo.type] || campo.type
     },
 
     getNombrePlantillaSeleccionada() {
       const plantilla = this.plantillasDisponibles.find(
-        (p) => p.id === this.parametrosForm.plantillaSeleccionada,
+        p => p.id === this.parametrosForm.plantillaSeleccionada
       )
       return plantilla ? plantilla.title || plantilla.nombre_plantilla : ''
     },
 
     getNombreCampoSeleccionado() {
       const campo = this.camposDisponibles.find(
-        (c) => c.name === this.parametrosForm.campoSeleccionado,
+        c => c.name === this.parametrosForm.campoSeleccionado
       )
       return campo ? campo.alias || campo.name : ''
-    },
-
-    getNombreSubcampoSeleccionado() {
-      const subcampo = this.subcamposDisponibles.find(
-        (c) => c.name === this.parametrosForm.subConfiguracion.campoSeleccionado,
-      )
-      return subcampo ? subcampo.alias || subcampo.name : ''
     },
 
     getTipoOperacionTexto() {
@@ -1068,22 +1021,9 @@ export default {
         promedio: 'PROMEDIO',
         maximo: 'MÁXIMO',
         minimo: 'MÍNIMO',
+        distinto: 'CONTAR DISTINTOS'
       }
       return operaciones[this.parametrosForm.tipoOperacion] || this.parametrosForm.tipoOperacion
-    },
-
-    getSubOperacionTexto() {
-      const operaciones = {
-        contar: 'CONTAR',
-        sumar: 'SUMAR',
-        promedio: 'PROMEDIO',
-        maximo: 'MÁXIMO',
-        minimo: 'MÍNIMO',
-      }
-      return (
-        operaciones[this.parametrosForm.subConfiguracion.tipoOperacion] ||
-        this.parametrosForm.subConfiguracion.tipoOperacion
-      )
     },
 
     cerrarModal() {
@@ -1097,10 +1037,10 @@ export default {
         icon: tipo,
         position: 'center',
         showConfirmButton: true,
-        confirmButtonColor: tipo === 'success' ? '#3085d6' : '#d33',
+        confirmButtonColor: tipo === 'success' ? '#3085d6' : '#d33'
       })
-    },
-  },
+    }
+  }
 }
 </script>
 <style scoped>
