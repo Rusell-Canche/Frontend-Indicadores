@@ -91,6 +91,9 @@
               tableStyle="min-width: 50rem"
               :sortMode="'multiple'"
               removableSort
+              scrollable
+              scrollDirection="both"
+              scrollHeight="500px"
             >
               <!-- Columnas dinámicas -->
               <Column
@@ -156,7 +159,7 @@
               </Column>
 
               <!-- Columna de acciones -->
-              <Column header="Acciones" :exportable="false" style="min-width: 8rem">
+              <Column header="Acciones" :exportable="false" frozen alignFrozen="right" style="min-width: 8rem">
                 <template #body="slotProps">
                   <Button
                     icon="fas fa-edit"
