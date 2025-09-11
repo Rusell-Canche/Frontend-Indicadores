@@ -9,55 +9,57 @@
         <li
           class="navigation-item"
           :class="{ active: $route.path === '/PanelDeControl/Bienvenida' }"
-          @click="$router.push('/PanelDeControl/Bienvenida')"
+          @click="navigateTo('/PanelDeControl/Bienvenida')"
         >
           <i class="fas fa-home"></i>
           <span>PANEL DE CONTROL</span>
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/Indicador' }"
-          @click="$router.push('/Indicador')"
+          :class="{ active: $route.path.includes ('/Indicador') }"
+          @click="navigateTo('/Indicador')"
         >
           <i class="fas fa-tachometer-alt"></i>
           <span>Indicadores</span>
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/Ejes' }"
-          @click="$router.push('/Ejes')"
+          :class="{ active: $route.path.includes ('/Ejes') }"
+          @click="navigateTo('/Ejes')"
         >
           <i class="fas fa-arrows-alt-v"></i>
           <span>Ejes</span>
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/Plantillas' }"
-          @click="$router.push('/Plantillas')"
+          :class="{ active: $route.path.includes ('/Plantillas') }"
+          @click="navigateTo('/Plantillas')"
         >
           <i class="fas fa-file"></i>
           <span>Plantillas</span>
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/Documentos' }"
-          @click="$router.push('/Documentos')"
+          :class="{ 
+            active: $route.path.includes('/Documentos') 
+          }"
+          @click="navigateTo('/Documentos')"
         >
           <i class="fas fa-file-alt"></i>
           <span>Documentos</span>
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/Reportes' }"
-          @click="$router.push('/Reportes')"
+          :class="{ active: $route.path.includes ('/Reportes') }"
+          @click="navigateTo('/Reportes')"
         >
           <i class="fa-solid fa-file-import"></i>
           <span>Reportes</span>
         </li>
         <li
           class="navigation-item"
-          :class="{ active: $route.path === '/Usuarios' }"
-          @click="$router.push('/Usuarios')"
+          :class="{ active: $route.path.includes ('/Usuarios') }"
+          @click="navigateTo('/Usuarios')"
         >
           <i class="fas fa-users"></i>
           <span>Usuarios</span>
@@ -106,9 +108,38 @@ export default {
   data() {
     return {
       showLogoutModal: false,
+      isNavigating: false, // Flag para prevenir navegación múltiple
     }
   },
   methods: {
+    navigateTo(path) {
+      // Prevenir navegación múltiple si ya está navegando
+      if (this.isNavigating) {
+        return
+      }
+      
+      // Si ya estamos en la ruta, no hacer nada
+      if (this.$route.path === path || this.$route.path.startsWith(path + '/')) {
+        return
+      }
+
+      this.isNavigating = true
+      
+      this.$router.push(path).then(() => {
+        // Reset flag después de navegación exitosa
+        setTimeout(() => {
+          this.isNavigating = false
+        }, 300)
+      }).catch((error) => {
+        // Reset flag en caso de error
+        this.isNavigating = false
+        // Manejar errores de navegación duplicada
+        if (error.name !== 'NavigationDuplicated') {
+          console.error('Error de navegación:', error)
+        }
+      })
+    },
+    
     handleLogout() {
       this.showLogoutModal = false
       localStorage.removeItem('apiToken')
