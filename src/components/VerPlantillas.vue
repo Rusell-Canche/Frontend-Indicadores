@@ -37,6 +37,14 @@
             <span>Editar</span>
           </button>
           <button
+  @click="abrirMapaPlantilla(plantilla.id)"
+  class="btn btn-mapa"
+  title="Ver mapa de la plantilla"
+>
+  <i class="fas fa-project-diagram"></i>
+  <span>Mapa</span>
+</button>
+          <button
             @click="eliminarPlantilla(plantilla.id)"
             class="btn btn-delete"
             title="Eliminar plantilla"
@@ -490,6 +498,149 @@
         </div>
       </div>
     </div>
+    <!-- Modal del Mapa de Plantilla -->
+<div
+  v-if="mostrarModalMapa"
+  class="modal fade show"
+  style="display: block"
+  @click.self="cerrarModalMapa"
+>
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content mapa-modal">
+      <!-- Header del modal -->
+      <div class="mapa-header">
+        <div class="header-content">
+          <div class="header-icon">
+            <i class="fas fa-project-diagram"></i>
+          </div>
+          <div class="header-title-section">
+            <h3>Mapa de la Plantilla</h3>
+            <p class="header-subtitle">{{ nombrePlantillaMapa }}</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button @click="toggleVistaCompacta" class="btn btn-vista" :class="{ active: vistaCompacta }">
+            <i class="fas fa-compress-alt"></i>
+            Vista Compacta
+          </button>
+          <button @click="cerrarModalMapa" class="close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body del modal con el mapa -->
+      <div class="mapa-body">
+        <div class="mapa-container" :class="{ 'vista-compacta': vistaCompacta }">
+          <!-- Plantilla principal -->
+          <div class="plantilla-nodo principal">
+            <div class="nodo-header">
+              <i class="fas fa-file-alt"></i>
+              <h4>{{ nombrePlantillaMapa }}</h4>
+            </div>
+            <div class="nodo-stats">
+              <span class="stat">
+                <i class="fas fa-layer-group"></i>
+                {{ seccionesMapaPlantilla.length }} secciones
+              </span>
+              <span class="stat">
+                <i class="fas fa-list"></i>
+                {{ totalCampos }} campos
+              </span>
+            </div>
+          </div>
+
+          <!-- Secciones -->
+          <div class="secciones-container">
+            <div
+              v-for="(seccion, seccionIndex) in seccionesMapaPlantilla"
+              :key="seccionIndex"
+              class="seccion-nodo"
+              :class="{ expandida: seccionesExpandidas[seccionIndex] }"
+            >
+              <div class="nodo-header clickable" @click="toggleSeccion(seccionIndex)">
+                <div class="header-left">
+                  <i class="fas fa-folder" :class="{ 'fa-folder-open': seccionesExpandidas[seccionIndex] }"></i>
+                  <h5>{{ seccion.nombre }}</h5>
+                </div>
+                <div class="header-right">
+                  <span class="campos-count">{{ seccion.fields?.length || 0 }} campos</span>
+                  <i class="fas fa-chevron-down toggle-icon" :class="{ rotated: seccionesExpandidas[seccionIndex] }"></i>
+                </div>
+              </div>
+
+              <!-- Campos de la sección -->
+              <div v-if="seccionesExpandidas[seccionIndex]" class="campos-container">
+                <div
+                  v-for="(campo, campoIndex) in seccion.fields"
+                  :key="campoIndex"
+                  class="campo-nodo"
+                  :class="[`tipo-${campo.type}`, { requerido: campo.required, filtrable: campo.filterable }]"
+                >
+                  <div class="campo-header">
+                    <div class="campo-icon">
+                      <i :class="getIconoCampo(campo.type)"></i>
+                    </div>
+                    <div class="campo-info">
+                      <h6>{{ campo.name }}</h6>
+                      <span class="campo-tipo">{{ getTipoTexto(campo.type) }}</span>
+                    </div>
+                    <div class="campo-badges">
+                      <span v-if="campo.required" class="badge badge-required">Requerido</span>
+                      <span v-if="campo.filterable" class="badge badge-filtrable">Filtrable</span>
+                    </div>
+                  </div>
+
+                  <!-- Detalles específicos del campo -->
+                  <div class="campo-detalles" v-if="!vistaCompacta">
+                    <!-- Select con opciones -->
+                    <div v-if="campo.type === 'select'" class="campo-opciones">
+                      <div v-if="campo.dataSource" class="opciones-dinamicas">
+                        <i class="fas fa-database"></i>
+                        <span>Opciones dinámicas desde:</span>
+                        <div class="source-info">
+                          <strong>{{ getNombrePlantillaDataSource(campo.dataSource.plantillaId) }}</strong>
+                          <span>→ {{ campo.dataSource.seccion }} → {{ campo.dataSource.campoMostrar }}</span>
+                        </div>
+                      </div>
+                      <div v-else-if="campo.options && campo.options.length > 0" class="opciones-estaticas">
+                        <i class="fas fa-list-ul"></i>
+                        <span>Opciones:</span>
+                        <div class="opciones-list">
+                          <span v-for="opcion in campo.options" :key="opcion" class="opcion-badge">{{ opcion }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Subformulario -->
+                    <div v-if="campo.type === 'subform' && campo.subcampos" class="subcampos-container">
+                      <div class="subcampos-header">
+                        <i class="fas fa-sitemap"></i>
+                        <span>Subcampos ({{ campo.subcampos.length }}):</span>
+                      </div>
+                      <div class="subcampos-grid">
+                        <div
+                          v-for="(subcampo, subIndex) in campo.subcampos"
+                          :key="subIndex"
+                          class="subcampo-mini"
+                          :class="`tipo-${subcampo.type}`"
+                        >
+                          <i :class="getIconoCampo(subcampo.type)"></i>
+                          <span>{{ subcampo.name }}</span>
+                          <small>({{ getTipoTexto(subcampo.type) }})</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   </div>
 </template>
 
@@ -506,6 +657,12 @@ export default {
       idPlantilla: '', // ID de la plantilla seleccionada para edición
       seccionesPlantilla: [], // Secciones de la plantilla seleccionada para edición
       mostrarModalEdit: false, // Control de visibilidad del modal de edición
+      // Variables para el mapa de plantilla
+mostrarModalMapa: false,
+nombrePlantillaMapa: '',
+seccionesMapaPlantilla: [],
+seccionesExpandidas: {},
+vistaCompacta: false,
       
       // Variables para el modal de plantilla (select dinámicos)
       modalPlantillaVisible: false,
@@ -525,6 +682,11 @@ export default {
     configuracionValida() {
       return this.plantillaSeleccionada && this.seccionSeleccionada && this.campoMostrar
     },
+    totalCampos() {
+  return this.seccionesMapaPlantilla.reduce((total, seccion) => {
+    return total + (seccion.fields?.length || 0)
+  }, 0)
+},
   },
   watch: {
     seccionSeleccionada: 'onSeccionSeleccionada',
@@ -875,6 +1037,79 @@ async submitEditForm() {
         }
       }
     },
+    // Métodos para el mapa de plantilla
+async abrirMapaPlantilla(id) {
+  try {
+    const token = localStorage.getItem('apiToken')
+    const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/secciones`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    })
+    
+    this.nombrePlantillaMapa = response.data.nombre_plantilla
+    this.seccionesMapaPlantilla = response.data.secciones || []
+    
+    // ✅ Cambio aquí - usar asignación directa en lugar de $set
+    const expandidas = {}
+    this.seccionesMapaPlantilla.forEach((_, index) => {
+      expandidas[index] = true
+    })
+    this.seccionesExpandidas = expandidas
+    
+    this.mostrarModalMapa = true
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Error al cargar el mapa de la plantilla.',
+    })
+    console.error('Error al cargar mapa:', error)
+  }
+},
+
+cerrarModalMapa() {
+  this.mostrarModalMapa = false
+  this.seccionesMapaPlantilla = []
+  this.seccionesExpandidas = {}
+},
+
+toggleSeccion(index) {
+  // ✅ Cambio aquí también
+  this.seccionesExpandidas = {
+    ...this.seccionesExpandidas,
+    [index]: !this.seccionesExpandidas[index]
+  }
+},
+toggleVistaCompacta() {
+  this.vistaCompacta = !this.vistaCompacta
+},
+
+getIconoCampo(tipo) {
+  const iconos = {
+    string: 'fas fa-font',
+    number: 'fas fa-hashtag',
+    file: 'fas fa-file',
+    date: 'fas fa-calendar',
+    select: 'fas fa-list',
+    subform: 'fas fa-sitemap'
+  }
+  return iconos[tipo] || 'fas fa-question'
+},
+
+getTipoTexto(tipo) {
+  const tipos = {
+    string: 'Texto',
+    number: 'Numérico',
+    file: 'Archivo',
+    date: 'Fecha',
+    select: 'Selección',
+    subform: 'Subformulario'
+  }
+  return tipos[tipo] || tipo
+},
 
     // Métodos para select dinámicos
     getNombrePlantillaDataSource(plantillaId) {
@@ -2426,5 +2661,283 @@ async submitEditForm() {
 
 .medico-modal-content {
   z-index: 1061 !important;
+}
+/* Estilos para el mapa de plantilla */
+.btn-mapa {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-mapa:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  transform: translateY(-1px);
+}
+
+.mapa-modal {
+  height: 100vh;
+  border-radius: 0;
+}
+
+.mapa-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-vista {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.btn-vista.active,
+.btn-vista:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.mapa-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: #f8fafc;
+}
+
+.mapa-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.plantilla-nodo.principal {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.nodo-stats {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 15px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.secciones-container {
+  display: grid;
+  gap: 20px;
+}
+
+.seccion-nodo {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.seccion-nodo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.seccion-nodo .nodo-header.clickable {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  padding: 15px 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.toggle-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.campos-container {
+  padding: 20px;
+  display: grid;
+  gap: 15px;
+}
+
+.vista-compacta .campos-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+}
+
+.campo-nodo {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 4px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.campo-nodo:hover {
+  background: #f1f5f9;
+}
+
+.campo-nodo.tipo-string { border-left-color: #3b82f6; }
+.campo-nodo.tipo-number { border-left-color: #10b981; }
+.campo-nodo.tipo-file { border-left-color: #f59e0b; }
+.campo-nodo.tipo-date { border-left-color: #8b5cf6; }
+.campo-nodo.tipo-select { border-left-color: #ef4444; }
+.campo-nodo.tipo-subform { border-left-color: #6366f1; }
+
+.campo-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.campo-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.campo-info {
+  flex: 1;
+}
+
+.campo-info h6 {
+  margin: 0;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.campo-tipo {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.campo-badges {
+  display: flex;
+  gap: 5px;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.badge-required {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.badge-filtrable {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.campo-detalles {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.opciones-dinamicas,
+.opciones-estaticas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.source-info {
+  background: #f1f5f9;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.opciones-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.opcion-badge {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.subcampos-container {
+  margin-top: 10px;
+}
+
+.subcampos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.subcampo-mini {
+  background: white;
+  padding: 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  border-left: 3px solid #e2e8f0;
+}
+
+.vista-compacta .campo-detalles {
+  display: none;
 }
 </style>
