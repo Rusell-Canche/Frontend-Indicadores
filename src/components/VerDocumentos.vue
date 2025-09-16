@@ -74,6 +74,153 @@
               </div>
             </div>
           </div>
+          <div v-if="selectedColeccion" class="form-section">
+  <h6 class="section-title">
+    <i class="fas fa-filter me-2"></i>
+    Filtros avanzados
+  </h6>
+  
+  <!-- Contenedor de filtros -->
+  <div class="filters-container">
+    <div class="row g-3">
+      <!-- Filtro por campo específico -->
+      <div class="col-md-4">
+        <label class="form-label">Campo a filtrar</label>
+        <div class="input-group modern-input">
+          <span class="input-group-text">
+            <i class="fas fa-list"></i>
+          </span>
+          <select 
+            class="form-select" 
+            v-model="filtroActivo.campo"
+            @change="onCampoFiltroChange"
+          >
+            <option value="">Seleccionar campo...</option>
+            <option 
+              v-for="campo in camposFiltrables" 
+              :key="campo.name" 
+              :value="campo.name"
+            >
+              {{ campo.alias || formatFieldName(campo.name) }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Operador de filtro -->
+      <div class="col-md-3" v-if="filtroActivo.campo">
+        <label class="form-label">Operador</label>
+        <div class="input-group modern-input">
+          <span class="input-group-text">
+            <i class="fas fa-equals"></i>
+          </span>
+          <select class="form-select" v-model="filtroActivo.operador">
+            <option value="equals">Igual a</option>
+            <option value="contains">Contiene</option>
+            <option value="startsWith">Inicia con</option>
+            <option value="endsWith">Termina con</option>
+            <option value="notEquals">Diferente a</option>
+            <option value="gt" v-if="esCampoNumerico(filtroActivo.campo)">Mayor que</option>
+            <option value="lt" v-if="esCampoNumerico(filtroActivo.campo)">Menor que</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Valor del filtro -->
+      <div class="col-md-4" v-if="filtroActivo.campo">
+        <label class="form-label">Valor</label>
+        
+        <!-- Si es un campo con opciones (select) -->
+        <div v-if="tieneOpciones(filtroActivo.campo)" class="input-group modern-input">
+          <span class="input-group-text">
+            <i class="fas fa-list-ul"></i>
+          </span>
+          <select class="form-select" v-model="filtroActivo.valor">
+            <option value="">Todos los valores...</option>
+            <option 
+              v-for="opcion in getOpcionesDelCampo(filtroActivo.campo)" 
+              :key="opcion.value" 
+              :value="opcion.value"
+            >
+              {{ opcion.label }}
+            </option>
+          </select>
+        </div>
+        
+        <!-- Si es un campo de fecha -->
+        <div v-else-if="esCampoFecha(filtroActivo.campo)" class="input-group modern-input">
+          <span class="input-group-text">
+            <i class="fas fa-calendar"></i>
+          </span>
+          <input 
+            type="date" 
+            class="form-control" 
+            v-model="filtroActivo.valor"
+          />
+        </div>
+        
+        <!-- Campo de texto normal -->
+        <div v-else class="input-group modern-input">
+          <span class="input-group-text">
+            <i class="fas fa-search"></i>
+          </span>
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Valor a buscar..."
+            v-model="filtroActivo.valor"
+          />
+        </div>
+      </div>
+
+      <!-- Botón para aplicar filtro -->
+      <div class="col-md-1" v-if="filtroActivo.campo">
+        <label class="form-label">&nbsp;</label>
+        <div class="d-flex gap-2">
+          <Button
+            icon="fas fa-plus"
+            @click="agregarFiltro"
+            severity="success"
+            size="small"
+            v-tooltip="'Agregar filtro'"
+            :disabled="!filtroActivo.valor"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros activos -->
+    <div v-if="filtrosActivos.length > 0" class="mt-3">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="badge bg-secondary">Filtros activos:</span>
+        <Tag 
+          v-for="(filtro, index) in filtrosActivos" 
+          :key="index"
+          :value="`${formatFieldName(filtro.campo)}: ${filtro.valor}`"
+          severity="info"
+          class="cursor-pointer"
+        >
+          <template #default>
+            <span>{{ formatFieldName(filtro.campo) }}: {{ getDisplayValueForFilter(filtro) }}</span>
+            <i 
+              class="fas fa-times ms-2 cursor-pointer" 
+              @click="eliminarFiltro(index)"
+              style="cursor: pointer;"
+            ></i>
+          </template>
+        </Tag>
+        <Button
+          icon="fas fa-trash"
+          @click="limpiarTodosFiltros"
+          severity="danger"
+          size="small"
+          text
+          v-tooltip="'Limpiar todos los filtros'"
+        />
+      </div>
+    </div>
+  </div>
+</div>
 
           <!-- Tabla PrimeVue -->
           <div class="form-section">
@@ -385,10 +532,34 @@ export default {
         colecciones: false,
         documentos: false,
       },
+      // Filtros dinámicos
+    filtroActivo: {
+      campo: '',
+      operador: 'equals',
+      valor: ''
+    },
+    filtrosActivos: [],
     }
   },
 
   computed: {
+    camposFiltrables() {
+    if (!this.camposPlantilla?.secciones) return [];
+    
+    const campos = [];
+    this.camposPlantilla.secciones.forEach(seccion => {
+      if (seccion.fields) {
+        seccion.fields.forEach(campo => {
+          // Excluir subforms y campos de archivo
+          if (campo.type !== 'subform' && campo.type !== 'file') {
+            campos.push(campo);
+          }
+        });
+      }
+    });
+    
+    return campos;
+  },
     // Computed properties para acceder al modal actual
     showSubformModal() {
       return this.currentModalLevel >= 0
@@ -409,23 +580,33 @@ export default {
     },
 
     filteredDocuments() {
-      if (!this.palabraClave.trim()) return this.documentos
+    let documentos = [...this.documentos];
 
-      const searchTerm = this.palabraClave.toLowerCase()
+    // Aplicar filtros dinámicos primero
+    if (this.filtrosActivos.length > 0) {
+      documentos = documentos.filter(doc => {
+        return this.filtrosActivos.every(filtro => {
+          const valor = this.getFieldValueFromDocument(doc, filtro.campo);
+          return this.aplicarFiltro(valor, filtro);
+        });
+      });
+    }
 
-      return this.documentos.filter((doc) => {
-        // Buscar en los campos que se muestran en la tabla
-        const matchInVisibleFields = this.camposDocumento.some((campo) => {
-          const valor = this.getFieldValueFromDocument(doc, campo)
-          return valor && String(valor).toLowerCase().includes(searchTerm)
-        })
+    // Luego aplicar búsqueda por palabra clave
+    if (this.palabraClave.trim()) {
+      const searchTerm = this.palabraClave.toLowerCase();
+      documentos = documentos.filter(doc => {
+        const matchInVisibleFields = this.camposDocumento.some(campo => {
+          const valor = this.getFieldValueFromDocument(doc, campo);
+          return valor && String(valor).toLowerCase().includes(searchTerm);
+        });
+        const matchInId = doc._id && String(doc._id).toLowerCase().includes(searchTerm);
+        return matchInVisibleFields || matchInId;
+      });
+    }
 
-        // También buscar en _id para compatibilidad
-        const matchInId = doc._id && String(doc._id).toLowerCase().includes(searchTerm)
-
-        return matchInVisibleFields || matchInId
-      })
-    },
+    return documentos;
+  },
     
     paginatedDocumentos() {
       const start = (this.currentPage - 1) * this.itemsPerPage
@@ -448,7 +629,10 @@ export default {
     },
   },
 
-  methods: {
+// En tu archivo VerDocumentos.vue, reemplaza la sección de methods con esto:
+
+methods: {
+    // ========== MÉTODOS EXISTENTES ==========
     getStatusSeverity(estado) {
       switch (estado) {
         case 'Activo':
@@ -461,54 +645,54 @@ export default {
     },
     
     // ========== SUBFORMULARIOS - MÉTODOS CORREGIDOS ==========
-  abrirModalSubform(contenido, fieldName) {
-  console.log('=== ABRIENDO MODAL SUBFORM ===');
-  console.log('Contenido recibido:', contenido);
-  console.log('Field name:', fieldName);
-  console.log('Nivel actual antes de abrir:', this.currentModalLevel);
+    abrirModalSubform(contenido, fieldName) {
+      console.log('=== ABRIENDO MODAL SUBFORM ===');
+      console.log('Contenido recibido:', contenido);
+      console.log('Field name:', fieldName);
+      console.log('Nivel actual antes de abrir:', this.currentModalLevel);
 
-  // Buscar la definición del subcampo
-  let subformDefinition = null;
-  if (this.currentModalLevel >= 0) {
-    const currentDef = this.currentSubformDefinition;
-    if (currentDef?.subcampos) {
-      subformDefinition = currentDef.subcampos.find(f => f.name === fieldName);
-    }
-  }
-  if (!subformDefinition) {
-    subformDefinition = this.getCampoDefinition(fieldName);
-  }
-  if (!subformDefinition) {
-    console.error('No se encontró definición para el campo:', fieldName);
-    return;
-  }
+      // Buscar la definición del subcampo
+      let subformDefinition = null;
+      if (this.currentModalLevel >= 0) {
+        const currentDef = this.currentSubformDefinition;
+        if (currentDef?.subcampos) {
+          subformDefinition = currentDef.subcampos.find(f => f.name === fieldName);
+        }
+      }
+      if (!subformDefinition) {
+        subformDefinition = this.getCampoDefinition(fieldName);
+      }
+      if (!subformDefinition) {
+        console.error('No se encontró definición para el campo:', fieldName);
+        return;
+      }
 
-  // Inicializar datos correctamente
-  let modalData = [];
-  if (Array.isArray(contenido) && contenido.length > 0) {
-    // Solo tomar filas válidas que tengan al menos un valor
-    modalData = contenido.filter(row => Object.values(row).some(val => val !== null && val !== ''));
-  } else if (subformDefinition?.subcampos) {
-    // Crear un objeto base con los campos del subform
-    const baseObj = {};
-    subformDefinition.subcampos.forEach(sc => (baseObj[sc.name] = sc.default || null));
-    modalData = [baseObj];
-  }
+      // Inicializar datos correctamente
+      let modalData = [];
+      if (Array.isArray(contenido) && contenido.length > 0) {
+        // Solo tomar filas válidas que tengan al menos un valor
+        modalData = contenido.filter(row => Object.values(row).some(val => val !== null && val !== ''));
+      } else if (subformDefinition?.subcampos) {
+        // Crear un objeto base con los campos del subform
+        const baseObj = {};
+        subformDefinition.subcampos.forEach(sc => (baseObj[sc.name] = sc.default || null));
+        modalData = [baseObj];
+      }
 
-  const newModalData = {
-    data: modalData,
-    definition: subformDefinition,
-    fieldName: fieldName,
-  };
+      const newModalData = {
+        data: modalData,
+        definition: subformDefinition,
+        fieldName: fieldName,
+      };
 
-  this.modalStack.push(newModalData);
-  this.currentModalLevel = this.modalStack.length - 1;
+      this.modalStack.push(newModalData);
+      this.currentModalLevel = this.modalStack.length - 1;
 
-  console.log('Modal agregado al stack');
-  console.log('Nuevo nivel:', this.currentModalLevel);
-  console.log('Stack actual:', this.modalStack);
-  console.log('Datos del nuevo modal:', newModalData);
-},
+      console.log('Modal agregado al stack');
+      console.log('Nuevo nivel:', this.currentModalLevel);
+      console.log('Stack actual:', this.modalStack);
+      console.log('Datos del nuevo modal:', newModalData);
+    },
 
     cerrarSubformModal() {
       console.log('=== CERRANDO MODAL ===')
@@ -787,6 +971,7 @@ export default {
       // Si es manual o normal, lo mostramos directo
       return valor
     },
+
     formatoFecha(dateString) {
       try {
         const date = new Date(dateString)
@@ -923,6 +1108,12 @@ export default {
       this.documentos = []
       this.camposDocumento = []
       this.camposPlantilla = []
+      this.filtrosActivos = []
+      this.filtroActivo = {
+        campo: '',
+        operador: 'equals',
+        valor: ''
+      }
     },
 
     showSuccess(message) {
@@ -943,6 +1134,113 @@ export default {
         confirmButtonText: 'Aceptar',
         confirmButtonColor: '#6c757d',
       })
+    },
+
+    // ========== MÉTODOS PARA FILTROS DINÁMICOS ==========
+    
+    onCampoFiltroChange() {
+      // Resetear operador y valor cuando cambia el campo
+      this.filtroActivo.operador = 'equals';
+      this.filtroActivo.valor = '';
+    },
+
+    esCampoNumerico(nombreCampo) {
+      const campo = this.getCampoDefinition(nombreCampo);
+      return campo && ['number', 'integer'].includes(campo.type);
+    },
+
+    esCampoFecha(nombreCampo) {
+      const campo = this.getCampoDefinition(nombreCampo);
+      return campo && campo.type === 'date';
+    },
+
+    tieneOpciones(nombreCampo) {
+      const campo = this.getCampoDefinition(nombreCampo);
+      return campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0;
+    },
+
+    getOpcionesDelCampo(nombreCampo) {
+      const campo = this.getCampoDefinition(nombreCampo);
+      if (!campo?.options) return [];
+      
+      return campo.options.map(opcion => ({
+        value: opcion.campoGuardar || opcion.value,
+        label: opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value
+      }));
+    },
+
+    agregarFiltro() {
+      if (!this.filtroActivo.campo || !this.filtroActivo.valor) return;
+
+      // Verificar si ya existe un filtro para este campo
+      const existeIndex = this.filtrosActivos.findIndex(f => f.campo === this.filtroActivo.campo);
+      
+      if (existeIndex >= 0) {
+        // Reemplazar filtro existente
+        this.filtrosActivos.splice(existeIndex, 1, { ...this.filtroActivo });
+      } else {
+        // Agregar nuevo filtro
+        this.filtrosActivos.push({ ...this.filtroActivo });
+      }
+
+      // Resetear filtro activo
+      this.filtroActivo = {
+        campo: '',
+        operador: 'equals',
+        valor: ''
+      };
+    },
+
+    eliminarFiltro(index) {
+      this.filtrosActivos.splice(index, 1);
+    },
+
+    limpiarTodosFiltros() {
+      this.filtrosActivos = [];
+      this.filtroActivo = {
+        campo: '',
+        operador: 'equals',
+        valor: ''
+      };
+    },
+
+    aplicarFiltro(valor, filtro) {
+      if (valor === null || valor === undefined) {
+        valor = '';
+      }
+      
+      const valorString = String(valor).toLowerCase();
+      const filtroValor = String(filtro.valor).toLowerCase();
+
+      switch (filtro.operador) {
+        case 'equals':
+          return valorString === filtroValor;
+        case 'contains':
+          return valorString.includes(filtroValor);
+        case 'startsWith':
+          return valorString.startsWith(filtroValor);
+        case 'endsWith':
+          return valorString.endsWith(filtroValor);
+        case 'notEquals':
+          return valorString !== filtroValor;
+        case 'gt':
+          return parseFloat(valor) > parseFloat(filtro.valor);
+        case 'lt':
+          return parseFloat(valor) < parseFloat(filtro.valor);
+        default:
+          return true;
+      }
+    },
+
+    getDisplayValueForFilter(filtro) {
+      // Si tiene opciones, mostrar el label bonito
+      if (this.tieneOpciones(filtro.campo)) {
+        const opciones = this.getOpcionesDelCampo(filtro.campo);
+        const opcion = opciones.find(o => o.value === filtro.valor);
+        return opcion ? opcion.label : filtro.valor;
+      }
+      
+      return filtro.valor;
     },
   },
 
