@@ -1155,19 +1155,38 @@ methods: {
     },
 
     tieneOpciones(nombreCampo) {
-      const campo = this.getCampoDefinition(nombreCampo);
-      return campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0;
-    },
+  const campo = this.getCampoDefinition(nombreCampo);
+  return campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0;
+},
 
     getOpcionesDelCampo(nombreCampo) {
-      const campo = this.getCampoDefinition(nombreCampo);
-      if (!campo?.options) return [];
-      
-      return campo.options.map(opcion => ({
-        value: opcion.campoGuardar || opcion.value,
-        label: opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value
-      }));
-    },
+  const campo = this.getCampoDefinition(nombreCampo);
+  if (!campo || !campo.options || !Array.isArray(campo.options)) return [];
+  
+  // Verificar si el primer elemento es un objeto (select dinámico) o string (select manual)
+  if (campo.options.length === 0) return [];
+  
+  const primerElemento = campo.options[0];
+  
+  // Select dinámico: [{"campoGuardar": "id", "campoMostrar": "texto"}]
+  if (typeof primerElemento === 'object' && primerElemento !== null) {
+    return campo.options.map(opcion => ({
+      value: opcion.campoGuardar || opcion.value || opcion,
+      label: opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value || opcion
+    }));
+  }
+  
+  // Select manual
+  if (typeof primerElemento === 'string') {
+    return campo.options.map(opcion => ({
+      value: opcion,
+      label: opcion
+    }));
+  }
+  
+  return [];
+},
+
 
     agregarFiltro() {
       if (!this.filtroActivo.campo || !this.filtroActivo.valor) return;
