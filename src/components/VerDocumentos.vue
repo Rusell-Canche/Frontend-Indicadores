@@ -75,152 +75,158 @@
             </div>
           </div>
           <div v-if="selectedColeccion" class="form-section">
-  <h6 class="section-title">
-    <i class="fas fa-filter me-2"></i>
-    Filtros avanzados
-  </h6>
-  
-  <!-- Contenedor de filtros -->
-  <div class="filters-container">
-    <div class="row g-3">
-      <!-- Filtro por campo específico -->
-      <div class="col-md-4">
-        <label class="form-label">Campo a filtrar</label>
-        <div class="input-group modern-input">
-          <span class="input-group-text">
-            <i class="fas fa-list"></i>
-          </span>
-          <select 
-            class="form-select" 
-            v-model="filtroActivo.campo"
-            @change="onCampoFiltroChange"
-          >
-            <option value="">Seleccionar campo...</option>
-            <option 
-              v-for="campo in camposFiltrables" 
-              :key="campo.name" 
-              :value="campo.name"
-            >
-              {{ campo.alias || formatFieldName(campo.name) }}
-            </option>
-          </select>
-        </div>
-      </div>
+            <h6 class="section-title">
+              <i class="fas fa-filter me-2"></i>
+              Filtros avanzados
+            </h6>
 
-      <!-- Operador de filtro -->
-      <div class="col-md-3" v-if="filtroActivo.campo">
-        <label class="form-label">Operador</label>
-        <div class="input-group modern-input">
-          <span class="input-group-text">
-            <i class="fas fa-equals"></i>
-          </span>
-          <select class="form-select" v-model="filtroActivo.operador">
-            <option value="equals">Igual a</option>
-            <option value="contains">Contiene</option>
-            <option value="startsWith">Inicia con</option>
-            <option value="endsWith">Termina con</option>
-            <option value="notEquals">Diferente a</option>
-            <option value="gt" v-if="esCampoNumerico(filtroActivo.campo)">Mayor que</option>
-            <option value="lt" v-if="esCampoNumerico(filtroActivo.campo)">Menor que</option>
-          </select>
-        </div>
-      </div>
+            <!-- Contenedor de filtros -->
+            <div class="filters-container">
+              <div class="row g-3">
+                <!-- Filtro por campo específico -->
+                <div class="col-md-4">
+                  <label class="form-label">Campo a filtrar</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-list"></i>
+                    </span>
+                    <select
+                      class="form-select"
+                      v-model="filtroActivo.campo"
+                      @change="onCampoFiltroChange"
+                    >
+                      <option value="">Seleccionar campo...</option>
+                      <option
+                        v-for="campo in camposFiltrables"
+                        :key="campo.name"
+                        :value="campo.fullPath"
+                      >
+                        {{ campo.displayName || campo.alias || formatFieldName(campo.name) }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
 
-      <!-- Valor del filtro -->
-      <div class="col-md-4" v-if="filtroActivo.campo">
-        <label class="form-label">Valor</label>
-        
-        <!-- Si es un campo con opciones (select) -->
-        <div v-if="tieneOpciones(filtroActivo.campo)" class="input-group modern-input">
-          <span class="input-group-text">
-            <i class="fas fa-list-ul"></i>
-          </span>
-          <select class="form-select" v-model="filtroActivo.valor">
-            <option value="">Todos los valores...</option>
-            <option 
-              v-for="opcion in getOpcionesDelCampo(filtroActivo.campo)" 
-              :key="opcion.value" 
-              :value="opcion.value"
-            >
-              {{ opcion.label }}
-            </option>
-          </select>
-        </div>
-        
-        <!-- Si es un campo de fecha -->
-        <div v-else-if="esCampoFecha(filtroActivo.campo)" class="input-group modern-input">
-          <span class="input-group-text">
-            <i class="fas fa-calendar"></i>
-          </span>
-          <input 
-            type="date" 
-            class="form-control" 
-            v-model="filtroActivo.valor"
-          />
-        </div>
-        
-        <!-- Campo de texto normal -->
-        <div v-else class="input-group modern-input">
-          <span class="input-group-text">
-            <i class="fas fa-search"></i>
-          </span>
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Valor a buscar..."
-            v-model="filtroActivo.valor"
-          />
-        </div>
-      </div>
+                <!-- Operador de filtro -->
+                <div class="col-md-3" v-if="filtroActivo.campo">
+                  <label class="form-label">Operador</label>
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-equals"></i>
+                    </span>
+                    <select class="form-select" v-model="filtroActivo.operador">
+                      <option value="equals">Igual a</option>
+                      <option value="contains">Contiene</option>
+                      <option value="startsWith">Inicia con</option>
+                      <option value="endsWith">Termina con</option>
+                      <option value="notEquals">Diferente a</option>
+                      <option value="gt" v-if="esCampoNumerico(filtroActivo.campo)">
+                        Mayor que
+                      </option>
+                      <option value="lt" v-if="esCampoNumerico(filtroActivo.campo)">
+                        Menor que
+                      </option>
+                    </select>
+                  </div>
+                </div>
 
-      <!-- Botón para aplicar filtro -->
-      <div class="col-md-1" v-if="filtroActivo.campo">
-        <label class="form-label">&nbsp;</label>
-        <div class="d-flex gap-2">
-          <Button
-            icon="fas fa-plus"
-            @click="agregarFiltro"
-            severity="success"
-            size="small"
-            v-tooltip="'Agregar filtro'"
-            :disabled="!filtroActivo.valor"
-          />
-        </div>
-      </div>
-    </div>
+                <!-- Valor del filtro -->
+                <div class="col-md-4" v-if="filtroActivo.campo">
+                  <label class="form-label">Valor</label>
 
-    <!-- Filtros activos -->
-    <div v-if="filtrosActivos.length > 0" class="mt-3">
-      <div class="d-flex flex-wrap gap-2 align-items-center">
-        <span class="badge bg-secondary">Filtros activos:</span>
-        <Tag 
-          v-for="(filtro, index) in filtrosActivos" 
-          :key="index"
-          :value="`${formatFieldName(filtro.campo)}: ${filtro.valor}`"
-          severity="info"
-          class="cursor-pointer"
-        >
-          <template #default>
-            <span>{{ formatFieldName(filtro.campo) }}: {{ getDisplayValueForFilter(filtro) }}</span>
-            <i 
-              class="fas fa-times ms-2 cursor-pointer" 
-              @click="eliminarFiltro(index)"
-              style="cursor: pointer;"
-            ></i>
-          </template>
-        </Tag>
-        <Button
-          icon="fas fa-trash"
-          @click="limpiarTodosFiltros"
-          severity="danger"
-          size="small"
-          text
-          v-tooltip="'Limpiar todos los filtros'"
-        />
-      </div>
-    </div>
-  </div>
-</div>
+                  <!-- Si es un campo con opciones (select) -->
+                  <div v-if="tieneOpciones(filtroActivo.campo)" class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-list-ul"></i>
+                    </span>
+                    <select class="form-select" v-model="filtroActivo.valor">
+                      <option value="">Todos los valores...</option>
+                      <option
+                        v-for="opcion in getOpcionesDelCampo(filtroActivo.campo)"
+                        :key="opcion.value"
+                        :value="opcion.value"
+                      >
+                        {{ opcion.label }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Si es un campo de fecha -->
+                  <div
+                    v-else-if="esCampoFecha(filtroActivo.campo)"
+                    class="input-group modern-input"
+                  >
+                    <span class="input-group-text">
+                      <i class="fas fa-calendar"></i>
+                    </span>
+                    <input type="date" class="form-control" v-model="filtroActivo.valor" />
+                  </div>
+
+                  <!-- Campo de texto normal -->
+                  <div v-else class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-search"></i>
+                    </span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Valor a buscar..."
+                      v-model="filtroActivo.valor"
+                    />
+                  </div>
+                </div>
+
+                <!-- Botón para aplicar filtro -->
+                <div class="col-md-1" v-if="filtroActivo.campo">
+                  <label class="form-label">&nbsp;</label>
+                  <div class="d-flex gap-2">
+                    <Button
+                      icon="fas fa-plus"
+                      @click="agregarFiltro"
+                      severity="success"
+                      size="small"
+                      v-tooltip="'Agregar filtro'"
+                      :disabled="!filtroActivo.valor"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Filtros activos -->
+              <div v-if="filtrosActivos.length > 0" class="mt-3">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                  <span class="badge bg-secondary">Filtros activos:</span>
+                  <Tag
+                    v-for="(filtro, index) in filtrosActivos"
+                    :key="index"
+                    :value="`${formatFieldName(filtro.campo)}: ${filtro.valor}`"
+                    severity="info"
+                    class="cursor-pointer"
+                  >
+                    <template #default>
+                      <span
+                        >{{ formatFieldName(filtro.campo) }}:
+                        {{ getDisplayValueForFilter(filtro) }}</span
+                      >
+                      <i
+                        class="fas fa-times ms-2 cursor-pointer"
+                        @click="eliminarFiltro(index)"
+                        style="cursor: pointer"
+                      ></i>
+                    </template>
+                  </Tag>
+                  <Button
+                    icon="fas fa-trash"
+                    @click="limpiarTodosFiltros"
+                    severity="danger"
+                    size="small"
+                    text
+                    v-tooltip="'Limpiar todos los filtros'"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Tabla PrimeVue -->
           <div class="form-section">
@@ -306,7 +312,13 @@
               </Column>
 
               <!-- Columna de acciones -->
-              <Column header="Acciones" :exportable="false" frozen alignFrozen="right" style="min-width: 8rem; border-left: 2px solid; background-color: azure;" >
+              <Column
+                header="Acciones"
+                :exportable="false"
+                frozen
+                alignFrozen="right"
+                style="min-width: 8rem; border-left: 2px solid; background-color: azure"
+              >
                 <template #body="slotProps">
                   <Button
                     icon="fas fa-edit"
@@ -362,105 +374,109 @@
       @error="handleEditError"
     />
     <!-- Modal para ver subformularios - REEMPLAZAR el modal existente -->
-<div v-if="showSubformModal" class="modal-backdrop" >
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content modern-modal">
-      <!-- Header con botón de cerrar estilo "Editar Documento" -->
-      <div class="medico-header modal-header-custom">
-        <div class="header-content">
-          <div class="header-icon">
-            <i class="fas fa-table"></i>
-          </div>
-          <div class="header-title-section">
-            <h3>Subformulario: {{ currentSubformDefinition?.alias || currentSubformDefinition?.name }}</h3>
-            <p class="header-subtitle">
-              Contenido del subformulario 
-              <span v-if="currentModalLevel > 0" class="badge badge-info ml-2">
-                Nivel {{ currentModalLevel + 1 }}
-              </span>
-            </p>
-          </div>
-        </div>
-        
-        <!-- Botones de navegación -->
-        <div class="modal-nav-buttons">
-          <!-- Botón para volver al modal anterior (solo si hay más de un nivel) -->
-          <button 
-            v-if="currentModalLevel > 0"
-            type="button" 
-            @click="cerrarSubformModal" 
-            class="nav-button back-button" 
-            v-tooltip="'Volver al nivel anterior'"
-            aria-label="Back">
-            <i class="fas fa-arrow-left"></i>
-          </button>
-          
-          <!-- Botón de cerrar todo -->
-          <button 
-            type="button" 
-            @click="cerrarTodosLosModales" 
-            class="close-button" 
-            aria-label="Close">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Body -->
-      <div class="modal-body">
-        <div
-          v-if="currentSubformData.length > 0 && currentSubformDefinition?.subcampos"
-          class="table-responsive"
-        >
-          <table class="table table-bordered table-hover">
-            <thead>
-              <tr>
-                <th v-for="subcampo in currentSubformDefinition.subcampos" :key="subcampo.name">
-                  {{ subcampo.alias || subcampo.name }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, rowIndex) in currentSubformData" :key="rowIndex">
-                <td v-for="subcampo in currentSubformDefinition.subcampos" :key="subcampo.name">
-                  <!-- Si es un subform, mostrar botón -->
-                  <span v-if="subcampo.type === 'subform'">
-                    <Button
-                      icon="fa-solid fa-magnifying-glass"
-                      @click="abrirModalSubform(row[subcampo.name], subcampo.name)"
-                      text
-                      severity="info"
-                      size="small"
-                      v-tooltip="'Ver subformulario anidado'"
-                    />
+    <div v-if="showSubformModal" class="modal-backdrop">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content modern-modal">
+          <!-- Header con botón de cerrar estilo "Editar Documento" -->
+          <div class="medico-header modal-header-custom">
+            <div class="header-content">
+              <div class="header-icon">
+                <i class="fas fa-table"></i>
+              </div>
+              <div class="header-title-section">
+                <h3>
+                  Subformulario:
+                  {{ currentSubformDefinition?.alias || currentSubformDefinition?.name }}
+                </h3>
+                <p class="header-subtitle">
+                  Contenido del subformulario
+                  <span v-if="currentModalLevel > 0" class="badge badge-info ml-2">
+                    Nivel {{ currentModalLevel + 1 }}
                   </span>
+                </p>
+              </div>
+            </div>
 
-                  <!-- Si es valor normal -->
-                  <span v-else>
-                    {{ getPrettySubcampoValue(row, subcampo.name) }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+            <!-- Botones de navegación -->
+            <div class="modal-nav-buttons">
+              <!-- Botón para volver al modal anterior (solo si hay más de un nivel) -->
+              <button
+                v-if="currentModalLevel > 0"
+                type="button"
+                @click="cerrarSubformModal"
+                class="nav-button back-button"
+                v-tooltip="'Volver al nivel anterior'"
+                aria-label="Back"
+              >
+                <i class="fas fa-arrow-left"></i>
+              </button>
+
+              <!-- Botón de cerrar todo -->
+              <button
+                type="button"
+                @click="cerrarTodosLosModales"
+                class="close-button"
+                aria-label="Close"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="modal-body">
+            <div
+              v-if="currentSubformData.length > 0 && currentSubformDefinition?.subcampos"
+              class="table-responsive"
+            >
+              <table class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th v-for="subcampo in currentSubformDefinition.subcampos" :key="subcampo.name">
+                      {{ subcampo.alias || subcampo.name }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, rowIndex) in currentSubformData" :key="rowIndex">
+                    <td v-for="subcampo in currentSubformDefinition.subcampos" :key="subcampo.name">
+                      <!-- Si es un subform, mostrar botón -->
+                      <span v-if="subcampo.type === 'subform'">
+                        <Button
+                          icon="fa-solid fa-magnifying-glass"
+                          @click="abrirModalSubform(row[subcampo.name], subcampo.name)"
+                          text
+                          severity="info"
+                          size="small"
+                          v-tooltip="'Ver subformulario anidado'"
+                        />
+                      </span>
+
+                      <!-- Si es valor normal -->
+                      <span v-else>
+                        {{ getPrettySubcampoValue(row, subcampo.name) }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-else class="text-muted text-center py-3">
+              No hay entradas en este subformulario
+            </div>
+          </div>
+
+          <!-- Footer con información del nivel actual (opcional) -->
+          <div v-if="currentModalLevel > 0" class="modal-footer text-muted">
+            <small>
+              <i class="fas fa-info-circle"></i>
+              Navegando en subformulario anidado (Nivel {{ currentModalLevel + 1 }})
+            </small>
+          </div>
         </div>
-        <div v-else class="text-muted text-center py-3">
-          No hay entradas en este subformulario
-        </div>
-      </div>
-      
-      <!-- Footer con información del nivel actual (opcional) -->
-      <div v-if="currentModalLevel > 0" class="modal-footer text-muted">
-        <small>
-          <i class="fas fa-info-circle"></i>
-          Navegando en subformulario anidado (Nivel {{ currentModalLevel + 1 }})
-        </small>
       </div>
     </div>
   </div>
-</div>
-  </div>
-
 </template>
 
 <script>
@@ -494,7 +510,7 @@ export default {
       // Por estas que manejan múltiples niveles:
       modalStack: [], // Array que contiene información de cada modal abierto
       currentModalLevel: -1, // Índice del modal actual
-      
+
       // Estado principal
       colecciones: [],
       selectedColeccion: null,
@@ -533,42 +549,76 @@ export default {
         documentos: false,
       },
       // Filtros dinámicos
-    filtroActivo: {
-      campo: '',
-      operador: 'equals',
-      valor: ''
-    },
-    filtrosActivos: [],
+      filtroActivo: {
+        campo: '',
+        operador: 'equals',
+        valor: '',
+      },
+      filtrosActivos: [],
     }
   },
 
   computed: {
     camposFiltrables() {
-    if (!this.camposPlantilla?.secciones) return [];
-    
-    const campos = [];
-    this.camposPlantilla.secciones.forEach(seccion => {
-      if (seccion.fields) {
-        seccion.fields.forEach(campo => {
-          // Excluir subforms y campos de archivo
-          if (campo.type !== 'subform' && campo.type !== 'file') {
-            campos.push(campo);
-          }
-        });
-      }
-    });
-    
-    return campos;
-  },
+      if (!this.camposPlantilla?.secciones) return []
+
+      const campos = []
+
+      this.camposPlantilla.secciones.forEach((seccion) => {
+        if (seccion.fields) {
+          seccion.fields.forEach((campo) => {
+            // Campos normales (no subforms y no archivos)
+            if (campo.type !== 'subform' && campo.type !== 'file') {
+              campos.push({
+                ...campo,
+                displayName: campo.alias || campo.name,
+                fullPath: campo.name,
+              })
+            }
+
+            // Campos dentro de subformularios (primer nivel)
+            if (campo.type === 'subform' && campo.subcampos) {
+              campo.subcampos.forEach((subcampo) => {
+                if (subcampo.type !== 'subform' && subcampo.type !== 'file') {
+                  campos.push({
+                    ...subcampo,
+                    displayName: `${campo.alias || campo.name} → ${subcampo.alias || subcampo.name}`,
+                    fullPath: `${campo.name}.${subcampo.name}`,
+                    parentSubform: campo.name,
+                  })
+                }
+
+                // Campos dentro de subformularios anidados (segundo nivel)
+                if (subcampo.type === 'subform' && subcampo.subcampos) {
+                  subcampo.subcampos.forEach((subsubcampo) => {
+                    if (subsubcampo.type !== 'subform' && subsubcampo.type !== 'file') {
+                      campos.push({
+                        ...subsubcampo,
+                        displayName: `${campo.alias || campo.name} → ${subcampo.alias || subcampo.name} → ${subsubcampo.alias || subsubcampo.name}`,
+                        fullPath: `${campo.name}.${subcampo.name}.${subsubcampo.name}`,
+                        parentSubform: campo.name,
+                        parentSubSubform: subcampo.name,
+                      })
+                    }
+                  })
+                }
+              })
+            }
+          })
+        }
+      })
+
+      return campos
+    },
     // Computed properties para acceder al modal actual
     showSubformModal() {
       return this.currentModalLevel >= 0
     },
-    
+
     currentSubformData() {
       return this.currentModalLevel >= 0 ? this.modalStack[this.currentModalLevel].data : []
     },
-    
+
     currentSubformDefinition() {
       return this.currentModalLevel >= 0 ? this.modalStack[this.currentModalLevel].definition : null
     },
@@ -580,34 +630,35 @@ export default {
     },
 
     filteredDocuments() {
-    let documentos = [...this.documentos];
+      let documentos = [...this.documentos]
 
-    // Aplicar filtros dinámicos primero
-    if (this.filtrosActivos.length > 0) {
-      documentos = documentos.filter(doc => {
-        return this.filtrosActivos.every(filtro => {
-          const valor = this.getFieldValueFromDocument(doc, filtro.campo);
-          return this.aplicarFiltro(valor, filtro);
-        });
-      });
-    }
+      // Aplicar filtros dinámicos primero
+      if (this.filtrosActivos.length > 0) {
+        documentos = documentos.filter((doc) => {
+          return this.filtrosActivos.every((filtro) => {
+            // Obtener el valor del documento para el campo del filtro
+            const valor = this.getFieldValueFromDocument(doc, filtro.campo)
+            return this.aplicarFiltro(valor, filtro)
+          })
+        })
+      }
 
-    // Luego aplicar búsqueda por palabra clave
-    if (this.palabraClave.trim()) {
-      const searchTerm = this.palabraClave.toLowerCase();
-      documentos = documentos.filter(doc => {
-        const matchInVisibleFields = this.camposDocumento.some(campo => {
-          const valor = this.getFieldValueFromDocument(doc, campo);
-          return valor && String(valor).toLowerCase().includes(searchTerm);
-        });
-        const matchInId = doc._id && String(doc._id).toLowerCase().includes(searchTerm);
-        return matchInVisibleFields || matchInId;
-      });
-    }
+      // Luego aplicar búsqueda por palabra clave
+      if (this.palabraClave.trim()) {
+        const searchTerm = this.palabraClave.toLowerCase()
+        documentos = documentos.filter((doc) => {
+          const matchInVisibleFields = this.camposDocumento.some((campo) => {
+            const valor = this.getFieldValueFromDocument(doc, campo)
+            return valor && String(valor).toLowerCase().includes(searchTerm)
+          })
+          const matchInId = doc._id && String(doc._id).toLowerCase().includes(searchTerm)
+          return matchInVisibleFields || matchInId
+        })
+      }
 
-    return documentos;
-  },
-    
+      return documentos
+    },
+
     paginatedDocumentos() {
       const start = (this.currentPage - 1) * this.itemsPerPage
       return this.filteredDocuments.slice(start, start + this.itemsPerPage)
@@ -629,9 +680,9 @@ export default {
     },
   },
 
-// En tu archivo VerDocumentos.vue, reemplaza la sección de methods con esto:
+  // En tu archivo VerDocumentos.vue, reemplaza la sección de methods con esto:
 
-methods: {
+  methods: {
     // ========== MÉTODOS EXISTENTES ==========
     getStatusSeverity(estado) {
       switch (estado) {
@@ -643,66 +694,68 @@ methods: {
           return 'info'
       }
     },
-    
+
     // ========== SUBFORMULARIOS - MÉTODOS CORREGIDOS ==========
     abrirModalSubform(contenido, fieldName) {
-      console.log('=== ABRIENDO MODAL SUBFORM ===');
-      console.log('Contenido recibido:', contenido);
-      console.log('Field name:', fieldName);
-      console.log('Nivel actual antes de abrir:', this.currentModalLevel);
+      console.log('=== ABRIENDO MODAL SUBFORM ===')
+      console.log('Contenido recibido:', contenido)
+      console.log('Field name:', fieldName)
+      console.log('Nivel actual antes de abrir:', this.currentModalLevel)
 
       // Buscar la definición del subcampo
-      let subformDefinition = null;
+      let subformDefinition = null
       if (this.currentModalLevel >= 0) {
-        const currentDef = this.currentSubformDefinition;
+        const currentDef = this.currentSubformDefinition
         if (currentDef?.subcampos) {
-          subformDefinition = currentDef.subcampos.find(f => f.name === fieldName);
+          subformDefinition = currentDef.subcampos.find((f) => f.name === fieldName)
         }
       }
       if (!subformDefinition) {
-        subformDefinition = this.getCampoDefinition(fieldName);
+        subformDefinition = this.getCampoDefinition(fieldName)
       }
       if (!subformDefinition) {
-        console.error('No se encontró definición para el campo:', fieldName);
-        return;
+        console.error('No se encontró definición para el campo:', fieldName)
+        return
       }
 
       // Inicializar datos correctamente
-      let modalData = [];
+      let modalData = []
       if (Array.isArray(contenido) && contenido.length > 0) {
         // Solo tomar filas válidas que tengan al menos un valor
-        modalData = contenido.filter(row => Object.values(row).some(val => val !== null && val !== ''));
+        modalData = contenido.filter((row) =>
+          Object.values(row).some((val) => val !== null && val !== ''),
+        )
       } else if (subformDefinition?.subcampos) {
         // Crear un objeto base con los campos del subform
-        const baseObj = {};
-        subformDefinition.subcampos.forEach(sc => (baseObj[sc.name] = sc.default || null));
-        modalData = [baseObj];
+        const baseObj = {}
+        subformDefinition.subcampos.forEach((sc) => (baseObj[sc.name] = sc.default || null))
+        modalData = [baseObj]
       }
 
       const newModalData = {
         data: modalData,
         definition: subformDefinition,
         fieldName: fieldName,
-      };
+      }
 
-      this.modalStack.push(newModalData);
-      this.currentModalLevel = this.modalStack.length - 1;
+      this.modalStack.push(newModalData)
+      this.currentModalLevel = this.modalStack.length - 1
 
-      console.log('Modal agregado al stack');
-      console.log('Nuevo nivel:', this.currentModalLevel);
-      console.log('Stack actual:', this.modalStack);
-      console.log('Datos del nuevo modal:', newModalData);
+      console.log('Modal agregado al stack')
+      console.log('Nuevo nivel:', this.currentModalLevel)
+      console.log('Stack actual:', this.modalStack)
+      console.log('Datos del nuevo modal:', newModalData)
     },
 
     cerrarSubformModal() {
       console.log('=== CERRANDO MODAL ===')
       console.log('Nivel actual antes de cerrar:', this.currentModalLevel)
-      
+
       if (this.currentModalLevel >= 0) {
         // Remover el modal actual del stack
         this.modalStack.pop()
         this.currentModalLevel = this.modalStack.length - 1
-        
+
         console.log('Modal cerrado, nuevo nivel:', this.currentModalLevel)
         console.log('Stack después de cerrar:', this.modalStack)
       }
@@ -738,7 +791,7 @@ methods: {
     },
 
     // ========== API CALLS ==========
-    
+
     async apiCall(endpoint, options = {}) {
       const token = localStorage.getItem('apiToken')
       const config = {
@@ -888,23 +941,64 @@ methods: {
       console.log('Campos seleccionados para mostrar:', this.camposDocumento)
     },
 
-    getFieldValueFromDocument(documento, fieldName) {
-      // Si el documento no tiene secciones, buscar directamente (compatibilidad)
-      if (!documento.secciones) {
-        return documento[fieldName] || null
+    getFieldValueFromDocument(documento, fieldPath) {
+      console.log('Obteniendo valor para:', fieldPath)
+
+      // Si no es un path con puntos, buscar directamente
+      if (!fieldPath.includes('.')) {
+        // Buscar en secciones primero
+        if (documento.secciones) {
+          for (const seccion of documento.secciones) {
+            if (seccion.fields && seccion.fields.hasOwnProperty(fieldPath)) {
+              return seccion.fields[fieldPath]
+            }
+          }
+        }
+        // Buscar directamente en el documento
+        return documento[fieldPath]
       }
 
-      // Buscar en todas las secciones del documento
-      for (const seccion of documento.secciones) {
-        if (seccion.fields) {
-          // Buscar directamente en el objeto fields
-          if (seccion.fields.hasOwnProperty(fieldName)) {
-            return seccion.fields[fieldName] || null
+      // Para paths con puntos (subformularios anidados)
+      const pathParts = fieldPath.split('.')
+      let currentValue = documento
+
+      for (let i = 0; i < pathParts.length; i++) {
+        const part = pathParts[i]
+
+        if (currentValue === null || currentValue === undefined) {
+          return null
+        }
+
+        // Buscar en secciones si existe
+        if (currentValue.secciones) {
+          let foundInSecciones = false
+          for (const seccion of currentValue.secciones) {
+            if (seccion.fields && seccion.fields.hasOwnProperty(part)) {
+              currentValue = seccion.fields[part]
+              foundInSecciones = true
+              break
+            }
+          }
+          if (!foundInSecciones) {
+            currentValue = currentValue[part]
+          }
+        } else {
+          currentValue = currentValue[part]
+        }
+
+        // Si es un array y no es el último elemento del path, tomar el primer elemento
+        if (Array.isArray(currentValue) && i < pathParts.length - 1) {
+          if (currentValue.length > 0) {
+            // Para filtros, necesitamos verificar todos los elementos
+            // Pero para obtener un valor específico, tomamos el primero
+            currentValue = currentValue[0]
+          } else {
+            return null
           }
         }
       }
 
-      return null
+      return currentValue
     },
 
     // ========== CAMPO HELPERS - MÉTODO MEJORADO ==========
@@ -918,27 +1012,59 @@ methods: {
     /**
      * Busca la definición de un campo (MÉTODO MEJORADO)
      */
-    getCampoDefinition(fieldName) {
+    getCampoDefinition(fieldPath) {
       console.log('=== BUSCANDO DEFINICIÓN DE CAMPO ===')
-      console.log('Campo buscado:', fieldName)
-      
-      // Buscar en la plantilla principal
+      console.log('Campo/Path buscado:', fieldPath)
+
       if (!this.camposPlantilla?.secciones) {
         console.log('No hay secciones en camposPlantilla')
         return null
       }
 
-      for (const seccion of this.camposPlantilla.secciones) {
-        if (seccion.fields && Array.isArray(seccion.fields)) {
-          const campo = seccion.fields.find((f) => f.name === fieldName)
-          if (campo) {
-            console.log('Campo encontrado en plantilla principal:', campo)
-            return campo
+      // Si es un path simple (sin puntos), buscar en campos principales
+      if (!fieldPath.includes('.')) {
+        for (const seccion of this.camposPlantilla.secciones) {
+          if (seccion.fields && Array.isArray(seccion.fields)) {
+            const campo = seccion.fields.find((f) => f.name === fieldPath)
+            if (campo) {
+              console.log('Campo encontrado en plantilla principal:', campo)
+              return campo
+            }
+          }
+        }
+      } else {
+        // Si es un path con puntos, dividir y buscar en subformularios
+        const pathParts = fieldPath.split('.')
+
+        for (const seccion of this.camposPlantilla.secciones) {
+          if (seccion.fields && Array.isArray(seccion.fields)) {
+            // Buscar el campo principal (subformulario)
+            const campoSubform = seccion.fields.find((f) => f.name === pathParts[0])
+            if (campoSubform && campoSubform.type === 'subform' && campoSubform.subcampos) {
+              if (pathParts.length === 2) {
+                // Primer nivel de subformulario
+                const subcampo = campoSubform.subcampos.find((sc) => sc.name === pathParts[1])
+                if (subcampo) {
+                  console.log('Subcampo encontrado (nivel 1):', subcampo)
+                  return subcampo
+                }
+              } else if (pathParts.length === 3) {
+                // Segundo nivel de subformulario
+                const subcampo = campoSubform.subcampos.find((sc) => sc.name === pathParts[1])
+                if (subcampo && subcampo.type === 'subform' && subcampo.subcampos) {
+                  const subsubcampo = subcampo.subcampos.find((ssc) => ssc.name === pathParts[2])
+                  if (subsubcampo) {
+                    console.log('Sub-subcampo encontrado (nivel 2):', subsubcampo)
+                    return subsubcampo
+                  }
+                }
+              }
+            }
           }
         }
       }
-      
-      console.log('Campo no encontrado en plantilla principal')
+
+      console.log('Campo no encontrado')
       return null
     },
 
@@ -1112,7 +1238,7 @@ methods: {
       this.filtroActivo = {
         campo: '',
         operador: 'equals',
-        valor: ''
+        valor: '',
       }
     },
 
@@ -1137,129 +1263,166 @@ methods: {
     },
 
     // ========== MÉTODOS PARA FILTROS DINÁMICOS ==========
-    
+
     onCampoFiltroChange() {
       // Resetear operador y valor cuando cambia el campo
-      this.filtroActivo.operador = 'equals';
-      this.filtroActivo.valor = '';
+      this.filtroActivo.operador = 'equals'
+      this.filtroActivo.valor = ''
     },
 
     esCampoNumerico(nombreCampo) {
-      const campo = this.getCampoDefinition(nombreCampo);
-      return campo && ['number', 'integer'].includes(campo.type);
+      const campo = this.getCampoDefinition(nombreCampo)
+      return campo && ['number', 'integer'].includes(campo.type)
     },
 
     esCampoFecha(nombreCampo) {
-      const campo = this.getCampoDefinition(nombreCampo);
-      return campo && campo.type === 'date';
+      const campo = this.getCampoDefinition(nombreCampo)
+      return campo && campo.type === 'date'
     },
 
     tieneOpciones(nombreCampo) {
-  const campo = this.getCampoDefinition(nombreCampo);
-  return campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0;
-},
+      const campo = this.getCampoDefinition(nombreCampo)
+      return campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0
+    },
 
     getOpcionesDelCampo(nombreCampo) {
-  const campo = this.getCampoDefinition(nombreCampo);
-  if (!campo || !campo.options || !Array.isArray(campo.options)) return [];
-  
-  // Verificar si el primer elemento es un objeto (select dinámico) o string (select manual)
-  if (campo.options.length === 0) return [];
-  
-  const primerElemento = campo.options[0];
-  
-  // Select dinámico: [{"campoGuardar": "id", "campoMostrar": "texto"}]
-  if (typeof primerElemento === 'object' && primerElemento !== null) {
-    return campo.options.map(opcion => ({
-      value: opcion.campoGuardar || opcion.value || opcion,
-      label: opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value || opcion
-    }));
-  }
-  
-  // Select manual
-  if (typeof primerElemento === 'string') {
-    return campo.options.map(opcion => ({
-      value: opcion,
-      label: opcion
-    }));
-  }
-  
-  return [];
-},
+      const campo = this.getCampoDefinition(nombreCampo)
+      if (!campo || !campo.options || !Array.isArray(campo.options)) return []
 
+      // Verificar si el primer elemento es un objeto (select dinámico) o string (select manual)
+      if (campo.options.length === 0) return []
+
+      const primerElemento = campo.options[0]
+
+      // Select dinámico: [{"campoGuardar": "id", "campoMostrar": "texto"}]
+      if (typeof primerElemento === 'object' && primerElemento !== null) {
+        return campo.options.map((opcion) => ({
+          value: opcion.campoGuardar || opcion.value || opcion,
+          label:
+            opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value || opcion,
+        }))
+      }
+
+      // Select manual
+      if (typeof primerElemento === 'string') {
+        return campo.options.map((opcion) => ({
+          value: opcion,
+          label: opcion,
+        }))
+      }
+
+      return []
+    },
 
     agregarFiltro() {
-      if (!this.filtroActivo.campo || !this.filtroActivo.valor) return;
+      if (!this.filtroActivo.campo || !this.filtroActivo.valor) return
 
       // Verificar si ya existe un filtro para este campo
-      const existeIndex = this.filtrosActivos.findIndex(f => f.campo === this.filtroActivo.campo);
-      
+      const existeIndex = this.filtrosActivos.findIndex((f) => f.campo === this.filtroActivo.campo)
+
       if (existeIndex >= 0) {
         // Reemplazar filtro existente
-        this.filtrosActivos.splice(existeIndex, 1, { ...this.filtroActivo });
+        this.filtrosActivos.splice(existeIndex, 1, { ...this.filtroActivo })
       } else {
         // Agregar nuevo filtro
-        this.filtrosActivos.push({ ...this.filtroActivo });
+        this.filtrosActivos.push({ ...this.filtroActivo })
       }
 
       // Resetear filtro activo
       this.filtroActivo = {
         campo: '',
         operador: 'equals',
-        valor: ''
-      };
+        valor: '',
+      }
     },
 
     eliminarFiltro(index) {
-      this.filtrosActivos.splice(index, 1);
+      this.filtrosActivos.splice(index, 1)
     },
 
     limpiarTodosFiltros() {
-      this.filtrosActivos = [];
+      this.filtrosActivos = []
       this.filtroActivo = {
         campo: '',
         operador: 'equals',
-        valor: ''
-      };
+        valor: '',
+      }
     },
 
     aplicarFiltro(valor, filtro) {
-      if (valor === null || valor === undefined) {
-        valor = '';
+      // Si es un array (subformulario), verificar si algún elemento cumple el filtro
+      if (Array.isArray(valor)) {
+        return valor.some((item) => {
+          // Si el campo es anidado (tiene puntos), necesitamos obtener el valor correcto
+          if (filtro.campo.includes('.')) {
+            const pathParts = filtro.campo.split('.')
+            // Obtener el campo específico del item
+            const campoEspecifico = pathParts[pathParts.length - 1]
+            const valorItem = item[campoEspecifico]
+            return this.aplicarFiltroSimple(valorItem, filtro)
+          } else {
+            return this.aplicarFiltroSimple(item, filtro)
+          }
+        })
       }
-      
-      const valorString = String(valor).toLowerCase();
-      const filtroValor = String(filtro.valor).toLowerCase();
+
+      return this.aplicarFiltroSimple(valor, filtro)
+    },
+
+    // Nuevo método para aplicar filtro a valores simples
+    aplicarFiltroSimple(valor, filtro) {
+      if (valor === null || valor === undefined) {
+        return false
+      }
+
+      const valorString = String(valor).toLowerCase()
+      const filtroValor = String(filtro.valor).toLowerCase()
 
       switch (filtro.operador) {
         case 'equals':
-          return valorString === filtroValor;
+          return valorString === filtroValor
         case 'contains':
-          return valorString.includes(filtroValor);
+          return valorString.includes(filtroValor)
         case 'startsWith':
-          return valorString.startsWith(filtroValor);
+          return valorString.startsWith(filtroValor)
         case 'endsWith':
-          return valorString.endsWith(filtroValor);
+          return valorString.endsWith(filtroValor)
         case 'notEquals':
-          return valorString !== filtroValor;
+          return valorString !== filtroValor
         case 'gt':
-          return parseFloat(valor) > parseFloat(filtro.valor);
+          return parseFloat(valor) > parseFloat(filtro.valor)
         case 'lt':
-          return parseFloat(valor) < parseFloat(filtro.valor);
+          return parseFloat(valor) < parseFloat(filtro.valor)
         default:
-          return true;
+          return true
       }
     },
 
     getDisplayValueForFilter(filtro) {
-      // Si tiene opciones, mostrar el label bonito
-      if (this.tieneOpciones(filtro.campo)) {
-        const opciones = this.getOpcionesDelCampo(filtro.campo);
-        const opcion = opciones.find(o => o.value === filtro.valor);
-        return opcion ? opcion.label : filtro.valor;
+      // Buscar la definición del campo (ahora puede ser un path)
+      const campo = this.getCampoDefinition(filtro.campo)
+
+      if (!campo) {
+        return filtro.valor
       }
-      
-      return filtro.valor;
+
+      // Si tiene opciones, mostrar el label bonito
+      if (campo.options && Array.isArray(campo.options)) {
+        const primerElemento = campo.options[0]
+
+        // Select dinámico
+        if (typeof primerElemento === 'object' && primerElemento !== null) {
+          const opcion = campo.options.find((o) => o.campoGuardar === filtro.valor)
+          return opcion ? opcion.campoMostrar : filtro.valor
+        }
+
+        // Select manual
+        if (typeof primerElemento === 'string') {
+          return filtro.valor // Ya es el texto que queremos mostrar
+        }
+      }
+
+      return filtro.valor
     },
   },
 
@@ -1268,7 +1431,6 @@ methods: {
   },
 }
 </script>
-
 
 <style scoped>
 /* Estilos base del diseño moderno */
