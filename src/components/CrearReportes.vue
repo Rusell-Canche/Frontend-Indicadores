@@ -55,6 +55,9 @@
             <div class="info-item">
               <strong>Campos disponibles:</strong> {{ camposDocumento.length }}
             </div>
+            <div class="info-item">
+              <strong>Documentos filtrados:</strong> {{ documentosFiltrados.length }}
+            </div>
           </div>
         </div>
       </div>
@@ -124,6 +127,154 @@
           </div>
         </div>
       </div>
+
+      <!-- ========== SECCIÓN DE FILTROS AVANZADOS ========== -->
+      <div class="form-section mt-4">
+        <h6 class="section-title">
+          <i class="fas fa-filter me-2"></i>
+          Filtros Avanzados para el Reporte
+        </h6>
+        <p class="text-muted mb-3">
+          Filtra los documentos que se incluirán en el reporte. Actualmente se incluirán {{ documentosFiltrados.length }} de {{ documentos.length }} documentos.
+        </p>
+
+        <!-- Contenedor de filtros -->
+        <div class="filters-container">
+          <div class="row g-3">
+            <!-- Filtro por campo específico -->
+            <div class="col-md-4">
+              <label class="form-label">Campo a filtrar</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-list"></i>
+                </span>
+                <select
+                  class="form-select"
+                  v-model="filtroActivo.campo"
+                  @change="onCampoFiltroChange"
+                >
+                  <option value="">Seleccionar campo...</option>
+                  <option
+                    v-for="campo in camposFiltrables"
+                    :key="campo.name"
+                    :value="campo.fullPath"
+                  >
+                    {{ campo.displayName || campo.alias || formatFieldName(campo.name) }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Operador de filtro -->
+            <div class="col-md-3" v-if="filtroActivo.campo">
+              <label class="form-label">Operador</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-equals"></i>
+                </span>
+                <select class="form-select" v-model="filtroActivo.operador">
+                  <option value="equals">Igual a</option>
+                  <option value="contains">Contiene</option>
+                  <option value="startsWith">Inicia con</option>
+                  <option value="endsWith">Termina con</option>
+                  <option value="notEquals">Diferente a</option>
+                  <option value="gt" v-if="esCampoNumerico(filtroActivo.campo)">
+                    Mayor que
+                  </option>
+                  <option value="lt" v-if="esCampoNumerico(filtroActivo.campo)">
+                    Menor que
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Valor del filtro -->
+            <div class="col-md-4" v-if="filtroActivo.campo">
+              <label class="form-label">Valor</label>
+
+              <!-- Si es un campo con opciones (select) -->
+              <div v-if="tieneOpciones(filtroActivo.campo)" class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-list-ul"></i>
+                </span>
+                <select class="form-select" v-model="filtroActivo.valor">
+                  <option value="">Todos los valores...</option>
+                  <option
+                    v-for="opcion in getOpcionesDelCampo(filtroActivo.campo)"
+                    :key="opcion.value"
+                    :value="opcion.value"
+                  >
+                    {{ opcion.label }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Si es un campo de fecha -->
+              <div
+                v-else-if="esCampoFecha(filtroActivo.campo)"
+                class="input-group modern-input"
+              >
+                <span class="input-group-text">
+                  <i class="fas fa-calendar"></i>
+                </span>
+                <input type="date" class="form-control" v-model="filtroActivo.valor" />
+              </div>
+
+              <!-- Campo de texto normal -->
+              <div v-else class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Valor a buscar..."
+                  v-model="filtroActivo.valor"
+                />
+              </div>
+            </div>
+
+            <!-- Botón para aplicar filtro -->
+            <div class="col-md-1" v-if="filtroActivo.campo">
+              <label class="form-label">&nbsp;</label>
+              <div class="d-flex gap-2">
+                <button
+                  class="btn btn-success btn-sm"
+                  @click="agregarFiltro"
+                  :disabled="!filtroActivo.valor"
+                  title="Agregar filtro"
+                >
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros activos -->
+          <div v-if="filtrosActivos.length > 0" class="mt-3">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <span class="badge bg-secondary">Filtros activos:</span>
+              <span
+                v-for="(filtro, index) in filtrosActivos"
+                :key="index"
+                class="badge bg-info text-dark cursor-pointer"
+                @click="eliminarFiltro(index)"
+              >
+                {{ formatFieldName(filtro.campo) }}: {{ getDisplayValueForFilter(filtro) }}
+                <i class="fas fa-times ms-2"></i>
+              </span>
+              <button
+                class="btn btn-danger btn-sm"
+                @click="limpiarTodosFiltros"
+                title="Limpiar todos los filtros"
+              >
+                <i class="fas fa-trash"></i> Limpiar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ========== FIN SECCIÓN FILTROS AVANZADOS ========== -->
     </div>
 
     <!-- Botones de acción -->
@@ -135,7 +286,7 @@
       >
         <i class="fas fa-file-alt me-2"></i>
         <span v-if="generandoReporte">Generando...</span>
-        <span v-else>Generar Reporte</span>
+        <span v-else>Generar Reporte ({{ documentosFiltrados.length }} docs)</span>
       </button>
 
       <button 
@@ -144,7 +295,7 @@
         :disabled="camposSeleccionados.length === 0"
       >
         <i class="fas fa-eye me-2"></i>
-        Vista Previa
+        Vista Previa ({{ documentosFiltrados.length }} docs)
       </button>
 
       <button 
@@ -161,6 +312,7 @@
       <h6 class="section-title">
         <i class="fas fa-eye me-2"></i>
         Vista Previa del Reporte
+        <span class="badge bg-primary ms-2">{{ documentosFiltrados.length }} documentos</span>
       </h6>
 
       <div class="preview-header mb-3">
@@ -170,6 +322,9 @@
         </p>
         <p class="text-muted">
           Total de registros: {{ datosReporte.length }}
+          <span v-if="filtrosActivos.length > 0" class="badge bg-info ms-2">
+            {{ filtrosActivos.length }} filtro(s) aplicado(s)
+          </span>
         </p>
       </div>
 
@@ -255,7 +410,15 @@ export default {
         'users',
         'comentarios',
         'carrousel_images'
-      ]
+      ],
+
+      // ========== FILTROS AVANZADOS ==========
+      filtroActivo: {
+        campo: '',
+        operador: 'equals',
+        valor: '',
+      },
+      filtrosActivos: [],
     }
   },
 
@@ -271,6 +434,77 @@ export default {
         const campoDef = this.getCampoDefinition(campo)
         return campoDef?.type !== 'file' && !['_id', 'created_at', 'updated_at'].includes(campo)
       })
+    },
+
+    // ========== CAMPOS FILTRABLES (para filtros avanzados) ==========
+    camposFiltrables() {
+      if (!this.camposPlantilla?.secciones) return []
+
+      const campos = []
+
+      this.camposPlantilla.secciones.forEach((seccion) => {
+        if (seccion.fields) {
+          seccion.fields.forEach((campo) => {
+            // Campos normales (no subforms y no archivos)
+            if (campo.type !== 'subform' && campo.type !== 'file') {
+              campos.push({
+                ...campo,
+                displayName: campo.alias || campo.name,
+                fullPath: campo.name,
+              })
+            }
+
+            // Campos dentro de subformularios (primer nivel)
+            if (campo.type === 'subform' && campo.subcampos) {
+              campo.subcampos.forEach((subcampo) => {
+                if (subcampo.type !== 'subform' && subcampo.type !== 'file') {
+                  campos.push({
+                    ...subcampo,
+                    displayName: `${campo.alias || campo.name} → ${subcampo.alias || subcampo.name}`,
+                    fullPath: `${campo.name}.${subcampo.name}`,
+                    parentSubform: campo.name,
+                  })
+                }
+
+                // Campos dentro de subformularios anidados (segundo nivel)
+                if (subcampo.type === 'subform' && subcampo.subcampos) {
+                  subcampo.subcampos.forEach((subsubcampo) => {
+                    if (subsubcampo.type !== 'subform' && subsubcampo.type !== 'file') {
+                      campos.push({
+                        ...subsubcampo,
+                        displayName: `${campo.alias || campo.name} → ${subcampo.alias || subcampo.name} → ${subsubcampo.alias || subsubcampo.name}`,
+                        fullPath: `${campo.name}.${subcampo.name}.${subsubcampo.name}`,
+                        parentSubform: campo.name,
+                        parentSubSubform: subcampo.name,
+                      })
+                    }
+                  })
+                }
+              })
+            }
+          })
+        }
+      })
+
+      return campos
+    },
+
+    // ========== DOCUMENTOS FILTRADOS ==========
+    documentosFiltrados() {
+      let documentos = [...this.documentos]
+
+      // Aplicar filtros dinámicos
+      if (this.filtrosActivos.length > 0) {
+        documentos = documentos.filter((doc) => {
+          return this.filtrosActivos.every((filtro) => {
+            // Obtener el valor del documento para el campo del filtro
+            const valor = this.getFieldValueFromDocument(doc, filtro.campo)
+            return this.aplicarFiltro(valor, filtro)
+          })
+        })
+      }
+
+      return documentos
     }
   },
 
@@ -321,6 +555,9 @@ export default {
         this.documentos = documentos
         this.procesarCamposDocumento()
 
+        // Limpiar filtros al cambiar de colección
+        this.limpiarTodosFiltros()
+
         if (this.camposDisponibles.length > 0) {
           this.camposSeleccionados = this.camposDisponibles.slice(0, 5)
         }
@@ -354,24 +591,102 @@ export default {
       this.camposDocumento = todosLosCampos.map(campo => campo.name)
     },
 
+    // ========== MÉTODO MEJORADO PARA DEFINICIÓN DE CAMPOS ==========
     getCampoDefinition(fieldPath) {
       if (!this.camposPlantilla?.secciones) return null
-      for (const seccion of this.camposPlantilla.secciones) {
-        const campo = seccion.fields?.find(f => f.name === fieldPath)
-        if (campo) return campo
-      }
-      return null
-    },
 
-    getFieldValueFromDocument(documento, fieldPath) {
-      if (documento.secciones) {
-        for (const seccion of documento.secciones) {
-          if (seccion.fields?.hasOwnProperty(fieldPath)) {
-            return seccion.fields[fieldPath]
+      // Si es un path simple (sin puntos), buscar en campos principales
+      if (!fieldPath.includes('.')) {
+        for (const seccion of this.camposPlantilla.secciones) {
+          if (seccion.fields && Array.isArray(seccion.fields)) {
+            const campo = seccion.fields.find((f) => f.name === fieldPath)
+            if (campo) return campo
+          }
+        }
+      } else {
+        // Si es un path con puntos, dividir y buscar en subformularios
+        const pathParts = fieldPath.split('.')
+
+        for (const seccion of this.camposPlantilla.secciones) {
+          if (seccion.fields && Array.isArray(seccion.fields)) {
+            // Buscar el campo principal (subformulario)
+            const campoSubform = seccion.fields.find((f) => f.name === pathParts[0])
+            if (campoSubform && campoSubform.type === 'subform' && campoSubform.subcampos) {
+              if (pathParts.length === 2) {
+                // Primer nivel de subformulario
+                const subcampo = campoSubform.subcampos.find((sc) => sc.name === pathParts[1])
+                if (subcampo) return subcampo
+              } else if (pathParts.length === 3) {
+                // Segundo nivel de subformulario
+                const subcampo = campoSubform.subcampos.find((sc) => sc.name === pathParts[1])
+                if (subcampo && subcampo.type === 'subform' && subcampo.subcampos) {
+                  const subsubcampo = subcampo.subcampos.find((ssc) => ssc.name === pathParts[2])
+                  if (subsubcampo) return subsubcampo
+                }
+              }
+            }
           }
         }
       }
-      return documento[fieldPath]
+
+      return null
+    },
+
+    // ========== MÉTODO MEJORADO PARA OBTENER VALORES ==========
+    getFieldValueFromDocument(documento, fieldPath) {
+      // Si no es un path con puntos, buscar directamente
+      if (!fieldPath.includes('.')) {
+        // Buscar en secciones primero
+        if (documento.secciones) {
+          for (const seccion of documento.secciones) {
+            if (seccion.fields && seccion.fields.hasOwnProperty(fieldPath)) {
+              return seccion.fields[fieldPath]
+            }
+          }
+        }
+        // Buscar directamente en el documento
+        return documento[fieldPath]
+      }
+
+      // Para paths con puntos (subformularios anidados)
+      const pathParts = fieldPath.split('.')
+      let currentValue = documento
+
+      for (let i = 0; i < pathParts.length; i++) {
+        const part = pathParts[i]
+
+        if (currentValue === null || currentValue === undefined) {
+          return null
+        }
+
+        // Buscar en secciones si existe
+        if (currentValue.secciones) {
+          let foundInSecciones = false
+          for (const seccion of currentValue.secciones) {
+            if (seccion.fields && seccion.fields.hasOwnProperty(part)) {
+              currentValue = seccion.fields[part]
+              foundInSecciones = true
+              break
+            }
+          }
+          if (!foundInSecciones) {
+            currentValue = currentValue[part]
+          }
+        } else {
+          currentValue = currentValue[part]
+        }
+
+        // Si es un array y no es el último elemento del path, tomar el primer elemento
+        if (Array.isArray(currentValue) && i < pathParts.length - 1) {
+          if (currentValue.length > 0) {
+            currentValue = currentValue[0]
+          } else {
+            return null
+          }
+        }
+      }
+
+      return currentValue
     },
 
     getFieldValueForReport(documento, fieldName) {
@@ -427,6 +742,7 @@ export default {
       this.tituloReporte = ''
       this.mostrarPreview = false
       this.datosReporte = []
+      this.limpiarTodosFiltros()
     },
 
     limpiarConfiguracion() {
@@ -435,6 +751,7 @@ export default {
       this.incluirFecha = true
       this.mostrarPreview = false
       this.datosReporte = []
+      this.limpiarTodosFiltros()
     },
 
     previsualizarReporte() {
@@ -442,11 +759,160 @@ export default {
         this.showError('Selecciona al menos un campo para el reporte')
         return
       }
-      this.datosReporte = [...this.documentos]
+      this.datosReporte = [...this.documentosFiltrados]
       this.mostrarPreview = true
     },
 
-    //Método para generar PDF
+    // ========== MÉTODOS PARA FILTROS AVANZADOS ==========
+    onCampoFiltroChange() {
+      this.filtroActivo.operador = 'equals'
+      this.filtroActivo.valor = ''
+    },
+
+    esCampoNumerico(nombreCampo) {
+      const campo = this.getCampoDefinition(nombreCampo)
+      return campo && ['number', 'integer'].includes(campo.type)
+    },
+
+    esCampoFecha(nombreCampo) {
+      const campo = this.getCampoDefinition(nombreCampo)
+      return campo && campo.type === 'date'
+    },
+
+    tieneOpciones(nombreCampo) {
+      const campo = this.getCampoDefinition(nombreCampo)
+      return campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0
+    },
+
+    getOpcionesDelCampo(nombreCampo) {
+      const campo = this.getCampoDefinition(nombreCampo)
+      if (!campo || !campo.options || !Array.isArray(campo.options)) return []
+
+      const primerElemento = campo.options[0]
+
+      // Select dinámico
+      if (typeof primerElemento === 'object' && primerElemento !== null) {
+        return campo.options.map((opcion) => ({
+          value: opcion.campoGuardar || opcion.value || opcion,
+          label: opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value || opcion,
+        }))
+      }
+
+      // Select manual
+      if (typeof primerElemento === 'string') {
+        return campo.options.map((opcion) => ({
+          value: opcion,
+          label: opcion,
+        }))
+      }
+
+      return []
+    },
+
+    agregarFiltro() {
+      if (!this.filtroActivo.campo || !this.filtroActivo.valor) return
+
+      // Verificar si ya existe un filtro para este campo
+      const existeIndex = this.filtrosActivos.findIndex((f) => f.campo === this.filtroActivo.campo)
+
+      if (existeIndex >= 0) {
+        // Reemplazar filtro existente
+        this.filtrosActivos.splice(existeIndex, 1, { ...this.filtroActivo })
+      } else {
+        // Agregar nuevo filtro
+        this.filtrosActivos.push({ ...this.filtroActivo })
+      }
+
+      // Resetear filtro activo
+      this.filtroActivo = {
+        campo: '',
+        operador: 'equals',
+        valor: '',
+      }
+    },
+
+    eliminarFiltro(index) {
+      this.filtrosActivos.splice(index, 1)
+    },
+
+    limpiarTodosFiltros() {
+      this.filtrosActivos = []
+      this.filtroActivo = {
+        campo: '',
+        operador: 'equals',
+        valor: '',
+      }
+    },
+
+    aplicarFiltro(valor, filtro) {
+      // Si es un array (subformulario), verificar si algún elemento cumple el filtro
+      if (Array.isArray(valor)) {
+        return valor.some((item) => {
+          if (filtro.campo.includes('.')) {
+            const pathParts = filtro.campo.split('.')
+            const campoEspecifico = pathParts[pathParts.length - 1]
+            const valorItem = item[campoEspecifico]
+            return this.aplicarFiltroSimple(valorItem, filtro)
+          } else {
+            return this.aplicarFiltroSimple(item, filtro)
+          }
+        })
+      }
+
+      return this.aplicarFiltroSimple(valor, filtro)
+    },
+
+    aplicarFiltroSimple(valor, filtro) {
+      if (valor === null || valor === undefined) {
+        return false
+      }
+
+      const valorString = String(valor).toLowerCase()
+      const filtroValor = String(filtro.valor).toLowerCase()
+
+      switch (filtro.operador) {
+        case 'equals':
+          return valorString === filtroValor
+        case 'contains':
+          return valorString.includes(filtroValor)
+        case 'startsWith':
+          return valorString.startsWith(filtroValor)
+        case 'endsWith':
+          return valorString.endsWith(filtroValor)
+        case 'notEquals':
+          return valorString !== filtroValor
+        case 'gt':
+          return parseFloat(valor) > parseFloat(filtro.valor)
+        case 'lt':
+          return parseFloat(valor) < parseFloat(filtro.valor)
+        default:
+          return true
+      }
+    },
+
+    getDisplayValueForFilter(filtro) {
+      const campo = this.getCampoDefinition(filtro.campo)
+      if (!campo) return filtro.valor
+
+      if (campo.options && Array.isArray(campo.options)) {
+        const primerElemento = campo.options[0]
+
+        // Select dinámico
+        if (typeof primerElemento === 'object' && primerElemento !== null) {
+          const opcion = campo.options.find((o) => o.campoGuardar === filtro.valor)
+          return opcion ? opcion.campoMostrar : filtro.valor
+        }
+
+        // Select manual
+        if (typeof primerElemento === 'string') {
+          return filtro.valor
+        }
+      }
+
+      return filtro.valor
+    },
+
+    // ========== GENERACIÓN DE PDF CON FILTROS ==========
     async generarReportePDF() {
       if (this.camposSeleccionados.length === 0) {
         this.showError('Selecciona al menos un campo para el reporte')
@@ -467,11 +933,19 @@ export default {
           yPosition += 10
         }
 
-        doc.text(`Total de registros: ${this.documentos.length}`, 20, yPosition)
-        yPosition += 15
+        // Información de filtros aplicados
+        doc.text(`Total de registros: ${this.documentosFiltrados.length}`, 20, yPosition)
+        yPosition += 10
+        
+        if (this.filtrosActivos.length > 0) {
+          doc.text(`Filtros aplicados: ${this.filtrosActivos.length}`, 20, yPosition)
+          yPosition += 15
+        } else {
+          yPosition += 10
+        }
 
         const headers = this.camposSeleccionados.map(campo => this.formatFieldName(campo))
-        const rows = this.documentos.map(doc =>
+        const rows = this.documentosFiltrados.map(doc =>
           this.camposSeleccionados.map(campo => this.getFieldValueForReport(doc, campo) || '-')
         )
 
@@ -489,7 +963,7 @@ export default {
         const nombreArchivo = `${this.tituloReporte.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
         doc.save(nombreArchivo)
 
-        this.showSuccess('PDF generado y descargado exitosamente')
+        this.showSuccess(`PDF generado con ${this.documentosFiltrados.length} documentos filtrados`)
       } catch (error) {
         console.error('Error generando PDF:', error)
         this.showError('Error al generar el PDF.')
@@ -512,7 +986,6 @@ export default {
   }
 }
 </script>
-
 
 <style scoped>
 .crear-reportes-container {
@@ -542,6 +1015,7 @@ export default {
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
 }
 
 .section-title {
@@ -606,5 +1080,26 @@ export default {
 .spinner-border {
   width: 3rem;
   height: 3rem;
+}
+
+/* Estilos para filtros */
+.filters-container {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.badge {
+  font-size: 0.75em;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
 }
 </style>

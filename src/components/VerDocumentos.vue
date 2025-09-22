@@ -1281,38 +1281,36 @@ export default {
     },
 
     tieneOpciones(nombreCampo) {
-      const campo = this.getCampoDefinition(nombreCampo)
-      return campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0
-    },
+  const campo = this.getCampoDefinition(nombreCampo)
+  return campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0
+},
 
     getOpcionesDelCampo(nombreCampo) {
-      const campo = this.getCampoDefinition(nombreCampo)
-      if (!campo || !campo.options || !Array.isArray(campo.options)) return []
+  const campo = this.getCampoDefinition(nombreCampo)
+  if (!campo || !campo.options || !Array.isArray(campo.options)) return []
 
-      // Verificar si el primer elemento es un objeto (select dinámico) o string (select manual)
-      if (campo.options.length === 0) return []
+  if (campo.options.length === 0) return []
 
-      const primerElemento = campo.options[0]
+  const primerElemento = campo.options[0]
 
-      // Select dinámico: [{"campoGuardar": "id", "campoMostrar": "texto"}]
-      if (typeof primerElemento === 'object' && primerElemento !== null) {
-        return campo.options.map((opcion) => ({
-          value: opcion.campoGuardar || opcion.value || opcion,
-          label:
-            opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value || opcion,
-        }))
-      }
+  // Select dinámico: [{"campoGuardar": "id", "campoMostrar": "texto"}]
+  if (typeof primerElemento === 'object' && primerElemento !== null) {
+    return campo.options.map((opcion) => ({
+      value: opcion.campoGuardar || opcion.value || opcion,
+      label: opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value || opcion,
+    }))
+  }
 
-      // Select manual
-      if (typeof primerElemento === 'string') {
-        return campo.options.map((opcion) => ({
-          value: opcion,
-          label: opcion,
-        }))
-      }
+  // Select manual
+  if (typeof primerElemento === 'string') {
+    return campo.options.map((opcion) => ({
+      value: opcion,
+      label: opcion,
+    }))
+  }
 
-      return []
-    },
+  return []
+},
 
     agregarFiltro() {
       if (!this.filtroActivo.campo || !this.filtroActivo.valor) return
@@ -1371,59 +1369,86 @@ export default {
 
     // Nuevo método para aplicar filtro a valores simples
     aplicarFiltroSimple(valor, filtro) {
-      if (valor === null || valor === undefined) {
-        return false
-      }
+  if (valor === null || valor === undefined) {
+    return false
+  }
 
-      const valorString = String(valor).toLowerCase()
-      const filtroValor = String(filtro.valor).toLowerCase()
+  // Obtener la definición del campo para ver si es un select dinámico
+  const campo = this.getCampoDefinition(filtro.campo)
+  
+  let valorADocumento = valor
+  let valorBFiltro = filtro.valor
 
-      switch (filtro.operador) {
-        case 'equals':
-          return valorString === filtroValor
-        case 'contains':
-          return valorString.includes(filtroValor)
-        case 'startsWith':
-          return valorString.startsWith(filtroValor)
-        case 'endsWith':
-          return valorString.endsWith(filtroValor)
-        case 'notEquals':
-          return valorString !== filtroValor
-        case 'gt':
-          return parseFloat(valor) > parseFloat(filtro.valor)
-        case 'lt':
-          return parseFloat(valor) < parseFloat(filtro.valor)
-        default:
-          return true
+  // Si es un select dinámico, convertir campoGuardar a campoMostrar para la comparación
+  if (campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0) {
+    const primerElemento = campo.options[0]
+    
+    // Si es select dinámico (objetos con campoGuardar/campoMostrar)
+    if (typeof primerElemento === 'object' && primerElemento.campoGuardar) {
+      // Convertir el valor del documento (campoGuardar) a campoMostrar
+      const opcionDoc = campo.options.find(o => o.campoGuardar === valor)
+      if (opcionDoc) {
+        valorADocumento = opcionDoc.campoMostrar || valor
       }
-    },
+      
+      // Convertir el valor del filtro (campoGuardar) a campoMostrar
+      const opcionFiltro = campo.options.find(o => o.campoGuardar === filtro.valor)
+      if (opcionFiltro) {
+        valorBFiltro = opcionFiltro.campoMostrar || filtro.valor
+      }
+    }
+    // Si es select manual (array de strings), no hacemos conversión
+  }
+
+  const valorString = String(valorADocumento).toLowerCase()
+  const filtroValor = String(valorBFiltro).toLowerCase()
+
+  switch (filtro.operador) {
+    case 'equals':
+      return valorString === filtroValor
+    case 'contains':
+      return valorString.includes(filtroValor)
+    case 'startsWith':
+      return valorString.startsWith(filtroValor)
+    case 'endsWith':
+      return valorString.endsWith(filtroValor)
+    case 'notEquals':
+      return valorString !== filtroValro
+    case 'gt':
+      return parseFloat(valor) > parseFloat(filtro.valor)
+    case 'lt':
+      return parseFloat(valor) < parseFloat(filtro.valor)
+    default:
+      return true
+  }
+},
 
     getDisplayValueForFilter(filtro) {
-      // Buscar la definición del campo (ahora puede ser un path)
-      const campo = this.getCampoDefinition(filtro.campo)
+  // Buscar la definición del campo
+  const campo = this.getCampoDefinition(filtro.campo)
 
-      if (!campo) {
-        return filtro.valor
-      }
+  if (!campo) {
+    return filtro.valor
+  }
 
-      // Si tiene opciones, mostrar el label bonito
-      if (campo.options && Array.isArray(campo.options)) {
-        const primerElemento = campo.options[0]
+  // Si tiene opciones y es select dinámico
+  if (campo.options && Array.isArray(campo.options) && campo.options.length > 0) {
+    const primerElemento = campo.options[0]
+    
+    // Select dinámico (objetos con campoGuardar/campoMostrar)
+    if (typeof primerElemento === 'object' && primerElemento.campoGuardar) {
+      const opcion = campo.options.find(o => o.campoGuardar === filtro.valor)
+      return opcion ? opcion.campoMostrar : filtro.valor
+    }
+    
+    // Select manual (array de strings)
+    if (typeof primerElemento === 'string') {
+      return filtro.valor // Ya es el texto que queremos mostrar
+    }
+  }
 
-        // Select dinámico
-        if (typeof primerElemento === 'object' && primerElemento !== null) {
-          const opcion = campo.options.find((o) => o.campoGuardar === filtro.valor)
-          return opcion ? opcion.campoMostrar : filtro.valor
-        }
-
-        // Select manual
-        if (typeof primerElemento === 'string') {
-          return filtro.valor // Ya es el texto que queremos mostrar
-        }
-      }
-
-      return filtro.valor
-    },
+  return filtro.valor
+},
   },
 
   mounted() {
