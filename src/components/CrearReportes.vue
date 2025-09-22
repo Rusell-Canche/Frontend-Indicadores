@@ -25,16 +25,16 @@
             <span class="input-group-text">
               <i class="fas fa-folder"></i>
             </span>
-            <select 
-              class="form-select" 
+            <select
+              class="form-select"
               v-model="selectedColeccion"
               @change="onColeccionSelected"
               :disabled="loading.colecciones"
             >
               <option value="">Seleccionar colección...</option>
-              <option 
-                v-for="coleccion in coleccionesFiltradas" 
-                :key="coleccion.id" 
+              <option
+                v-for="coleccion in coleccionesFiltradas"
+                :key="coleccion.id"
                 :value="coleccion"
               >
                 {{ coleccion.nombre_coleccion }} ({{ coleccion.total_documentos }} documentos)
@@ -76,13 +76,13 @@
           <label class="form-label">Campos a incluir en el reporte</label>
           <div class="campos-selection">
             <div class="campo-item" v-for="campo in camposDisponibles" :key="campo">
-              <input 
-                type="checkbox" 
-                :id="'campo-' + campo" 
+              <input
+                type="checkbox"
+                :id="'campo-' + campo"
                 v-model="camposSeleccionados"
                 :value="campo"
                 class="form-check-input"
-              >
+              />
               <label :for="'campo-' + campo" class="form-check-label">
                 {{ formatFieldName(campo) }}
               </label>
@@ -93,15 +93,15 @@
         <!-- Opciones del reporte -->
         <div class="col-md-6">
           <label class="form-label">Opciones del Reporte</label>
-          
+
           <div class="mb-3">
             <label class="form-label">Título del Reporte</label>
-            <input 
-              type="text" 
-              class="form-control" 
+            <input
+              type="text"
+              class="form-control"
               v-model="tituloReporte"
               placeholder="Reporte de datos"
-            >
+            />
           </div>
 
           <div class="mb-3">
@@ -110,20 +110,18 @@
               <span class="input-group-text">
                 <i class="fas fa-file-pdf text-danger"></i>
               </span>
-              <input type="text" class="form-control" value="PDF" readonly>
+              <input type="text" class="form-control" value="PDF" readonly />
             </div>
           </div>
 
           <div class="form-check">
-            <input 
-              type="checkbox" 
-              class="form-check-input" 
+            <input
+              type="checkbox"
+              class="form-check-input"
               id="incluirFecha"
               v-model="incluirFecha"
-            >
-            <label class="form-check-label" for="incluirFecha">
-              Incluir fecha de generación
-            </label>
+            />
+            <label class="form-check-label" for="incluirFecha"> Incluir fecha de generación </label>
           </div>
         </div>
       </div>
@@ -135,7 +133,8 @@
           Filtros Avanzados para el Reporte
         </h6>
         <p class="text-muted mb-3">
-          Filtra los documentos que se incluirán en el reporte. Actualmente se incluirán {{ documentosFiltrados.length }} de {{ documentos.length }} documentos.
+          Filtra los documentos que se incluirán en el reporte. Actualmente se incluirán
+          {{ documentosFiltrados.length }} de {{ documentos.length }} documentos.
         </p>
 
         <!-- Contenedor de filtros -->
@@ -178,12 +177,8 @@
                   <option value="startsWith">Inicia con</option>
                   <option value="endsWith">Termina con</option>
                   <option value="notEquals">Diferente a</option>
-                  <option value="gt" v-if="esCampoNumerico(filtroActivo.campo)">
-                    Mayor que
-                  </option>
-                  <option value="lt" v-if="esCampoNumerico(filtroActivo.campo)">
-                    Menor que
-                  </option>
+                  <option value="gt" v-if="esCampoNumerico(filtroActivo.campo)">Mayor que</option>
+                  <option value="lt" v-if="esCampoNumerico(filtroActivo.campo)">Menor que</option>
                 </select>
               </div>
             </div>
@@ -210,10 +205,7 @@
               </div>
 
               <!-- Si es un campo de fecha -->
-              <div
-                v-else-if="esCampoFecha(filtroActivo.campo)"
-                class="input-group modern-input"
-              >
+              <div v-else-if="esCampoFecha(filtroActivo.campo)" class="input-group modern-input">
                 <span class="input-group-text">
                   <i class="fas fa-calendar"></i>
                 </span>
@@ -279,7 +271,7 @@
 
     <!-- Botones de acción -->
     <div class="action-buttons mb-4" v-if="selectedColeccion && !loading.documentos">
-      <button 
+      <button
         class="btn btn-primary me-2"
         @click="generarReportePDF"
         :disabled="camposSeleccionados.length === 0 || generandoReporte"
@@ -289,7 +281,7 @@
         <span v-else>Generar Reporte ({{ documentosFiltrados.length }} docs)</span>
       </button>
 
-      <button 
+      <button
         class="btn btn-secondary me-2"
         @click="previsualizarReporte"
         :disabled="camposSeleccionados.length === 0"
@@ -298,10 +290,7 @@
         Vista Previa ({{ documentosFiltrados.length }} docs)
       </button>
 
-      <button 
-        class="btn btn-outline-danger"
-        @click="limpiarConfiguracion"
-      >
+      <button class="btn btn-outline-danger" @click="limpiarConfiguracion">
         <i class="fas fa-trash me-2"></i>
         Limpiar
       </button>
@@ -395,13 +384,13 @@ export default {
 
       loading: {
         colecciones: false,
-        documentos: false
+        documentos: false,
       },
       generandoReporte: false,
 
       excludedCollections: [
         'failed_jobs',
-        'navbar_colors', 
+        'navbar_colors',
         'password_reset_tokens',
         'migrations',
         'personal_access_tokens',
@@ -409,7 +398,7 @@ export default {
         'noticias_collection',
         'users',
         'comentarios',
-        'carrousel_images'
+        'carrousel_images',
       ],
 
       // ========== FILTROS AVANZADOS ==========
@@ -425,12 +414,12 @@ export default {
   computed: {
     coleccionesFiltradas() {
       return this.colecciones.filter(
-        col => !this.excludedCollections.includes(col.nombre_coleccion)
+        (col) => !this.excludedCollections.includes(col.nombre_coleccion),
       )
     },
 
     camposDisponibles() {
-      return this.camposDocumento.filter(campo => {
+      return this.camposDocumento.filter((campo) => {
         const campoDef = this.getCampoDefinition(campo)
         return campoDef?.type !== 'file' && !['_id', 'created_at', 'updated_at'].includes(campo)
       })
@@ -505,7 +494,7 @@ export default {
       }
 
       return documentos
-    }
+    },
   },
 
   methods: {
@@ -513,7 +502,7 @@ export default {
       const token = localStorage.getItem('apiToken')
       const config = {
         headers: { Authorization: `Bearer ${token}` },
-        ...options
+        ...options,
       }
 
       const response = await axios(endpoint, config)
@@ -534,7 +523,7 @@ export default {
     async getCamposPlantilla(plantillaId) {
       try {
         const response = await this.apiCall(
-          `http://127.0.0.1:8000/api/plantillas/${plantillaId}/secciones`
+          `http://127.0.0.1:8000/api/plantillas/${plantillaId}/secciones`,
         )
         return response?.secciones ? response : { secciones: [] }
       } catch {
@@ -548,7 +537,7 @@ export default {
       try {
         const [camposPlantilla, documentos] = await Promise.all([
           this.getCamposPlantilla(this.selectedColeccion.id),
-          this.apiCall(`http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.id}`)
+          this.apiCall(`http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.id}`),
         ])
 
         this.camposPlantilla = camposPlantilla
@@ -583,12 +572,12 @@ export default {
 
     procesarCamposConSecciones() {
       const todosLosCampos = []
-      this.camposPlantilla.secciones.forEach(seccion => {
+      this.camposPlantilla.secciones.forEach((seccion) => {
         if (Array.isArray(seccion.fields)) {
-          seccion.fields.forEach(campo => todosLosCampos.push(campo))
+          seccion.fields.forEach((campo) => todosLosCampos.push(campo))
         }
       })
-      this.camposDocumento = todosLosCampos.map(campo => campo.name)
+      this.camposDocumento = todosLosCampos.map((campo) => campo.name)
     },
 
     // ========== MÉTODO MEJORADO PARA DEFINICIÓN DE CAMPOS ==========
@@ -700,7 +689,7 @@ export default {
         return this.formatoFecha(valor)
       }
       if (campo.options) {
-        const option = campo.options.find(o => o.campoGuardar === valor)
+        const option = campo.options.find((o) => o.campoGuardar === valor)
         return option ? option.campoMostrar : valor
       }
       if (Array.isArray(valor)) {
@@ -719,11 +708,14 @@ export default {
     formatFieldName(fieldName) {
       const fieldMap = {
         created_at: 'Fecha de creación',
-        updated_at: 'Última actualización'
+        updated_at: 'Última actualización',
       }
-      return fieldMap[fieldName] || 
-        fieldName.replace(/_/g, ' ')
-                 .replace(/\w\S*/g, w => w[0].toUpperCase() + w.substr(1).toLowerCase())
+      return (
+        fieldMap[fieldName] ||
+        fieldName
+          .replace(/_/g, ' ')
+          .replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.substr(1).toLowerCase())
+      )
     },
 
     async onColeccionSelected() {
@@ -788,13 +780,16 @@ export default {
       const campo = this.getCampoDefinition(nombreCampo)
       if (!campo || !campo.options || !Array.isArray(campo.options)) return []
 
+      if (campo.options.length === 0) return []
+
       const primerElemento = campo.options[0]
 
-      // Select dinámico
+      // Select dinámico: [{"campoGuardar": "id", "campoMostrar": "texto"}]
       if (typeof primerElemento === 'object' && primerElemento !== null) {
         return campo.options.map((opcion) => ({
           value: opcion.campoGuardar || opcion.value || opcion,
-          label: opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value || opcion,
+          label:
+            opcion.campoMostrar || opcion.label || opcion.campoGuardar || opcion.value || opcion,
         }))
       }
 
@@ -867,8 +862,35 @@ export default {
         return false
       }
 
-      const valorString = String(valor).toLowerCase()
-      const filtroValor = String(filtro.valor).toLowerCase()
+      // Obtener la definición del campo para ver si es un select dinámico
+      const campo = this.getCampoDefinition(filtro.campo)
+
+      let valorADocumento = valor
+      let valorBFiltro = filtro.valor
+
+      // Si es un select dinámico, convertir campoGuardar a campoMostrar para la comparación
+      if (campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0) {
+        const primerElemento = campo.options[0]
+
+        // Si es select dinámico (objetos con campoGuardar/campoMostrar)
+        if (typeof primerElemento === 'object' && primerElemento.campoGuardar) {
+          // Convertir el valor del documento (campoGuardar) a campoMostrar
+          const opcionDoc = campo.options.find((o) => o.campoGuardar === valor)
+          if (opcionDoc) {
+            valorADocumento = opcionDoc.campoMostrar || valor
+          }
+
+          // Convertir el valor del filtro (campoGuardar) a campoMostrar
+          const opcionFiltro = campo.options.find((o) => o.campoGuardar === filtro.valor)
+          if (opcionFiltro) {
+            valorBFiltro = opcionFiltro.campoMostrar || filtro.valor
+          }
+        }
+        // Si es select manual (array de strings), no hacemos conversión
+      }
+
+      const valorString = String(valorADocumento).toLowerCase()
+      const filtroValor = String(valorBFiltro).toLowerCase()
 
       switch (filtro.operador) {
         case 'equals':
@@ -880,7 +902,7 @@ export default {
         case 'endsWith':
           return valorString.endsWith(filtroValor)
         case 'notEquals':
-          return valorString !== filtroValor
+          return valorString !== filtroValro
         case 'gt':
           return parseFloat(valor) > parseFloat(filtro.valor)
         case 'lt':
@@ -891,21 +913,26 @@ export default {
     },
 
     getDisplayValueForFilter(filtro) {
+      // Buscar la definición del campo
       const campo = this.getCampoDefinition(filtro.campo)
-      if (!campo) return filtro.valor
 
-      if (campo.options && Array.isArray(campo.options)) {
+      if (!campo) {
+        return filtro.valor
+      }
+
+      // Si tiene opciones y es select dinámico
+      if (campo.options && Array.isArray(campo.options) && campo.options.length > 0) {
         const primerElemento = campo.options[0]
 
-        // Select dinámico
-        if (typeof primerElemento === 'object' && primerElemento !== null) {
+        // Select dinámico (objetos con campoGuardar/campoMostrar)
+        if (typeof primerElemento === 'object' && primerElemento.campoGuardar) {
           const opcion = campo.options.find((o) => o.campoGuardar === filtro.valor)
           return opcion ? opcion.campoMostrar : filtro.valor
         }
 
-        // Select manual
+        // Select manual (array de strings)
         if (typeof primerElemento === 'string') {
-          return filtro.valor
+          return filtro.valor // Ya es el texto que queremos mostrar
         }
       }
 
@@ -936,7 +963,7 @@ export default {
         // Información de filtros aplicados
         doc.text(`Total de registros: ${this.documentosFiltrados.length}`, 20, yPosition)
         yPosition += 10
-        
+
         if (this.filtrosActivos.length > 0) {
           doc.text(`Filtros aplicados: ${this.filtrosActivos.length}`, 20, yPosition)
           yPosition += 15
@@ -944,9 +971,9 @@ export default {
           yPosition += 10
         }
 
-        const headers = this.camposSeleccionados.map(campo => this.formatFieldName(campo))
-        const rows = this.documentosFiltrados.map(doc =>
-          this.camposSeleccionados.map(campo => this.getFieldValueForReport(doc, campo) || '-')
+        const headers = this.camposSeleccionados.map((campo) => this.formatFieldName(campo))
+        const rows = this.documentosFiltrados.map((doc) =>
+          this.camposSeleccionados.map((campo) => this.getFieldValueForReport(doc, campo) || '-'),
         )
 
         autoTable(doc, {
@@ -957,7 +984,7 @@ export default {
           headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: 'bold' },
           alternateRowStyles: { fillColor: [245, 245, 245] },
           margin: { left: 20, right: 20 },
-          tableWidth: 'auto'
+          tableWidth: 'auto',
         })
 
         const nombreArchivo = `${this.tituloReporte.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
@@ -978,12 +1005,12 @@ export default {
 
     showError(message) {
       Swal.fire({ title: 'Error', text: message, icon: 'error', confirmButtonText: 'Aceptar' })
-    }
+    },
   },
 
   mounted() {
     this.getColecciones()
-  }
+  },
 }
 </script>
 
@@ -1056,7 +1083,7 @@ export default {
   margin-bottom: 0.5rem;
 }
 
-.campo-item input[type="checkbox"] {
+.campo-item input[type='checkbox'] {
   margin-right: 0.5rem;
 }
 
