@@ -134,13 +134,6 @@
           </div>
           <div class="reporte-actions">
             <button 
-              class="btn btn-sm btn-primary me-1" 
-              @click="regenerarReporte(reporte)"
-              title="Regenerar este reporte"
-            >
-              <i class="fas fa-redo me-1"></i> Regenerar
-            </button>
-            <button 
               class="btn btn-sm btn-outline-danger" 
               @click="eliminarReporte(reporte.id)"
               title="Eliminar del historial"
