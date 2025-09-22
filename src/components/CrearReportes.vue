@@ -989,6 +989,7 @@ export default {
 
         const nombreArchivo = `${this.tituloReporte.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
         doc.save(nombreArchivo)
+        this.guardarEnHistorial()
 
         this.showSuccess(`PDF generado con ${this.documentosFiltrados.length} documentos filtrados`)
       } catch (error) {
@@ -999,6 +1000,41 @@ export default {
       }
     },
 
+    guardarEnHistorial() {
+      const reporteData = {
+        id: Date.now(),
+        titulo: this.tituloReporte,
+        coleccionNombre: this.selectedColeccion.nombre_coleccion,
+        coleccionId: this.selectedColeccion.id,
+        camposSeleccionados: [...this.camposSeleccionados],
+        filtrosAplicados: [...this.filtrosActivos],
+        cantidadDocumentos: this.documentosFiltrados.length,
+        incluirFecha: this.incluirFecha,
+        fechaGeneracion: new Date().toISOString(),
+      }
+
+      // Guardar en localStorage
+      let historial = JSON.parse(localStorage.getItem('historialReportes') || '[]')
+      historial.unshift(reporteData)
+      localStorage.setItem('historialReportes', JSON.stringify(historial.slice(0, 100))) // Limitar a 100 reportes
+    },
+
+    async cargarConfiguracionReporte(config) {
+      // Buscar y seleccionar la colección
+      const coleccion = this.coleccionesFiltradas.find((c) => c.id === config.coleccionId)
+      if (coleccion) {
+        this.selectedColeccion = coleccion
+        await this.obtenerDocumentos()
+
+        // Una vez cargados los documentos, aplicar la configuración
+        this.$nextTick(() => {
+          this.tituloReporte = config.titulo
+          this.camposSeleccionados = config.camposSeleccionados
+          this.filtrosActivos = config.filtrosAplicados
+          this.incluirFecha = config.incluirFecha
+        })
+      }
+    },
     showSuccess(message) {
       Swal.fire({ title: 'Éxito', text: message, icon: 'success', confirmButtonText: 'Aceptar' })
     },
@@ -1010,6 +1046,18 @@ export default {
 
   mounted() {
     this.getColecciones()
+    
+    const configRegenerar = localStorage.getItem('configuracionReporteARegenerar')
+    if (configRegenerar) {
+      try {
+        const config = JSON.parse(configRegenerar)
+        this.cargarConfiguracionReporte(config)
+      } catch (error) {
+        console.error('Error al cargar configuración:', error)
+      } finally {
+        localStorage.removeItem('configuracionReporteARegenerar')
+      }
+    }
   },
 }
 </script>
