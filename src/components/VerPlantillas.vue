@@ -385,7 +385,7 @@
                               Las opciones se cargarán desde la plantilla
                               <strong
                                 >"{{
-                                  getNombrePlantillaDataSource(campo.dataSource.plantillaId)
+                                  campo.dataSource.plantillaNombre
                                 }}"</strong
                               >, sección <strong>"{{ campo.dataSource.seccion }}"</strong><br />
                               <span class="mt-1 d-block">
