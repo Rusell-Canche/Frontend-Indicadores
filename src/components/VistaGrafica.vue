@@ -74,23 +74,13 @@ export default {
 
       let html = `<div class="${clases}" style="${estilos}">`
       html += `<strong>${campo.name || 'Sin nombre'}</strong>`
-      if (campo.type) {
-        html += ` <small class="text-muted">(${campo.type})</small>`
+      if (campo.type && campo.dataSource) {
+        html += ` <small class="text-muted">(${campo.type})</small> <small class="text-muted">→ ${campo.dataSource.seccion} → ${campo.dataSource.campoMostrar}</small>`
       }
 
       if (campo.type === 'select' && campo.options) {
         html += `<div class="mt-3">`
 
-        // Si es select dinámico, mostrar información del origen
-        if (campo.dataSource) {
-          html += `
-      <div class="mb-2 p-2 border rounded" 
-           style="margin-left:${(nivel + 1) * 40}px; background-color: #E3F2FD; border-left: 4px solid #2196F3;">
-        <small><i class="fas fa-database"></i> <strong>Opciones dinámicas desde:</strong></small><br>
-        <strong>${campo.dataSource.plantillaNombre || 'Plantilla no identificada'}</strong><br>
-        <small class="text-muted">→ ${campo.dataSource.seccion} → ${campo.dataSource.campoMostrar}</small>
-      </div>`
-        }
 
         // Mostrar opciones (limitadas a 5)
         const maxOpciones = 5
