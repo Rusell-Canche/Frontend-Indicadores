@@ -239,7 +239,7 @@
                   <strong>Configuración de opciones dinámicas:</strong><br />
                   Las opciones se cargarán desde la plantilla
                   <strong
-                    >"{{ subcampo.dataSource.plantillaNombre || getNombrePlantillaDataSource(subcampo.dataSource.plantillaId) }}"</strong
+                    >"{{ subcampo.dataSource.plantillaNombre}}"</strong
                   >, sección <strong>"{{ subcampo.dataSource.seccion }}"</strong><br />
                   <span class="mt-1 d-block">
                     <small>

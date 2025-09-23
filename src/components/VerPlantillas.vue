@@ -599,7 +599,7 @@
                         <i class="fas fa-database"></i>
                         <span>Opciones dinámicas desde:</span>
                         <div class="source-info">
-                          <strong>{{ getNombrePlantillaDataSource(campo.dataSource.plantillaId) }}</strong>
+                          <strong>{{ campo.dataSource.plantillaNombre}}</strong>
                           <span>→ {{ campo.dataSource.seccion }} → {{ campo.dataSource.campoMostrar }}</span>
                         </div>
                       </div>
