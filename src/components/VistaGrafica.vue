@@ -74,8 +74,11 @@ export default {
 
       let html = `<div class="${clases}" style="${estilos}">`
       html += `<strong>${campo.name || 'Sin nombre'}</strong>`
-      if (campo.type && campo.dataSource) {
-        html += ` <small class="text-muted">(${campo.type})</small> <small class="text-muted">→ ${campo.dataSource.seccion} → ${campo.dataSource.campoMostrar}</small>`
+      if (campo.type) {
+        html += ` <small class="text-muted">(${campo.type})</small>`
+        if (campo.type === 'select' && campo.dataSource) {
+          html += `<small class="text-muted">→ ${campo.dataSource.seccion} → ${campo.dataSource.campoMostrar}</small>`
+        }
       }
 
       if (campo.type === 'select' && campo.options) {
