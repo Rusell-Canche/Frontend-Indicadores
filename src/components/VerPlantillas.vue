@@ -37,7 +37,7 @@
             <span>Editar</span>
           </button>
           <button
-  @click="abrirMapaPlantilla(plantilla.id)"
+  @click="abrirVistaGrafica(plantilla.id)"
   class="btn btn-mapa"
   title="Ver mapa de la plantilla"
 >
@@ -641,6 +641,12 @@
     </div>
   </div>
 </div>
+<VistaGrafica
+  :visible="mostrarVistaGrafica"
+  :jsonData="jsonPlantilla"
+  @close="mostrarVistaGrafica = false"
+/>
+
   </div>
 </template>
 
@@ -648,10 +654,13 @@
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import Subformulario from './Subformulario.vue' // Ajusta la ruta según tu estructura
+import VistaGrafica from './VistaGrafica.vue'
 
 export default {
   data() {
     return {
+      mostrarVistaGrafica: false,
+      jsonPlantilla: {},
       plantillas: [], // Lista de plantillas obtenidas del servidor
       nombrePlantilla: '', // Nombre de la plantilla seleccionada para edición
       idPlantilla: '', // ID de la plantilla seleccionada para edición
@@ -694,6 +703,7 @@ vistaCompacta: false,
   },
   components: {
     Subformulario,
+    VistaGrafica,
   },
   methods: {
     async fetchPlantillas() {
@@ -1251,6 +1261,23 @@ getTipoTexto(tipo) {
         this.cargandoOpciones = false
       }
     },
+    async abrirVistaGrafica(id) {
+  try {
+    const token = localStorage.getItem('apiToken')
+    const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/secciones`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    })
+
+    this.jsonPlantilla = response.data
+    this.mostrarVistaGrafica = true
+  } catch (error) {
+    console.error("Error al cargar JSON de la plantilla:", error)
+  }
+},
 
     aplicarConfiguracionPlantilla() {
       if (!this.configuracionValida) return
