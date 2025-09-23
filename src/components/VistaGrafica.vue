@@ -113,14 +113,11 @@ export default {
       }
 
       if (campo.type === 'subform' && campo.subcampos) {
-        html += `<div class="mt-3 mb-3 p-3 rounded" 
-                     style="margin-left:${(nivel + 1) * 40}px; background-color:${this.getSubformColor(nivel + 1)};border: 3px solid black;">`
-        html += `<h6 class="fw-semibold mb-3">Subformulario</h6>`
-        campo.subcampos.forEach((subcampo) => {
-          html += this.renderCampo(subcampo, nivel + 2)
-        })
-        html += `</div>`
-      }
+  campo.subcampos.forEach((subcampo) => {
+    html += this.renderCampo(subcampo, nivel + 1)
+  })
+}
+
 
       html += `</div>`
       return html
