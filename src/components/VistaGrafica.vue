@@ -14,8 +14,9 @@
           <div
             v-for="(seccion, i) in jsonData.secciones || []"
             :key="i"
-            class="mb-4 mt-3 p-3 border rounded"
-            style="background-color: #808080"
+            class="mb-4 mt-3 p-3 rounded"
+            style="background-color: #8a7968; border: 3px solid black;"
+
           >
             <h6 class="fw-bold text-black mb-3">Sección: {{ seccion.nombre }}</h6>
 
@@ -55,8 +56,8 @@ export default {
 
     renderCampo(campo, nivel) {
       const tab = nivel * 40
-      let clases = 'mb-3 mt-3 p-3 border rounded '
-      let estilos = `margin-left:${tab}px;`
+      let clases = 'mb-3 mt-3 p-3  rounded '
+      let estilos = `margin-left:${tab}px;border: 3px solid black;`
 
       if (
         (!campo.options || campo.options.length === 0) &&
@@ -93,8 +94,8 @@ export default {
 
         opcionesAMostrar.forEach((opt) => {
           html += `
-      <div class="mb-2 mt-2 p-2 border rounded CamposSinElementos"
-           style="margin-left:${(nivel + 1) * 40}px">
+      <div class="mb-2 mt-2 p-2  rounded CamposSinElementos"
+           style="margin-left:${(nivel + 1) * 40}px;border: 3px solid black;">
         ${typeof opt === 'object' ? opt.campoMostrar || JSON.stringify(opt) : opt}
       </div>`
         })
@@ -102,8 +103,8 @@ export default {
         // Mostrar contador de opciones restantes si hay más de 5
         if (opcionesRestantes > 0) {
           html += `
-      <div class="mb-2 mt-2 p-2 border rounded text-center" 
-           style="margin-left:${(nivel + 1) * 40}px; background-color: #F5F5F5; font-style: italic;">
+      <div class="mb-2 mt-2 p-2  rounded text-center" 
+           style="margin-left:${(nivel + 1) * 40}px; background-color: #F5F5F5; font-style: italic;border: 3px solid black;">
         ... y ${opcionesRestantes} opción${opcionesRestantes === 1 ? '' : 'es'} más (${totalOpciones} total)
       </div>`
         }
@@ -112,8 +113,8 @@ export default {
       }
 
       if (campo.type === 'subform' && campo.subcampos) {
-        html += `<div class="mt-3 mb-3 p-3 border rounded" 
-                     style="margin-left:${(nivel + 1) * 40}px; background-color:${this.getSubformColor(nivel + 1)};">`
+        html += `<div class="mt-3 mb-3 p-3 rounded" 
+                     style="margin-left:${(nivel + 1) * 40}px; background-color:${this.getSubformColor(nivel + 1)};border: 3px solid black;">`
         html += `<h6 class="fw-semibold mb-3">Subformulario</h6>`
         campo.subcampos.forEach((subcampo) => {
           html += this.renderCampo(subcampo, nivel + 2)
@@ -130,9 +131,11 @@ export default {
 
 <style>
 .CamposSinElementos {
-  background-color: #ffc000 !important;
+  background-color: #ffdd00 !important;
+  border: 3px solid black;
 }
 .SelectsDivs {
-  background-color: #00b050 !important;
+  background-color: #52b788 !important;
+  border: 3px solid black;
 }
 </style>
