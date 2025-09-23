@@ -239,7 +239,7 @@
                   <strong>Configuración de opciones dinámicas:</strong><br />
                   Las opciones se cargarán desde la plantilla
                   <strong
-                    >"{{ getNombrePlantillaDataSource(subcampo.dataSource.plantillaId) }}"</strong
+                    >"{{ subcampo.dataSource.plantillaNombre || getNombrePlantillaDataSource(subcampo.dataSource.plantillaId) }}"</strong
                   >, sección <strong>"{{ subcampo.dataSource.seccion }}"</strong><br />
                   <span class="mt-1 d-block">
                     <small>
@@ -365,7 +365,22 @@ export default {
       campoActual: null,
     }
   },
+  async mounted() {
+    await this.cargarPlantillasDisponibles()
+  },
   methods: {
+    async cargarPlantillasDisponibles() {
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        this.plantillasDisponibles = response.data || []
+      } catch (error) {
+        console.error('Error al cargar plantillas disponibles:', error)
+      }
+    },
+
     getNombrePlantillaDataSource(plantillaId) {
       if (!plantillaId) return 'Plantilla no especificada'
 
@@ -528,6 +543,7 @@ export default {
       this.campoActual.options = []
       this.campoActual.dataSource = {
         plantillaId: this.plantillaSeleccionada,
+        plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada),
         seccion: this.seccionSeleccionada,
         campoMostrar: this.campoMostrar,
       }
