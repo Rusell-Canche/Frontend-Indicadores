@@ -962,6 +962,10 @@ export default {
           const opcion = campo.options.find((o) => o.campoGuardar === filtro.valor)
           return opcion ? opcion.campoMostrar : filtro.valor
         }
+        // Select manual (array de strings)
+        if (typeof primerElemento === 'string') {
+          return filtro.valor // Ya es el texto que queremos mostrar
+        }
       }
 
       return filtro.valor
