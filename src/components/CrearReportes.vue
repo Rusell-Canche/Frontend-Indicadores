@@ -807,15 +807,23 @@ export default {
     agregarFiltro() {
       if (!this.filtroActivo.campo || !this.filtroActivo.valor) return
 
+      // Crear el objeto del filtro con el valor display correcto
+      const nuevoFiltro = {
+        campo: this.filtroActivo.campo,
+        operador: this.filtroActivo.operador,
+        valor: this.filtroActivo.valor, // Este será el campoGuardar para selects dinámicos
+        valorDisplay: this.getDisplayValueForFilterSave(this.filtroActivo), // El campoMostrar para mostrar
+      }
+
       // Verificar si ya existe un filtro para este campo
       const existeIndex = this.filtrosActivos.findIndex((f) => f.campo === this.filtroActivo.campo)
 
       if (existeIndex >= 0) {
         // Reemplazar filtro existente
-        this.filtrosActivos.splice(existeIndex, 1, { ...this.filtroActivo })
+        this.filtrosActivos.splice(existeIndex, 1, nuevoFiltro)
       } else {
         // Agregar nuevo filtro
-        this.filtrosActivos.push({ ...this.filtroActivo })
+        this.filtrosActivos.push(nuevoFiltro)
       }
 
       // Resetear filtro activo
@@ -824,6 +832,26 @@ export default {
         operador: 'equals',
         valor: '',
       }
+    },
+    getDisplayValueForFilterSave(filtroActivo) {
+      const campo = this.getCampoDefinition(filtroActivo.campo)
+
+      if (!campo || !filtroActivo.valor) {
+        return filtroActivo.valor
+      }
+
+      // Si tiene opciones y es select dinámico
+      if (campo.options && Array.isArray(campo.options) && campo.options.length > 0) {
+        const primerElemento = campo.options[0]
+
+        // Select dinámico (objetos con campoGuardar/campoMostrar)
+        if (typeof primerElemento === 'object' && primerElemento.campoGuardar) {
+          const opcion = campo.options.find((o) => o.campoGuardar === filtroActivo.valor)
+          return opcion ? opcion.campoMostrar : filtroActivo.valor
+        }
+      }
+
+      return filtroActivo.valor
     },
 
     eliminarFiltro(index) {
@@ -902,7 +930,7 @@ export default {
         case 'endsWith':
           return valorString.endsWith(filtroValor)
         case 'notEquals':
-          return valorString !== filtroValro
+          return valorString !== filtroValor // FIX: era "filtroValro"
         case 'gt':
           return parseFloat(valor) > parseFloat(filtro.valor)
         case 'lt':
@@ -913,7 +941,12 @@ export default {
     },
 
     getDisplayValueForFilter(filtro) {
-      // Buscar la definición del campo
+      // Si ya tenemos valorDisplay guardado, usarlo
+      if (filtro.valorDisplay) {
+        return filtro.valorDisplay
+      }
+
+      // Fallback al método anterior para compatibilidad
       const campo = this.getCampoDefinition(filtro.campo)
 
       if (!campo) {
@@ -928,11 +961,6 @@ export default {
         if (typeof primerElemento === 'object' && primerElemento.campoGuardar) {
           const opcion = campo.options.find((o) => o.campoGuardar === filtro.valor)
           return opcion ? opcion.campoMostrar : filtro.valor
-        }
-
-        // Select manual (array de strings)
-        if (typeof primerElemento === 'string') {
-          return filtro.valor // Ya es el texto que queremos mostrar
         }
       }
 
@@ -966,7 +994,22 @@ export default {
 
         if (this.filtrosActivos.length > 0) {
           doc.text(`Filtros aplicados: ${this.filtrosActivos.length}`, 20, yPosition)
-          yPosition += 15
+          yPosition += 10
+
+          // Mostrar detalles de cada filtro
+          this.filtrosActivos.forEach((filtro, index) => {
+            const campoNombre = this.formatFieldName(filtro.campo)
+            const operadorTexto = this.getOperadorTexto(filtro.operador)
+            const valorMostrar = filtro.valorDisplay || filtro.valor // Usar valorDisplay si existe
+
+            const filtroTexto = `${index + 1}. ${campoNombre} ${operadorTexto} "${valorMostrar}"`
+
+            doc.setFontSize(10)
+            doc.text(filtroTexto, 25, yPosition)
+            yPosition += 7
+          })
+
+          yPosition += 5 // Espacio extra después de los filtros
         } else {
           yPosition += 10
         }
@@ -1000,14 +1043,35 @@ export default {
       }
     },
 
+    getOperadorTexto(operador) {
+      const operadores = {
+        equals: 'es igual a',
+        contains: 'contiene',
+        startsWith: 'inicia con',
+        endsWith: 'termina con',
+        notEquals: 'es diferente a',
+        gt: 'es mayor que',
+        lt: 'es menor que',
+      }
+      return operadores[operador] || operador
+    },
+
     guardarEnHistorial() {
+      // Procesar filtros para guardar con valorDisplay
+      const filtrosParaGuardar = this.filtrosActivos.map((filtro) => ({
+        campo: filtro.campo,
+        operador: filtro.operador,
+        valor: filtro.valor,
+        valorDisplay: filtro.valorDisplay || this.getDisplayValueForFilter(filtro), // Asegurar que tengamos el valorDisplay
+      }))
+
       const reporteData = {
         id: Date.now(),
         titulo: this.tituloReporte,
         coleccionNombre: this.selectedColeccion.nombre_coleccion,
         coleccionId: this.selectedColeccion.id,
         camposSeleccionados: [...this.camposSeleccionados],
-        filtrosAplicados: [...this.filtrosActivos],
+        filtrosAplicados: filtrosParaGuardar, // Usar filtros procesados
         cantidadDocumentos: this.documentosFiltrados.length,
         incluirFecha: this.incluirFecha,
         fechaGeneracion: new Date().toISOString(),
@@ -1016,7 +1080,7 @@ export default {
       // Guardar en localStorage
       let historial = JSON.parse(localStorage.getItem('historialReportes') || '[]')
       historial.unshift(reporteData)
-      localStorage.setItem('historialReportes', JSON.stringify(historial.slice(0, 100))) // Limitar a 100 reportes
+      localStorage.setItem('historialReportes', JSON.stringify(historial.slice(0, 100)))
     },
 
     async cargarConfiguracionReporte(config) {
@@ -1030,11 +1094,20 @@ export default {
         this.$nextTick(() => {
           this.tituloReporte = config.titulo
           this.camposSeleccionados = config.camposSeleccionados
-          this.filtrosActivos = config.filtrosAplicados
+
+          // Restaurar filtros asegurando que tengan valorDisplay
+          this.filtrosActivos = config.filtrosAplicados.map((filtro) => ({
+            campo: filtro.campo,
+            operador: filtro.operador,
+            valor: filtro.valor,
+            valorDisplay: filtro.valorDisplay || this.getDisplayValueForFilter(filtro),
+          }))
+
           this.incluirFecha = config.incluirFecha
         })
       }
     },
+
     showSuccess(message) {
       Swal.fire({ title: 'Éxito', text: message, icon: 'success', confirmButtonText: 'Aceptar' })
     },
@@ -1046,7 +1119,7 @@ export default {
 
   mounted() {
     this.getColecciones()
-    
+
     const configRegenerar = localStorage.getItem('configuracionReporteARegenerar')
     if (configRegenerar) {
       try {
