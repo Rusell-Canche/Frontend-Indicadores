@@ -58,6 +58,14 @@
         </li>
         <li
           class="navigation-item"
+          :class="{ active: $route.path.includes ('/Estadisticas') }"
+          @click="navigateTo('/Estadisticas')"
+        >
+          <i class="fa-solid fa-file-import"></i>
+          <span>Estadísticas</span>
+        </li>
+        <li
+          class="navigation-item"
           :class="{ active: $route.path.includes ('/Usuarios') }"
           @click="navigateTo('/Usuarios')"
         >

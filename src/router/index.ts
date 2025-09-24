@@ -26,6 +26,7 @@ import CrearEjes from '@/components/CrearEjes.vue'
 import CrearRoles from '@/components/CrearRoles.vue'
 import AsignarPermisos from '@/components/AsignarPermisos.vue'
 import VerRoles from '@/components/VerRoles.vue'
+import Estadisticas from '@/components/Estadisticas.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -180,6 +181,11 @@ const router = createRouter({
               component: CrearReportes,
             },
           ],
+        },
+        {
+          path: '/Estadisticas',
+          name: 'Estadisticas',
+          component: Estadisticas,
         },
       ],
     },
