@@ -37,7 +37,7 @@
                 :key="coleccion.id"
                 :value="coleccion"
               >
-                {{ coleccion.nombre_coleccion }} ({{ coleccion.total_documentos }} documentos)
+                {{ coleccion.nombre_plantilla }} {{ coleccion.total_documentos }}
               </option>
             </select>
           </div>
@@ -47,7 +47,7 @@
           <label class="form-label">Información de la Colección</label>
           <div class="info-card">
             <div class="info-item">
-              <strong>Nombre:</strong> {{ selectedColeccion.nombre_coleccion }}
+              <strong>Nombre:</strong> {{ selectedColeccion.nombre_plantilla }}
             </div>
             <div class="info-item">
               <strong>Total de documentos:</strong> {{ documentos.length }}
