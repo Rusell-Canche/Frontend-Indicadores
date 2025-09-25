@@ -276,6 +276,7 @@
                             <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
                             <option value="date">Fecha</option>
                             <option value="select">Lista de Selección</option>
+                            <option value="opcionMultiple">Selección múltiple</option>
                             <option value="subform">Subformulario</option>
                           </select>
                         </div>
@@ -298,6 +299,72 @@
                         </div>
                       </div>
                     </div>
+
+                    <!-- Configuración de opciones para Opción Múltiple -->
+<div v-if="campo.type === 'opcionMultiple'" class="select-options-container">
+  <div class="select-options-header">
+    <div class="options-header-content">
+      <i class="fas fa-list-ul"></i>
+      <span>Opciones múltiples para "{{ campo.name || 'este campo' }}"</span>
+    </div>
+  </div>
+
+  <!-- Opciones definidas manualmente -->
+  <div class="select-options-body">
+    <div
+      v-for="(option, optionIndex) in campo.options || []"
+      :key="optionIndex"
+      class="option-item"
+    >
+      <div class="option-content">
+        <div class="input-group modern-input-small">
+          <span class="input-group-text">
+            <i class="fas fa-tag"></i>
+          </span>
+          <input
+            v-solo-texto-y-numeros
+            v-model="campo.options[optionIndex]"
+            class="form-control"
+            placeholder="Texto de la opción"
+            required
+          />
+          <button
+            type="button"
+            @click="quitarOpcion(campo, optionIndex)"
+            class="btn-delete-option"
+          >
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agregar nueva opción -->
+    <div class="add-option-section">
+      <div class="add-option-wrapper">
+        <div class="add-option-input">
+          <input
+            v-solo-texto-y-numeros
+            v-model="campo.newOption"
+            class="form-control modern-input-standalone"
+            placeholder="Texto de la opción (ej: Activo, Inactivo, Pendiente)"
+            @keyup.enter="agregarOpcion(campo)"
+          />
+        </div>
+        <button
+          type="button"
+          @click="agregarOpcion(campo)"
+          class="btn-add-option"
+          :disabled="!campo.newOption"
+        >
+          <i class="fas fa-plus"></i>
+          <span>Agregar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
                     <!-- Configuración de opciones para Select -->
                     <div v-if="campo.type === 'select'" class="select-options-container">
@@ -561,15 +628,16 @@ export default {
       }
     },
 
-    handleTypeChange(campo) {
-      if (campo.type === 'subform' && !campo.subcampos) {
-        campo.subcampos = []
-        this.agregarSubcampo(campo)
-      } else if (campo.type === 'select' && !campo.options) {
-        campo.options = []
-        campo.newOption = ''
-      }
-    },
+ handleTypeChange(campo) {
+  if (campo.type === 'subform' && !campo.subcampos) {
+    campo.subcampos = []
+    this.agregarSubcampo(campo)
+  } else if ((campo.type === 'select' || campo.type === 'opcionMultiple') && !campo.options) {
+    campo.options = []
+    campo.newOption = ''
+  }
+},
+
 
     agregarSubcampo(campo) {
       if (!campo.subcampos) {
@@ -631,27 +699,28 @@ export default {
     },
 
     prepararDatosParaEnvio() {
-      const limpiarCampo = (campo) => {
-        const campoLimpio = {
-          name: campo.name,
-          type: campo.type,
-          required: campo.required,
-        }
+const limpiarCampo = (campo) => {
+  const campoLimpio = {
+    name: campo.name,
+    type: campo.type,
+    required: campo.required,
+  }
 
-        if (campo.type === 'select' && campo.dataSource) {
-          campoLimpio.dataSource = campo.dataSource
-        } else if (campo.type === 'select' && campo.options) {
-          campoLimpio.options = campo.options.filter(
-            (option) => option !== null && option !== undefined && option.trim() !== '',
-          )
-        }
+  if (campo.type === 'select' && campo.dataSource) {
+    campoLimpio.dataSource = campo.dataSource
+  } else if ((campo.type === 'select' || campo.type === 'opcionMultiple') && campo.options) {
+    campoLimpio.options = campo.options.filter(
+      (option) => option !== null && option !== undefined && option.trim() !== '',
+    )
+  }
 
-        if (campo.type === 'subform' && campo.subcampos) {
-          campoLimpio.subcampos = campo.subcampos.map((subcampo) => limpiarCampo(subcampo))
-        }
+  if (campo.type === 'subform' && campo.subcampos) {
+    campoLimpio.subcampos = campo.subcampos.map((subcampo) => limpiarCampo(subcampo))
+  }
 
-        return campoLimpio
-      }
+  return campoLimpio
+}
+
 
       return this.secciones
         .map((seccion) => {
@@ -697,21 +766,22 @@ export default {
           return
         }
 
-        const camposInvalidos = this.secciones.some((seccion) =>
-          seccion.fields.some((campo) => {
-            if (campo.type === 'select') {
-              return !campo.options || campo.options.length === 0
-            }
-            if (campo.type === 'subform' && campo.subcampos) {
-              return campo.subcampos.some(
-                (subcampo) =>
-                  subcampo.type === 'select' &&
-                  (!subcampo.options || subcampo.options.length === 0),
-              )
-            }
-            return false
-          }),
-        )
+const camposInvalidos = this.secciones.some((seccion) =>
+  seccion.fields.some((campo) => {
+    if (campo.type === 'select' || campo.type === 'opcionMultiple') {
+      return !campo.options || campo.options.length === 0
+    }
+    if (campo.type === 'subform' && campo.subcampos) {
+      return campo.subcampos.some(
+        (subcampo) =>
+          (subcampo.type === 'select' || subcampo.type === 'opcionMultiple') &&
+          (!subcampo.options || subcampo.options.length === 0),
+      )
+    }
+    return false
+  }),
+)
+
 
         if (camposInvalidos && this.mostrarOpcionesManuales) {
           Swal.fire({

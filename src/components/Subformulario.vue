@@ -177,6 +177,7 @@
                   <option value="file">Archivo</option>
                   <option value="date">Fecha</option>
                   <option value="select">Lista de Selección</option>
+                  <option value="opcionMultiple">Selección múltiple</option>
                   <option value="subform">Subformulario</option>
                 </select>
               </div>
@@ -209,6 +210,51 @@
               </div>
             </div>
           </div>
+
+    <!-- Configuración de opciones para Opción Múltiple -->
+<div v-if="subcampo.type === 'opcionMultiple'" class="select-options-container">
+  <div class="select-options-header">
+    <div class="options-header-content">
+      <i class="fas fa-list-ul"></i>
+      <span>Opciones múltiples para "{{ subcampo.name || 'este subcampo' }}"</span>
+    </div>
+  </div>
+
+  <!-- Opciones definidas manualmente -->
+  <div class="select-options-body">
+    <div v-for="(option, optionIndex) in subcampo.options || []" :key="optionIndex" class="option-item">
+      <div class="option-content">
+        <div class="input-group modern-input-small">
+          <span class="input-group-text"><i class="fas fa-tag"></i></span>
+          <input
+            v-model="subcampo.options[optionIndex]"
+            class="form-control"
+            placeholder="Texto de la opción"
+            required
+          />
+          <button type="button" @click="quitarOpcion(subcampo, optionIndex)" class="btn-delete-option">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agregar nueva opción -->
+    <div class="add-option-section">
+      <div class="add-option-wrapper">
+        <input
+          v-model="subcampo.newOption"
+          class="form-control modern-input-standalone"
+          placeholder="Nueva opción"
+          @keyup.enter="agregarOpcion(subcampo)"
+        />
+        <button type="button" @click="agregarOpcion(subcampo)" class="btn-add-option" :disabled="!subcampo.newOption">
+          <i class="fas fa-plus"></i> Agregar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
           <!-- Opciones para subcampos de tipo select -->
           <div v-if="subcampo.type === 'select'" class="select-options-container subcampo-select">
@@ -393,7 +439,7 @@ export default {
       if (campo.type === 'subform' && !campo.subcampos) {
         campo.subcampos = []
         this.agregarSubcampo(campo)
-      } else if (campo.type === 'select' && !campo.options) {
+      } else if ((campo.type === 'select' || campo.type === 'opcionMultiple')  && !campo.options) {
         campo.options = []
         campo.newOption = ''
       }
