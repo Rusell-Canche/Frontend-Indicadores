@@ -6,7 +6,7 @@
         <div class="header-left">
           <h1 class="main-title">
             <i class="fa fa-file-text me-3"></i>
-            Reportes
+            Estadisticas
           </h1>
           <p class="main-subtitle">Sistema de gestión de Estadisticas</p>
         </div>
@@ -30,6 +30,7 @@
               <span class="tab-description">Ver y creacion de Estadisticas</span>
             </div>
           </div>
+          
           <div
             class="tab"
             :class="{ active: $route.name === 'HistorialEstadisticas' }"
@@ -43,6 +44,7 @@
               <span class="tab-description">ver todas las Estadisticas creadas</span>
             </div>
           </div>
+          
           <!-- Indicador deslizante mejorado -->
           <div class="tab-indicator" :style="indicatorStyle"></div>
         </div>
@@ -52,9 +54,12 @@
     <!-- Contenido de las pestañas usando rutas hijas -->
     <div class="tab-content-wrapper">
       <div class="tab-content">
-        <transition name="fade" mode="out-in">
-          <router-view />
-        </transition>
+        <!-- NUEVA SINTAXIS PARA VUE ROUTER 4+ -->
+        <router-view v-slot="{ Component, route }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" :key="route.path" />
+          </transition>
+        </router-view>
       </div>
     </div>
   </div>
@@ -63,23 +68,26 @@
 <script>
 export default {
   mounted() {
-    // Si la ruta actual es exactamente '/Plantillas', redirigir a VerPlantillas
+    // Si la ruta actual es exactamente '/Estadisticas', redirigir a VerEstadisticas
     if (this.$route.path === '/Estadisticas') {
       this.$router.replace('/Estadisticas/VerEstadisticas')
     }
   },
+  
   computed: {
     indicatorStyle() {
       // Calcula el índice según la ruta activa
       const tabNames = ['VerEstadisticas', 'HistorialEstadisticas']
       const index = tabNames.indexOf(this.$route.name)
       const width = 100 / tabNames.length
+      
       return {
         transform: `translateX(${index * 100}%)`,
         width: `${width}%`,
       }
     },
   },
+  
   methods: {
     handleLogout() {
       this.showLogoutModal = false
@@ -87,6 +95,7 @@ export default {
       this.$router.push('/')
     },
   },
+  
   data() {
     return {
       showLogoutModal: false,
