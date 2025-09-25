@@ -5,7 +5,7 @@
       <div class="header-content">
         <div class="header-left">
           <h1 class="main-title">
-            <i class="fa fa-file-text me-3"></i>
+            <i class="fa fa-chart-bar me-3"></i>
             Estadisticas
           </h1>
           <p class="main-subtitle">Sistema de gestión de Estadisticas</p>
@@ -23,7 +23,7 @@
             @click="$router.push({ name: 'VerEstadisticas' })"
           >
             <div class="tab-icon">
-              <i class="fa-solid fa-eye"></i>
+              <i class="fa-solid fa-chart-line"></i>
             </div>
             <div class="tab-content-text">
               <span class="tab-title">Ver Estadisticas</span>
@@ -37,7 +37,7 @@
             @click="$router.push({ name: 'HistorialEstadisticas' })"
           >
             <div class="tab-icon">
-              <i class="fas fa-plus-circle"></i>
+              <i class="fas fa-chart-pie"></i>
             </div>
             <div class="tab-content-text">
               <span class="tab-title">Historial de Estadisticas Reportes</span>
@@ -113,11 +113,11 @@ export default {
 
 /* Header principal más pequeño */
 .main-header {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
   padding: 1.5rem 0;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 10px 30px rgba(255, 140, 0, 0.3);
 }
 
 .main-header::before {
@@ -206,7 +206,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, rgba(200, 35, 51, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.05) 0%, rgba(255, 119, 0, 0.05) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -216,18 +216,18 @@ export default {
 }
 
 .tab:hover {
-  color: #dc3545;
+  color: #ff8c00;
   transform: translateY(-2px);
 }
 
 .tab.active {
-  color: #dc3545;
+  color: #ff8c00;
   font-weight: 600;
 }
 
 .tab.active::before {
   opacity: 1;
-  background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(200, 35, 51, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.1) 0%, rgba(255, 119, 0, 0.1) 100%);
 }
 
 .tab-icon {
@@ -245,16 +245,16 @@ export default {
 }
 
 .tab:hover .tab-icon {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
   color: white;
   transform: scale(1.1);
-  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 8px 25px rgba(255, 140, 0, 0.3);
 }
 
 .tab.active .tab-icon {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
   color: white;
-  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+  box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
 }
 
 .tab-content-text {
@@ -284,10 +284,10 @@ export default {
   bottom: 0;
   left: 0;
   height: 4px;
-  background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(90deg, #ff8c00 0%, #ff7700 100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 2px 2px 0 0;
-  box-shadow: 0 -2px 8px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 -2px 8px rgba(255, 140, 0, 0.3);
 }
 
 /* Contenido de pestañas mejorado */
@@ -436,8 +436,8 @@ export default {
   }
 
   .tab.active {
-    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(200, 35, 51, 0.1) 100%);
-    border-left: 4px solid #dc3545;
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.1) 0%, rgba(255, 119, 0, 0.1) 100%);
+    border-left: 4px solid #ff8c00;
   }
 
   .tab-content-wrapper {
