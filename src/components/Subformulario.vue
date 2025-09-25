@@ -177,7 +177,7 @@
                   <option value="file">Archivo</option>
                   <option value="date">Fecha</option>
                   <option value="select">Lista de Selección</option>
-                  <option value="opcionMultiple">Selección múltiple</option>
+                  <option value="checkBox">Selección múltiple</option>
                   <option value="subform">Subformulario</option>
                 </select>
               </div>
@@ -212,7 +212,7 @@
           </div>
 
     <!-- Configuración de opciones para Opción Múltiple -->
-<div v-if="subcampo.type === 'opcionMultiple'" class="select-options-container">
+<div v-if="subcampo.type === 'checkBox'" class="select-options-container">
   <div class="select-options-header">
     <div class="options-header-content">
       <i class="fas fa-list-ul"></i>
@@ -439,7 +439,7 @@ export default {
       if (campo.type === 'subform' && !campo.subcampos) {
         campo.subcampos = []
         this.agregarSubcampo(campo)
-      } else if ((campo.type === 'select' || campo.type === 'opcionMultiple')  && !campo.options) {
+      } else if ((campo.type === 'select' || campo.type === 'checkBox')  && !campo.options) {
         campo.options = []
         campo.newOption = ''
       }
