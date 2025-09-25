@@ -82,7 +82,7 @@ export default {
         }
       }
 
-      if ((campo.type === 'select' || campo.type === 'opcionMultiple') && campo.options) {
+      if ((campo.type === 'select' || campo.type === 'checkBox') && campo.options) {
         html += `<div class="mt-3">`
 
 
