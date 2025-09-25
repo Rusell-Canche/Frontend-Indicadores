@@ -33,7 +33,7 @@
             >
               <option value="">Seleccionar colección...</option>
               <option
-                v-for="coleccion in coleccionesFiltradas"
+                v-for="coleccion in colecciones"
                 :key="coleccion.id"
                 :value="coleccion"
               >
@@ -387,20 +387,6 @@ export default {
         documentos: false,
       },
       generandoReporte: false,
-
-      excludedCollections: [
-        'failed_jobs',
-        'navbar_colors',
-        'password_reset_tokens',
-        'migrations',
-        'personal_access_tokens',
-        'plantillas_predeterminadas',
-        'noticias_collection',
-        'users',
-        'comentarios',
-        'carrousel_images',
-      ],
-
       // ========== FILTROS AVANZADOS ==========
       filtroActivo: {
         campo: '',
@@ -412,12 +398,6 @@ export default {
   },
 
   computed: {
-    coleccionesFiltradas() {
-      return this.colecciones.filter(
-        (col) => !this.excludedCollections.includes(col.nombre_coleccion),
-      )
-    },
-
     camposDisponibles() {
       return this.camposDocumento.filter((campo) => {
         const campoDef = this.getCampoDefinition(campo)
@@ -1089,7 +1069,7 @@ export default {
 
     async cargarConfiguracionReporte(config) {
       // Buscar y seleccionar la colección
-      const coleccion = this.coleccionesFiltradas.find((c) => c.id === config.coleccionId)
+      const coleccion = this.colecciones.find((c) => c.id === config.coleccionId)
       if (coleccion) {
         this.selectedColeccion = coleccion
         await this.obtenerDocumentos()
