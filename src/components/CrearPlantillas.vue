@@ -294,19 +294,7 @@
                               <span class="checkbox-label">Campo obligatorio</span>
                             </label>
                           </div>
-                          <div class="campo-radio" v-if="campo.type === 'date'">
-                            <label class="radio-container">
-                              <input
-                                type="radio"
-                                :name="'filterOption_' + seccionIndex + '_' + campoIndex"
-                                class="custom-radio"
-                                v-model="campo.filterable"
-                                :value="true"
-                              />
-                              <span class="radiomark"></span>
-                              <span class="radio-label">Aplicar para filtro</span>
-                            </label>
-                          </div>
+
                         </div>
                       </div>
                     </div>
@@ -462,7 +450,7 @@ export default {
       secciones: [
         {
           nombre: '',
-          fields: [{ name: '', type: 'string', required: false, filterable: false }],
+          fields: [{ name: '', type: 'string', required: false }],
         },
       ],
       ejes: [],
@@ -535,7 +523,7 @@ export default {
     agregarSeccion() {
       this.secciones.push({
         nombre: '',
-        fields: [{ name: '', type: 'string', required: false, filterable: false }],
+        fields: [{ name: '', type: 'string', required: false }],
       })
     },
 
@@ -557,7 +545,6 @@ export default {
         name: '',
         type: 'string',
         required: false,
-        filterable: false,
       })
     },
 
@@ -582,10 +569,6 @@ export default {
         campo.options = []
         campo.newOption = ''
       }
-
-      if (campo.type !== 'date') {
-        campo.filterable = false
-      }
     },
 
     agregarSubcampo(campo) {
@@ -595,8 +578,7 @@ export default {
       campo.subcampos.push({
         name: '',
         type: 'string',
-        required: false,
-        filterable: false,
+        required: false
       })
     },
 
@@ -642,7 +624,7 @@ export default {
       this.secciones = [
         {
           nombre: '',
-          fields: [{ name: '', type: 'string', required: false, filterable: false }],
+          fields: [{ name: '', type: 'string', required: false }],
         },
       ]
       this.selectedEje = ''
@@ -654,7 +636,6 @@ export default {
           name: campo.name,
           type: campo.type,
           required: campo.required,
-          filterable: campo.filterable || false,
         }
 
         if (campo.type === 'select' && campo.dataSource) {

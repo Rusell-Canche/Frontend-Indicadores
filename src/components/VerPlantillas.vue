@@ -338,19 +338,6 @@
                                 <span class="checkbox-label">Campo obligatorio</span>
                               </label>
                             </div>
-                            <div class="campo-radio" v-if="campo.type === 'date'">
-                              <label class="radio-container">
-                                <input
-                                  type="radio"
-                                  :name="'filterOption_' + seccionIndex + '_' + campoIndex"
-                                  class="custom-radio"
-                                  v-model="campo.filterable"
-                                  :value="true"
-                                />
-                                <span class="radiomark"></span>
-                                <span class="radio-label">Aplicar para filtro</span>
-                              </label>
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -575,7 +562,7 @@
                   v-for="(campo, campoIndex) in seccion.fields"
                   :key="campoIndex"
                   class="campo-nodo"
-                  :class="[`tipo-${campo.type}`, { requerido: campo.required, filtrable: campo.filterable }]"
+                  :class="[`tipo-${campo.type}`, { requerido: campo.required }]"
                 >
                   <div class="campo-header">
                     <div class="campo-icon">
@@ -587,7 +574,6 @@
                     </div>
                     <div class="campo-badges">
                       <span v-if="campo.required" class="badge badge-required">Requerido</span>
-                      <span v-if="campo.filterable" class="badge badge-filtrable">Filtrable</span>
                     </div>
                   </div>
 
@@ -860,7 +846,7 @@ async submitEditForm() {
     agregarSeccion() {
       this.seccionesPlantilla.push({
         nombre: '',
-        fields: [{ name: '', type: 'string', required: false, filterable: false }],
+        fields: [{ name: '', type: 'string', required: false }],
       })
     },
 
@@ -881,7 +867,6 @@ async submitEditForm() {
         name: '',
         type: 'string',
         required: false,
-        filterable: false,
       })
     },
 
@@ -906,10 +891,6 @@ async submitEditForm() {
         campo.newOption = ''
         campo.mostrarOpcionesManuales = true
       }
-
-      if (campo.type !== 'date') {
-        campo.filterable = false
-      }
     },
 
     agregarSubcampo(campo) {
@@ -920,7 +901,6 @@ async submitEditForm() {
         name: '',
         type: 'string',
         required: false,
-        filterable: false,
       })
     },
 
@@ -1212,7 +1192,6 @@ getTipoTexto(tipo) {
     name: campo.name,
     type: campo.type,
     required: Boolean(campo.required),
-    filterable: Boolean(campo.filterable),
   }
 
   // Para select
