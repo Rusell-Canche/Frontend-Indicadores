@@ -276,7 +276,7 @@
                             <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
                             <option value="date">Fecha</option>
                             <option value="select">Lista de Selección</option>
-                            <option value="opcionMultiple">Selección múltiple</option>
+                            <option value="checkBox">Selección múltiple</option>
                             <option value="subform">Subformulario</option>
                           </select>
                         </div>
@@ -301,7 +301,7 @@
                     </div>
 
                     <!-- Configuración de opciones para Opción Múltiple -->
-<div v-if="campo.type === 'opcionMultiple'" class="select-options-container">
+<div v-if="campo.type === 'checkBox'" class="select-options-container">
   <div class="select-options-header">
     <div class="options-header-content">
       <i class="fas fa-list-ul"></i>
@@ -632,7 +632,7 @@ export default {
   if (campo.type === 'subform' && !campo.subcampos) {
     campo.subcampos = []
     this.agregarSubcampo(campo)
-  } else if ((campo.type === 'select' || campo.type === 'opcionMultiple') && !campo.options) {
+  } else if ((campo.type === 'select' || campo.type === 'checkBox') && !campo.options) {
     campo.options = []
     campo.newOption = ''
   }
@@ -708,7 +708,7 @@ const limpiarCampo = (campo) => {
 
   if (campo.type === 'select' && campo.dataSource) {
     campoLimpio.dataSource = campo.dataSource
-  } else if ((campo.type === 'select' || campo.type === 'opcionMultiple') && campo.options) {
+  } else if ((campo.type === 'select' || campo.type === 'checkBox') && campo.options) {
     campoLimpio.options = campo.options.filter(
       (option) => option !== null && option !== undefined && option.trim() !== '',
     )
@@ -768,13 +768,13 @@ const limpiarCampo = (campo) => {
 
 const camposInvalidos = this.secciones.some((seccion) =>
   seccion.fields.some((campo) => {
-    if (campo.type === 'select' || campo.type === 'opcionMultiple') {
+    if (campo.type === 'select' || campo.type === 'checkBox') {
       return !campo.options || campo.options.length === 0
     }
     if (campo.type === 'subform' && campo.subcampos) {
       return campo.subcampos.some(
         (subcampo) =>
-          (subcampo.type === 'select' || subcampo.type === 'opcionMultiple') &&
+          (subcampo.type === 'select' || subcampo.type === 'checkBox') &&
           (!subcampo.options || subcampo.options.length === 0),
       )
     }
