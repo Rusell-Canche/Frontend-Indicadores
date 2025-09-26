@@ -912,8 +912,11 @@ async submitEditForm() {
   }
 },
     agregarSeccion() {
+      // Conseguimos el numero de secciones que existan
+      const index = this.seccionesPlantilla.length
+
       this.seccionesPlantilla.push({
-        nombre: '',
+        nombre: `Sección ${index + 1}`,
         fields: [{ name: '', type: 'string', required: false }],
       })
     },

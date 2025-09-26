@@ -516,7 +516,7 @@ export default {
       plantillaName: '',
       secciones: [
         {
-          nombre: '',
+          nombre: 'Información General',
           fields: [{ name: '', type: 'string', required: false }],
         },
       ],
@@ -588,8 +588,12 @@ export default {
       }
     },
     agregarSeccion() {
+      // Conseguimos el numero de secciones que existan
+      const index = this.secciones.length
+      
+      // 
       this.secciones.push({
-        nombre: '',
+        nombre: `Sección ${index + 1}`,
         fields: [{ name: '', type: 'string', required: false }],
       })
     },
