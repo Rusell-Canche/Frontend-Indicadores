@@ -629,7 +629,7 @@ export default {
     async getColecciones() {
       this.loading.colecciones = true
       try {
-        this.colecciones = await this.apiCall('http://127.0.0.1:8000/api/documentos/plantillas')
+        this.colecciones = await this.apiCall('http://127.0.0.1:8000/api/documentos/plantillas-redable')
       } catch {
         this.showError('No se pudieron cargar las colecciones')
       } finally {
