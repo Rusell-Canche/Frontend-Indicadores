@@ -32,11 +32,7 @@
               :disabled="loading.colecciones"
             >
               <option value="">Seleccionar colección...</option>
-              <option
-                v-for="coleccion in colecciones"
-                :key="coleccion.id"
-                :value="coleccion"
-              >
+              <option v-for="coleccion in colecciones" :key="coleccion.id" :value="coleccion">
                 {{ coleccion.nombre_plantilla }} {{ coleccion.total_documentos }}
               </option>
             </select>
@@ -125,6 +121,131 @@
           </div>
         </div>
       </div>
+      <!-- ========== SECCIÓN DE ORDENAMIENTO ========== -->
+      <div class="form-section mt-4" v-if="camposSeleccionados.length > 0">
+        <h6 class="section-title">
+          <i class="fas fa-sort me-2"></i>
+          Ordenamiento de Campos
+        </h6>
+        <p class="text-muted mb-3">
+          Define cómo se ordenarán los registros en el reporte. Puedes agregar múltiples criterios
+          de ordenamiento.
+        </p>
+
+        <!-- Configurador de ordenamiento -->
+        <div class="ordenamiento-container">
+          <div class="row g-3">
+            <!-- Campo para ordenar -->
+            <div class="col-md-4">
+              <label class="form-label">Campo</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-list"></i>
+                </span>
+                <select class="form-select" v-model="ordenamientoActivo.campo">
+                  <option value="">Seleccionar campo...</option>
+                  <option v-for="campo in camposSeleccionados" :key="campo" :value="campo">
+                    {{ formatFieldName(campo) }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Dirección del ordenamiento -->
+            <div class="col-md-3" v-if="ordenamientoActivo.campo">
+              <label class="form-label">Orden</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-sort-amount-down"></i>
+                </span>
+                <select class="form-select" v-model="ordenamientoActivo.direccion">
+                  <option value="asc">Ascendente (A-Z, 1-9)</option>
+                  <option value="desc">Descendente (Z-A, 9-1)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Prioridad -->
+            <div class="col-md-3" v-if="ordenamientoActivo.campo">
+              <label class="form-label">Prioridad</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-hashtag"></i>
+                </span>
+                <select class="form-select" v-model="ordenamientoActivo.prioridad">
+                  <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Botón para agregar -->
+            <div class="col-md-2" v-if="ordenamientoActivo.campo">
+              <label class="form-label">&nbsp;</label>
+              <div class="d-flex gap-2">
+                <button
+                  class="btn btn-success btn-sm"
+                  @click="agregarOrdenamiento"
+                  :disabled="!ordenamientoActivo.campo"
+                  title="Agregar criterio de ordenamiento"
+                >
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Criterios de ordenamiento activos -->
+          <div v-if="criteriosOrdenamiento.length > 0" class="mt-3">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <span class="badge bg-secondary">Ordenamiento aplicado:</span>
+
+              <!-- Lista ordenada por prioridad -->
+              <div
+                v-for="(criterio, index) in criteriosOrdenamientoOrdenados"
+                :key="index"
+                class="badge bg-primary text-white cursor-pointer d-flex align-items-center gap-2"
+                style="font-size: 0.85em; padding: 0.5rem"
+              >
+                <span
+                  class="badge bg-light text-dark rounded-circle"
+                  style="width: 20px; height: 20px; font-size: 0.7em"
+                >
+                  {{ criterio.prioridad }}
+                </span>
+
+                <span>{{ formatFieldName(criterio.campo) }}</span>
+
+                <i
+                  :class="criterio.direccion === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"
+                ></i>
+
+                <button
+                  class="btn btn-sm btn-outline-light p-0"
+                  style="
+                    width: 18px;
+                    height: 18px;
+                    border: none;
+                    background: rgba(255, 255, 255, 0.2);
+                  "
+                  @click="eliminarOrdenamiento(criterio.campo)"
+                  title="Eliminar criterio"
+                >
+                  <i class="fas fa-times" style="font-size: 0.7em"></i>
+                </button>
+              </div>
+
+              <button
+                class="btn btn-danger btn-sm"
+                @click="limpiarOrdenamiento"
+                title="Limpiar todos los criterios"
+              >
+                <i class="fas fa-trash"></i> Limpiar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ========== FIN SECCIÓN ORDENAMIENTO ========== -->
 
       <!-- ========== SECCIÓN DE FILTROS AVANZADOS ========== -->
       <div class="form-section mt-4">
@@ -394,6 +515,13 @@ export default {
         valor: '',
       },
       filtrosActivos: [],
+      // ========== ORDENAMIENTO ==========
+      ordenamientoActivo: {
+        campo: '',
+        direccion: 'asc',
+        prioridad: 1,
+      },
+      criteriosOrdenamiento: [],
     }
   },
 
@@ -466,14 +594,23 @@ export default {
       if (this.filtrosActivos.length > 0) {
         documentos = documentos.filter((doc) => {
           return this.filtrosActivos.every((filtro) => {
-            // Obtener el valor del documento para el campo del filtro
             const valor = this.getFieldValueFromDocument(doc, filtro.campo)
             return this.aplicarFiltro(valor, filtro)
           })
         })
       }
 
+      // Aplicar ordenamiento
+      if (this.criteriosOrdenamiento.length > 0) {
+        documentos = this.aplicarOrdenamiento(documentos)
+      }
+
       return documentos
+    },
+
+    // ========== COMPUTED PARA ORDENAMIENTO ==========
+    criteriosOrdenamientoOrdenados() {
+      return [...this.criteriosOrdenamiento].sort((a, b) => a.prioridad - b.prioridad)
     },
   },
 
@@ -715,6 +852,7 @@ export default {
       this.mostrarPreview = false
       this.datosReporte = []
       this.limpiarTodosFiltros()
+      this.limpiarOrdenamiento()
     },
 
     limpiarConfiguracion() {
@@ -724,6 +862,7 @@ export default {
       this.mostrarPreview = false
       this.datosReporte = []
       this.limpiarTodosFiltros()
+      this.limpiarOrdenamiento()
     },
 
     previsualizarReporte() {
@@ -972,19 +1111,19 @@ export default {
           yPosition += 10
         }
 
-        // Información de filtros aplicados
+        // Información de registros y filtros
         doc.text(`Total de registros: ${this.documentosFiltrados.length}`, 20, yPosition)
         yPosition += 10
 
+        // Información de filtros
         if (this.filtrosActivos.length > 0) {
           doc.text(`Filtros aplicados: ${this.filtrosActivos.length}`, 20, yPosition)
           yPosition += 10
 
-          // Mostrar detalles de cada filtro
           this.filtrosActivos.forEach((filtro, index) => {
             const campoNombre = this.formatFieldName(filtro.campo)
             const operadorTexto = this.getOperadorTexto(filtro.operador)
-            const valorMostrar = filtro.valorDisplay || filtro.valor // Usar valorDisplay si existe
+            const valorMostrar = filtro.valorDisplay || filtro.valor
 
             const filtroTexto = `${index + 1}. ${campoNombre} ${operadorTexto} "${valorMostrar}"`
 
@@ -993,7 +1132,31 @@ export default {
             yPosition += 7
           })
 
-          yPosition += 5 // Espacio extra después de los filtros
+          yPosition += 5
+        }
+
+        // Información de ordenamiento
+        if (this.criteriosOrdenamiento.length > 0) {
+          doc.setFontSize(12)
+          doc.text(
+            `Ordenamiento aplicado: ${this.criteriosOrdenamiento.length} criterio(s)`,
+            20,
+            yPosition,
+          )
+          yPosition += 10
+
+          this.criteriosOrdenamientoOrdenados.forEach((criterio, index) => {
+            const campoNombre = this.formatFieldName(criterio.campo)
+            const direccionTexto = criterio.direccion === 'asc' ? 'Ascendente' : 'Descendente'
+
+            const criterioTexto = `${index + 1}. ${campoNombre} (${direccionTexto})`
+
+            doc.setFontSize(10)
+            doc.text(criterioTexto, 25, yPosition)
+            yPosition += 7
+          })
+
+          yPosition += 5
         } else {
           yPosition += 10
         }
@@ -1018,7 +1181,15 @@ export default {
         doc.save(nombreArchivo)
         this.guardarEnHistorial()
 
-        this.showSuccess(`PDF generado con ${this.documentosFiltrados.length} documentos filtrados`)
+        let mensaje = `PDF generado con ${this.documentosFiltrados.length} documentos`
+        if (this.filtrosActivos.length > 0) {
+          mensaje += ` filtrados`
+        }
+        if (this.criteriosOrdenamiento.length > 0) {
+          mensaje += ` y ordenados`
+        }
+
+        this.showSuccess(mensaje)
       } catch (error) {
         console.error('Error generando PDF:', error)
         this.showError('Error al generar el PDF.')
@@ -1056,6 +1227,7 @@ export default {
         coleccionId: this.selectedColeccion.id,
         camposSeleccionados: [...this.camposSeleccionados],
         filtrosAplicados: filtrosParaGuardar, // Usar filtros procesados
+        criteriosOrdenamiento: [...this.criteriosOrdenamiento],
         cantidadDocumentos: this.documentosFiltrados.length,
         incluirFecha: this.incluirFecha,
         fechaGeneracion: new Date().toISOString(),
@@ -1068,18 +1240,16 @@ export default {
     },
 
     async cargarConfiguracionReporte(config) {
-      // Buscar y seleccionar la colección
       const coleccion = this.colecciones.find((c) => c.id === config.coleccionId)
       if (coleccion) {
         this.selectedColeccion = coleccion
         await this.obtenerDocumentos()
 
-        // Una vez cargados los documentos, aplicar la configuración
         this.$nextTick(() => {
           this.tituloReporte = config.titulo
           this.camposSeleccionados = config.camposSeleccionados
 
-          // Restaurar filtros asegurando que tengan valorDisplay
+          // Restaurar filtros
           this.filtrosActivos = config.filtrosAplicados.map((filtro) => ({
             campo: filtro.campo,
             operador: filtro.operador,
@@ -1087,9 +1257,153 @@ export default {
             valorDisplay: filtro.valorDisplay || this.getDisplayValueForFilter(filtro),
           }))
 
+          // Restaurar criterios de ordenamiento
+          if (config.criteriosOrdenamiento) {
+            this.criteriosOrdenamiento = [...config.criteriosOrdenamiento]
+          }
+
           this.incluirFecha = config.incluirFecha
         })
       }
+    },
+    // ========== MÉTODOS DE ORDENAMIENTO ==========
+
+    agregarOrdenamiento() {
+      if (!this.ordenamientoActivo.campo) return
+
+      // Verificar si ya existe un criterio para este campo
+      const existeIndex = this.criteriosOrdenamiento.findIndex(
+        (c) => c.campo === this.ordenamientoActivo.campo,
+      )
+
+      const nuevoCriterio = {
+        campo: this.ordenamientoActivo.campo,
+        direccion: this.ordenamientoActivo.direccion,
+        prioridad: this.ordenamientoActivo.prioridad,
+      }
+
+      if (existeIndex >= 0) {
+        // Reemplazar criterio existente
+        this.criteriosOrdenamiento.splice(existeIndex, 1, nuevoCriterio)
+      } else {
+        // Agregar nuevo criterio
+        this.criteriosOrdenamiento.push(nuevoCriterio)
+      }
+
+      // Ajustar prioridades para evitar duplicados
+      this.ajustarPrioridades()
+
+      // Resetear ordenamiento activo
+      this.ordenamientoActivo = {
+        campo: '',
+        direccion: 'asc',
+        prioridad: this.getNextPrioridad(),
+      }
+    },
+
+    eliminarOrdenamiento(campo) {
+      const index = this.criteriosOrdenamiento.findIndex((c) => c.campo === campo)
+      if (index >= 0) {
+        this.criteriosOrdenamiento.splice(index, 1)
+        this.ajustarPrioridades()
+      }
+    },
+
+    limpiarOrdenamiento() {
+      this.criteriosOrdenamiento = []
+      this.ordenamientoActivo = {
+        campo: '',
+        direccion: 'asc',
+        prioridad: 1,
+      }
+    },
+
+    getNextPrioridad() {
+      if (this.criteriosOrdenamiento.length === 0) return 1
+      const maxPrioridad = Math.max(...this.criteriosOrdenamiento.map((c) => c.prioridad))
+      return Math.min(maxPrioridad + 1, 5)
+    },
+
+    ajustarPrioridades() {
+      // Ordenar por prioridad actual
+      this.criteriosOrdenamiento.sort((a, b) => a.prioridad - b.prioridad)
+
+      // Reasignar prioridades secuenciales
+      this.criteriosOrdenamiento.forEach((criterio, index) => {
+        criterio.prioridad = index + 1
+      })
+    },
+
+    aplicarOrdenamiento(documentos) {
+      if (this.criteriosOrdenamiento.length === 0) return documentos
+
+      return documentos.sort((a, b) => {
+        // Aplicar cada criterio en orden de prioridad
+        for (const criterio of this.criteriosOrdenamientoOrdenados) {
+          const valorA = this.getFieldValueFromDocument(a, criterio.campo)
+          const valorB = this.getFieldValueFromDocument(b, criterio.campo)
+
+          const resultado = this.compararValores(valorA, valorB, criterio.direccion)
+
+          // Si son diferentes, usar este resultado
+          if (resultado !== 0) {
+            return resultado
+          }
+          // Si son iguales, continuar con el siguiente criterio
+        }
+
+        return 0 // Todos los criterios son iguales
+      })
+    },
+
+    compararValores(valorA, valorB, direccion) {
+      // Manejar valores nulos/undefined
+      if (valorA == null && valorB == null) return 0
+      if (valorA == null) return direccion === 'asc' ? -1 : 1
+      if (valorB == null) return direccion === 'asc' ? 1 : -1
+
+      // Obtener valores para comparación
+      let a = this.prepararValorParaComparacion(valorA)
+      let b = this.prepararValorParaComparacion(valorB)
+
+      let resultado = 0
+
+      // Comparar según el tipo
+      if (typeof a === 'number' && typeof b === 'number') {
+        resultado = a - b
+      } else if (a instanceof Date && b instanceof Date) {
+        resultado = a.getTime() - b.getTime()
+      } else {
+        // Comparación de strings (case-insensitive)
+        const strA = String(a).toLowerCase()
+        const strB = String(b).toLowerCase()
+        resultado = strA.localeCompare(strB, 'es', { numeric: true })
+      }
+
+      // Aplicar dirección
+      return direccion === 'desc' ? -resultado : resultado
+    },
+
+    prepararValorParaComparacion(valor) {
+      // Si es un array, usar su longitud para comparar
+      if (Array.isArray(valor)) {
+        return valor.length
+      }
+
+      // Intentar convertir a número si parece un número
+      if (typeof valor === 'string' && !isNaN(valor) && !isNaN(parseFloat(valor))) {
+        return parseFloat(valor)
+      }
+
+      // Intentar convertir a fecha si parece una fecha
+      if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}/.test(valor)) {
+        const fecha = new Date(valor)
+        if (!isNaN(fecha.getTime())) {
+          return fecha
+        }
+      }
+
+      return valor
     },
 
     showSuccess(message) {
