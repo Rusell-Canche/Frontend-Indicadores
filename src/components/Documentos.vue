@@ -54,9 +54,11 @@
     <!-- Contenido de las pestañas usando rutas hijas -->
     <div class="tab-content-wrapper">
       <div class="tab-content">
-        <transition name="fade" mode="out-in">
-          <router-view />
-        </transition>
+        <router-view v-slot="{ Component, route }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" :key="route.path" />
+          </transition>
+        </router-view>
       </div>
     </div>
   </div>
