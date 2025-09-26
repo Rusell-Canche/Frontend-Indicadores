@@ -100,6 +100,31 @@
   />
 </div>
 
+
+<!-- Campo de tipo opción múltiple (checkboxes) -->
+<div v-else-if="campo.type === 'checkBox'" class="mt-2" >
+  <label class="form-label d-block mb-1">
+    <i class="fas fa-check-square me-1"></i>
+    {{ campo.label || 'Seleccione opciones' }}
+  </label>
+  <div class="form-check" v-for="(option, index) in campo.options" :key="index" style="padding-left: 4  rem;">
+    <input
+      class="form-check-input"
+      type="checkbox"
+      :id="campo.name + '_' + index"
+      :value="getSaveValue(option, campo)"
+      v-model="documentData[campo.name]"
+    />
+    <label class="form-check-label" :for="campo.name + '_' + index">
+      {{ getDisplayValue(option, campo) }}
+    </label>
+  </div>
+</div>
+
+
+
+
+
                     <!-- Campo de tipo select -->
                     <div v-else-if="campo.type === 'select'" class="mt-2">
                       <div class="input-group modern-input">
@@ -144,6 +169,11 @@
                         </small>
                       </div>
                     </div>
+
+
+
+
+
                     <!-- Campo de archivos -->
                     <div v-else-if="campo.type === 'file'" class="mt-2">
                       <div class="input-group modern-input">
@@ -729,6 +759,9 @@ export default {
         if (campo.type === 'select') {
           this.documentData[campo.name] = ''
         }
+         if (campo.type === 'checkBox') {
+      this.documentData[campo.name] = [] // inicializa como array
+    }
         if (campo.type === 'subform') {
           this.subformData[campo.name] = []
           this.subformFiles[campo.name] = []

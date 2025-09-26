@@ -167,6 +167,33 @@
                       </div>
                     </div>
 
+                    <!-- Campo de tipo checkbox (CORREGIDO) -->
+                    <div v-else-if="subcampo.type === 'checkBox'" class="form-field">
+                      <label class="form-label d-block mb-3">
+                        <i class="fas fa-check-square me-2"></i>
+                        {{ subcampo.alias || subcampo.name }}
+                        <span v-if="subcampo.required" class="text-danger">*</span>
+                      </label>
+                      <div class="checkbox-container d-block">
+                        <div class="form-check mb-2" v-for="(option, index) in subcampo.options" :key="index">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            :id="subcampo.name + '_' + index"
+                            :value="getSaveValue(option, subcampo)"
+                            v-model="datosTemporales[subcampo.name]"
+                          />
+                          <label class="form-check-label" :for="subcampo.name + '_' + index">
+                            {{ getDisplayValue(option, subcampo) }}
+                          </label>
+                        </div>
+                      </div>
+                      <small class="form-text text-muted mt-2">
+                        Seleccione una o más opciones
+                      </small>
+                    </div>
+
+
                     <!-- Campo select -->
                     <div v-else-if="subcampo.type === 'select'" class="form-field">
                       <label class="form-label">
@@ -383,6 +410,34 @@ nombreCampoSubformulario: null,
     }
   },
   methods: {
+    // Métodos para manejar opciones de checkbox y select
+    getSaveValue(option, campo) {
+      if (typeof option === 'string') {
+        return option;
+      }
+      return option.campoGuardar || option.value || option;
+    },
+
+    getDisplayValue(option, campo) {
+      if (typeof option === 'string') {
+        return option;
+      }
+      return option.campoMostrar || option.label || option.text || option;
+    },
+
+    getDisplayValueFromSaved(savedValue, campo) {
+      if (!campo.options) return savedValue;
+      
+      if (this.isManualSelect(campo)) {
+        return savedValue;
+      }
+      
+      const option = campo.options.find(opt => 
+        (opt.campoGuardar || opt.value) === savedValue
+      );
+      return option ? (option.campoMostrar || option.label || option.text) : savedValue;
+    },
+
     // Nuevos métodos
 abrirModalSubformulario(indice, nombreCampo, campo) {
   this.indiceFilaSubformulario = indice;
@@ -461,6 +516,9 @@ guardarSubformulario() {
         if (sub.type === 'subform') {
           return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0;
         }
+        if (sub.type === 'checkBox') {
+      return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0;
+    }
         return this.datosTemporales[sub.name] !== undefined && 
                this.datosTemporales[sub.name] !== null && 
                this.datosTemporales[sub.name] !== '';
@@ -481,17 +539,20 @@ guardarSubformulario() {
       this.cerrarModal();
     },
     
-    inicializarDatosTemporales() {
-      const datos = {};
-      this.campo.subcampos.forEach(sub => {
-        if (sub.type === 'subform') {
-          datos[sub.name] = [];
-        } else {
-          datos[sub.name] = '';
-        }
-      });
-      return datos;
-    },
+inicializarDatosTemporales() {
+  const datos = {};
+  this.campo.subcampos.forEach(sub => {
+    if (sub.type === 'subform') {
+      datos[sub.name] = [];
+    } else if (sub.type === 'checkBox') {
+      datos[sub.name] = []; // inicializar como array vacío
+    } else {
+      datos[sub.name] = '';
+    }
+  });
+  return datos;
+},
+
     
     onCambioArchivo(event, nombreCampo) {
       const archivo = event.target.files[0];
