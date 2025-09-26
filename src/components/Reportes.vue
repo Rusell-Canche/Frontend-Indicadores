@@ -19,19 +19,6 @@
         <div class="tabs-header">
           <div
             class="tab"
-            :class="{ active: $route.name === 'VerReportes' }"
-            @click="$router.push({ name: 'VerReportes' })"
-          >
-            <div class="tab-icon">
-              <i class="fa-solid fa-file-alt"></i>
-            </div>
-            <div class="tab-content-text">
-              <span class="tab-title">Ver Reportes</span>
-              <span class="tab-description">Ver los reportes creados</span>
-            </div>
-          </div>
-          <div
-            class="tab"
             :class="{ active: $route.name === 'CrearReportes' }"
             @click="$router.push({ name: 'CrearReportes' })"
           >
@@ -41,6 +28,19 @@
             <div class="tab-content-text">
               <span class="tab-title">Crear Reportes</span>
               <span class="tab-description">Crea un reporte con los campos que desees</span>
+            </div>
+          </div>
+          <div
+            class="tab"
+            :class="{ active: $route.name === 'VerReportes' }"
+            @click="$router.push({ name: 'VerReportes' })"
+          >
+            <div class="tab-icon">
+              <i class="fa-solid fa-file-alt"></i>
+            </div>
+            <div class="tab-content-text">
+              <span class="tab-title">Ver Reportes</span>
+              <span class="tab-description">Ver los reportes creados</span>
             </div>
           </div>
           <!-- Indicador deslizante mejorado -->
@@ -65,13 +65,13 @@ export default {
   mounted() {
     // Si la ruta actual es exactamente '/Plantillas', redirigir a VerPlantillas
     if (this.$route.path === '/Reportes') {
-      this.$router.replace('/Reportes/VerReportes')
+      this.$router.replace('/Reportes/CrearReportes')
     }
   },
   computed: {
     indicatorStyle() {
       // Calcula el índice según la ruta activa
-      const tabNames = ['VerReportes', 'CrearReportes']
+      const tabNames = ['CrearReportes','VerReportes']
       const index = tabNames.indexOf(this.$route.name)
       const width = 100 / tabNames.length
       return {
