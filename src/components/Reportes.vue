@@ -19,19 +19,6 @@
         <div class="tabs-header">
           <div
             class="tab"
-            :class="{ active: $route.name === 'VerReportes' }"
-            @click="$router.push({ name: 'VerReportes' })"
-          >
-            <div class="tab-icon">
-              <i class="fa-solid fa-file-alt"></i>
-            </div>
-            <div class="tab-content-text">
-              <span class="tab-title">Ver Reportes</span>
-              <span class="tab-description">Ver los reportes creados</span>
-            </div>
-          </div>
-          <div
-            class="tab"
             :class="{ active: $route.name === 'CrearReportes' }"
             @click="$router.push({ name: 'CrearReportes' })"
           >
@@ -43,6 +30,19 @@
               <span class="tab-description">Crea un reporte con los campos que desees</span>
             </div>
           </div>
+          <div
+            class="tab"
+            :class="{ active: $route.name === 'VerReportes' }"
+            @click="$router.push({ name: 'VerReportes' })"
+          >
+            <div class="tab-icon">
+              <i class="fa-solid fa-file-alt"></i>
+            </div>
+            <div class="tab-content-text">
+              <span class="tab-title">Ver Reportes</span>
+              <span class="tab-description">Ver los reportes creados</span>
+            </div>
+          </div>
           <!-- Indicador deslizante mejorado -->
           <div class="tab-indicator" :style="indicatorStyle"></div>
         </div>
@@ -52,9 +52,11 @@
     <!-- Contenido de las pestañas usando rutas hijas -->
     <div class="tab-content-wrapper">
       <div class="tab-content">
-        <transition name="fade" mode="out-in">
-          <router-view />
-        </transition>
+        <router-view v-slot="{ Component, route }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" :key="route.path" />
+          </transition>
+        </router-view>
       </div>
     </div>
   </div>
@@ -65,13 +67,13 @@ export default {
   mounted() {
     // Si la ruta actual es exactamente '/Plantillas', redirigir a VerPlantillas
     if (this.$route.path === '/Reportes') {
-      this.$router.replace('/Reportes/VerReportes')
+      this.$router.replace('/Reportes/CrearReportes')
     }
   },
   computed: {
     indicatorStyle() {
       // Calcula el índice según la ruta activa
-      const tabNames = ['VerReportes', 'CrearReportes']
+      const tabNames = ['CrearReportes','VerReportes']
       const index = tabNames.indexOf(this.$route.name)
       const width = 100 / tabNames.length
       return {
