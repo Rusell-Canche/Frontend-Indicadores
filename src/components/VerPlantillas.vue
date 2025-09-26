@@ -320,6 +320,7 @@
                               <option value="file">Archivo (pdf, png, mp4, mp3, wav, gif)</option>
                               <option value="date">Fecha</option>
                               <option value="select">Lista de Selección</option>
+                              <option value="checkBox">Selección múltiple</option>
                               <option value="subform">Subformulario</option>
                             </select>
                           </div>
@@ -341,9 +342,76 @@
                           </div>
                         </div>
                       </div>
+                      
+                                          <!-- Configuración de opciones para Opción Múltiple -->
+<div v-if="campo.type === 'checkBox'" class="select-options-container">
+  <div class="select-options-header">
+    <div class="options-header-content">
+      <i class="fas fa-list-ul"></i>
+      <span>Opciones múltiples para "{{ campo.name || 'este campo' }}"</span>
+    </div>
+  </div>
 
+  <!-- Opciones definidas manualmente -->
+  <div class="select-options-body">
+    <div
+      v-for="(option, optionIndex) in campo.options || []"
+      :key="optionIndex"
+      class="option-item"
+    >
+      <div class="option-content">
+        <div class="input-group modern-input-small">
+          <span class="input-group-text">
+            <i class="fas fa-tag"></i>
+          </span>
+          <input
+            v-solo-texto-y-numeros
+            v-model="campo.options[optionIndex]"
+            class="form-control"
+            placeholder="Texto de la opción"
+            required
+          />
+          <button
+            type="button"
+            @click="quitarOpcion(campo, optionIndex)"
+            class="btn-delete-option"
+          >
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agregar nueva opción -->
+    <div class="add-option-section">
+      <div class="add-option-wrapper">
+        <div class="add-option-input">
+          <input
+            v-solo-texto-y-numeros
+            v-model="campo.newOption"
+            class="form-control modern-input-standalone"
+            placeholder="Texto de la opción (ej: Activo, Inactivo, Pendiente)"
+            @keyup.enter="agregarOpcion(campo)"
+          />
+        </div>
+        <button
+          type="button"
+          @click="agregarOpcion(campo)"
+          class="btn-add-option"
+          :disabled="!campo.newOption"
+        >
+          <i class="fas fa-plus"></i>
+          <span>Agregar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+                      
                       <!-- Configuración de opciones para Select -->
-                      <div v-if="campo.type === 'select'" class="select-options-container">
+                      <div v-if="campo.type === 'select' " class="select-options-container">
                         <div class="select-options-header">
                           <div class="options-header-content">
                             <i class="fas fa-list-ul"></i>
@@ -740,7 +808,7 @@ vistaCompacta: false,
         // Inicializar mostrarOpcionesManuales para campos select existentes
         this.seccionesPlantilla.forEach(seccion => {
           seccion.fields.forEach(campo => {
-            if (campo.type === 'select') {
+            if (campo.type === 'select' || campo.type === 'checkBox') {
               if (campo.dataSource) {
                 campo.mostrarOpcionesManuales = false
               } else {
@@ -752,7 +820,7 @@ vistaCompacta: false,
             // Inicializar para subcampos también
             if (campo.type === 'subform' && campo.subcampos) {
               campo.subcampos.forEach(subcampo => {
-                if (subcampo.type === 'select') {
+                if (subcampo.type === 'select' || campo.type === 'checkBox') {
                   if (subcampo.dataSource) {
                     subcampo.mostrarOpcionesManuales = false
                   } else {
@@ -861,6 +929,32 @@ async submitEditForm() {
         })
       }
     },
+        agregarOpcion(campo) {
+      if (!campo.options) {
+        campo.options = []
+      }
+
+      if (campo.newOption && campo.newOption.trim() !== '') {
+        const opcionTrimmed = campo.newOption.trim()
+
+        const existeOpcion = campo.options.some(
+          (option) => option && option.toString().toLowerCase() === opcionTrimmed.toLowerCase(),
+        )
+
+        if (existeOpcion) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Opción duplicada',
+            text: 'Esta opción ya existe',
+            confirmButtonColor: '#f39c12',
+          })
+          return
+        }
+
+        campo.options.push(opcionTrimmed)
+        campo.newOption = ''
+      }
+    },
 
     agregarCampo(seccionIndex) {
       this.seccionesPlantilla[seccionIndex].fields.push({
@@ -886,7 +980,7 @@ async submitEditForm() {
       if (campo.type === 'subform' && !campo.subcampos) {
         campo.subcampos = []
         this.agregarSubcampo(campo)
-      } else if (campo.type === 'select' && !campo.options) {
+      } else if ((campo.type === 'select'|| campo.type === 'checkBox') && !campo.options) {
         campo.options = []
         campo.newOption = ''
         campo.mostrarOpcionesManuales = true
@@ -1195,7 +1289,7 @@ getTipoTexto(tipo) {
   }
 
   // Para select
-  if (campo.type === 'select') {
+  if (campo.type === 'select'|| campo.type === 'checkBox') {
     if (campo.dataSource) {
       campoLimpio.dataSource = campo.dataSource
     } else if (campo.options && Array.isArray(campo.options)) {
