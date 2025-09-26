@@ -379,7 +379,7 @@ export default {
     async fetchPlantillas() {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        const response = await axios.get('http://127.0.0.1:8000/api/documentos/plantillas-creable', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
