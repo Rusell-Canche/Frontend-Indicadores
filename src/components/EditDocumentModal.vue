@@ -71,6 +71,35 @@
 />
 
 
+                    <!-- Campo de tipo checkbox (CORREGIDO) -->
+                    <div v-else-if="campo.type === 'checkBox'" class="form-field">
+                      <label class="form-label d-block mb-3">
+                        <i class="fas fa-check-square me-2"></i>
+                        {{ campo.alias || campo.name }}
+                        <span v-if="campo.required" class="text-danger">*</span>
+                      </label>
+                      <div class="checkbox-container d-block">
+                        <div class="form-check mb-2" v-for="(option, index) in campo.options" :key="index">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            :id="campo.name + '_' + index"
+                            :value="getSaveValue(option, campo)"
+                            v-model="documentoEdit[campo.name]"
+
+                          />
+                          <label class="form-check-label" :for="campo.name + '_' + index">
+                            {{ getDisplayValue(option, campo) }}
+                          </label>
+                        </div>
+                      </div>
+                      <small class="form-text text-muted mt-2">
+                        Seleccione una o más opciones
+                      </small>
+                    </div>
+
+
+
                       <!-- CAMPO DE TIPO SELECT -->
                       <div v-else-if="campo.type === 'select'" class="mt-2">
                         <div class="input-group modern-input">
@@ -320,6 +349,22 @@ export default {
   },
 
   methods: {
+
+      getSaveValue(option, campo) {
+    if (typeof option === 'string') {
+      return option
+    }
+    return option.campoGuardar || option.value || option
+  },
+
+  getDisplayValue(option, campo) {
+    if (typeof option === 'string') {
+      return option
+    }
+    return option.campoMostrar || option.label || option.text || option
+  },
+
+  
     formatFieldName(fieldName) {
       const fieldMap = {
         created_at: 'Fecha de creación',
@@ -360,6 +405,22 @@ initializeEditData(documento) {
       let valorCampo = this.extraerValorCampoDelDocumento(documento, nombreCampo)
       
       this.documentoEdit[nombreCampo] = valorCampo ?? ''
+
+          // ✅ Manejo especial para checkBox
+    if (campo.type === 'checkBox') {
+      if (typeof valorCampo === 'string') {
+        try {
+          valorCampo = JSON.parse(valorCampo)
+        } catch {
+          valorCampo = []
+        }
+      }
+      if (!Array.isArray(valorCampo)) {
+        valorCampo = []
+      }
+      this.documentoEdit[nombreCampo] = [...valorCampo]
+      return
+    }
       
       // Manejar selects especiales
       if (campo.type === 'select' && !this.isManualSelect(campo)) {
@@ -369,6 +430,7 @@ initializeEditData(documento) {
         }
       }
     })
+
 
   // Inicializar subformularios
   campos

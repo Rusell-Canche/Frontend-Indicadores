@@ -495,6 +495,27 @@ guardarSubformulario() {
     editarEntrada(index) {
       this.indiceEditando = index;
       this.datosTemporales = {...this.filas[index]};
+      // 🔑 Normalizar valores de checkBox al editar
+  this.campo.subcampos.forEach(sub => {
+    if (sub.type === 'checkBox') {
+      let valor = this.datosTemporales[sub.name];
+
+      if (typeof valor === 'string') {
+        try {
+          valor = JSON.parse(valor);
+        } catch {
+          valor = [];
+        }
+      }
+
+      if (!Array.isArray(valor)) {
+        valor = [];
+      }
+
+      this.datosTemporales[sub.name] = [...valor];
+    }
+  });
+
       this.mostrarModal = true;
     },
     
