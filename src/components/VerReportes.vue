@@ -9,249 +9,299 @@
       <p class="page-description">Gestiona y regenera los reportes que has creado anteriormente</p>
     </div>
 
-    <!-- Filtros y búsqueda -->
-    <div class="filtros-section mb-4">
-      <div class="row g-3 align-items-end">
-        <div class="col-md-5">
-          <label class="form-label">Buscar reportes</label>
-          <div class="input-group modern-input">
-            <span class="input-group-text">
-              <i class="fas fa-search"></i>
-            </span>
-            <input
-              type="text"
-              class="form-control"
-              v-model="filtroBusqueda"
-              placeholder="Buscar por título, colección..."
-            />
-          </div>
-        </div>
-
-        <div class="col-md-3">
-          <label class="form-label">Ordenar por</label>
-          <select class="form-select" v-model="ordenSeleccionado">
-            <option value="fecha_desc">Más recientes</option>
-            <option value="fecha_asc">Más antiguos</option>
-            <option value="titulo_asc">Título (A-Z)</option>
-            <option value="titulo_desc">Título (Z-A)</option>
-            <option value="documentos_desc">Más documentos</option>
-            <option value="documentos_asc">Menos documentos</option>
-          </select>
-        </div>
-
-        <div class="col-md-2">
-          <label class="form-label">Items por página</label>
-          <select class="form-select" v-model="itemsPorPagina">
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-        </div>
-
-        <div class="col-md-2">
-          <button
-            class="btn btn-outline-danger w-100"
-            @click="limpiarHistorial"
-            title="Eliminar todo el historial"
-          >
-            <i class="fas fa-trash me-1"></i> Limpiar Todo
-          </button>
-        </div>
+    <!-- Loading State -->
+    <div v-if="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
       </div>
+      <p class="text-muted mt-3">Cargando reportes...</p>
     </div>
 
-    <!-- Estadísticas -->
-    <div class="row mb-4">
-      <div class="col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-file-pdf text-primary"></i>
-          </div>
-          <div class="stat-info">
-            <h4>{{ reportesFiltrados.length }}</h4>
-            <p>Reportes en historial</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-database text-success"></i>
-          </div>
-          <div class="stat-info">
-            <h4>{{ coleccionesUnicas.length }}</h4>
-            <p>Colecciones diferentes</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-calendar text-info"></i>
-          </div>
-          <div class="stat-info">
-            <h4>{{ reportesDelMes }}</h4>
-            <p>Este mes</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-chart-bar text-warning"></i>
-          </div>
-          <div class="stat-info">
-            <h4>{{ totalDocumentosReporteados }}</h4>
-            <p>Documentos totales</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mensaje cuando no hay reportes -->
-    <div v-if="reportes.length === 0" class="text-center py-5 empty-state">
-      <i class="fas fa-file-pdf fa-4x text-muted mb-3"></i>
-      <h4 class="text-muted">No hay reportes en el historial</h4>
-      <p class="text-muted mb-4">
-        Los reportes que generes aparecerán aquí para que puedas regenerarlos fácilmente.
-      </p>
-      <router-link to="CrearReportes" class="btn btn-primary btn-lg">
-        <i class="fas fa-plus me-2"></i>Crear mi primer reporte
-      </router-link>
-    </div>
-
-    <!-- Lista de reportes -->
-    <div v-else-if="reportesFiltrados.length === 0" class="text-center py-5">
-      <i class="fas fa-search fa-3x text-muted mb-3"></i>
-      <h4 class="text-muted">No se encontraron reportes</h4>
-      <p class="text-muted">Intenta con otros términos de búsqueda.</p>
-      <button class="btn btn-outline-secondary" @click="limpiarFiltros">
-        <i class="fas fa-undo me-2"></i>Limpiar filtros
+    <!-- Error State -->
+    <div v-else-if="error" class="alert alert-danger" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button class="btn btn-sm btn-outline-danger ms-3" @click="cargarReportes">
+        <i class="fas fa-redo me-1"></i> Reintentar
       </button>
     </div>
 
-    <div v-else class="reportes-grid">
-      <div v-for="reporte in reportesPaginados" :key="reporte.id" class="reporte-card">
-        <div class="reporte-header">
-          <div class="reporte-icon">
-            <i class="fas fa-file-pdf text-danger"></i>
+    <!-- Contenido principal -->
+    <template v-else>
+      <!-- Filtros y búsqueda -->
+      <div class="filtros-section mb-4">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-5">
+            <label class="form-label">Buscar reportes</label>
+            <div class="input-group modern-input">
+              <span class="input-group-text">
+                <i class="fas fa-search"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                v-model="filtroBusqueda"
+                placeholder="Buscar por título, colección..."
+              />
+            </div>
           </div>
-          <div class="reporte-actions">
+
+          <div class="col-md-3">
+            <label class="form-label">Ordenar por</label>
+            <select class="form-select" v-model="ordenSeleccionado">
+              <option value="fecha_desc">Más recientes</option>
+              <option value="fecha_asc">Más antiguos</option>
+              <option value="titulo_asc">Título (A-Z)</option>
+              <option value="titulo_desc">Título (Z-A)</option>
+              <option value="documentos_desc">Más documentos</option>
+              <option value="documentos_asc">Menos documentos</option>
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Items por página</label>
+            <select class="form-select" v-model="itemsPorPagina">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+
+          <div class="col-md-2">
             <button
-              class="btn btn-sm btn-outline-danger"
-              @click="eliminarReporte(reporte.id)"
-              title="Eliminar del historial"
+              class="btn btn-outline-danger w-100"
+              @click="limpiarHistorial"
+              title="Eliminar todo el historial"
+              :disabled="reportes.length === 0"
             >
-              <i class="fas fa-trash"></i>
+              <i class="fas fa-trash me-1"></i> Limpiar Todo
             </button>
           </div>
         </div>
+      </div>
 
-        <div class="reporte-body">
-          <h5 class="reporte-titulo">{{ reporte.titulo }}</h5>
-          <p class="reporte-descripcion text-muted">
-            Generado el {{ formatoFecha(reporte.fechaGeneracion) }}
-          </p>
+      <!-- Estadísticas -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-file-pdf text-primary"></i>
+            </div>
+            <div class="stat-info">
+              <h4>{{ reportesFiltrados.length }}</h4>
+              <p>Reportes en historial</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-database text-success"></i>
+            </div>
+            <div class="stat-info">
+              <h4>{{ coleccionesUnicas.length }}</h4>
+              <p>Colecciones diferentes</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-calendar text-info"></i>
+            </div>
+            <div class="stat-info">
+              <h4>{{ reportesDelMes }}</h4>
+              <p>Este mes</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-chart-bar text-warning"></i>
+            </div>
+            <div class="stat-info">
+              <h4>{{ totalDocumentosReporteados }}</h4>
+              <p>Documentos totales</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          <div class="reporte-info">
-            <div class="info-item">
-              <i class="fas fa-database me-2"></i>
-              <span><strong>Colección:</strong> {{ reporte.coleccionNombre }}</span>
+      <!-- Mensaje cuando no hay reportes -->
+      <div v-if="reportes.length === 0" class="text-center py-5 empty-state">
+        <i class="fas fa-file-pdf fa-4x text-muted mb-3"></i>
+        <h4 class="text-muted">No hay reportes en el historial</h4>
+        <p class="text-muted mb-4">
+          Los reportes que generes aparecerán aquí para que puedas regenerarlos fácilmente.
+        </p>
+        <router-link to="CrearReportes" class="btn btn-primary btn-lg">
+          <i class="fas fa-plus me-2"></i>Crear mi primer reporte
+        </router-link>
+      </div>
+
+      <!-- Lista de reportes -->
+      <div v-else-if="reportesFiltrados.length === 0" class="text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No se encontraron reportes</h4>
+        <p class="text-muted">Intenta con otros términos de búsqueda.</p>
+        <button class="btn btn-outline-secondary" @click="limpiarFiltros">
+          <i class="fas fa-undo me-2"></i>Limpiar filtros
+        </button>
+      </div>
+
+      <div v-else class="reportes-grid">
+        <div v-for="reporte in reportesPaginados" :key="reporte.id" class="reporte-card">
+          <div class="reporte-header">
+            <div class="reporte-icon">
+              <i class="fas fa-file-pdf text-danger"></i>
             </div>
-            <div class="info-item">
-              <i class="fas fa-file-alt me-2"></i>
-              <span><strong>Documentos incluidos:</strong> {{ reporte.cantidadDocumentos }}</span>
-            </div>
-            <div class="info-item">
-              <i class="fas fa-columns me-2"></i>
-              <span><strong>Campos:</strong> {{ reporte.camposSeleccionados.length }}</span>
-            </div>
-            <div class="info-item" v-if="reporte.incluirFecha">
-              <i class="fas fa-calendar-day me-2"></i>
-              <span><strong>Incluye fecha:</strong> Sí</span>
+            <div class="reporte-actions">
+              <button
+                class="btn btn-sm btn-outline-danger"
+                @click="eliminarReporte(reporte.id)"
+                title="Eliminar del historial"
+                :disabled="eliminando === reporte.id"
+              >
+                <i v-if="eliminando === reporte.id" class="fas fa-spinner fa-spin"></i>
+                <i v-else class="fas fa-trash"></i>
+              </button>
             </div>
           </div>
 
-          <!-- Campos incluidos -->
-          <div class="campos-incluidos mt-3">
-            <span
-              class="badge bg-light text-dark me-1 mb-1"
-              v-for="campo in reporte.camposSeleccionados.slice(0, 5)"
-              :key="campo"
-            >
-              {{ formatoNombreCampo(campo) }}
-            </span>
-            <span v-if="reporte.camposSeleccionados.length > 5" class="badge bg-secondary">
-              +{{ reporte.camposSeleccionados.length - 5 }} más
-            </span>
-          </div>
+          <div class="reporte-body">
+            <h5 class="reporte-titulo">{{ reporte.titulo }}</h5>
+            <p class="reporte-descripcion text-muted">
+              Generado el {{ formatoFecha(reporte.fechaGeneracion || reporte.created_at) }}
+            </p>
 
-          <!-- Filtros aplicados -->
-          <div
-            v-if="reporte.filtrosAplicados && reporte.filtrosAplicados.length > 0"
-            class="filtros-section mt-3"
-          >
-            <div class="filtros-badge">
-              <span class="badge bg-info me-1">
-                <i class="fas fa-filter me-1"></i>
-                {{ reporte.filtrosAplicados.length }} filtro(s)
+            <div class="reporte-info">
+              <div class="info-item">
+                <i class="fas fa-database me-2"></i>
+                <span
+                  ><strong>Colección:</strong> {{ reporte.coleccionNombre || reporte.coleccion
+                  }}</span
+                >
+              </div>
+              <div class="info-item">
+                <i class="fas fa-file-alt me-2"></i>
+                <span
+                  ><strong>Documentos incluidos:</strong>
+                  {{ reporte.cantidadDocumentos || reporte.cantidad_documentos }}</span
+                >
+              </div>
+              <div class="info-item">
+                <i class="fas fa-columns me-2"></i>
+                <span
+                  ><strong>Campos:</strong>
+                  {{
+                    (reporte.camposSeleccionados || reporte.campos_seleccionados || []).length
+                  }}</span
+                >
+              </div>
+              <div class="info-item" v-if="reporte.incluirFecha || reporte.incluir_fecha">
+                <i class="fas fa-calendar-day me-2"></i>
+                <span><strong>Incluye fecha:</strong> Sí</span>
+              </div>
+            </div>
+
+            <!-- Campos incluidos -->
+            <div class="campos-incluidos mt-3">
+              <span
+                class="badge bg-light text-dark me-1 mb-1"
+                v-for="campo in (reporte.camposSeleccionados || reporte.campos_seleccionados || []).slice(
+                  0,
+                  5,
+                )"
+                :key="campo"
+              >
+                {{ formatoNombreCampo(campo) }}
+              </span>
+              <span
+                v-if="
+                  (reporte.camposSeleccionados || reporte.campos_seleccionados || []).length > 5
+                "
+                class="badge bg-secondary"
+              >
+                +{{
+                  (reporte.camposSeleccionados || reporte.campos_seleccionados || []).length - 5
+                }}
+                más
               </span>
             </div>
-            <div class="filtros-list mt-2">
-              <small
-                class="text-muted"
-                v-for="(filtro, index) in reporte.filtrosAplicados"
-                :key="index"
-              >
-                • {{ formatoNombreCampo(filtro.campo) }}
-                {{ obtenerTextoOperador(filtro.operador) }} "{{
-                  obtenerValorMostrarFiltro(filtro)
-                }}"
-                <br />
-              </small>
+
+            <!-- Filtros aplicados -->
+            <div
+              v-if="
+                (reporte.filtrosAplicados || reporte.filtros_aplicados || []).length > 0
+              "
+              class="filtros-section mt-3"
+            >
+              <div class="filtros-badge">
+                <span class="badge bg-info me-1">
+                  <i class="fas fa-filter me-1"></i>
+                  {{ (reporte.filtrosAplicados || reporte.filtros_aplicados || []).length }}
+                  filtro(s)
+                </span>
+              </div>
+              <div class="filtros-list mt-2">
+                <small
+                  class="text-muted"
+                  v-for="(filtro, index) in (reporte.filtrosAplicados || reporte.filtros_aplicados || [])"
+                  :key="index"
+                >
+                  • {{ formatoNombreCampo(filtro.campo) }}
+                  {{ obtenerTextoOperador(filtro.operador) }} "{{
+                    obtenerValorMostrarFiltro(filtro)
+                  }}"
+                  <br />
+                </small>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="reporte-footer">
-          <small class="text-muted">Creado: {{ formatoFechaHora(reporte.fechaGeneracion) }}</small>
-          <span class="badge bg-success">Guardado localmente</span>
+          <div class="reporte-footer">
+            <small class="text-muted"
+              >Creado: {{ formatoFechaHora(reporte.fechaGeneracion || reporte.created_at) }}</small
+            >
+            <span class="badge bg-success">Guardado</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Paginación -->
-    <div
-      v-if="reportesFiltrados.length > 0"
-      class="d-flex justify-content-between align-items-center mt-4"
-    >
-      <div class="text-muted">
-        Mostrando {{ inicioItem }}-{{ finItem }} de {{ reportesFiltrados.length }} reportes
+      <!-- Paginación -->
+      <div
+        v-if="reportesFiltrados.length > 0"
+        class="d-flex justify-content-between align-items-center mt-4"
+      >
+        <div class="text-muted">
+          Mostrando {{ inicioItem }}-{{ finItem }} de {{ reportesFiltrados.length }} reportes
+        </div>
+
+        <nav>
+          <ul class="pagination">
+            <li class="page-item" :class="{ disabled: paginaActual === 1 }">
+              <button class="page-link" @click="paginaActual--">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+            </li>
+            <li
+              class="page-item"
+              v-for="pagina in paginasVisibles"
+              :key="pagina"
+              :class="{ active: pagina === paginaActual }"
+            >
+              <button class="page-link" @click="paginaActual = pagina">{{ pagina }}</button>
+            </li>
+            <li class="page-item" :class="{ disabled: paginaActual === totalPaginas }">
+              <button class="page-link" @click="paginaActual++">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
       </div>
-
-      <nav>
-        <ul class="pagination">
-          <li class="page-item" :class="{ disabled: paginaActual === 1 }">
-            <button class="page-link" @click="paginaActual--">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-          </li>
-          <li
-            class="page-item"
-            v-for="pagina in paginasVisibles"
-            :key="pagina"
-            :class="{ active: pagina === paginaActual }"
-          >
-            <button class="page-link" @click="paginaActual = pagina">{{ pagina }}</button>
-          </li>
-          <li class="page-item" :class="{ disabled: paginaActual === totalPaginas }">
-            <button class="page-link" @click="paginaActual++">
-              <i class="fas fa-chevron-right"></i>
-            </button>
-          </li>
-        </ul>
-      </nav>
-    </div>
+    </template>
 
     <!-- Modal de confirmación para limpiar historial -->
     <div v-if="mostrarModalLimpiar" class="modal-backdrop show"></div>
@@ -275,8 +325,15 @@
             <button type="button" class="btn btn-secondary" @click="mostrarModalLimpiar = false">
               <i class="fas fa-times me-1"></i> Cancelar
             </button>
-            <button type="button" class="btn btn-danger" @click="confirmarLimpiarHistorial">
-              <i class="fas fa-trash me-1"></i> Eliminar Todo
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="confirmarLimpiarHistorial"
+              :disabled="eliminandoTodo"
+            >
+              <i v-if="eliminandoTodo" class="fas fa-spinner fa-spin me-1"></i>
+              <i v-else class="fas fa-trash me-1"></i>
+              {{ eliminandoTodo ? 'Eliminando...' : 'Eliminar Todo' }}
             </button>
           </div>
         </div>
@@ -286,6 +343,9 @@
 </template>
 
 <script>
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
 export default {
   name: 'VerReportes',
 
@@ -297,6 +357,10 @@ export default {
       itemsPorPagina: 10,
       paginaActual: 1,
       mostrarModalLimpiar: false,
+      cargando: false,
+      error: null,
+      eliminando: null,
+      eliminandoTodo: false,
     }
   },
 
@@ -307,23 +371,25 @@ export default {
 
       if (this.filtroBusqueda) {
         const searchTerm = this.filtroBusqueda.toLowerCase()
-        filtered = filtered.filter(
-          (reporte) =>
-            reporte.titulo.toLowerCase().includes(searchTerm) ||
-            reporte.coleccionNombre.toLowerCase().includes(searchTerm) ||
-            reporte.camposSeleccionados.some((campo) =>
-              this.formatoNombreCampo(campo).toLowerCase().includes(searchTerm),
-            ),
-        )
+        filtered = filtered.filter((reporte) => {
+          const titulo = (reporte.titulo || '').toLowerCase()
+          const coleccion = (reporte.coleccionNombre || reporte.coleccion || '').toLowerCase()
+          const campos = reporte.camposSeleccionados || reporte.campos_seleccionados || []
+
+          return (
+            titulo.includes(searchTerm) ||
+            coleccion.includes(searchTerm) ||
+            campos.some((campo) => this.formatoNombreCampo(campo).toLowerCase().includes(searchTerm))
+          )
+        })
       }
 
-      // Ordenar
       return this.ordenarReportes(filtered)
     },
 
     // Colecciones únicas para estadísticas
     coleccionesUnicas() {
-      const colecciones = this.reportes.map((r) => r.coleccionNombre)
+      const colecciones = this.reportes.map((r) => r.coleccionNombre || r.coleccion)
       return [...new Set(colecciones)]
     },
 
@@ -334,14 +400,17 @@ export default {
       const añoActual = ahora.getFullYear()
 
       return this.reportes.filter((reporte) => {
-        const fechaReporte = new Date(reporte.fechaGeneracion)
+        const fecha = reporte.fechaGeneracion || reporte.created_at
+        const fechaReporte = new Date(fecha)
         return fechaReporte.getMonth() === mesActual && fechaReporte.getFullYear() === añoActual
       }).length
     },
 
     // Total de documentos en todos los reportes
     totalDocumentosReporteados() {
-      return this.reportes.reduce((total, reporte) => total + reporte.cantidadDocumentos, 0)
+      return this.reportes.reduce((total, reporte) => {
+        return total + (reporte.cantidadDocumentos || reporte.cantidad_documentos || 0)
+      }, 0)
     },
 
     // Paginación
@@ -394,17 +463,35 @@ export default {
   },
 
   methods: {
+    // Cargar reportes desde la API
+    async cargarReportes() {
+      this.cargando = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await axios.get('http://127.0.0.1:8000/api/reportes',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        ) 
+        this.reportes = response.data.data || []
+      } catch (err) {
+        console.error('Error al cargar reportes:', err)
+        this.error = 'No se pudieron cargar los reportes. Por favor, intenta de nuevo.'
+      } finally {
+        this.cargando = false
+      }
+    },
+
     // Obtener valor para mostrar en filtros
     obtenerValorMostrarFiltro(filtro) {
-      if (filtro.valorDisplay) {
-        return filtro.valorDisplay
+      if (filtro.valorDisplay || filtro.valor_display) {
+        return filtro.valorDisplay || filtro.valor_display
       }
       return filtro.valor
-    },
-    // Cargar reportes desde localStorage
-    cargarReportes() {
-      const reportesGuardados = localStorage.getItem('historialReportes')
-      this.reportes = reportesGuardados ? JSON.parse(reportesGuardados) : []
     },
 
     // Formatear fechas
@@ -436,19 +523,24 @@ export default {
     // Ordenar reportes
     ordenarReportes(reportes) {
       return reportes.sort((a, b) => {
+        const fechaA = a.fechaGeneracion || a.created_at
+        const fechaB = b.fechaGeneracion || b.created_at
+        const docsA = a.cantidadDocumentos || a.cantidad_documentos || 0
+        const docsB = b.cantidadDocumentos || b.cantidad_documentos || 0
+
         switch (this.ordenSeleccionado) {
           case 'fecha_desc':
-            return new Date(b.fechaGeneracion) - new Date(a.fechaGeneracion)
+            return new Date(fechaB) - new Date(fechaA)
           case 'fecha_asc':
-            return new Date(a.fechaGeneracion) - new Date(b.fechaGeneracion)
+            return new Date(fechaA) - new Date(fechaB)
           case 'titulo_asc':
-            return a.titulo.localeCompare(b.titulo)
+            return (a.titulo || '').localeCompare(b.titulo || '')
           case 'titulo_desc':
-            return b.titulo.localeCompare(a.titulo)
+            return (b.titulo || '').localeCompare(a.titulo || '')
           case 'documentos_desc':
-            return b.cantidadDocumentos - a.cantidadDocumentos
+            return docsB - docsA
           case 'documentos_asc':
-            return a.cantidadDocumentos - b.cantidadDocumentos
+            return docsA - docsB
           default:
             return 0
         }
@@ -469,20 +561,46 @@ export default {
       return operadores[operador] || operador
     },
 
-    // Regenerar reporte (navegar a CrearReportes con la configuración)
-    regenerarReporte(reporte) {
-      // Guardar la configuración para que CrearReportes.vue la cargue
-      localStorage.setItem('configuracionReporteARegenerar', JSON.stringify(reporte))
+    // Eliminar reporte
+    async eliminarReporte(id) {
+      const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: '¿Deseas eliminar este reporte del historial?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+      })
 
-      // Navegar a la página de crear reportes
-      this.$router.push('CrearReportes')
-    },
+      if (!result.isConfirmed) {
+        return
+      }
 
-    // Eliminar reporte individual
-    eliminarReporte(id) {
-      if (confirm('¿Estás seguro de que deseas eliminar este reporte del historial?')) {
+      this.eliminando = id
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        await axios.delete(`http://127.0.0.1:8000/api/reportes/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
         this.reportes = this.reportes.filter((reporte) => reporte.id !== id)
-        this.guardarReportes()
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Eliminado',
+          text: 'El reporte ha sido eliminado correctamente',
+          timer: 2000,
+          showConfirmButton: false,
+        })
+      } catch (err) {
+        console.error('Error al eliminar reporte:', err)
+        Swal.fire('Error', 'No se pudo eliminar el reporte. Por favor, intenta de nuevo.', 'error')
+      } finally {
+        this.eliminando = null
       }
     },
 
@@ -498,16 +616,22 @@ export default {
       this.mostrarModalLimpiar = true
     },
 
-    confirmarLimpiarHistorial() {
-      this.reportes = []
-      this.guardarReportes()
-      this.mostrarModalLimpiar = false
-      this.limpiarFiltros()
-    },
+    async confirmarLimpiarHistorial() {
+      this.eliminandoTodo = true
 
-    // Guardar reportes en localStorage
-    guardarReportes() {
-      localStorage.setItem('historialReportes', JSON.stringify(this.reportes))
+      try {
+        // Eliminar todos los reportes uno por uno
+        await Promise.all(this.reportes.map((reporte) => axios.delete(`/api/reportes/${reporte.id}`)))
+
+        this.reportes = []
+        this.mostrarModalLimpiar = false
+        this.limpiarFiltros()
+      } catch (err) {
+        console.error('Error al limpiar historial:', err)
+        alert('No se pudo eliminar todo el historial. Por favor, intenta de nuevo.')
+      } finally {
+        this.eliminandoTodo = false
+      }
     },
   },
 
