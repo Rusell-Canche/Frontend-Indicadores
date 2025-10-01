@@ -1248,34 +1248,6 @@ export default {
         // No mostrar error al usuario para no interrumpir el flujo
       }
     },
-
-    async cargarConfiguracionReporte(config) {
-      const coleccion = this.colecciones.find((c) => c.id === config.coleccionId)
-      if (coleccion) {
-        this.selectedColeccion = coleccion
-        await this.obtenerDocumentos()
-
-        this.$nextTick(() => {
-          this.tituloReporte = config.titulo
-          this.camposSeleccionados = config.camposSeleccionados
-
-          // Restaurar filtros
-          this.filtrosActivos = config.filtrosAplicados.map((filtro) => ({
-            campo: filtro.campo,
-            operador: filtro.operador,
-            valor: filtro.valor,
-            valorDisplay: filtro.valorDisplay || this.getDisplayValueForFilter(filtro),
-          }))
-
-          // Restaurar criterios de ordenamiento
-          if (config.criteriosOrdenamiento) {
-            this.criteriosOrdenamiento = [...config.criteriosOrdenamiento]
-          }
-
-          this.incluirFecha = config.incluirFecha
-        })
-      }
-    },
     // ========== MÉTODOS DE ORDENAMIENTO ==========
 
     agregarOrdenamiento() {
@@ -1427,18 +1399,6 @@ export default {
 
   mounted() {
     this.getColecciones()
-
-    const configRegenerar = localStorage.getItem('configuracionReporteARegenerar')
-    if (configRegenerar) {
-      try {
-        const config = JSON.parse(configRegenerar)
-        this.cargarConfiguracionReporte(config)
-      } catch (error) {
-        console.error('Error al cargar configuración:', error)
-      } finally {
-        localStorage.removeItem('configuracionReporteARegenerar')
-      }
-    }
   },
 }
 </script>
