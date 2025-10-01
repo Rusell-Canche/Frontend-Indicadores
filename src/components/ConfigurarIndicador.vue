@@ -90,7 +90,7 @@
           </h6>
           <div class="row g-3">
             <div class="col-md-12">
-              <label class="form-label">Campo de Fecha (Opcional)</label>
+              <label class="form-label">Campo de Fecha</label>
               <div class="input-group modern-input">
                 <span class="input-group-text">
                   <i class="fas fa-calendar"></i>
