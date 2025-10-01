@@ -629,7 +629,9 @@ export default {
     async getColecciones() {
       this.loading.colecciones = true
       try {
-        this.colecciones = await this.apiCall('http://127.0.0.1:8000/api/documentos/plantillas-redable')
+        this.colecciones = await this.apiCall(
+          'http://127.0.0.1:8000/api/documentos/plantillas-redable',
+        )
       } catch {
         this.showError('No se pudieron cargar las colecciones')
       } finally {
@@ -1211,32 +1213,40 @@ export default {
       return operadores[operador] || operador
     },
 
-    guardarEnHistorial() {
-      // Procesar filtros para guardar con valorDisplay
-      const filtrosParaGuardar = this.filtrosActivos.map((filtro) => ({
-        campo: filtro.campo,
-        operador: filtro.operador,
-        valor: filtro.valor,
-        valorDisplay: filtro.valorDisplay || this.getDisplayValueForFilter(filtro), // Asegurar que tengamos el valorDisplay
-      }))
+    // Reemplaza el método guardarEnHistorial() existente con este:
 
-      const reporteData = {
-        id: Date.now(),
-        titulo: this.tituloReporte,
-        coleccionNombre: this.selectedColeccion.nombre_coleccion,
-        coleccionId: this.selectedColeccion.id,
-        camposSeleccionados: [...this.camposSeleccionados],
-        filtrosAplicados: filtrosParaGuardar, // Usar filtros procesados
-        criteriosOrdenamiento: [...this.criteriosOrdenamiento],
-        cantidadDocumentos: this.documentosFiltrados.length,
-        incluirFecha: this.incluirFecha,
-        fechaGeneracion: new Date().toISOString(),
+    async guardarEnHistorial() {
+      try {
+        // Procesar filtros para guardar con valorDisplay
+        const filtrosParaGuardar = this.filtrosActivos.map((filtro) => ({
+          campo: filtro.campo,
+          operador: filtro.operador,
+          valor: filtro.valor,
+          valorDisplay: filtro.valorDisplay || this.getDisplayValueForFilter(filtro),
+        }))
+
+        const reporteData = {
+          titulo: this.tituloReporte,
+          coleccionId: this.selectedColeccion.id,
+          coleccionNombre: this.selectedColeccion.nombre_coleccion,
+          camposSeleccionados: this.camposSeleccionados,
+          filtrosAplicados: filtrosParaGuardar,
+          criteriosOrdenamiento: this.criteriosOrdenamiento,
+          cantidadDocumentos: this.documentosFiltrados.length,
+          incluirFecha: this.incluirFecha,
+        }
+
+        // Guardar en la API
+        await this.apiCall('http://127.0.0.1:8000/api/reportes', {
+          method: 'POST',
+          data: reporteData,
+        })
+
+        console.log('Reporte guardado exitosamente en la API')
+      } catch (error) {
+        console.error('Error guardando reporte en la API:', error)
+        // No mostrar error al usuario para no interrumpir el flujo
       }
-
-      // Guardar en localStorage
-      let historial = JSON.parse(localStorage.getItem('historialReportes') || '[]')
-      historial.unshift(reporteData)
-      localStorage.setItem('historialReportes', JSON.stringify(historial.slice(0, 100)))
     },
 
     async cargarConfiguracionReporte(config) {
