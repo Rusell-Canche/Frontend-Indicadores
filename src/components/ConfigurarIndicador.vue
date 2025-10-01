@@ -79,6 +79,39 @@
             </div>
           </div>
         </div>
+        <!-- Selección de campo de fecha para filtro -->
+        <div
+          class="form-section"
+          v-if="parametrosForm.plantillaSeleccionada && camposFechaDisponibles.length > 0"
+        >
+          <h6 class="section-title">
+            <i class="fas fa-calendar-alt me-2"></i>
+            Campo para Filtro de Fecha
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label class="form-label">Campo de Fecha</label>
+              <div class="input-group modern-input">
+                <span class="input-group-text">
+                  <i class="fas fa-calendar"></i>
+                </span>
+                <select v-model="parametrosForm.campoFechaFiltro" class="form-select">
+                  <option value="">Ninguno (sin filtro de fecha)</option>
+                  <option
+                    v-for="campo in camposFechaDisponibles"
+                    :key="campo.fullPath"
+                    :value="campo.fullPath"
+                  >
+                    {{ campo.displayName }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-text">
+                Selecciona un campo de fecha para filtrar los documentos por rango de fechas
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Selección de sección -->
         <div
@@ -346,7 +379,9 @@
 
                 <div v-if="tieneSubconfiguracion" class="mt-2">
                   <strong>Configuración de subformularios:</strong><br />
-                  <div v-html="getResumenSubconfiguracion(parametrosForm.subConfiguracion, 1)"></div>
+                  <div
+                    v-html="getResumenSubconfiguracion(parametrosForm.subConfiguracion, 1)"
+                  ></div>
                 </div>
               </div>
             </div>
@@ -402,7 +437,7 @@ import SubformRecursivo from './SubformRecursivo.vue'
 
 export default {
   components: {
-    SubformRecursivo
+    SubformRecursivo,
   },
   props: ['id'],
   data() {
@@ -414,11 +449,13 @@ export default {
       subcamposDisponibles: [],
       subcamposFiltrables: [],
       camposFiltrables: [],
+      camposFechaDisponibles: [],
       indicadorSeleccionado: null,
       cargandoConfiguracion: false,
       parametrosForm: {
         plantillaSeleccionada: '',
         seccionSeleccionada: '',
+        campoFechaFiltro: '',
         tipoOperacion: '',
         campoSeleccionado: '',
         condiciones: [],
@@ -426,28 +463,31 @@ export default {
           tipoOperacion: '',
           campoSeleccionado: '',
           condiciones: [],
-          subConfiguracion: null // Soporte recursivo
-        }
-      }
+          subConfiguracion: null, // Soporte recursivo
+        },
+      },
     }
   },
   computed: {
     mostrarSubcampos() {
       const campoSeleccionado = this.camposDisponibles.find(
-        c => c.name === this.parametrosForm.campoSeleccionado
+        (c) => c.name === this.parametrosForm.campoSeleccionado,
       )
       return campoSeleccionado && campoSeleccionado.type === 'subform'
     },
-    
+
     tieneSubconfiguracion() {
-      return this.parametrosForm.subConfiguracion && 
-             this.parametrosForm.subConfiguracion.tipoOperacion
+      return (
+        this.parametrosForm.subConfiguracion && this.parametrosForm.subConfiguracion.tipoOperacion
+      )
     },
-    
+
     isFormComplete() {
-      if (!this.parametrosForm.plantillaSeleccionada || 
-          !this.parametrosForm.seccionSeleccionada || 
-          !this.parametrosForm.tipoOperacion) {
+      if (
+        !this.parametrosForm.plantillaSeleccionada ||
+        !this.parametrosForm.seccionSeleccionada ||
+        !this.parametrosForm.tipoOperacion
+      ) {
         return false
       }
 
@@ -465,7 +505,7 @@ export default {
       }
 
       return true
-    }
+    },
   },
   mounted() {
     this.indicadorSeleccionado = { _id: this.id }
@@ -480,64 +520,64 @@ export default {
       if (!subconfig.tipoOperacion) {
         return false
       }
-      
+
       if (subconfig.tipoOperacion !== 'contar' && !subconfig.campoSeleccionado) {
         return false
       }
-      
+
       // Si tiene más subconfiguraciones anidadas, validar recursivamente
       if (subconfig.subConfiguracion && subconfig.subConfiguracion.tipoOperacion) {
         return this.validarSubconfiguracion(subconfig.subConfiguracion)
       }
-      
+
       return true
     },
-    
+
     onSubconfiguracionUpdated(nuevaSubconfiguracion) {
       this.parametrosForm.subConfiguracion = nuevaSubconfiguracion
     },
-    
+
     getResumenSubconfiguracion(subconfig, nivel) {
       if (!subconfig || !subconfig.tipoOperacion) {
         return ''
       }
-      
+
       let resumen = `Nivel ${nivel}: ${subconfig.tipoOperacion.toUpperCase()}`
-      
+
       if (subconfig.campoSeleccionado) {
         resumen += ` en campo "${subconfig.campoSeleccionado}"`
       }
-      
+
       if (subconfig.subConfiguracion && subconfig.subConfiguracion.tipoOperacion) {
         resumen += '<br>' + this.getResumenSubconfiguracion(subconfig.subConfiguracion, nivel + 1)
       }
-      
+
       return resumen
     },
-    
+
     // Función recursiva para construir la configuración completa
     construirConfiguracionRecursiva(subconfig) {
       if (!subconfig || !subconfig.tipoOperacion) {
         return null
       }
-      
+
       const config = {
         operacion: subconfig.tipoOperacion,
         campo: subconfig.tipoOperacion === 'contar' ? null : subconfig.campoSeleccionado,
-        condicion: subconfig.condiciones.map(cond => ({
+        condicion: subconfig.condiciones.map((cond) => ({
           campo: cond.campo,
           operador: cond.operador,
-          valor: cond.valor
-        }))
+          valor: cond.valor,
+        })),
       }
-      
+
       if (subconfig.subConfiguracion && subconfig.subConfiguracion.tipoOperacion) {
         config.subConfiguracion = this.construirConfiguracionRecursiva(subconfig.subConfiguracion)
       }
-      
+
       return config
     },
-    
+
     // Función recursiva para cargar configuración existente
     cargarSubconfiguracionRecursiva(configServer, subcamposDisponibles) {
       if (!configServer) {
@@ -545,39 +585,41 @@ export default {
           tipoOperacion: '',
           campoSeleccionado: '',
           condiciones: [],
-          subConfiguracion: null
+          subConfiguracion: null,
         }
       }
-      
+
       const subconfig = {
         tipoOperacion: configServer.operacion || '',
         campoSeleccionado: configServer.campo || '',
-        condiciones: []
+        condiciones: [],
       }
-      
+
       if (configServer.condicion && Array.isArray(configServer.condicion)) {
-        subconfig.condiciones = configServer.condicion.map(c => ({
+        subconfig.condiciones = configServer.condicion.map((c) => ({
           campo: c.campo || '',
           operador: c.operador || 'igual',
-          valor: c.valor || ''
+          valor: c.valor || '',
         }))
       }
-      
+
       // Si hay subconfiguracion anidada
       if (configServer.subConfiguracion) {
         // Encontrar los subcampos del campo seleccionado
-        const campoSubform = subcamposDisponibles.find(c => c.name === subconfig.campoSeleccionado)
-        const siguientesSubcampos = campoSubform && campoSubform.type === 'subform' ? 
-          (campoSubform.subcampos || []) : []
-          
+        const campoSubform = subcamposDisponibles.find(
+          (c) => c.name === subconfig.campoSeleccionado,
+        )
+        const siguientesSubcampos =
+          campoSubform && campoSubform.type === 'subform' ? campoSubform.subcampos || [] : []
+
         subconfig.subConfiguracion = this.cargarSubconfiguracionRecursiva(
-          configServer.subConfiguracion, 
-          siguientesSubcampos
+          configServer.subConfiguracion,
+          siguientesSubcampos,
         )
       } else {
         subconfig.subConfiguracion = null
       }
-      
+
       return subconfig
     },
 
@@ -596,9 +638,9 @@ export default {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
-              Accept: 'application/json'
-            }
-          }
+              Accept: 'application/json',
+            },
+          },
         )
 
         if (!response.data || !response.data.configuracion) {
@@ -620,7 +662,7 @@ export default {
 
         // Buscar plantilla por nombre de colección
         const plantilla = this.plantillasDisponibles.find(
-          p => p.nombre_coleccion == config.coleccion
+          (p) => p.nombre_coleccion == config.coleccion,
         )
 
         if (!plantilla) {
@@ -636,8 +678,8 @@ export default {
 
         // Buscar la sección que contiene el campo
         if (config.campo) {
-          const seccionConCampo = this.seccionesDisponibles.find(seccion =>
-            seccion.fields.some(field => field.name === config.campo)
+          const seccionConCampo = this.seccionesDisponibles.find((seccion) =>
+            seccion.fields.some((field) => field.name === config.campo),
           )
 
           if (seccionConCampo) {
@@ -664,18 +706,27 @@ export default {
 
         // Mapear condiciones principales
         if (config.condicion && Array.isArray(config.condicion)) {
-          this.parametrosForm.condiciones = config.condicion.map(c => ({
+          this.parametrosForm.condiciones = config.condicion.map((c) => ({
             campo: c.campo || '',
             operador: c.operador || 'igual',
-            valor: c.valor || ''
+            valor: c.valor || '',
           }))
+        }
+
+        // Cargar campo de fecha filtro
+        if (config.campoFechaFiltro && Array.isArray(config.campoFechaFiltro)) {
+
+          // Eliminar la sección (primer elemento) y unir el resto con puntos
+          const pathParts = config.campoFechaFiltro.slice(1) 
+          this.parametrosForm.campoFechaFiltro = pathParts.join('.') 
+
         }
 
         // Cargar subconfiguracion recursivamente
         if (config.subConfiguracion && typeof config.subConfiguracion === 'object') {
           this.parametrosForm.subConfiguracion = this.cargarSubconfiguracionRecursiva(
             config.subConfiguracion,
-            this.subcamposDisponibles
+            this.subcamposDisponibles,
           )
         }
 
@@ -690,13 +741,14 @@ export default {
 
         if (error.response) {
           const status = error.response.status
-          const message = error.response.data?.message || error.response.data?.error || 'Error desconocido'
+          const message =
+            error.response.data?.message || error.response.data?.error || 'Error desconocido'
 
           if (status === 401) {
             this.mostrarNotificacion(
               'Sesión Expirada',
               'Su sesión ha expirado. Por favor inicie sesión nuevamente.',
-              'warning'
+              'warning',
             )
             localStorage.removeItem('apiToken')
             this.$router.push('/')
@@ -707,7 +759,7 @@ export default {
             this.mostrarNotificacion(
               'Sin Permisos',
               'No tiene permisos para acceder a esta configuración.',
-              'warning'
+              'warning',
             )
             return
           }
@@ -717,7 +769,7 @@ export default {
           this.mostrarNotificacion(
             'Error de Conexión',
             'No se pudo conectar con el servidor. Verifique su conexión a internet.',
-            'error'
+            'error',
           )
         }
       } finally {
@@ -731,18 +783,18 @@ export default {
           tipoOperacion: '',
           campoSeleccionado: '',
           condiciones: [],
-          subConfiguracion: null
+          subConfiguracion: null,
         }
       }
 
       const campoSeleccionado = this.camposDisponibles.find(
-        c => c.name === this.parametrosForm.campoSeleccionado
+        (c) => c.name === this.parametrosForm.campoSeleccionado,
       )
 
       if (campoSeleccionado && campoSeleccionado.type === 'subform') {
         this.subcamposDisponibles = campoSeleccionado.subcampos || []
         this.subcamposFiltrables = this.subcamposDisponibles.filter(
-          campo => campo.type !== 'subform'
+          (campo) => campo.type !== 'subform',
         )
       } else {
         this.subcamposDisponibles = []
@@ -750,7 +802,7 @@ export default {
       }
 
       this.camposFiltrables = this.camposDisponibles.filter(
-        campo => campo.type !== 'subform' || campo.type === 'subform'
+        (campo) => campo.type !== 'subform' || campo.type === 'subform',
       )
     },
 
@@ -758,7 +810,7 @@ export default {
       this.parametrosForm.condiciones.push({
         campo: this.camposFiltrables[0]?.name || '',
         operador: 'igual',
-        valor: ''
+        valor: '',
       })
     },
 
@@ -775,7 +827,7 @@ export default {
         }
 
         const plantillaSeleccionada = this.plantillasDisponibles.find(
-          p => p.id === this.parametrosForm.plantillaSeleccionada
+          (p) => p.id === this.parametrosForm.plantillaSeleccionada,
         )
 
         if (!plantillaSeleccionada) {
@@ -783,25 +835,36 @@ export default {
           return
         }
 
-        const nombrePlantilla = plantillaSeleccionada.nombre_coleccion || plantillaSeleccionada.title
+        const nombrePlantilla =
+          plantillaSeleccionada.nombre_coleccion || plantillaSeleccionada.title
 
         // Construir objeto de configuración
         const configuracion = {
           coleccion: nombrePlantilla,
           operacion: this.parametrosForm.tipoOperacion,
           secciones: this.parametrosForm.seccionSeleccionada,
-          campo: this.parametrosForm.tipoOperacion === 'contar' ? null : this.parametrosForm.campoSeleccionado,
-          condicion: this.parametrosForm.condiciones.map(cond => ({
+          campo:
+            this.parametrosForm.tipoOperacion === 'contar'
+              ? null
+              : this.parametrosForm.campoSeleccionado,
+          campoFechaFiltro: this.parametrosForm.campoFechaFiltro
+            ? [
+                this.parametrosForm.seccionSeleccionada,
+                ...this.parametrosForm.campoFechaFiltro.split('.').slice(0, -1),
+                this.parametrosForm.campoFechaFiltro.split('.').pop(),
+              ]
+            : null,
+          condicion: this.parametrosForm.condiciones.map((cond) => ({
             campo: cond.campo,
             operador: cond.operador,
-            valor: cond.valor
-          }))
+            valor: cond.valor,
+          })),
         }
 
         // Agregar subconfiguracion recursiva si es necesario
         if (this.mostrarSubcampos && this.parametrosForm.subConfiguracion.tipoOperacion) {
           configuracion.subConfiguracion = this.construirConfiguracionRecursiva(
-            this.parametrosForm.subConfiguracion
+            this.parametrosForm.subConfiguracion,
           )
         }
 
@@ -813,7 +876,7 @@ export default {
         }
 
         const payload = {
-          configuracion: configuracion
+          configuracion: configuracion,
         }
 
         const response = await axios.put(
@@ -823,16 +886,16 @@ export default {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
-              Accept: 'application/json'
-            }
-          }
+              Accept: 'application/json',
+            },
+          },
         )
 
         if (response.status === 200) {
           this.mostrarNotificacion(
             '¡Configuración Guardada!',
             `La configuración se guardó exitosamente`,
-            'success'
+            'success',
           )
           this.$emit('indicador-actualizado')
           this.cerrarModal()
@@ -840,7 +903,7 @@ export default {
           this.mostrarNotificacion(
             'Advertencia',
             'El servidor respondió con un estado inesperado: ' + response.status,
-            'warning'
+            'warning',
           )
         }
       } catch (error) {
@@ -865,6 +928,7 @@ export default {
       this.parametrosForm = {
         plantillaSeleccionada: '',
         seccionSeleccionada: '',
+        campoFechaFiltro: '',
         tipoOperacion: '',
         campoSeleccionado: '',
         condiciones: [],
@@ -872,8 +936,8 @@ export default {
           tipoOperacion: '',
           campoSeleccionado: '',
           condiciones: [],
-          subConfiguracion: null
-        }
+          subConfiguracion: null,
+        },
       }
       this.seccionesDisponibles = []
       this.subcamposDisponibles = []
@@ -893,8 +957,8 @@ export default {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
-            Accept: 'application/json'
-          }
+            Accept: 'application/json',
+          },
         })
 
         this.plantillasDisponibles = response.data || []
@@ -915,7 +979,7 @@ export default {
             tipoOperacion: '',
             campoSeleccionado: '',
             condiciones: [],
-            subConfiguracion: null
+            subConfiguracion: null,
           }
         }
 
@@ -927,22 +991,29 @@ export default {
               headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
-                Accept: 'application/json'
-              }
-            }
+                Accept: 'application/json',
+              },
+            },
           )
 
           if (response.data && response.data.secciones) {
             this.seccionesDisponibles = response.data.secciones
             this.camposDisponibles = []
             this.camposFiltrables = []
+            this.camposFechaDisponibles = []
+            this.seccionesDisponibles.forEach((seccion) => {
+              if (seccion.fields) {
+                const camposFecha = this.extraerCamposFecha(seccion.fields)
+                this.camposFechaDisponibles = this.camposFechaDisponibles.concat(camposFecha)
+              }
+            })
           }
         } catch (error) {
           console.error('Error al obtener las secciones:', error)
           this.mostrarNotificacion(
             'Error',
             'Error al cargar las secciones de la plantilla',
-            'error'
+            'error',
           )
         }
       } else {
@@ -961,20 +1032,20 @@ export default {
             tipoOperacion: '',
             campoSeleccionado: '',
             condiciones: [],
-            subConfiguracion: null
+            subConfiguracion: null,
           }
         }
 
         const seccionSeleccionada = this.seccionesDisponibles.find(
-          s => s.nombre === this.parametrosForm.seccionSeleccionada
+          (s) => s.nombre === this.parametrosForm.seccionSeleccionada,
         )
 
         if (seccionSeleccionada && seccionSeleccionada.fields) {
           this.camposDisponibles = seccionSeleccionada.fields.filter(
-            campo => campo.name !== '_id'
+            (campo) => campo.name !== '_id',
           )
           this.camposFiltrables = this.camposDisponibles.filter(
-            campo => campo.type !== 'subform' || campo.type === 'subform'
+            (campo) => campo.type !== 'subform' || campo.type === 'subform',
           )
         }
       } else {
@@ -990,26 +1061,26 @@ export default {
     getTipoCampo(campo) {
       const tipos = {
         text: 'Texto',
-        string: 'Texto', 
+        string: 'Texto',
         number: 'Numérico',
         date: 'Fecha',
         file: 'Archivo',
         subform: 'Subformulario',
-        select: 'Selección'
+        select: 'Selección',
       }
       return tipos[campo.type] || campo.type
     },
 
     getNombrePlantillaSeleccionada() {
       const plantilla = this.plantillasDisponibles.find(
-        p => p.id === this.parametrosForm.plantillaSeleccionada
+        (p) => p.id === this.parametrosForm.plantillaSeleccionada,
       )
       return plantilla ? plantilla.title || plantilla.nombre_plantilla : ''
     },
 
     getNombreCampoSeleccionado() {
       const campo = this.camposDisponibles.find(
-        c => c.name === this.parametrosForm.campoSeleccionado
+        (c) => c.name === this.parametrosForm.campoSeleccionado,
       )
       return campo ? campo.alias || campo.name : ''
     },
@@ -1021,7 +1092,7 @@ export default {
         promedio: 'PROMEDIO',
         maximo: 'MÁXIMO',
         minimo: 'MÍNIMO',
-        distinto: 'CONTAR DISTINTOS'
+        distinto: 'CONTAR DISTINTOS',
       }
       return operaciones[this.parametrosForm.tipoOperacion] || this.parametrosForm.tipoOperacion
     },
@@ -1037,10 +1108,38 @@ export default {
         icon: tipo,
         position: 'center',
         showConfirmButton: true,
-        confirmButtonColor: tipo === 'success' ? '#3085d6' : '#d33'
+        confirmButtonColor: tipo === 'success' ? '#3085d6' : '#d33',
       })
-    }
-  }
+    },
+    // Método recursivo para extraer todos los campos de tipo fecha
+    extraerCamposFecha(fields, parentPath = '', parentName = '') {
+      let camposFecha = []
+
+      fields.forEach((campo) => {
+        const fullPath = parentPath ? `${parentPath}.${campo.name}` : campo.name
+        const displayName = parentName
+          ? `${parentName} > ${campo.alias || campo.name}`
+          : campo.alias || campo.name
+
+        if (campo.type === 'date') {
+          camposFecha.push({
+            name: campo.name,
+            fullPath: fullPath,
+            displayName: displayName,
+            alias: campo.alias,
+          })
+        }
+
+        // Si es subformulario, buscar recursivamente
+        if (campo.type === 'subform' && campo.subcampos && Array.isArray(campo.subcampos)) {
+          const subcamposFecha = this.extraerCamposFecha(campo.subcampos, fullPath, displayName)
+          camposFecha = camposFecha.concat(subcamposFecha)
+        }
+      })
+
+      return camposFecha
+    },
+  },
 }
 </script>
 <style scoped>
