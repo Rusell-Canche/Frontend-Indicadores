@@ -715,11 +715,9 @@ export default {
 
         // Cargar campo de fecha filtro
         if (config.campoFechaFiltro && Array.isArray(config.campoFechaFiltro)) {
-
           // Eliminar la sección (primer elemento) y unir el resto con puntos
-          const pathParts = config.campoFechaFiltro.slice(1) 
-          this.parametrosForm.campoFechaFiltro = pathParts.join('.') 
-
+          const pathParts = config.campoFechaFiltro.slice(1)
+          this.parametrosForm.campoFechaFiltro = pathParts.join('.')
         }
 
         // Cargar subconfiguracion recursivamente
@@ -848,11 +846,19 @@ export default {
               ? null
               : this.parametrosForm.campoSeleccionado,
           campoFechaFiltro: this.parametrosForm.campoFechaFiltro
-            ? [
-                this.parametrosForm.seccionSeleccionada,
-                ...this.parametrosForm.campoFechaFiltro.split('.').slice(0, -1),
-                this.parametrosForm.campoFechaFiltro.split('.').pop(),
-              ]
+            ? (() => {
+                const campoObj = this.camposFechaDisponibles.find(
+                  (c) => c.fullPath === this.parametrosForm.campoFechaFiltro,
+                )
+                const seccionReal = campoObj
+                  ? campoObj.seccion || this.parametrosForm.seccionSeleccionada
+                  : this.parametrosForm.seccionSeleccionada
+                return [
+                  seccionReal,
+                  ...this.parametrosForm.campoFechaFiltro.split('.').slice(0, -1),
+                  this.parametrosForm.campoFechaFiltro.split('.').pop(),
+                ]
+              })()
             : null,
           condicion: this.parametrosForm.condiciones.map((cond) => ({
             campo: cond.campo,
@@ -1003,7 +1009,7 @@ export default {
             this.camposFechaDisponibles = []
             this.seccionesDisponibles.forEach((seccion) => {
               if (seccion.fields) {
-                const camposFecha = this.extraerCamposFecha(seccion.fields)
+                const camposFecha = this.extraerCamposFecha(seccion.fields, '', '', seccion.nombre)
                 this.camposFechaDisponibles = this.camposFechaDisponibles.concat(camposFecha)
               }
             })
@@ -1112,7 +1118,7 @@ export default {
       })
     },
     // Método recursivo para extraer todos los campos de tipo fecha
-    extraerCamposFecha(fields, parentPath = '', parentName = '') {
+    extraerCamposFecha(fields, parentPath = '', parentName = '', seccionNombre = '') {
       let camposFecha = []
 
       fields.forEach((campo) => {
@@ -1127,12 +1133,18 @@ export default {
             fullPath: fullPath,
             displayName: displayName,
             alias: campo.alias,
+            seccion: seccionNombre,
           })
         }
 
         // Si es subformulario, buscar recursivamente
         if (campo.type === 'subform' && campo.subcampos && Array.isArray(campo.subcampos)) {
-          const subcamposFecha = this.extraerCamposFecha(campo.subcampos, fullPath, displayName)
+          const subcamposFecha = this.extraerCamposFecha(
+            campo.subcampos,
+            fullPath,
+            displayName,
+            seccionNombre,
+          )
           camposFecha = camposFecha.concat(subcamposFecha)
         }
       })
