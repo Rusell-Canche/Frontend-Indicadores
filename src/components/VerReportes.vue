@@ -157,6 +157,15 @@
               <i class="fas fa-file-pdf text-danger"></i>
             </div>
             <div class="reporte-actions">
+               <!-- Botón Editar -->
+  <button
+    class="btn btn-sm btn-outline-primary me-2"
+    @click="editarReporte(reporte)"
+    title="Editar reporte"
+  >
+    <i class="fas fa-edit"></i>
+  </button>
+
               <button
                 class="btn btn-sm btn-outline-danger"
                 @click="eliminarReporte(reporte.id)"
@@ -463,6 +472,13 @@ export default {
   },
 
   methods: {
+    editarReporte(reporte) {
+  // Aquí puedes pasar el reporte al crear un reporte nuevo
+  this.$router.push({
+    name: 'CrearReportes',
+    params: { id: reporte.id }
+  })
+},
     // Cargar reportes desde la API
     async cargarReportes() {
       this.cargando = true
