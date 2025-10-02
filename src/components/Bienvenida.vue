@@ -32,7 +32,7 @@
             <i class="fas fa-file-alt"></i>
           </div>
           <div class="stat-content">
-            <div class="stat-number">0</div>
+            <div class="stat-number">{{ totalDocumentos }}</div>
             <div class="stat-label">Documentos</div>
           </div>
         </div>
@@ -41,7 +41,7 @@
             <i class="fas fa-users"></i>
           </div>
           <div class="stat-content">
-            <div class="stat-number">0</div>
+            <div class="stat-number">{{ totalUsuarios }}</div>
             <div class="stat-label">Usuarios Activos</div>
           </div>
         </div>
@@ -127,13 +127,17 @@ export default {
       fechaActual: '',
       horaActual: '',
       intervalId: null,
-      totalIndicadores: 0, // Este valor debería ser dinámico, por ahora es un placeholder
+      totalIndicadores: 0,
+      totalUsuarios: 0,
+      totalDocumentos: 0,
     }
   },
   mounted() {
     this.actualizarFechaHora()
     this.intervalId = setInterval(this.actualizarFechaHora, 1000)
     this.obtenerTotalIndicadores()
+    this.obtenerTotalUsuarios()
+    this.obtenerTotalDocumentos()
   },
   beforeUnmount() {
     if (this.intervalId) {
@@ -169,7 +173,72 @@ export default {
         const data = await response.json()
         this.totalIndicadores = Array.isArray(data.indicadores) ? data.indicadores.length : 0
       } catch (e) {
+        console.error('Error al obtener indicadores:', e)
         this.totalIndicadores = 0
+      }
+    },
+    async obtenerTotalUsuarios() {
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await fetch('http://127.0.0.1:8000/api/usuarios', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        const data = await response.json()
+        this.totalUsuarios = Array.isArray(data.users) ? data.users.length : 0
+      } catch (e) {
+        console.error('Error al obtener usuarios:', e)
+        this.totalUsuarios = 0
+      }
+    },
+    async obtenerTotalDocumentos() {
+      try {
+        const token = localStorage.getItem('apiToken')
+        
+        // Primero obtener todas las plantillas/colecciones
+        const responsePlantillas = await fetch('http://127.0.0.1:8000/api/documentos/plantillas-redable', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        const plantillas = await responsePlantillas.json()
+        
+        if (!Array.isArray(plantillas) || plantillas.length === 0) {
+          this.totalDocumentos = 0
+          return
+        }
+        
+        // Obtener documentos de cada plantilla y sumar los totales
+        let totalDocs = 0
+        
+        for (const plantilla of plantillas) {
+          try {
+            const responseDocumentos = await fetch(
+              `http://127.0.0.1:8000/api/documentos/${plantilla.id}`,
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            )
+            const documentos = await responseDocumentos.json()
+            
+            if (Array.isArray(documentos)) {
+              totalDocs += documentos.length
+            }
+          } catch (error) {
+            console.error(`Error al obtener documentos de la plantilla ${plantilla.id}:`, error)
+          }
+        }
+        
+        this.totalDocumentos = totalDocs
+      } catch (e) {
+        console.error('Error al obtener total de documentos:', e)
+        this.totalDocumentos = 0
       }
     },
   },
