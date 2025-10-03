@@ -204,7 +204,7 @@
                       :value="true"
                     />
                     <span class="radiomark"></span>
-                    <span class="radio-label">Aplicar para filtro</span>
+                  
                   </label>
                 </div>
               </div>
