@@ -4,10 +4,17 @@
     <div class="page-header mb-4">
       <h2 class="page-title">
         <i class="fas fa-chart-bar me-2"></i>
-        Generar Reportes
+        {{ modoEdicion ? 'Editar Reporte' : 'Generar Reportes' }}
+        <span v-if="modoEdicion" class="badge bg-warning ms-2">
+          <i class="fas fa-edit me-1"></i>Modo Edición
+        </span>
       </h2>
       <p class="page-description">
-        Crea reportes personalizados a partir de los documentos de tus colecciones
+        {{
+          modoEdicion
+            ? 'Modifica y regenera este reporte'
+            : 'Crea reportes personalizados a partir de los documentos de tus colecciones'
+        }}
       </p>
     </div>
 
@@ -490,6 +497,8 @@ export default {
 
   data() {
     return {
+      modoEdicion: false,
+      reporteIdEdicion: null,
       colecciones: [],
       selectedColeccion: null,
       documentos: [],
@@ -865,6 +874,8 @@ export default {
       this.datosReporte = []
       this.limpiarTodosFiltros()
       this.limpiarOrdenamiento()
+      this.modoEdicion = false
+      this.reporteIdEdicion = null
     },
 
     previsualizarReporte() {
@@ -1217,7 +1228,6 @@ export default {
 
     async guardarEnHistorial() {
       try {
-        // Procesar filtros para guardar con valorDisplay
         const filtrosParaGuardar = this.filtrosActivos.map((filtro) => ({
           campo: filtro.campo,
           operador: filtro.operador,
@@ -1236,17 +1246,29 @@ export default {
           incluirFecha: this.incluirFecha,
         }
 
-        // Guardar en la API
-        await this.apiCall('http://127.0.0.1:8000/api/reportes', {
-          method: 'POST',
-          data: reporteData,
-        })
-
-        console.log('Reporte guardado exitosamente en la API')
+        // Si estamos en modo edición, hacer PUT, si no, hacer POST
+        if (this.modoEdicion && this.reporteIdEdicion) {
+          await this.apiCall(`http://127.0.0.1:8000/api/reportes/${this.reporteIdEdicion}`, {
+            method: 'PUT',
+            data: reporteData,
+          })
+          console.log('Reporte actualizado exitosamente')
+        } else {
+          await this.apiCall('http://127.0.0.1:8000/api/reportes', {
+            method: 'POST',
+            data: reporteData,
+          })
+          console.log('Reporte guardado exitosamente')
+        }
       } catch (error) {
-        console.error('Error guardando reporte en la API:', error)
-        // No mostrar error al usuario para no interrumpir el flujo
+        console.error('Error guardando/actualizando reporte:', error)
       }
+    },
+    cancelarEdicion() {
+      this.modoEdicion = false
+      this.reporteIdEdicion = null
+      this.$router.replace({ name: 'CrearReportes' })
+      this.limpiarConfiguracion()
     },
     // ========== MÉTODOS DE ORDENAMIENTO ==========
 
@@ -1395,10 +1417,86 @@ export default {
     showError(message) {
       Swal.fire({ title: 'Error', text: message, icon: 'error', confirmButtonText: 'Aceptar' })
     },
+    // Cargar reporte existente para editar
+    async cargarReporteParaEditar(reporteId) {
+      // Activar modo edición
+      this.modoEdicion = true
+      this.reporteIdEdicion = reporteId
+
+      try {
+        const response = await this.apiCall(`http://127.0.0.1:8000/api/reportes/${reporteId}`)
+        const reporte = response.data || response
+
+        const plantillaId = reporte.coleccionId
+
+        if (!plantillaId) {
+          this.showError('El reporte no contiene información de la colección')
+          this.modoEdicion = false
+          this.reporteIdEdicion = null
+          return
+        }
+
+        const coleccion = this.colecciones.find((c) => c.id === plantillaId)
+
+        if (!coleccion) {
+          this.showError(`No se pudo encontrar la colección del reporte (ID: ${plantillaId})`)
+          this.modoEdicion = false
+          this.reporteIdEdicion = null
+          return
+        }
+
+        this.selectedColeccion = coleccion
+        await this.obtenerDocumentos()
+        await this.$nextTick()
+
+        this.tituloReporte = reporte.titulo
+        this.incluirFecha = reporte.incluirFecha !== false
+        this.camposSeleccionados = reporte.camposSeleccionados || []
+
+        if (reporte.filtrosAplicados && Array.isArray(reporte.filtrosAplicados)) {
+          this.filtrosActivos = reporte.filtrosAplicados.map((filtro) => ({
+            campo: filtro.campo,
+            operador: filtro.operador,
+            valor: filtro.valor,
+            valorDisplay: filtro.valorDisplay || filtro.valor,
+          }))
+        }
+
+        if (reporte.criteriosOrdenamiento && Array.isArray(reporte.criteriosOrdenamiento)) {
+          this.criteriosOrdenamiento = reporte.criteriosOrdenamiento.map((criterio) => ({
+            campo: criterio.campo,
+            direccion: criterio.direccion,
+            prioridad: criterio.prioridad,
+          }))
+        }
+
+        this.showSuccess('Reporte cargado correctamente. Puedes modificarlo y regenerarlo.')
+      } catch (error) {
+        console.error('Error al cargar reporte:', error)
+        this.showError('No se pudo cargar el reporte para editar')
+        this.modoEdicion = false
+        this.reporteIdEdicion = null
+      }
+    },
+
+    // Verificar si hay un ID en la URL al montar el componente
+    async verificarEdicion() {
+      const reporteId = this.$route.query.id
+
+      if (reporteId) {
+        // Esperar a que se carguen las colecciones primero
+        if (this.colecciones.length === 0) {
+          await this.getColecciones()
+        }
+
+        await this.cargarReporteParaEditar(reporteId)
+      }
+    },
   },
 
-  mounted() {
-    this.getColecciones()
+  async mounted() {
+    await this.getColecciones()
+    await this.verificarEdicion()
   },
 }
 </script>

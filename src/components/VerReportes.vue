@@ -157,14 +157,14 @@
               <i class="fas fa-file-pdf text-danger"></i>
             </div>
             <div class="reporte-actions">
-               <!-- Botón Editar -->
-  <button
-    class="btn btn-sm btn-outline-primary me-2"
-    @click="editarReporte(reporte)"
-    title="Editar reporte"
-  >
-    <i class="fas fa-edit"></i>
-  </button>
+              <!-- Botón Editar -->
+              <button
+                class="btn btn-sm btn-outline-primary me-2"
+                @click="editarReporte(reporte)"
+                title="Editar reporte"
+              >
+                <i class="fas fa-edit"></i>
+              </button>
 
               <button
                 class="btn btn-sm btn-outline-danger"
@@ -188,8 +188,8 @@
               <div class="info-item">
                 <i class="fas fa-database me-2"></i>
                 <span
-                  ><strong>Colección:</strong> {{ reporte.coleccionNombre || reporte.coleccion
-                  }}</span
+                  ><strong>Colección:</strong>
+                  {{ reporte.coleccionNombre || reporte.coleccion }}</span
                 >
               </div>
               <div class="info-item">
@@ -218,10 +218,11 @@
             <div class="campos-incluidos mt-3">
               <span
                 class="badge bg-light text-dark me-1 mb-1"
-                v-for="campo in (reporte.camposSeleccionados || reporte.campos_seleccionados || []).slice(
-                  0,
-                  5,
-                )"
+                v-for="campo in (
+                  reporte.camposSeleccionados ||
+                  reporte.campos_seleccionados ||
+                  []
+                ).slice(0, 5)"
                 :key="campo"
               >
                 {{ formatoNombreCampo(campo) }}
@@ -241,9 +242,7 @@
 
             <!-- Filtros aplicados -->
             <div
-              v-if="
-                (reporte.filtrosAplicados || reporte.filtros_aplicados || []).length > 0
-              "
+              v-if="(reporte.filtrosAplicados || reporte.filtros_aplicados || []).length > 0"
               class="filtros-section mt-3"
             >
               <div class="filtros-badge">
@@ -256,7 +255,9 @@
               <div class="filtros-list mt-2">
                 <small
                   class="text-muted"
-                  v-for="(filtro, index) in (reporte.filtrosAplicados || reporte.filtros_aplicados || [])"
+                  v-for="(filtro, index) in reporte.filtrosAplicados ||
+                  reporte.filtros_aplicados ||
+                  []"
                   :key="index"
                 >
                   • {{ formatoNombreCampo(filtro.campo) }}
@@ -265,6 +266,48 @@
                   }}"
                   <br />
                 </small>
+              </div>
+              <!-- Criterios de ordenamiento -->
+              <div
+                v-if="
+                  (reporte.criteriosOrdenamiento || reporte.criterios_ordenamiento || []).length > 0
+                "
+                class="ordenamiento-section mt-3"
+              >
+                <div class="filtros-badge">
+                  <span class="badge bg-warning text-dark me-1">
+                    <i class="fas fa-sort me-1"></i>
+                    {{
+                      (reporte.criteriosOrdenamiento || reporte.criterios_ordenamiento || []).length
+                    }}
+                    ordenamiento(s)
+                  </span>
+                </div>
+                <div class="filtros-list mt-2">
+                  <small
+                    class="text-muted"
+                    v-for="(criterio, index) in ordenarCriteriosPorPrioridad(
+                      reporte.criteriosOrdenamiento || reporte.criterios_ordenamiento || [],
+                    )"
+                    :key="index"
+                  >
+                    • {{ formatoNombreCampo(criterio.campo) }}
+                    <i
+                      :class="
+                        criterio.direccion === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'
+                      "
+                    ></i>
+                    {{ criterio.direccion === 'asc' ? 'Ascendente' : 'Descendente' }}
+                    <span
+                      v-if="criterio.prioridad"
+                      class="badge bg-secondary ms-1"
+                      style="font-size: 0.7em"
+                    >
+                      Prioridad {{ criterio.prioridad }}
+                    </span>
+                    <br />
+                  </small>
+                </div>
               </div>
             </div>
           </div>
@@ -388,7 +431,9 @@ export default {
           return (
             titulo.includes(searchTerm) ||
             coleccion.includes(searchTerm) ||
-            campos.some((campo) => this.formatoNombreCampo(campo).toLowerCase().includes(searchTerm))
+            campos.some((campo) =>
+              this.formatoNombreCampo(campo).toLowerCase().includes(searchTerm),
+            )
           )
         })
       }
@@ -472,13 +517,20 @@ export default {
   },
 
   methods: {
+    ordenarCriteriosPorPrioridad(criterios) {
+      return [...criterios].sort((a, b) => {
+        const prioridadA = a.prioridad || 0
+        const prioridadB = b.prioridad || 0
+        return prioridadA - prioridadB
+      })
+    },
     editarReporte(reporte) {
-  // Aquí puedes pasar el reporte al crear un reporte nuevo
-  this.$router.push({
-    name: 'CrearReportes',
-    params: { id: reporte.id }
-  })
-},
+      // Aquí puedes pasar el reporte al crear un reporte nuevo
+      this.$router.push({
+        name: 'CrearReportes',
+        query: { id: reporte.id },
+      })
+    },
     // Cargar reportes desde la API
     async cargarReportes() {
       this.cargando = true
@@ -486,13 +538,11 @@ export default {
 
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/reportes',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        ) 
+        const response = await axios.get('http://127.0.0.1:8000/api/reportes', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
         this.reportes = response.data.data || []
       } catch (err) {
         console.error('Error al cargar reportes:', err)
@@ -604,7 +654,7 @@ export default {
           },
         })
         this.reportes = this.reportes.filter((reporte) => reporte.id !== id)
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Eliminado',
@@ -637,7 +687,9 @@ export default {
 
       try {
         // Eliminar todos los reportes uno por uno
-        await Promise.all(this.reportes.map((reporte) => axios.delete(`/api/reportes/${reporte.id}`)))
+        await Promise.all(
+          this.reportes.map((reporte) => axios.delete(`/api/reportes/${reporte.id}`)),
+        )
 
         this.reportes = []
         this.mostrarModalLimpiar = false
