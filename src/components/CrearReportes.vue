@@ -1224,8 +1224,6 @@ export default {
       return operadores[operador] || operador
     },
 
-    // Reemplaza el método guardarEnHistorial() existente con este:
-
     async guardarEnHistorial() {
       try {
         const filtrosParaGuardar = this.filtrosActivos.map((filtro) => ({
