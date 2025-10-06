@@ -173,6 +173,7 @@
                   <option value="promedio">Promedio (AVG)</option>
                   <option value="maximo">Valor máximo (MAX)</option>
                   <option value="minimo">Valor mínimo (MIN)</option>
+                  <option value="porcentaje">Porcentaje (%)</option>
                 </select>
               </div>
               <div class="form-text">
@@ -193,6 +194,9 @@
                 </span>
                 <span v-else-if="parametrosForm.tipoOperacion === 'minimo'">
                   Encontrará el valor mínimo del campo seleccionado
+                </span>
+                <span v-else-if="parametrosForm.tipoOperacion === 'porcentaje'">
+                  Calculará el porcentaje basado en el campo seleccionado
                 </span>
                 <span v-else>Selecciona la operación matemática a realizar</span>
               </div>

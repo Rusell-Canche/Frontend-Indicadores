@@ -27,6 +27,7 @@
             <option value="promedio">Promedio (AVG)</option>
             <option value="maximo">Valor máximo (MAX)</option>
             <option value="minimo">Valor mínimo (MIN)</option>
+            <option value="porcentaje">Porcentaje (%)</option>
           </select>
         </div>
       </div>
