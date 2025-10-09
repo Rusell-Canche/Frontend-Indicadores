@@ -435,7 +435,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 import SubformRecursivo from './SubformRecursivo.vue'
 
@@ -636,8 +636,8 @@ export default {
           return
         }
 
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/indicadores/${this.id}/configuracion`,
+        const response = await api.get(
+          `/indicadores/${this.id}/configuracion`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -889,8 +889,8 @@ export default {
           configuracion: configuracion,
         }
 
-        const response = await axios.put(
-          `http://127.0.0.1:8000/api/indicadores/${idIndicador}/configuracion`,
+        const response = await api.put(
+          `/indicadores/${idIndicador}/configuracion`,
           payload,
           {
             headers: {
@@ -963,7 +963,7 @@ export default {
           return
         }
 
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        const response = await api.get('/plantillas', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -995,8 +995,8 @@ export default {
 
         try {
           const token = localStorage.getItem('apiToken')
-          const response = await axios.get(
-            `http://127.0.0.1:8000/api/plantillas/${this.parametrosForm.plantillaSeleccionada}/secciones`,
+          const response = await api.get(
+            `/plantillas/${this.parametrosForm.plantillaSeleccionada}/secciones`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,

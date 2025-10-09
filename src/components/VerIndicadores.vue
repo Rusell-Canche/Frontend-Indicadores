@@ -358,7 +358,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import DataTable from 'primevue/datatable'
@@ -446,7 +446,7 @@ export default {
           return
         }
 
-        const response = await axios.get('http://127.0.0.1:8000/api/indicadores', {
+        const response = await api.get('/indicadores', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -527,8 +527,8 @@ export default {
           fin: formatearFecha(this.fechaFin),
         }
 
-        const response = await axios.post(
-          'http://127.0.0.1:8000/api/indicadores/filterByDates',
+        const response = await api.post(
+          '/indicadores/filterByDates',
           fechas,
           {
             headers: {
@@ -628,8 +628,8 @@ export default {
 
         console.log('Eliminando indicador con ID:', idIndicador) // Debug
 
-        const response = await axios.delete(
-          `http://127.0.0.1:8000/api/indicadores/${idIndicador}`,
+        const response = await api.delete(
+          `/indicadores/${idIndicador}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
