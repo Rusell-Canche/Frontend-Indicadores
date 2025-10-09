@@ -93,7 +93,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 
 export default {
@@ -114,7 +114,6 @@ export default {
       }
     },
     async submitFile() {
-      const token = localStorage.getItem('apiToken')
       if (!this.file) {
         Swal.fire({
           icon: 'warning',
@@ -145,12 +144,7 @@ export default {
       this.isLoading = true
 
       try {
-        const response = await axios.post('http://127.0.0.1:8000/api/indicadores/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        const response = await axios.post('/indicadores/upload', formData,)
 
         await Swal.fire({
           icon: 'success',

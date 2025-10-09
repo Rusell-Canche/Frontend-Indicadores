@@ -202,7 +202,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 
 export default {
@@ -278,7 +278,6 @@ export default {
       this.guardando = true
 
       try {
-        const token = localStorage.getItem('apiToken')
         // Configurar axios para enviar como indicadorFormData
         const indicadorFormData = new FormData()
 
@@ -292,17 +291,9 @@ export default {
         indicadorFormData.append('fecha_fin', this.nuevoIndicador.fecha_fin)
 
         // Mandamos la solicitud POST a la API
-        const response = await axios.post(
-          'http://127.0.0.1:8000/api/indicadores',
+        const response = await api.post(
+          '/indicadores',
           indicadorFormData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              Accept: 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
-              Authorization: `Bearer ${token}`,
-            },
-          },
         )
 
         console.log('Respuesta de la API:', response)
