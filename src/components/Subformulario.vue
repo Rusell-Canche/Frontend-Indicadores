@@ -371,7 +371,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 export default {
   name: 'Subformulario',
@@ -418,7 +418,7 @@ export default {
     async cargarPlantillasDisponibles() {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        const response = await api.get('/plantillas', {
           headers: { Authorization: `Bearer ${token}` },
         })
         this.plantillasDisponibles = response.data || []
@@ -511,7 +511,7 @@ export default {
 
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        const response = await api.get('/plantillas', {
           headers: { Authorization: `Bearer ${token}` },
         })
 
@@ -556,8 +556,8 @@ export default {
 
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/secciones`,
+        const response = await api.get(
+          `/plantillas/${this.plantillaSeleccionada}/secciones`,
           { headers: { Authorization: `Bearer ${token}` } },
         )
 

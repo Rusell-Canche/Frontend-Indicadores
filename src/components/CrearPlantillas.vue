@@ -506,7 +506,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 import Subformulario from './Subformulario.vue'
 
@@ -576,7 +576,7 @@ export default {
     async cargarNombrePlantilla(plantillaId) {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${plantillaId}`, {
+        const response = await api.get(`/plantillas/${plantillaId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         return (
@@ -805,7 +805,7 @@ const camposInvalidos = this.secciones.some((seccion) =>
 
         console.log('Datos a enviar:', datosParaEnviar)
 
-        const response = await axios.post('http://127.0.0.1:8000/api/plantillas', datosParaEnviar, {
+        const response = await api.post('/plantillas', datosParaEnviar, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -837,7 +837,7 @@ const camposInvalidos = this.secciones.some((seccion) =>
 
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        const response = await api.get('/plantillas', {
           headers: { Authorization: `Bearer ${token}` },
         })
 
@@ -872,8 +872,8 @@ const camposInvalidos = this.secciones.some((seccion) =>
 
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/secciones`,
+        const response = await api.get(
+          `/plantillas/${this.plantillaSeleccionada}/secciones`,
           { headers: { Authorization: `Bearer ${token}` } },
         )
 
@@ -903,8 +903,8 @@ const camposInvalidos = this.secciones.some((seccion) =>
       this.cargandoOpciones = true
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/datos`,
+        const response = await api.get(
+          `/plantillas/${this.plantillaSeleccionada}/datos`,
           {
             params: {
               seccion: this.seccionSeleccionada,

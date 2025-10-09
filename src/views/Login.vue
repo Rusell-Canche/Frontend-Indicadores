@@ -114,102 +114,6 @@
     </div>
   </div>
 
-  <!-- Modal de creación/edición -->
-  <div v-if="showModal" class="modal-backdrop" @click="closeModal">
-    <div class="modal-content" @click.stop>
-      <!-- Header del modal -->
-      <div class="modal-header">
-        <div class="modal-header-content">
-          <div class="modal-icon">
-            <i class="fas fa-user"></i>
-          </div>
-          <div class="modal-title-section">
-            <h3>Registro</h3>
-            <p class="modal-subtitle">Regístrate aquí</p>
-          </div>
-        </div>
-        <button @click="closeModal" class="close-button">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <!-- Body del modal -->
-      <div class="modal-body">
-        <form @submit.prevent="registrarUsuario">
-          <div class="form-group">
-            <label class="form-label">Nombre*</label>
-            <div class="input-container">
-              <div class="input-icon">
-                <i class="fas fa-user"></i>
-              </div>
-              <input
-                v-model="registerForm.username"
-                type="text"
-                class="form-input"
-                placeholder="Ej: Juan"
-                required
-              />
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Email*</label>
-            <div class="input-container">
-              <div class="input-icon">
-                <i class="fas fa-envelope"></i>
-              </div>
-              <input
-                v-model="registerForm.email"
-                type="email"
-                class="form-input"
-                placeholder="tu@email.com"
-                required
-                :class="{ error: errors.email }"
-              />
-            </div>
-            <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Contraseña*</label>
-            <div class="input-container">
-              <div class="input-icon">
-                <i class="fas fa-lock"></i>
-              </div>
-              <input
-                v-model="registerForm.password"
-                :type="showPassword ? 'text' : 'password'"
-                class="form-input"
-                placeholder="Tu contraseña"
-                required
-                :class="{ error: errors.password }"
-              />
-              <button type="button" class="password-toggle" @click="showPassword = !showPassword">
-                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-              </button>
-            </div>
-            <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
-          </div>
-        </form>
-      </div>
-
-      <!-- Footer del modal -->
-      <div class="modal-footer">
-        <button @click="closeModal" class="btn btn-cancel">
-          <i class="fas fa-times me-2"></i>
-          Cancelar
-        </button>
-        <button @click="registrarUsuario" class="btn btn-save" :disabled="registrando">
-          <template v-if="registrando">
-            <div class="spinner-container">
-              <div class="spinner"></div>
-            </div>
-            Registrando...
-          </template>
-          <template v-else> <i class="fas fa-save me-2"></i> Registrarse </template>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <div class="login-container">
     <!-- Fondo animado -->
     <div class="animated-background">
@@ -322,10 +226,6 @@
               <template v-else> <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión </template>
             </button>
           </form>
-
-          <div class="signup-link">
-            <p>¿No tienes una cuenta? <a href="#" @click="abrirModal">Regístrate aquí</a></p>
-          </div>
         </div>
       </div>
     </div>
@@ -333,7 +233,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 
 export default {
@@ -344,18 +244,13 @@ export default {
         email: '',
         password: '',
       },
-      registerForm: {
-        username: '',
-        email: '',
-        password: '',
-      },
       showModal: false,
       showPassword: false,
       rememberMe: false,
       isLoading: false,
-      showMapache: false, // Cambiado de showPaperPlane a showMapache
+      showMapache: false,
       errors: {},
-      apiBaseUrl: 'http://127.0.0.1:8000/api/',
+      
     }
   },
   methods: {
@@ -365,7 +260,7 @@ export default {
 
       console.log('searchig...')
       try {
-        const response = await axios.post(`${this.apiBaseUrl}login`, this.loginForm)
+        const response = await api.post('/login', this.loginForm)
         console.log(response)
 
         // Guarda el token recibido (corrección principal)
@@ -388,62 +283,6 @@ export default {
         }
       } finally {
         this.isLoading = false
-      }
-    },
-    async registrarUsuario() {
-      if (!this.validarFormulario()) return
-
-      this.payload = {
-        ...this.registerForm,
-      }
-
-      await axios
-        .post(`${this.apiBaseUrl}/usuarios`, this.payload)
-        .then((response) => {
-          console.log(response.data)
-
-          if (response.data.status === 500) {
-            this.mostrarError(response.data.message)
-            return
-          }
-          this.closeModal()
-          this.resetRegisterForm()
-          this.mostrarMensaje('Usuario registrado exitosamente', 'success')
-        })
-        .catch((error) => {
-          console.error('Error al registrar usuario:', error)
-          this.mostrarError('Error al registrar usuario')
-        })
-    },
-    abrirModal() {
-      this.showModal = true
-    },
-    closeModal() {
-      this.showModal = false
-    },
-    validarFormulario() {
-      if (!this.registerForm.username || !this.registerForm.email || !this.registerForm.password) {
-        this.mostrarError('Los campos marcados con * son obligatorios')
-        return false
-      }
-
-      if (!this.validarEmail(this.registerForm.email)) {
-        this.mostrarError('Por favor ingrese un email válido')
-        return false
-      }
-
-      return true
-    },
-
-    validarEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      return re.test(email)
-    },
-    resetRegisterForm() {
-      this.registerForm = {
-        username: '',
-        email: '',
-        password: '',
       }
     },
     mostrarMensaje(texto, tipo = 'success') {

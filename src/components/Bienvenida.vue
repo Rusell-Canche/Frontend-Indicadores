@@ -121,6 +121,8 @@
 </template>
 
 <script>
+import api from '@/services/api'
+
 export default {
   data() {
     return {
@@ -164,14 +166,14 @@ export default {
     async obtenerTotalIndicadores() {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await fetch('http://127.0.0.1:8000/api/indicadores', {
+        const response = await api.get('/indicadores', {
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
         })
-        const data = await response.json()
-        this.totalIndicadores = Array.isArray(data.indicadores) ? data.indicadores.length : 0
+        this.totalIndicadores = Array.isArray(response.data.indicadores) 
+          ? response.data.indicadores.length 
+          : 0
       } catch (e) {
         console.error('Error al obtener indicadores:', e)
         this.totalIndicadores = 0
@@ -180,14 +182,14 @@ export default {
     async obtenerTotalUsuarios() {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await fetch('http://127.0.0.1:8000/api/usuarios', {
+        const response = await api.get('/usuarios', {
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
         })
-        const data = await response.json()
-        this.totalUsuarios = Array.isArray(data.users) ? data.users.length : 0
+        this.totalUsuarios = Array.isArray(response.data.users) 
+          ? response.data.users.length 
+          : 0
       } catch (e) {
         console.error('Error al obtener usuarios:', e)
         this.totalUsuarios = 0
@@ -198,13 +200,12 @@ export default {
         const token = localStorage.getItem('apiToken')
         
         // Primero obtener todas las plantillas/colecciones
-        const responsePlantillas = await fetch('http://127.0.0.1:8000/api/documentos/plantillas-redable', {
+        const responsePlantillas = await api.get('/documentos/plantillas-redable', {
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
         })
-        const plantillas = await responsePlantillas.json()
+        const plantillas = responsePlantillas.data
         
         if (!Array.isArray(plantillas) || plantillas.length === 0) {
           this.totalDocumentos = 0
@@ -216,19 +217,14 @@ export default {
         
         for (const plantilla of plantillas) {
           try {
-            const responseDocumentos = await fetch(
-              `http://127.0.0.1:8000/api/documentos/${plantilla.id}`,
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            )
-            const documentos = await responseDocumentos.json()
+            const responseDocumentos = await api.get(`/documentos/${plantilla.id}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            })
             
-            if (Array.isArray(documentos)) {
-              totalDocs += documentos.length
+            if (Array.isArray(responseDocumentos.data)) {
+              totalDocs += responseDocumentos.data.length
             }
           } catch (error) {
             console.error(`Error al obtener documentos de la plantilla ${plantilla.id}:`, error)

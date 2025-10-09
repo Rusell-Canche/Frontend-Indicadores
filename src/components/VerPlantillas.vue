@@ -705,7 +705,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 import Subformulario from './Subformulario.vue' // Ajusta la ruta según tu estructura
 import VistaGrafica from './VistaGrafica.vue'
@@ -763,7 +763,7 @@ vistaCompacta: false,
     async fetchPlantillas() {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        const response = await api.get('/plantillas', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -793,11 +793,9 @@ vistaCompacta: false,
     async fetchCamposPlantilla(id) {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/secciones`, {
+        const response = await api.get(`/plantillas/${id}/secciones`, {
           headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+            Authorization: `Bearer ${token}`
           },
         })
         this.nombrePlantilla = response.data.nombre_plantilla
@@ -832,7 +830,7 @@ vistaCompacta: false,
             }
           })
         })
-        const respPlantillas = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        const respPlantillas = await api.get('/plantillas', {
         headers: { Authorization: `Bearer ${token}` },
         })
         this.plantillasDisponibles = respPlantillas.data || []
@@ -882,8 +880,8 @@ async submitEditForm() {
 
       console.log('Datos a enviar:', updateData) // Verifica que ahora sí tenga subcampos anidados
 
-      const response = await axios.put(
-        `http://127.0.0.1:8000/api/plantillas/${this.idPlantilla}`,
+      const response = await api.put(
+        `/plantillas/${this.idPlantilla}`,
         updateData,
         {
           headers: {
@@ -1101,7 +1099,7 @@ async submitEditForm() {
 
       if (result.isConfirmed) {
         try {
-          const response = await axios.delete(`http://127.0.0.1:8000/api/plantillas/${id}`, {
+          const response = await api.delete(`/plantillas/${id}`, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
@@ -1128,7 +1126,7 @@ async submitEditForm() {
 async abrirMapaPlantilla(id) {
   try {
     const token = localStorage.getItem('apiToken')
-    const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/secciones`, {
+    const response = await api.get(`/plantillas/${id}/secciones`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -1138,8 +1136,6 @@ async abrirMapaPlantilla(id) {
     
     this.nombrePlantillaMapa = response.data.nombre_plantilla
     this.seccionesMapaPlantilla = response.data.secciones || []
-    
-    // ✅ Cambio aquí - usar asignación directa en lugar de $set
     const expandidas = {}
     this.seccionesMapaPlantilla.forEach((_, index) => {
       expandidas[index] = true
@@ -1164,7 +1160,6 @@ cerrarModalMapa() {
 },
 
 toggleSeccion(index) {
-  // ✅ Cambio aquí también
   this.seccionesExpandidas = {
     ...this.seccionesExpandidas,
     [index]: !this.seccionesExpandidas[index]
@@ -1215,7 +1210,7 @@ getTipoTexto(tipo) {
 
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/plantillas', {
+        const response = await api.get('/plantillas', {
           headers: { Authorization: `Bearer ${token}` },
         })
 
@@ -1260,8 +1255,8 @@ getTipoTexto(tipo) {
 
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}/secciones`,
+        const response = await api.get(
+          `/plantillas/${this.plantillaSeleccionada}/secciones`,
           { headers: { Authorization: `Bearer ${token}` } },
         )
 
@@ -1314,8 +1309,8 @@ getTipoTexto(tipo) {
       this.cargandoOpciones = true
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/plantillas/${this.plantillaSeleccionada}`,
+        const response = await api.get(
+          `/plantillas/${this.plantillaSeleccionada}`,
           {
             params: {
               seccion: this.seccionSeleccionada,
@@ -1340,7 +1335,7 @@ getTipoTexto(tipo) {
     async abrirVistaGrafica(id) {
   try {
     const token = localStorage.getItem('apiToken')
-    const response = await axios.get(`http://127.0.0.1:8000/api/plantillas/${id}/secciones`, {
+    const response = await api.get(`/plantillas/${id}/secciones`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
