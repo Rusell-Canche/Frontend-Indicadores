@@ -438,20 +438,8 @@ export default {
     async fetchIndicadores() {
       try {
         this.loading = true
-        const token = localStorage.getItem('apiToken')
-
-        if (!token) {
-          this.mostrarNotificacion('No hay sesión activa. Por favor inicia sesión.', 'error')
-          this.$router.push('/')
-          return
-        }
 
         const response = await api.get('/indicadores', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
         })
 
         if (response.status === 200) {
@@ -503,13 +491,6 @@ export default {
 
       try {
         this.loading = true
-        const token = localStorage.getItem('apiToken')
-
-        if (!token) {
-          this.mostrarNotificacion('No hay sesión activa. Por favor inicia sesión.', 'error')
-          this.$router.push('/')
-          return
-        }
 
         // Formatear fechas para la API
         const formatearFecha = (fecha) => {
@@ -530,13 +511,6 @@ export default {
         const response = await api.post(
           '/indicadores/filterByDates',
           fechas,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-          },
         )
 
         if (response.status === 200) {
@@ -611,14 +585,6 @@ export default {
       console.log('Ejecutando eliminación para:', indicador) // Debug
 
       try {
-        const token = localStorage.getItem('apiToken')
-
-        if (!token) {
-          this.mostrarNotificacion('No hay sesión activa. Por favor inicia sesión.', 'error')
-          this.$router.push('/')
-          return
-        }
-
         const idIndicador = indicador._id || indicador.id
 
         if (!idIndicador) {
@@ -630,14 +596,6 @@ export default {
 
         const response = await api.delete(
           `/indicadores/${idIndicador}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
-            },
-          },
         )
 
         if (response.status === 200) {
