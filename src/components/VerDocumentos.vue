@@ -37,7 +37,7 @@
                 >
                   <option value="" disabled>Selecciona una colección</option>
                   <option
-                    v-for="coleccion in coleccionesFiltradas"
+                    v-for="coleccion in colecciones"
                     :key="coleccion.id"
                     :value="coleccion"
                   >
@@ -529,20 +529,6 @@ export default {
       isModalOpen: false,
       documentoParaEditar: {},
 
-      // Configuración
-      excludedCollections: [
-        'failed_jobs',
-        'navbar_colors',
-        'password_reset_tokens',
-        'migrations',
-        'personal_access_tokens',
-        'plantillas_predeterminadas',
-        'noticias_collection',
-        'users',
-        'comentarios',
-        'carrousel_images',
-      ],
-
       // Estados de carga
       loading: {
         colecciones: false,
@@ -621,12 +607,6 @@ export default {
 
     currentSubformDefinition() {
       return this.currentModalLevel >= 0 ? this.modalStack[this.currentModalLevel].definition : null
-    },
-
-    coleccionesFiltradas() {
-      return this.colecciones.filter(
-        (col) => !this.excludedCollections.includes(col.nombre_coleccion),
-      )
     },
 
     filteredDocuments() {

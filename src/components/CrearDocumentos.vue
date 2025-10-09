@@ -308,7 +308,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 import SubFormularioDocumento from './SubFormularioDocumento.vue'
 
@@ -409,7 +409,7 @@ export default {
     async fetchPlantillas() {
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/documentos/plantillas-creable', {
+        const response = await api.get('/documentos/plantillas-creable', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -426,8 +426,8 @@ export default {
         try {
           const token = localStorage.getItem('apiToken')
           // Cambiamos la ruta para obtener las secciones con campos
-          const response = await axios.get(
-            `http://127.0.0.1:8000/api/plantillas/${this.selectedPlantilla}/secciones`,
+          const response = await api.get(
+            `/plantillas/${this.selectedPlantilla}/secciones`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -724,8 +724,8 @@ export default {
   // Enviar solicitud
   try {
     const token = localStorage.getItem('apiToken');
-    const response = await axios.post(
-      `http://127.0.0.1:8000/api/documentos/${this.selectedPlantilla}`,
+    const response = await api.post(
+      `/documentos/${this.selectedPlantilla}`,
       formData,
       {
         headers: { 
