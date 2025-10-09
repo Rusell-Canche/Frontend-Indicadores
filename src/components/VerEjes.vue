@@ -146,7 +146,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 
 export default {
@@ -181,7 +181,7 @@ export default {
           return
         }
 
-        const response = await axios.get('http://127.0.0.1:8000/api/ejes', {
+        const response = await api.get('/ejes', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -296,8 +296,8 @@ export default {
           clave_oficial: this.editForm.clave_oficial,
         }
 
-        const response = await axios.put(
-          `http://127.0.0.1:8000/api/ejes/${this.editForm._id}`,
+        const response = await api.put(
+          `/ejes/${this.editForm._id}`,
           data,
           {
             headers: {
@@ -386,7 +386,7 @@ export default {
         if (respuesta.isConfirmed) {
           const ejeId = eje._id || eje.id
 
-          const response = await axios.delete(`http://127.0.0.1:8000/api/ejes/${ejeId}`, {
+          const response = await api.delete(`/ejes/${ejeId}`, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',

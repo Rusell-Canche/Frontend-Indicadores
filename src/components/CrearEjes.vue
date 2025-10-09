@@ -105,7 +105,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 
 export default {
@@ -173,12 +173,9 @@ export default {
           descripcion: this.nuevoEje.descripcion,
         }
 
-        const response = await axios.post('http://127.0.0.1:8000/api/ejes', data, {
+        const response = await api.post('/ejes', data, {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
           },
         })
 
