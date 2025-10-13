@@ -3,13 +3,8 @@
     <h2>{{ grafica?.titulo || 'Cargando...' }}</h2>
 
     <!-- Mostrar solo cuando ya se cargó la configuración -->
-    <apexchart
-      v-if="grafica"
-      :options="grafica.chartOptions"
-      :series="grafica.series"
-      :type="grafica.tipo"
-      height="350"
-    />
+    <apexchart v-if="grafica" :options="grafica.chartOptions" :series="grafica.series" :type="grafica.tipo"
+      height="350" />
 
     <!-- Indicador de carga -->
     <div v-else class="loading">
@@ -21,6 +16,7 @@
 <script>
 import ApexChart from 'vue3-apexcharts'
 import axios from 'axios'
+import api from '@/services/api' // Asegúrate de que la ruta sea correcta
 
 export default {
   name: 'VerEstadisticas',
@@ -34,13 +30,8 @@ export default {
 
   async mounted() {
     try {
-      const token = localStorage.getItem('apiToken')
-      const { data } = await axios.get('http://localhost:8000/api/graficas/68dd8653ebabdd9c4c044c84', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      this.grafica = data.data
+      const { data } = await api.get('graficas/68e47fc106047f9da9079565')
+      this.grafica = data.grafica
       console.log('Configuración de la gráfica cargada:', this.grafica)
     } catch (error) {
       console.error('Error al obtener la configuración de la gráfica:', error)
