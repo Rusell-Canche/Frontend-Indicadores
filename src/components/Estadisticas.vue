@@ -26,8 +26,8 @@
               <i class="fa-solid fa-chart-line"></i>
             </div>
             <div class="tab-content-text">
-              <span class="tab-title">Ver Estadisticas</span>
-              <span class="tab-description">Ver y creacion de Estadisticas</span>
+              <span class="tab-title">Crear Estadisticas</span>
+              <span class="tab-description">Creacion de estadisticas con parámetros</span>
             </div>
           </div>
           
