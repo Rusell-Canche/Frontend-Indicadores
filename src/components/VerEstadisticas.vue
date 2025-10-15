@@ -25,7 +25,7 @@
                   </span>
                   <input
                     v-solo-texto
-                    v-model="nombre"
+                    v-model="titulo"
                     type="text"
                     id="nombre"
                     name="nombre"
@@ -45,8 +45,8 @@
                   </span>
                   <input
                     v-solo-correo
-                    v-model="email"
-                    type="email"
+                    v-model="descripcion"
+                    type="text"
                     id="email"
                     name="email"
                     class="form-control"
@@ -72,12 +72,12 @@
                   <span class="input-group-text">
                     <i class="fas fa-venus-mars"></i>
                   </span>
-                  <select v-model="genero" id="genero" name="genero" class="form-control" required>
+                  <select v-model="tipoGrafica" id="genero" name="genero" class="form-control" required>
                     <option value="">Seleccione el tipo de gráfica</option>
-                    <option value="masculino">Masculino</option>
-                    <option value="femenino">Femenino</option>
-                    <option value="noBinario">No binario</option>
-                    <option value="otro">Otro</option>
+                    <option value="bar">Barras</option>
+                    <option value="line">Linea</option>
+              
+                    
                   </select>
                 </div>
               </div>
@@ -88,10 +88,10 @@
                     <i class="fas fa-lock"></i>
                   </span>
                   <input
-                    v-model="confirm_password"
+                    v-model="color"
                     type="text"
                     id="color"
-                    name="confirm_password"
+                    name="color"
                     class="form-control"
                     required
                     placeholder="Confirme el color de la gráfica"
@@ -175,6 +175,22 @@
               Configuración de la estadística de la gráfica
             </h6>
             <div>
+                            <div class="col-md-12">
+                <label class="form-label">Nombre de la serie*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-user"></i>
+                  </span>
+                  <input
+                    v-solo-texto
+                    v-model="nombreSerieTemporal"
+                    type="text"
+                    class="form-control"
+                    required
+                    placeholder="Ingrese el nombre de la serie"
+                  />
+                </div>
+              </div>
                     <button
         type="button"
         @click="abrirModalIndicadores"
@@ -215,6 +231,7 @@
   </div>
 </template>
 <script>
+import { format } from 'date-fns';
 import ConfigurarIndicador from '@/components/ConfigurarIndicador.vue'
 import Calendar from 'primevue/calendar'
 import Button from 'primevue/button'
@@ -230,21 +247,23 @@ export default {
   data() {
     const hoy = new Date()
     return {
-      // Datos de la gráfica
-      titulo: '',
-      descripcion: '',
-      tipoGrafica: '',
-      color: '',
-      mostrarModal: false,
-      // Fechas
-    periodos: [
-      { inicio: null, fin: null }
-    ],
+    // Información básica
+    titulo: '',
+    descripcion: '',
+    tipoGrafica: '',
+    color: '',
+    nombreSerieTemporal: '',
 
-      // Estado del botón hover
-      isHovered: false
-    }
-  },
+    // Fechas (rangos)
+    periodos: [{ inicio: null, fin: null }],
+
+    // Series (configuraciones estadísticas)
+    series: [],
+
+    mostrarModal: false,
+    isHovered: false
+  }
+},
   methods: {
 
     abrirModalIndicadores() {
@@ -279,19 +298,21 @@ export default {
       console.log('Filtrando entre:', this.fechaInicio, 'y', this.fechaFin)
     },
      manejarConfiguracionRecibida(configuracion) {
-    // Aquí recibes el objeto completo
+    
+
+    if (!this.nombreSerieTemporal.trim()) {
+    Swal.fire('Error', 'Debe ingresar un nombre para la serie', 'error');
+    return;
+  }
+
+  this.series.push({
+    name: this.nombreSerieTemporal.trim(),
+    configuracion: configuracion
+  });
+
+  this.nombreSerieTemporal = ''; // limpiar
+  this.mostrarModal = false;
     console.log('Configuración recibida:', configuracion);
-
-    // Puedes agregarle más datos, por ejemplo:
-    const configExtendida = {
-      ...configuracion,
-      idIndicador: this.indicadorActual?.id, // o lo que necesites
-      nombre: 'Periodo 1',
-      fechaCreacion: new Date()
-    };
-
-    // Y luego guardarlo en tu arreglo local, por ejemplo:
-    this.periodos.push(configExtendida);
   },
     limpiarFiltro() {
       this.fechaInicio = null
@@ -306,24 +327,20 @@ export default {
       this.periodos = [{ inicio: null, fin: null }];
     },
 async submitForm() {
-  // Validaciones básicas (titulo, descripcion, etc.)
+  // Validaciones
   if (!this.titulo || !this.descripcion || !this.tipoGrafica || !this.color) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Campos incompletos',
-      text: 'Todos los campos marcados con * son obligatorios.'
-    });
+    Swal.fire('Error', 'Complete todos los campos obligatorios', 'error');
     return;
   }
 
-  // Validar que al menos un periodo tenga fechas
+  if (this.series.length === 0) {
+    Swal.fire('Error', 'Debe agregar al menos una serie estadística', 'error');
+    return;
+  }
+
   const periodosValidos = this.periodos.filter(p => p.inicio && p.fin);
   if (periodosValidos.length === 0) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Fechas requeridas',
-      text: 'Debe agregar al menos un rango de fechas válido.'
-    });
+    Swal.fire('Error', 'Debe agregar al menos un rango de fechas válido', 'error');
     return;
   }
 
@@ -339,52 +356,72 @@ async submitForm() {
 
   if (!result.isConfirmed) return;
 
-  // Preparar payload con todos los periodos
+  // ✅ Construir payload EXACTAMENTE como el ejemplo
   const payload = {
     titulo: this.titulo,
     descripcion: this.descripcion,
-    tipo_grafica: this.tipoGrafica,
-    color: this.color,
-    periodos: periodosValidos.map(p => ({
-      fecha_inicio: this.formatDate(p.inicio),
-      fecha_fin: this.formatDate(p.fin)
-    }))
+    series: this.series, // ← ya tiene la estructura correcta
+    rangos: periodosValidos.map(p => ({
+      inicio: this.formatDateForDisplay(p.inicio), // "dd-mm-yyyy"
+      fin: this.formatDateForDisplay(p.fin),
+      label: this.generarLabelRango(p.inicio, p.fin)
+    })),
+    chartOptions: {
+      chart: {
+        height: 350,
+        type: this.tipoGrafica
+      },
+      dataLabels: { enabled: false },
+      stroke: { show: true, width: 2 }
+    }
   };
 
   try {
-    this.loading = true;
     const token = localStorage.getItem('apiToken');
     const response = await axios.post('http://127.0.0.1:8000/api/graficas', payload, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    Swal.fire({
-      icon: 'success',
-      title: '¡Gráfica creada!',
-      text: response.data.message || 'La gráfica se ha creado correctamente.'
-    }).then(() => {
-      this.resetForm();
-    });
+    Swal.fire('¡Éxito!', 'Gráfica creada correctamente', 'success');
+    this.resetForm();
   } catch (error) {
-    console.error('Error al crear gráfica:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: error.response?.data?.message || 'No se pudo crear la gráfica. Inténtelo de nuevo.'
-    });
-  } finally {
-    this.loading = false;
+    console.error('Error:', error);
+    Swal.fire('Error', error.response?.data?.message || 'No se pudo crear la gráfica', 'error');
   }
 },
-    // Formatear fecha a YYYY-MM-DD para enviar al backend
-    formatDate(date) {
-      if (!date) return ''
-      const d = new Date(date)
-      const year = d.getFullYear()
-      const month = String(d.getMonth() + 1).padStart(2, '0')
-      const day = String(d.getDate()).padStart(2, '0')
-      return `${year}-${month}-${day}`
-    }
+    // Formato para el backend: "dd-mm-yyyy"
+formatDateForDisplay(date) {
+  if (!date) return '';
+  try {
+    return format(new Date(date), 'dd-MM-yyyy');
+  } catch {
+    return '';
+  }
+},
+
+// Generar label automático (ej: "2024", "Ene-Mar 2025")
+generarLabelRango(inicio, fin) {
+  const start = new Date(inicio);
+  const end = new Date(fin);
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+
+  if (startYear === endYear) {
+    return startYear.toString();
+  }
+  return `${startYear}-${endYear}`;
+},
+
+// Reset mejorado
+resetForm() {
+  this.titulo = '';
+  this.descripcion = '';
+  this.tipoGrafica = '';
+  this.color = '';
+  this.series = [];
+  this.periodos = [{ inicio: null, fin: null }];
+  this.nombreSerieTemporal = '';
+}
   }
 }
 </script>
