@@ -172,11 +172,18 @@
           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-user me-2"></i>
-              Configuracion estadística de la gráfica
+              Configuración de la estadística de la gráfica
             </h6>
             <div>
-
-<ConfigurarIndicador />
+                    <button
+        type="button"
+        @click="abrirModalIndicadores"
+        class="btn-add-campo"
+      >
+        <i class="fas fa-plus"></i>
+        <span>Agregar Serie</span>
+      </button>
+<ConfigurarIndicador v-if="mostrarModal" :noRedirigir="true" @cerrar="mostrarModal = false" @configuracion-lista="manejarConfiguracionRecibida" />
 
 
 
@@ -228,7 +235,7 @@ export default {
       descripcion: '',
       tipoGrafica: '',
       color: '',
-
+      mostrarModal: false,
       // Fechas
     periodos: [
       { inicio: null, fin: null }
@@ -239,6 +246,10 @@ export default {
     }
   },
   methods: {
+
+    abrirModalIndicadores() {
+    this.mostrarModal = true;
+  },
       agregarPeriodo() {
     this.periodos.push({ inicio: null, fin: null });
   },
@@ -267,7 +278,21 @@ export default {
       // Aquí podrías hacer una llamada para cargar datos en el rango, si es necesario
       console.log('Filtrando entre:', this.fechaInicio, 'y', this.fechaFin)
     },
+     manejarConfiguracionRecibida(configuracion) {
+    // Aquí recibes el objeto completo
+    console.log('Configuración recibida:', configuracion);
 
+    // Puedes agregarle más datos, por ejemplo:
+    const configExtendida = {
+      ...configuracion,
+      idIndicador: this.indicadorActual?.id, // o lo que necesites
+      nombre: 'Periodo 1',
+      fechaCreacion: new Date()
+    };
+
+    // Y luego guardarlo en tu arreglo local, por ejemplo:
+    this.periodos.push(configExtendida);
+  },
     limpiarFiltro() {
       this.fechaInicio = null
       this.fechaFin = null

@@ -443,7 +443,7 @@ export default {
   components: {
     SubformRecursivo,
   },
-  props: ['id'],
+  props: ['id','noRedirigir','modoEstadisticas'],
   data() {
     return {
       maxNivelSubformulario: 2, // Nueva variable para controlar el nivel máximo
@@ -822,11 +822,7 @@ export default {
 
     async aplicarParametros() {
       try {
-        const idIndicador = this.indicadorSeleccionado?._id || this.indicadorSeleccionado?.id
-        if (!idIndicador) {
-          this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
-          return
-        }
+      
 
         const plantillaSeleccionada = this.plantillasDisponibles.find(
           (p) => p.id === this.parametrosForm.plantillaSeleccionada,
@@ -878,6 +874,19 @@ export default {
           )
         }
 
+        // ✅ NUEVO: Si estamos en modo estadísticas (noRedirigir = true)
+if (this.noRedirigir) {
+  // Solo emitimos la configuración al padre
+  this.$emit('configuracion-lista', configuracion);
+  this.cerrarModal(); // cierra el modal normalmente
+  return;
+}
+// ✅ A PARTIR DE AQUÍ: solo se ejecuta si NO es modo estadísticas → necesita indicador
+  const idIndicador = this.indicadorSeleccionado?._id || this.indicadorSeleccionado?.id
+        if (!idIndicador) {
+          this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
+          return
+        }
         const token = localStorage.getItem('apiToken')
         if (!token) {
           this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
@@ -1108,7 +1117,13 @@ export default {
     },
 
     cerrarModal() {
-      this.$router.push({ name: 'ver-indicadores' })
+        if (this.noRedirigir) {
+    // Solo emitimos un evento para que el padre cierre el modal
+    this.$emit('cerrar');
+  } else {
+    // Comportamiento original: redirige
+    this.$router.push({ name: 'ver-indicadores' });
+  }
     },
 
     mostrarNotificacion(titulo, mensaje, tipo) {
