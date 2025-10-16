@@ -101,48 +101,152 @@
             </div>
           </div>
 
-
-<!-- Sección para el rango de periodos de la gráfica-->
+<!-- Sección para el rango de periodos de la gráfica -->
 <div class="form-section">
   <h6 class="section-title">
     <i class="fas fa-shield-alt me-2"></i>
     Rangos de fecha
   </h6>
 
-  <!-- Contenedor único para todos los periodos -->
+  <!-- Selector de tipo global (solo uno para todos los periodos) -->
+  <div class="mb-4">
+    <label class="form-label d-block">Tipo de rango:</label>
+    <div class="d-flex flex-wrap gap-3">
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          id="tipo-libre"
+          v-model="tipoGlobal"
+          value="libre"
+          @change="cambiarTipoGlobal"
+        />
+        <label class="form-check-label" for="tipo-libre">Libre</label>
+      </div>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          id="tipo-mes"
+          v-model="tipoGlobal"
+          value="mes"
+          @change="cambiarTipoGlobal"
+        />
+        <label class="form-check-label" for="tipo-mes">Por mes</label>
+      </div>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          id="tipo-ciclo"
+          v-model="tipoGlobal"
+          value="ciclo"
+          @change="cambiarTipoGlobal"
+        />
+        <label class="form-check-label" for="tipo-ciclo">Por ciclo escolar</label>
+      </div>
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="radio"
+          id="tipo-semestre"
+          v-model="tipoGlobal"
+          value="semestre"
+          @change="cambiarTipoGlobal"
+        />
+        <label class="form-check-label" for="tipo-semestre">Por semestre</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de periodos (todos usan el mismo tipoGlobal) -->
   <div class="date-filter-simple">
-    <!-- Cada fila de periodo -->
     <div
       v-for="(periodo, index) in periodos"
       :key="index"
       class="filter-row"
       :class="{ 'has-remove-btn': index > 0 }"
     >
-      <div class="date-field">
-        <label :for="`fechaInicio-${index}`" class="date-label">Fecha Inicio:</label>
-        <Calendar
-          :id="`fechaInicio-${index}`"
-          v-model="periodo.inicio"
-          dateFormat="dd-mm-yy"
-          placeholder="Seleccionar fecha"
-          :showIcon="true"
-          class="w-100"
-        />
+      <!-- Contenedor vertical para mantener layout consistente -->
+      <div class="filter-content">
+        <!-- Contenido dinámico según el tipo global -->
+        <div v-if="tipoGlobal === 'libre'" class="d-flex gap-3">
+          <div class="date-field flex-grow-1">
+            <label :for="`fechaInicio-${index}`" class="date-label">Fecha Inicio:</label>
+            <Calendar
+              :id="`fechaInicio-${index}`"
+              v-model="periodo.inicio"
+              dateFormat="dd-mm-yy"
+              placeholder="Seleccionar fecha"
+              :showIcon="true"
+              class="w-100"
+            />
+          </div>
+          <div class="date-field flex-grow-1">
+            <label :for="`fechaFin-${index}`" class="date-label">Fecha Fin:</label>
+            <Calendar
+              :id="`fechaFin-${index}`"
+              v-model="periodo.fin"
+              dateFormat="dd-mm-yy"
+              placeholder="Seleccionar fecha"
+              :showIcon="true"
+              class="w-100"
+            />
+          </div>
+        </div>
+
+        <!-- Por mes -->
+        <div v-else-if="tipoGlobal === 'mes'" class="date-field">
+          <label :for="`mes-${index}`" class="date-label">Seleccionar mes/año:</label>
+          <Calendar
+            :id="`mes-${index}`"
+            v-model="periodo.valor"
+            view="month"
+            dateFormat="mm/yy"
+            placeholder="Ej: 10/2025"
+            :showIcon="true"
+            class="w-100"
+            @date-select="() => actualizarRango(periodo)"
+          />
+        </div>
+
+        <!-- Por ciclo (año) -->
+        <div v-else-if="tipoGlobal === 'ciclo'" class="date-field">
+          <label :for="`anio-${index}`" class="date-label">Seleccionar año:</label>
+          <Calendar
+            :id="`anio-${index}`"
+            v-model="periodo.valor"
+            view="year"
+            dateFormat="yy"
+            placeholder="Ej: 2025"
+            :showIcon="true"
+            class="w-100"
+            @date-select="() => actualizarRango(periodo)"
+          />
+        </div>
+
+        <!-- Por semestre -->
+        <div v-else-if="tipoGlobal === 'semestre'" class="date-field">
+          <label :for="`semestreSelect-${index}`" class="date-label">Seleccionar semestre:</label>
+          <select
+            :id="`semestreSelect-${index}`"
+            v-model="periodo.valor"
+            class="form-control modern-input"
+            @change="actualizarRango(periodo)"
+          >
+            <option value="">Seleccione un semestre</option>
+            <option
+              v-for="sem in SEMESTRES"
+              :key="sem.inicio"
+              :value="sem.inicio + '|' + sem.fin"
+            >
+              {{ sem.label }}
+            </option>
+          </select>
+        </div>
       </div>
 
-      <div class="date-field">
-        <label :for="`fechaFin-${index}`" class="date-label">Fecha Fin:</label>
-        <Calendar
-          :id="`fechaFin-${index}`"
-          v-model="periodo.fin"
-          dateFormat="dd-mm-yy"
-          placeholder="Seleccionar fecha"
-          :showIcon="true"
-          class="w-100"
-        />
-      </div>
-
-      <!-- Botón de eliminar (solo en periodos adicionales) -->
+      <!-- Botón de eliminar -->
       <button
         v-if="index > 0"
         type="button"
@@ -154,7 +258,6 @@
       </button>
     </div>
 
-    <!-- Botón "Agregar periodo" al final -->
     <div class="text-center mt-3">
       <button
         type="button"
@@ -168,22 +271,81 @@
   </div>
 </div>
 
+
 <!-- Sección de las series o configuracion de la estadistica de la grafica -->
           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-user me-2"></i>
-              Configuración de la estadística de la gráfica
+              Configuración estadística de la gráfica
             </h6>
             <div>
-                          
-                    <button
-        type="button"
-        @click="abrirModalIndicadores"
-        class="btn-add-campo"
-      >
-        <i class="fas fa-plus"></i>
-        <span>Agregar Serie</span>
-      </button>
+<!-- Tabla de series agregadas -->
+<div v-if="series.length > 0" class="form-section mt-3">
+  <h6 class="section-title">
+    <i class="fas fa-list me-2"></i>
+    Series configuradas ({{ series.length }})
+  </h6>
+
+  <DataTable
+    :value="series"
+    tableStyle="min-width: 50rem"
+    :showGridlines="true"
+  >
+    <Column field="name" header="Nombre de la serie" style="width: 15%" />
+
+    <Column header="Colección" style="width: 15%">
+      <template #body="slotProps">
+        {{ slotProps.data.configuracion.coleccion || '—' }}
+      </template>
+    </Column>
+
+    <Column header="Operación" style="width: 12%">
+      <template #body="slotProps">
+        {{ slotProps.data.configuracion.operacion || '—' }}
+      </template>
+    </Column>
+
+    <Column header="Sección(es)" style="width: 20%">
+      <template #body="slotProps">
+        {{
+          Array.isArray(slotProps.data.configuracion.secciones)
+            ? slotProps.data.configuracion.secciones.join(', ')
+            : slotProps.data.configuracion.secciones || '—'
+        }}
+      </template>
+    </Column>
+
+    <Column header="Campo fecha" style="width: 20%">
+      <template #body="slotProps">
+        {{
+          slotProps.data.configuracion.campoFechaFiltro?.[1] || '—'
+        }}
+      </template>
+    </Column>
+
+    <Column header="Acciones" style="width: 10%; text-align: center">
+      <template #body="slotProps">
+        <Button
+          icon="fas fa-trash"
+          @click="eliminarSerie(slotProps.index)"
+          text
+          severity="danger"
+          size="small"
+          v-tooltip="'Eliminar serie'"
+        />
+      </template>
+    </Column>
+  </DataTable>
+</div>
+<!-- Botón para agregar serie -->
+<button
+  type="button"
+  @click="abrirModalIndicadores"
+  class="btn-add-campo "
+>
+  <i class="fas fa-plus"></i>
+  <span>Agregar Serie</span>
+</button>
 <ConfigurarIndicador v-if="mostrarModal" :noRedirigir="true"  :modoEstadisticas="true"  @cerrar="mostrarModal = false" @configuracion-lista="manejarConfiguracionRecibida" />
 
             </div>
@@ -219,33 +381,143 @@ import Calendar from 'primevue/calendar'
 import Button from 'primevue/button'
 import Swal from 'sweetalert2'
 import axios from 'axios'
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+
+// 👇 Define SEMESTRES AQUÍ, fuera del export
+const SEMESTRES = [
+  { label: '2023 Ene - Jul', inicio: '2023-01-01', fin: '2023-07-31' },
+  { label: '2023 Ago - Dic', inicio: '2023-08-01', fin: '2023-12-31' },
+  { label: '2024 Ene - Jul', inicio: '2024-01-01', fin: '2024-07-31' },
+  { label: '2024 Ago - Dic', inicio: '2024-08-01', fin: '2024-12-31' },
+  { label: '2025 Ene - Jul', inicio: '2025-01-01', fin: '2025-07-31' },
+  { label: '2025 Ago - Dic', inicio: '2025-08-01', fin: '2025-12-31' }
+];
 
 export default {
   components: {
     ConfigurarIndicador,
     Calendar,
-    Button
+    Button,
+    DataTable,
+    Column,
+    
+
   },
   data() {
+    
     return {
       titulo: '',
       descripcion: '',
       tipoGrafica: '',
       color: '',
-      periodos: [{ inicio: null, fin: null }],
+      tipoGlobal: 'libre', // nuevo
+      tipoGlobalAnterior: 'libre',
+      SEMESTRES, // para usar en el template
+      periodos: [
+  {
+    valor: null,   // Date para 'mes' o 'ciclo', string para 'semestre'
+    inicio: null,
+    fin: null,
+  }
+],
       series: [],
       mostrarModal: false,
       isHovered: false
     }
   },
+  
   methods: {
     abrirModalIndicadores() {
       this.mostrarModal = true
     },
+  actualizarRango(periodo) {
+    periodo.inicio = null;
+    periodo.fin = null;
+  // Usamos el tipo global, no el del periodo (ya no existe)
+  const tipo = this.tipoGlobal;
+    if (tipo === 'libre') {
+      // Ya lo maneja el usuario, no hacemos nada
+      return;
+    }
+  
+    if (tipo === 'mes' && periodo.valor) {
+      const date = new Date(periodo.valor);
+      const year = date.getFullYear();
+      const month = date.getMonth(); // 0-11
 
-    agregarPeriodo() {
-      this.periodos.push({ inicio: null, fin: null })
-    },
+      // Primer día del mes
+      periodo.inicio = new Date(year, month, 1);
+      // Último día del mes
+      periodo.fin = new Date(year, month + 1, 0);
+    }
+
+    if (tipo === 'ciclo' && periodo.valor) {
+      const year = new Date(periodo.valor).getFullYear();
+      periodo.inicio = new Date(year, 0, 1); // 1/enero
+      periodo.fin = new Date(year, 11, 31);  // 31/diciembre
+    }
+
+    if (tipo === 'semestre' && periodo.valor) {
+      const [inicioStr, finStr] = periodo.valor.split('|');
+      periodo.inicio = new Date(inicioStr);
+      periodo.fin = new Date(finStr);
+    }
+  },
+
+  cambiarTipoGlobal() {
+  // Verificar si hay algún periodo con datos
+  const tieneDatos = this.periodos.some(p => {
+    if (this.tipoGlobalAnterior === 'libre') {
+      return p.inicio || p.fin;
+    } else {
+      return p.valor;
+    }
+  });
+
+  if (tieneDatos) {
+    Swal.fire({
+      title: '¿Cambiar tipo de rango?',
+      text: 'Perderás todos los datos ingresados y se eliminarán los periodos adicionales.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cambiar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // ✅ Restablecer a un solo periodo vacío
+        this.periodos = [{
+          inicio: null,
+          fin: null,
+          valor: null
+        }];
+        this.tipoGlobalAnterior = this.tipoGlobal;
+      } else {
+        // Revertir la selección del radio button
+        this.$nextTick(() => {
+          this.tipoGlobal = this.tipoGlobalAnterior;
+        });
+      }
+    });
+  } else {
+    // Si no hay datos, solo actualizamos el tipo anterior
+    this.tipoGlobalAnterior = this.tipoGlobal;
+  }
+},
+limpiarPeriodos() {
+  this.periodos = this.periodos.map(p => ({
+    inicio: null,
+    fin: null,
+    valor: null
+  }));
+},
+  agregarPeriodo() {
+  this.periodos.push({
+    inicio: null,
+    fin: null,
+    valor: null
+  });
+},
 
     eliminarPeriodo(index) {
       if (this.periodos.length <= 1) {
