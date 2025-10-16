@@ -40,8 +40,8 @@
               <i class="fas fa-chart-pie"></i>
             </div>
             <div class="tab-content-text">
-              <span class="tab-title">Historial de Estadisticas Reportes</span>
-              <span class="tab-description">ver todas las Estadisticas creadas</span>
+              <span class="tab-title">Historial de Estadisticas</span>
+              <span class="tab-description">Ver todas las Estadisticas creadas</span>
             </div>
           </div>
           

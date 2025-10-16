@@ -231,7 +231,6 @@
   </div>
 </template>
 <script>
-import { format } from 'date-fns';
 import ConfigurarIndicador from '@/components/ConfigurarIndicador.vue'
 import Calendar from 'primevue/calendar'
 import Button from 'primevue/button'
@@ -245,78 +244,59 @@ export default {
     Button
   },
   data() {
-    const hoy = new Date()
     return {
-    // Información básica
-    titulo: '',
-    descripcion: '',
-    tipoGrafica: '',
-    color: '',
-    nombreSerieTemporal: '',
-
-    // Fechas (rangos)
-    periodos: [{ inicio: null, fin: null }],
-
-    // Series (configuraciones estadísticas)
-    series: [],
-
-    mostrarModal: false,
-    isHovered: false
-  }
-},
-  methods: {
-
-    abrirModalIndicadores() {
-    this.mostrarModal = true;
-  },
-      agregarPeriodo() {
-    this.periodos.push({ inicio: null, fin: null });
-  },
-    eliminarPeriodo(index) {
-    if (this.periodos.length <= 1) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'No se puede eliminar',
-        text: 'Debe haber al menos un rango de fechas.'
-      });
-      return;
+      titulo: '',
+      descripcion: '',
+      tipoGrafica: '',
+      color: '',
+      nombreSerieTemporal: '',
+      periodos: [{ inicio: null, fin: null }],
+      series: [],
+      mostrarModal: false,
+      isHovered: false
     }
-    this.periodos.splice(index, 1);
   },
-    // Método para filtrar (puedes usarlo si necesitas previsualizar datos antes de crear)
-    filtrarPorFecha() {
-      if (!this.fechaInicio || !this.fechaFin) {
+  methods: {
+    abrirModalIndicadores() {
+      this.mostrarModal = true
+    },
+
+    agregarPeriodo() {
+      this.periodos.push({ inicio: null, fin: null })
+    },
+
+    eliminarPeriodo(index) {
+      if (this.periodos.length <= 1) {
         Swal.fire({
           icon: 'warning',
-          title: 'Fechas incompletas',
-          text: 'Por favor seleccione ambas fechas.'
+          title: 'No se puede eliminar',
+          text: 'Debe haber al menos un rango de fechas.'
         })
         return
       }
-
-      // Aquí podrías hacer una llamada para cargar datos en el rango, si es necesario
-      console.log('Filtrando entre:', this.fechaInicio, 'y', this.fechaFin)
+      this.periodos.splice(index, 1)
     },
-     manejarConfiguracionRecibida(configuracion) {
-    
+    formatDateToDDMMYYYY(date) {
+  if (!date) return '';
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0'); // +1 porque getMonth() empieza en 0
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+},
 
-    if (!this.nombreSerieTemporal.trim()) {
-    Swal.fire('Error', 'Debe ingresar un nombre para la serie', 'error');
-    return;
-  }
+    manejarConfiguracionRecibida(configuracion) {
+      if (!this.nombreSerieTemporal.trim()) {
+        Swal.fire('Error', 'Debe ingresar un nombre para la serie', 'error')
+        return
+      }
 
-  this.series.push({
-    name: this.nombreSerieTemporal.trim(),
-    configuracion: configuracion
-  });
+      this.series.push({
+        name: this.nombreSerieTemporal.trim(),
+        configuracion
+      })
 
-  this.nombreSerieTemporal = ''; // limpiar
-  this.mostrarModal = false;
-    console.log('Configuración recibida:', configuracion);
-  },
-    limpiarFiltro() {
-      this.fechaInicio = null
-      this.fechaFin = null
+      this.mostrarModal = false
     },
 
     resetForm() {
@@ -324,104 +304,72 @@ export default {
       this.descripcion = ''
       this.tipoGrafica = ''
       this.color = ''
-      this.periodos = [{ inicio: null, fin: null }];
+      this.series = []
+      this.periodos = [{ inicio: null, fin: null }]
+      this.nombreSerieTemporal = ''
     },
-async submitForm() {
-  // Validaciones
-  if (!this.titulo || !this.descripcion || !this.tipoGrafica || !this.color) {
-    Swal.fire('Error', 'Complete todos los campos obligatorios', 'error');
-    return;
-  }
 
-  if (this.series.length === 0) {
-    Swal.fire('Error', 'Debe agregar al menos una serie estadística', 'error');
-    return;
-  }
+    generarLabelRango(inicio, fin) {
+      const startYear = new Date(inicio).getFullYear()
+      const endYear = new Date(fin).getFullYear()
+      return startYear === endYear ? `${startYear}` : `${startYear}-${endYear}`
+    },
 
-  const periodosValidos = this.periodos.filter(p => p.inicio && p.fin);
-  if (periodosValidos.length === 0) {
-    Swal.fire('Error', 'Debe agregar al menos un rango de fechas válido', 'error');
-    return;
-  }
+    async submitForm() {
+      if (!this.titulo || !this.descripcion || !this.tipoGrafica || !this.color) {
+        Swal.fire('Error', 'Complete todos los campos obligatorios', 'error')
+        return
+      }
 
-  // Confirmación
-  const result = await Swal.fire({
-    title: '¿Crear gráfica?',
-    text: `Se creará una gráfica de tipo "${this.tipoGrafica}" con el título "${this.titulo}".`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, crear',
-    cancelButtonText: 'Cancelar'
-  });
+      if (this.series.length === 0) {
+        Swal.fire('Error', 'Debe agregar al menos una serie estadística', 'error')
+        return
+      }
 
-  if (!result.isConfirmed) return;
+      const periodosValidos = this.periodos.filter(p => p.inicio && p.fin)
+      if (periodosValidos.length === 0) {
+        Swal.fire('Error', 'Debe agregar al menos un rango de fechas válido', 'error')
+        return
+      }
 
-  // ✅ Construir payload EXACTAMENTE como el ejemplo
-  const payload = {
-    titulo: this.titulo,
-    descripcion: this.descripcion,
-    series: this.series, // ← ya tiene la estructura correcta
-    rangos: periodosValidos.map(p => ({
-      inicio: this.formatDateForDisplay(p.inicio), // "dd-mm-yyyy"
-      fin: this.formatDateForDisplay(p.fin),
-      label: this.generarLabelRango(p.inicio, p.fin)
-    })),
-    chartOptions: {
-      chart: {
-        height: 350,
-        type: this.tipoGrafica
-      },
-      dataLabels: { enabled: false },
-      stroke: { show: true, width: 2 }
+      const result = await Swal.fire({
+        title: '¿Crear gráfica?',
+        text: `Se creará una gráfica de tipo "${this.tipoGrafica}" con el título "${this.titulo}".`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, crear',
+        cancelButtonText: 'Cancelar'
+      })
+
+      if (!result.isConfirmed) return
+
+      const payload = {
+        titulo: this.titulo,
+        descripcion: this.descripcion,
+        series: this.series,
+        rangos: periodosValidos.map(p => ({
+  inicio: this.formatDateToDDMMYYYY(p.inicio),
+  fin: this.formatDateToDDMMYYYY(p.fin),
+  label: this.generarLabelRango(p.inicio, p.fin)
+})),
+        chartOptions: {
+          chart: { height: 350, type: this.tipoGrafica },
+          dataLabels: { enabled: false },
+          stroke: { show: true, width: 2 }
+        }
+      }
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        await axios.post('http://127.0.0.1:8000/api/graficas', payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        Swal.fire('¡Éxito!', 'Gráfica creada correctamente', 'success')
+        this.resetForm()
+      } catch (error) {
+        Swal.fire('Error', error.response?.data?.message || 'No se pudo crear la gráfica', 'error')
+      }
     }
-  };
-
-  try {
-    const token = localStorage.getItem('apiToken');
-    const response = await axios.post('http://127.0.0.1:8000/api/graficas', payload, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    Swal.fire('¡Éxito!', 'Gráfica creada correctamente', 'success');
-    this.resetForm();
-  } catch (error) {
-    console.error('Error:', error);
-    Swal.fire('Error', error.response?.data?.message || 'No se pudo crear la gráfica', 'error');
-  }
-},
-    // Formato para el backend: "dd-mm-yyyy"
-formatDateForDisplay(date) {
-  if (!date) return '';
-  try {
-    return format(new Date(date), 'dd-MM-yyyy');
-  } catch {
-    return '';
-  }
-},
-
-// Generar label automático (ej: "2024", "Ene-Mar 2025")
-generarLabelRango(inicio, fin) {
-  const start = new Date(inicio);
-  const end = new Date(fin);
-  const startYear = start.getFullYear();
-  const endYear = end.getFullYear();
-
-  if (startYear === endYear) {
-    return startYear.toString();
-  }
-  return `${startYear}-${endYear}`;
-},
-
-// Reset mejorado
-resetForm() {
-  this.titulo = '';
-  this.descripcion = '';
-  this.tipoGrafica = '';
-  this.color = '';
-  this.series = [];
-  this.periodos = [{ inicio: null, fin: null }];
-  this.nombreSerieTemporal = '';
-}
   }
 }
 </script>
