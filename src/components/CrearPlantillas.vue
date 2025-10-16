@@ -1,13 +1,12 @@
 <template>
   <div class="container-fluid py-4">
-    <!-- Modal para seleccionar plantilla y sección -->
+    <!-- Modal para seleccionar plantilla y sección (Select) -->
     <div
       v-if="modalPlantillaVisible"
       class="medico-modal-backdrop"
       @click.self="cerrarModalPlantilla"
     >
       <div class="medico-modal-content" @click.stop style="max-width: 600px">
-        <!-- Header del modal -->
         <div class="medico-modal-header">
           <div class="modal-header-content">
             <div class="modal-icon">
@@ -25,10 +24,8 @@
           </button>
         </div>
 
-        <!-- Body del modal -->
         <div class="medico-modal-body">
           <div class="form-section">
-            <!-- Selección de plantilla -->
             <div class="mb-3">
               <label class="form-label">Plantilla*</label>
               <select
@@ -47,7 +44,6 @@
               </select>
             </div>
 
-            <!-- Selección de sección -->
             <div class="mb-3" v-if="seccionesPlantilla.length > 0">
               <label class="form-label">Sección*</label>
               <select v-model="seccionSeleccionada" class="form-select">
@@ -62,7 +58,6 @@
               </select>
             </div>
 
-            <!-- Campos disponibles -->
             <div v-if="camposSeccion.length > 0">
               <label class="form-label">Campo a mostrar*</label>
               <select v-model="campoMostrar" class="form-select mb-2">
@@ -73,7 +68,6 @@
               </select>
             </div>
 
-            <!-- Vista previa -->
             <div v-if="campoMostrar" class="mt-3 p-3 bg-light rounded">
               <h6>Vista previa de opciones:</h6>
               <div v-if="cargandoOpciones" class="text-center">
@@ -95,7 +89,6 @@
           </div>
         </div>
 
-        <!-- Footer del modal -->
         <div class="medico-modal-footer">
           <button @click="cerrarModalPlantilla" class="btn btn-cancel">
             <i class="fas fa-times me-2"></i>
@@ -112,9 +105,158 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal para configurar tabla dinámica (NUEVO) -->
+    <div
+      v-if="modalTablaVisible"
+      class="medico-modal-backdrop"
+      @click.self="cerrarModalTabla"
+    >
+      <div class="medico-modal-content" @click.stop style="max-width: 800px">
+        <div class="medico-modal-header">
+          <div class="modal-header-content">
+            <div class="modal-icon">
+              <i class="fas fa-table"></i>
+            </div>
+            <div class="modal-title-section">
+              <h3>Configurar Tabla Dinámica</h3>
+              <p class="modal-subtitle">
+                Selecciona la plantilla, sección y campos para las columnas de la tabla
+              </p>
+            </div>
+          </div>
+          <button @click="cerrarModalTabla" class="medico-close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="medico-modal-body">
+          <div class="form-section">
+            <div class="mb-3">
+              <label class="form-label">Plantilla*</label>
+              <select
+                v-model="tablaPlantillaSeleccionada"
+                class="form-select"
+                @change="cargarSeccionesTabla"
+              >
+                <option value="">Seleccione una plantilla</option>
+                <option
+                  v-for="plantilla in plantillasDisponibles"
+                  :key="plantilla.id"
+                  :value="plantilla.id"
+                >
+                  {{ plantilla.nombre_plantilla || plantilla.title }}
+                </option>
+              </select>
+            </div>
+
+            <div class="mb-3" v-if="tablaSeccionesPlantilla.length > 0">
+              <label class="form-label">Sección*</label>
+              <select v-model="tablaSeccionSeleccionada" class="form-select">
+                <option value="">Seleccione una sección</option>
+                <option
+                  v-for="seccion in tablaSeccionesPlantilla"
+                  :key="seccion.nombre"
+                  :value="seccion.nombre"
+                >
+                  {{ seccion.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div v-if="tablaCamposDisponibles.length > 0" class="mb-3">
+              <label class="form-label">Selecciona los campos para las columnas*</label>
+              <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Selecciona múltiples campos que se mostrarán como columnas en la tabla
+              </div>
+              
+              <div class="campos-tabla-container">
+                <div
+                  v-for="campo in tablaCamposDisponibles"
+                  :key="campo.name"
+                  class="campo-tabla-item"
+                >
+                  <label class="checkbox-container">
+                    <input
+                      type="checkbox"
+                      class="custom-checkbox"
+                      :value="campo.name"
+                      v-model="tablaCamposSeleccionados"
+                      @change="actualizarVistaPreviewTabla"
+                    />
+                    <span class="checkmark"></span>
+                    <span class="checkbox-label">
+                      {{ campo.name }} 
+                      <span class="badge bg-secondary ms-2">{{ campo.type }}</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div v-if="tablaCamposSeleccionados.length > 0" class="mt-3">
+                <small class="text-muted">
+                  <i class="fas fa-check-circle text-success me-1"></i>
+                  {{ tablaCamposSeleccionados.length }} campo(s) seleccionado(s)
+                </small>
+              </div>
+            </div>
+
+            <!-- Vista previa de la tabla -->
+            <div v-if="tablaCamposSeleccionados.length > 0" class="mt-4">
+              <h6>Vista previa de la tabla:</h6>
+              <div v-if="cargandoOpcionesTabla" class="text-center p-4">
+                <i class="fas fa-spinner fa-spin"></i> Cargando datos...
+              </div>
+              <div v-else class="table-responsive">
+                <table class="table table-bordered table-sm">
+                  <thead class="table-light">
+                    <tr>
+                      <th v-for="campo in tablaCamposSeleccionados" :key="campo">
+                        {{ campo }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(row, index) in tablaPreviewData" :key="index">
+                      <td v-for="campo in tablaCamposSeleccionados" :key="campo">
+                        {{ row[campo] || '-' }}
+                      </td>
+                    </tr>
+                    <tr v-if="tablaPreviewData.length === 0">
+                      <td :colspan="tablaCamposSeleccionados.length" class="text-center text-muted">
+                        No hay datos disponibles
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <small class="text-muted">
+                  Mostrando primeras {{ tablaPreviewData.length }} filas
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="medico-modal-footer">
+          <button @click="cerrarModalTabla" class="btn btn-cancel">
+            <i class="fas fa-times me-2"></i>
+            Cancelar
+          </button>
+          <button
+            @click="aplicarConfiguracionTabla"
+            class="btn btn-save"
+            :disabled="!configuracionTablaValida"
+          >
+            <i class="fas fa-check me-2"></i>
+            Aplicar Configuración
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Contenedor principal-->
     <div class="card shadow border-0 rounded-3">
-      <!-- Header con el diseño moderno -->
       <div class="medico-header">
         <div class="header-content">
           <div class="header-icon">
@@ -127,16 +269,13 @@
         </div>
       </div>
 
-      <!-- Body con el diseño moderno -->
       <div class="medico-body">
         <form @submit.prevent="crearPlantilla">
-          <!-- Nota de campos requeridos -->
           <div class="alert alert-info mb-4">
             <i class="fas fa-info-circle me-2"></i>Los campos marcados con
             <span class="text-danger">*</span> son obligatorios
           </div>
 
-          <!-- Sección para el nombre de la plantilla -->
           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-tag me-2"></i>
@@ -163,7 +302,6 @@
             </div>
           </div>
 
-          <!-- Sección para las secciones de la plantilla -->
           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-layer-group me-2"></i>
@@ -213,7 +351,6 @@
               </div>
 
               <div class="seccion-body">
-                <!-- Campos dentro de la sección -->
                 <div
                   v-for="(campo, campoIndex) in seccion.fields"
                   :key="campoIndex"
@@ -278,6 +415,7 @@
                             <option value="select">Lista de Selección</option>
                             <option value="checkBox">Selección múltiple</option>
                             <option value="subform">Subformulario</option>
+                            <option value="tabla">Tabla</option>
                           </select>
                         </div>
                       </div>
@@ -295,76 +433,117 @@
                               <span class="checkbox-label">Campo obligatorio</span>
                             </label>
                           </div>
+                        </div>
+                      </div>
+                    </div>
 
+                    <!-- Configuración para TABLA (NUEVO) -->
+                    <div v-if="campo.type === 'tabla'" class="select-options-container">
+                      <div class="select-options-header">
+                        <div class="options-header-content">
+                          <i class="fas fa-table"></i>
+                          <span>Configuración de tabla para "{{ campo.name || 'este campo' }}"</span>
+                        </div>
+                      </div>
+
+                      <div class="mb-3 p-3">
+                        <button
+                          type="button"
+                          @click="abrirModalTabla(campo)"
+                          class="btn btn-outline-primary"
+                        >
+                          <i class="fas fa-table me-2"></i>
+                          Configurar columnas de la tabla
+                        </button>
+                      </div>
+
+                      <!-- Alert de configuración aplicada -->
+                      <div v-if="campo.tableConfig" class="alert alert-success mb-3">
+                        <div class="d-flex align-items-start">
+                          <i class="fas fa-check-circle me-3 mt-1"></i>
+                          <div>
+                            <strong>Configuración de tabla aplicada:</strong><br />
+                            Plantilla: <strong>"{{ getNombrePlantillaDataSource(campo.tableConfig.plantillaId) }}"</strong><br />
+                            Sección: <strong>"{{ campo.tableConfig.seccion }}"</strong><br />
+                            <div class="mt-2">
+                              <strong>Columnas configuradas ({{ campo.tableConfig.campos.length }}):</strong>
+                              <div class="mt-1">
+                                <span
+                                  v-for="(campoTabla, idx) in campo.tableConfig.campos"
+                                  :key="idx"
+                                  class="badge bg-primary me-1"
+                                >
+                                  {{ campoTabla }}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     <!-- Configuración de opciones para Opción Múltiple -->
-<div v-if="campo.type === 'checkBox'" class="select-options-container">
-  <div class="select-options-header">
-    <div class="options-header-content">
-      <i class="fas fa-list-ul"></i>
-      <span>Opciones múltiples para "{{ campo.name || 'este campo' }}"</span>
-    </div>
-  </div>
+                    <div v-if="campo.type === 'checkBox'" class="select-options-container">
+                      <div class="select-options-header">
+                        <div class="options-header-content">
+                          <i class="fas fa-list-ul"></i>
+                          <span>Opciones múltiples para "{{ campo.name || 'este campo' }}"</span>
+                        </div>
+                      </div>
 
-  <!-- Opciones definidas manualmente -->
-  <div class="select-options-body">
-    <div
-      v-for="(option, optionIndex) in campo.options || []"
-      :key="optionIndex"
-      class="option-item"
-    >
-      <div class="option-content">
-        <div class="input-group modern-input-small">
-          <span class="input-group-text">
-            <i class="fas fa-tag"></i>
-          </span>
-          <input
-            v-solo-texto-y-numeros
-            v-model="campo.options[optionIndex]"
-            class="form-control"
-            placeholder="Texto de la opción"
-            required
-          />
-          <button
-            type="button"
-            @click="quitarOpcion(campo, optionIndex)"
-            class="btn-delete-option"
-          >
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      </div>
-    </div>
+                      <div class="select-options-body">
+                        <div
+                          v-for="(option, optionIndex) in campo.options || []"
+                          :key="optionIndex"
+                          class="option-item"
+                        >
+                          <div class="option-content">
+                            <div class="input-group modern-input-small">
+                              <span class="input-group-text">
+                                <i class="fas fa-tag"></i>
+                              </span>
+                              <input
+                                v-solo-texto-y-numeros
+                                v-model="campo.options[optionIndex]"
+                                class="form-control"
+                                placeholder="Texto de la opción"
+                                required
+                              />
+                              <button
+                                type="button"
+                                @click="quitarOpcion(campo, optionIndex)"
+                                class="btn-delete-option"
+                              >
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
 
-    <!-- Agregar nueva opción -->
-    <div class="add-option-section">
-      <div class="add-option-wrapper">
-        <div class="add-option-input">
-          <input
-            v-solo-texto-y-numeros
-            v-model="campo.newOption"
-            class="form-control modern-input-standalone"
-            placeholder="Texto de la opción (ej: Activo, Inactivo, Pendiente)"
-            @keyup.enter="agregarOpcion(campo)"
-          />
-        </div>
-        <button
-          type="button"
-          @click="agregarOpcion(campo)"
-          class="btn-add-option"
-          :disabled="!campo.newOption"
-        >
-          <i class="fas fa-plus"></i>
-          <span>Agregar</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
+                        <div class="add-option-section">
+                          <div class="add-option-wrapper">
+                            <div class="add-option-input">
+                              <input
+                                v-solo-texto-y-numeros
+                                v-model="campo.newOption"
+                                class="form-control modern-input-standalone"
+                                placeholder="Texto de la opción (ej: Activo, Inactivo, Pendiente)"
+                                @keyup.enter="agregarOpcion(campo)"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              @click="agregarOpcion(campo)"
+                              class="btn-add-option"
+                              :disabled="!campo.newOption"
+                            >
+                              <i class="fas fa-plus"></i>
+                              <span>Agregar</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
                     <!-- Configuración de opciones para Select -->
                     <div v-if="campo.type === 'select'" class="select-options-container">
@@ -375,7 +554,6 @@
                         </div>
                       </div>
 
-                      <!-- Botón para cargar desde otra plantilla -->
                       <div class="mb-3">
                         <button
                           type="button"
@@ -387,18 +565,14 @@
                         </button>
                       </div>
 
-                      <!-- Alert de configuración aplicada -->
                       <div v-if="campo.dataSource" class="alert alert-info mb-3">
                         <div class="d-flex align-items-start">
                           <i class="fas fa-lightbulb me-3 mt-1"></i>
                           <div>
                             <strong>Configuración de opciones dinámicas:</strong><br />
                             Las opciones se cargarán desde la plantilla
-                            <strong
-                              >"{{
-                                getNombrePlantillaDataSource(campo.dataSource.plantillaId)
-                              }}"</strong
-                            >, sección <strong>"{{ campo.dataSource.seccion }}"</strong><br />
+                            <strong>"{{ getNombrePlantillaDataSource(campo.dataSource.plantillaId) }}"</strong>, 
+                            sección <strong>"{{ campo.dataSource.seccion }}"</strong><br />
                             <span class="mt-1 d-block">
                               <small>
                                 Campo mostrado:
@@ -463,8 +637,6 @@
                       </div>
                     </div>
 
-                    <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
-                    <!-- Subformulario - solo se muestra si el tipo es 'subform' -->
                     <Subformulario
                       v-if="campo.type === 'subform'"
                       :campo="campo"
@@ -488,7 +660,6 @@
             </button>
           </div>
 
-          <!-- Footer con botones -->
           <div class="medico-footer">
             <button @click="resetForm" class="btn btn-cancel" type="button">
               <i class="fas fa-eraser me-2"></i>
@@ -524,7 +695,8 @@ export default {
       selectedEje: '',
       indicadores: [],
       loading: true,
-      // Variables para el modal de plantilla
+      
+      // Variables para el modal de SELECT
       modalPlantillaVisible: false,
       plantillasDisponibles: [],
       plantillaSeleccionada: '',
@@ -535,6 +707,17 @@ export default {
       opcionesPreview: [],
       cargandoOpciones: false,
       campoActual: null,
+
+      // Variables para el modal de TABLA (NUEVO)
+      modalTablaVisible: false,
+      tablaPlantillaSeleccionada: '',
+      tablaSeccionesPlantilla: [],
+      tablaSeccionSeleccionada: '',
+      tablaCamposDisponibles: [],
+      tablaCamposSeleccionados: [],
+      tablaPreviewData: [],
+      cargandoOpcionesTabla: false,
+      campoTablaActual: null,
     }
   },
 
@@ -551,47 +734,35 @@ export default {
     configuracionValida() {
       return this.plantillaSeleccionada && this.seccionSeleccionada && this.campoMostrar
     },
+    configuracionTablaValida() {
+      return (
+        this.tablaPlantillaSeleccionada &&
+        this.tablaSeccionSeleccionada &&
+        this.tablaCamposSeleccionados.length > 0
+      )
+    },
   },
+
   components: {
     Subformulario,
   },
 
   watch: {
     seccionSeleccionada: 'onSeccionSeleccionada',
-    campoMostrar: 'cargarVistaPrevia',
+    tablaSeccionSeleccionada: 'onTablaSeccionSeleccionada',
   },
 
   methods: {
-    // Nuevo método para obtener nombre de plantilla por ID
     getNombrePlantillaDataSource(plantillaId) {
       if (!plantillaId) return 'Plantilla no especificada'
-
       const plantilla = this.plantillasDisponibles.find((p) => p.id === plantillaId)
       return plantilla
         ? plantilla.nombre_plantilla || plantilla.title
         : `Plantilla ID: ${plantillaId}`
     },
 
-    // Método alternativo si quieres cargar el nombre desde el servidor
-    async cargarNombrePlantilla(plantillaId) {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await api.get(`/plantillas/${plantillaId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        return (
-          response.data.nombre_plantilla || response.data.title || `Plantilla ID: ${plantillaId}`
-        )
-      } catch (error) {
-        console.error('Error al cargar nombre de plantilla:', error)
-        return `Plantilla ID: ${plantillaId}`
-      }
-    },
     agregarSeccion() {
-      // Conseguimos el numero de secciones que existan
       const index = this.secciones.length
-      
-      // 
       this.secciones.push({
         nombre: `Sección ${index + 1}`,
         fields: [{ name: '', type: 'string', required: false }],
@@ -632,16 +803,18 @@ export default {
       }
     },
 
- handleTypeChange(campo) {
-  if (campo.type === 'subform' && !campo.subcampos) {
-    campo.subcampos = []
-    this.agregarSubcampo(campo)
-  } else if ((campo.type === 'select' || campo.type === 'checkBox') && !campo.options) {
-    campo.options = []
-    campo.newOption = ''
-  }
-},
-
+    handleTypeChange(campo) {
+      if (campo.type === 'subform' && !campo.subcampos) {
+        campo.subcampos = []
+        this.agregarSubcampo(campo)
+      } else if ((campo.type === 'select' || campo.type === 'checkBox') && !campo.options) {
+        campo.options = []
+        campo.newOption = ''
+      } else if (campo.type === 'tabla' && !campo.tableConfig) {
+        // Inicializar configuración de tabla
+        campo.tableConfig = null
+      }
+    },
 
     agregarSubcampo(campo) {
       if (!campo.subcampos) {
@@ -650,7 +823,7 @@ export default {
       campo.subcampos.push({
         name: '',
         type: 'string',
-        required: false
+        required: false,
       })
     },
 
@@ -703,28 +876,31 @@ export default {
     },
 
     prepararDatosParaEnvio() {
-const limpiarCampo = (campo) => {
-  const campoLimpio = {
-    name: campo.name,
-    type: campo.type,
-    required: campo.required,
-  }
+      const limpiarCampo = (campo) => {
+        const campoLimpio = {
+          name: campo.name,
+          type: campo.type,
+          required: campo.required,
+        }
 
-  if (campo.type === 'select' && campo.dataSource) {
-    campoLimpio.dataSource = campo.dataSource
-  } else if ((campo.type === 'select' || campo.type === 'checkBox') && campo.options) {
-    campoLimpio.options = campo.options.filter(
-      (option) => option !== null && option !== undefined && option.trim() !== '',
-    )
-  }
+        if (campo.type === 'select' && campo.dataSource) {
+          campoLimpio.dataSource = campo.dataSource
+        } else if ((campo.type === 'select' || campo.type === 'checkBox') && campo.options) {
+          campoLimpio.options = campo.options.filter(
+            (option) => option !== null && option !== undefined && option.trim() !== '',
+          )
+        }
 
-  if (campo.type === 'subform' && campo.subcampos) {
-    campoLimpio.subcampos = campo.subcampos.map((subcampo) => limpiarCampo(subcampo))
-  }
+        if (campo.type === 'tabla' && campo.tableConfig) {
+          campoLimpio.tableConfig = campo.tableConfig
+        }
 
-  return campoLimpio
-}
+        if (campo.type === 'subform' && campo.subcampos) {
+          campoLimpio.subcampos = campo.subcampos.map((subcampo) => limpiarCampo(subcampo))
+        }
 
+        return campoLimpio
+      }
 
       return this.secciones
         .map((seccion) => {
@@ -770,28 +946,30 @@ const limpiarCampo = (campo) => {
           return
         }
 
-const camposInvalidos = this.secciones.some((seccion) =>
-  seccion.fields.some((campo) => {
-    if (campo.type === 'select' || campo.type === 'checkBox') {
-      return !campo.options || campo.options.length === 0
-    }
-    if (campo.type === 'subform' && campo.subcampos) {
-      return campo.subcampos.some(
-        (subcampo) =>
-          (subcampo.type === 'select' || subcampo.type === 'checkBox') &&
-          (!subcampo.options || subcampo.options.length === 0),
-      )
-    }
-    return false
-  }),
-)
+        const camposInvalidos = this.secciones.some((seccion) =>
+          seccion.fields.some((campo) => {
+            if (campo.type === 'select' || campo.type === 'checkBox') {
+              return !campo.dataSource && (!campo.options || campo.options.length === 0)
+            }
+            if (campo.type === 'tabla') {
+              return !campo.tableConfig
+            }
+            if (campo.type === 'subform' && campo.subcampos) {
+              return campo.subcampos.some(
+                (subcampo) =>
+                  (subcampo.type === 'select' || subcampo.type === 'checkBox') &&
+                  (!subcampo.options || subcampo.options.length === 0),
+              )
+            }
+            return false
+          }),
+        )
 
-
-        if (camposInvalidos && this.mostrarOpcionesManuales) {
+        if (camposInvalidos) {
           Swal.fire({
             icon: 'warning',
             title: 'Campos incompletos',
-            text: 'Los campos de tipo "Lista de Selección" deben tener al menos una opción',
+            text: 'Los campos de tipo "Lista de Selección" y "Tabla" deben estar configurados correctamente',
             confirmButtonColor: '#f39c12',
           })
           return
@@ -830,7 +1008,7 @@ const camposInvalidos = this.secciones.some((seccion) =>
       }
     },
 
-    // MODAL METHODS - Now properly inside the methods object
+    // ========== MÉTODOS PARA SELECT DINÁMICO ==========
     async abrirModalPlantilla(campo) {
       this.campoActual = campo
       this.modalPlantillaVisible = true
@@ -872,10 +1050,9 @@ const camposInvalidos = this.secciones.some((seccion) =>
 
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await api.get(
-          `/plantillas/${this.plantillaSeleccionada}/secciones`,
-          { headers: { Authorization: `Bearer ${token}` } },
-        )
+        const response = await api.get(`/plantillas/${this.plantillaSeleccionada}/secciones`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
 
         this.seccionesPlantilla = response.data?.secciones || []
         this.seccionSeleccionada = ''
@@ -891,41 +1068,8 @@ const camposInvalidos = this.secciones.some((seccion) =>
       if (!this.seccionSeleccionada) return
 
       const seccion = this.seccionesPlantilla.find((s) => s.nombre === this.seccionSeleccionada)
-      if (seccion && seccion.fields) {
-        this.camposSeccion = seccion.fields
-        await this.cargarVistaPrevia()
-      }
     },
 
-    async cargarVistaPrevia() {
-      if (!this.plantillaSeleccionada || !this.seccionSeleccionada || !this.campoMostrar) return
-
-      this.cargandoOpciones = true
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await api.get(
-          `/plantillas/${this.plantillaSeleccionada}/datos`,
-          {
-            params: {
-              seccion: this.seccionSeleccionada,
-              campo: this.campoMostrar,
-            },
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        )
-
-        const valores = response.data || []
-        this.opcionesPreview = [...new Set(valores.map((item) => item[this.campoMostrar]))].slice(
-          0,
-          10,
-        )
-      } catch (error) {
-        console.error('Error al cargar vista previa:', error)
-        this.opcionesPreview = []
-      } finally {
-        this.cargandoOpciones = false
-      }
-    },
 
     aplicarConfiguracionPlantilla() {
       if (!this.configuracionValida) return
@@ -933,12 +1077,11 @@ const camposInvalidos = this.secciones.some((seccion) =>
       this.campoActual.options = []
       this.campoActual.dataSource = {
         plantillaId: this.plantillaSeleccionada,
-        plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada), // Agregado
+        plantillaNombre: this.getNombrePlantillaDataSource(this.plantillaSeleccionada),
         seccion: this.seccionSeleccionada,
         campoMostrar: this.campoMostrar,
       }
 
-      // Ocultar opciones manuales cuando se configura desde plantilla
       this.campoActual.mostrarOpcionesManuales = false
 
       this.cerrarModalPlantilla()
@@ -947,6 +1090,136 @@ const camposInvalidos = this.secciones.some((seccion) =>
         icon: 'success',
         title: 'Configuración aplicada',
         text: 'Las opciones se cargarán desde la plantilla seleccionada',
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    },
+
+    // ========== MÉTODOS PARA TABLA DINÁMICA (NUEVO) ==========
+    async abrirModalTabla(campo) {
+      this.campoTablaActual = campo
+      this.modalTablaVisible = true
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await api.get('/plantillas', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        this.plantillasDisponibles = response.data || []
+        
+        // Si ya tiene configuración previa, cargarla
+        if (campo.tableConfig) {
+          this.tablaPlantillaSeleccionada = campo.tableConfig.plantillaId
+          await this.cargarSeccionesTabla()
+          this.tablaSeccionSeleccionada = campo.tableConfig.seccion
+          await this.onTablaSeccionSeleccionada()
+          this.tablaCamposSeleccionados = [...campo.tableConfig.campos]
+          await this.actualizarVistaPreviewTabla()
+        }
+      } catch (error) {
+        console.error('Error al cargar plantillas:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar las plantillas disponibles',
+        })
+      }
+    },
+
+    cerrarModalTabla() {
+      this.modalTablaVisible = false
+      this.resetModalTabla()
+    },
+
+    resetModalTabla() {
+      this.tablaPlantillaSeleccionada = ''
+      this.tablaSeccionesPlantilla = []
+      this.tablaSeccionSeleccionada = ''
+      this.tablaCamposDisponibles = []
+      this.tablaCamposSeleccionados = []
+      this.tablaPreviewData = []
+      this.campoTablaActual = null
+    },
+
+    async cargarSeccionesTabla() {
+      if (!this.tablaPlantillaSeleccionada) return
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await api.get(`/plantillas/${this.tablaPlantillaSeleccionada}/secciones`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        this.tablaSeccionesPlantilla = response.data?.secciones || []
+        this.tablaSeccionSeleccionada = ''
+        this.tablaCamposDisponibles = []
+        this.tablaCamposSeleccionados = []
+        this.tablaPreviewData = []
+      } catch (error) {
+        console.error('Error al cargar secciones para tabla:', error)
+      }
+    },
+
+    async onTablaSeccionSeleccionada() {
+      if (!this.tablaSeccionSeleccionada) return
+
+      const seccion = this.tablaSeccionesPlantilla.find(
+        (s) => s.nombre === this.tablaSeccionSeleccionada,
+      )
+      if (seccion && seccion.fields) {
+        this.tablaCamposDisponibles = seccion.fields
+        this.tablaCamposSeleccionados = []
+        this.tablaPreviewData = []
+      }
+    },
+
+    async actualizarVistaPreviewTabla() {
+      if (
+        !this.tablaPlantillaSeleccionada ||
+        !this.tablaSeccionSeleccionada ||
+        this.tablaCamposSeleccionados.length === 0
+      ) {
+        this.tablaPreviewData = []
+        return
+      }
+
+      this.cargandoOpcionesTabla = true
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await api.get(`/plantillas/${this.tablaPlantillaSeleccionada}/datos`, {
+          params: {
+            seccion: this.tablaSeccionSeleccionada,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        // Limitar a las primeras 5 filas para preview
+        this.tablaPreviewData = (response.data || []).slice(0, 5)
+      } catch (error) {
+        console.error('Error al cargar datos de tabla:', error)
+        this.tablaPreviewData = []
+      } finally {
+        this.cargandoOpcionesTabla = false
+      }
+    },
+
+    aplicarConfiguracionTabla() {
+      if (!this.configuracionTablaValida) return
+
+      this.campoTablaActual.tableConfig = {
+        plantillaId: this.tablaPlantillaSeleccionada,
+        plantillaNombre: this.getNombrePlantillaDataSource(this.tablaPlantillaSeleccionada),
+        seccion: this.tablaSeccionSeleccionada,
+        campos: [...this.tablaCamposSeleccionados],
+      }
+
+      this.cerrarModalTabla()
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Configuración aplicada',
+        text: `Tabla configurada con ${this.tablaCamposSeleccionados.length} columnas`,
         timer: 2000,
         showConfirmButton: false,
       })
@@ -2074,5 +2347,59 @@ const camposInvalidos = this.secciones.some((seccion) =>
     margin-top: 1rem;
     padding-top: 1rem;
   }
+}
+/* Estilos para el modal de tabla */
+.campos-tabla-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #fafafa;
+}
+
+.campo-tabla-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.campo-tabla-item:hover {
+  border-color: #4285F4;
+  box-shadow: 0 2px 4px rgba(66, 133, 244, 0.1);
+}
+
+.table-responsive {
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f8f9fa;
+}
+
+.table th {
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+  font-size: 0.875rem;
+  vertical-align: middle;
 }
 </style>
