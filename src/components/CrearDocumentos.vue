@@ -1,5 +1,116 @@
 <template>
   <div class="container-fluid py-4">
+    <!-- Modal para seleccionar datos de tabla -->
+    <div v-if="modalTablaVisible" class="modal fade show" style="display: block">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content modern-modal">
+          <div class="medico-header modal-header-custom">
+            <div class="header-content">
+              <div class="header-icon">
+                <i class="fas fa-table"></i>
+              </div>
+              <div class="header-title-section">
+                <h3>Seleccionar datos para {{ tablaActual?.alias || tablaActual?.name }}</h3>
+                <p class="header-subtitle">
+                  Plantilla: {{ tablaActual?.tableConfig?.plantillaNombre }} - Sección:
+                  {{ tablaActual?.tableConfig?.seccion }}
+                </p>
+              </div>
+            </div>
+            <button type="button" @click="cerrarModalTabla" class="close-button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="medico-body modal-body-custom">
+            <div class="row">
+              <!-- Datos disponibles -->
+              <div class="col-md-6">
+                <h6>Datos disponibles:</h6>
+                <div class="table-responsive" style="max-height: 400px">
+                  <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Seleccionar</th>
+                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ columna }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(fila, index) in datosTablaDisponibles" :key="index">
+                        <td>
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-success"
+                            @click="seleccionarFilaTabla(fila)"
+                            :disabled="
+                              tablaSeleccionada.some(
+                                (f) => JSON.stringify(f) === JSON.stringify(fila),
+                              )
+                            "
+                          >
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </td>
+                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ obtenerValorCampo(fila, columna) || '-' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Datos seleccionados -->
+              <div class="col-md-6">
+                <h6>Datos seleccionados ({{ tablaSeleccionada.length }}):</h6>
+                <div class="table-responsive" style="max-height: 400px">
+                  <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Acción</th>
+                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ columna }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(fila, index) in tablaSeleccionada" :key="index">
+                        <td>
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-danger"
+                            @click="deseleccionarFilaTabla(index)"
+                          >
+                            <i class="fas fa-times"></i>
+                          </button>
+                        </td>
+                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ obtenerValorCampo(fila, columna) || '-' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="medico-footer">
+            <button type="button" class="btn btn-cancel" @click="cerrarModalTabla">
+              <i class="fas fa-times me-2"></i>
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-save" @click="guardarSeleccionTabla">
+              <i class="fas fa-check me-2"></i>
+              Guardar selección
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Contenedor principal-->
     <div class="card shadow border-0 rounded-3">
       <!-- Header con el diseño moderno -->
@@ -91,39 +202,100 @@
                     </h6>
 
                     <!-- Campo de tipo subform -->
-                    <!-- En la sección donde renderizas los campos -->
-<div v-if="campo.type === 'subform'">
-  <SubFormularioDocumento
-    :campo="campo"
-    :valor="subformData[campo.name] || []"
-    @actualizar="actualizarSubformulario(campo.name, $event)"
-  />
-</div>
+                    <div v-if="campo.type === 'subform'">
+                      <SubFormularioDocumento
+                        :campo="campo"
+                        :valor="subformData[campo.name] || []"
+                        @actualizar="actualizarSubformulario(campo.name, $event)"
+                      />
+                    </div>
 
+                    <!-- Campo de tipo tabla -->
+                    <div v-else-if="campo.type === 'tabla'" class="mt-2">
+                      <div class="tabla-dinamica-container">
+                        <label class="form-label d-block mb-3">
+                          <i class="fas fa-table me-2"></i>
+                          {{ campo.alias || campo.name }}
+                          <span v-if="campo.required" class="text-danger">*</span>
+                        </label>
 
-<!-- Campo de tipo opción múltiple (checkboxes) -->
-<div v-else-if="campo.type === 'checkBox'" class="mt-2" >
-  <label class="form-label d-block mb-1">
-    <i class="fas fa-check-square me-1"></i>
-    {{ campo.label || 'Seleccione opciones' }}
-  </label>
-  <div class="form-check" v-for="(option, index) in campo.options" :key="index" style="padding-left: 4  rem;">
-    <input
-      class="form-check-input"
-      type="checkbox"
-      :id="campo.name + '_' + index"
-      :value="getSaveValue(option, campo)"
-      v-model="documentData[campo.name]"
-    />
-    <label class="form-check-label" :for="campo.name + '_' + index">
-      {{ getDisplayValue(option, campo) }}
-    </label>
-  </div>
-</div>
+                        <!-- Botón para abrir modal de selección de datos -->
+                        <button
+                          type="button"
+                          class="btn btn-outline-primary mb-3"
+                          @click="abrirModalTabla(campo)"
+                        >
+                          <i class="fas fa-plus me-2"></i>
+                          Seleccionar datos para la tabla
+                        </button>
 
+                        <!-- Vista previa de la tabla seleccionada -->
+                        <div
+                          v-if="tablaData[campo.name] && tablaData[campo.name].length > 0"
+                          class="table-responsive"
+                        >
+                          <table class="table table-bordered table-sm">
+                            <thead class="table-light">
+                              <tr>
+                                <th v-for="columna in campo.tableConfig.campos" :key="columna">
+                                  {{ columna }}
+                                </th>
+                                <th class="text-center">Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr v-for="(fila, index) in tablaData[campo.name]" :key="index">
+                                <td v-for="columna in campo.tableConfig.campos" :key="columna">
+                                  {{ obtenerValorCampo(fila, columna) || '-' }}
+                                </td>
+                                <td class="text-center">
+                                  <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    @click="eliminarFilaTabla(campo.name, index)"
+                                  >
+                                    <i class="fas fa-trash"></i>
+                                  </button>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <small class="text-muted">
+                            {{ tablaData[campo.name].length }} fila(s) seleccionada(s)
+                          </small>
+                        </div>
 
+                        <div v-else class="alert alert-info">
+                          <i class="fas fa-info-circle me-2"></i>
+                          No se han seleccionado datos para esta tabla
+                        </div>
+                      </div>
+                    </div>
 
-
+                    <!-- Campo de tipo opción múltiple (checkboxes) -->
+                    <div v-else-if="campo.type === 'checkBox'" class="mt-2">
+                      <label class="form-label d-block mb-1">
+                        <i class="fas fa-check-square me-1"></i>
+                        {{ campo.label || 'Seleccione opciones' }}
+                      </label>
+                      <div
+                        class="form-check"
+                        v-for="(option, index) in campo.options"
+                        :key="index"
+                        style="padding-left: 4 rem"
+                      >
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          :id="campo.name + '_' + index"
+                          :value="getSaveValue(option, campo)"
+                          v-model="documentData[campo.name]"
+                        />
+                        <label class="form-check-label" :for="campo.name + '_' + index">
+                          {{ getDisplayValue(option, campo) }}
+                        </label>
+                      </div>
+                    </div>
 
                     <!-- Campo de tipo select -->
                     <div v-else-if="campo.type === 'select'" class="mt-2">
@@ -169,10 +341,6 @@
                         </small>
                       </div>
                     </div>
-
-
-
-
 
                     <!-- Campo de archivos -->
                     <div v-else-if="campo.type === 'file'" class="mt-2">
@@ -329,12 +497,111 @@ export default {
       currentSubformField: null,
       currentSubformData: {},
       editingIndex: -1,
+
+      // Variables para tablas dinámicas
+      tablaData: {}, // Datos de las tablas dinámicas
+      modalTablaVisible: false,
+      tablaActual: null,
+      datosTablaDisponibles: [],
+      tablaSeleccionada: [],
     }
   },
   methods: {
     actualizarSubformulario(nombreCampo, nuevoValor) {
-  this.subformData[nombreCampo] = nuevoValor;
-},
+      this.subformData[nombreCampo] = nuevoValor
+    },
+
+    // Métodos para tablas dinámicas - CORREGIDOS
+    async abrirModalTabla(campo) {
+      this.tablaActual = campo
+      this.modalTablaVisible = true
+      this.tablaSeleccionada = [...(this.tablaData[campo.name] || [])]
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        // Usar la misma lógica que el select dinámico
+        const response = await api.get(`/plantillas/${campo.tableConfig.plantillaId}/secciones`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        // Buscar la sección específica
+        const seccion = response.data?.secciones?.find(
+          (s) => s.nombre === campo.tableConfig.seccion,
+        )
+        if (seccion && seccion.fields) {
+          // Obtener datos de documentos existentes para esta plantilla y sección
+          const documentosResponse = await api.get(`/documentos/${campo.tableConfig.plantillaId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+
+          // Procesar los datos para mostrar solo las columnas configuradas
+          this.datosTablaDisponibles = this.procesarDatosParaTabla(
+            documentosResponse.data,
+            seccion,
+            campo.tableConfig.campos,
+          )
+        }
+      } catch (error) {
+        console.error('Error al cargar datos de tabla:', error)
+        this.showError('No se pudieron cargar los datos para la tabla')
+      }
+    },
+
+    procesarDatosParaTabla(documentos, seccion, camposConfigurados) {
+      const datosProcesados = []
+
+      documentos.forEach((documento) => {
+        const seccionDoc = documento.secciones?.find((s) => s.nombre === seccion.nombre)
+        if (seccionDoc) {
+          const fila = {
+            _documentId: documento._id || documento.id,
+          }
+          camposConfigurados.forEach((campoNombre) => {
+            const campo = seccionDoc.fields?.[campoNombre]
+            fila[campoNombre] = campo || '-'
+          })
+          datosProcesados.push(fila)
+        }
+      })
+
+      return datosProcesados
+    },
+
+    obtenerValorCampo(fila, nombreCampo) {
+      return fila[nombreCampo] || '-'
+    },
+
+    cerrarModalTabla() {
+      this.modalTablaVisible = false
+      this.tablaActual = null
+      this.datosTablaDisponibles = []
+      this.tablaSeleccionada = []
+    },
+
+    seleccionarFilaTabla(fila) {
+      const existe = this.tablaSeleccionada.some((f) => JSON.stringify(f) === JSON.stringify(fila))
+      if (!existe) {
+        this.tablaSeleccionada.push({ ...fila })
+      }
+    },
+
+    deseleccionarFilaTabla(index) {
+      this.tablaSeleccionada.splice(index, 1)
+    },
+
+    guardarSeleccionTabla() {
+      if (this.tablaActual) {
+        this.tablaData[this.tablaActual.name] = [...this.tablaSeleccionada]
+        this.cerrarModalTabla()
+      }
+    },
+
+    eliminarFilaTabla(nombreCampo, index) {
+      if (this.tablaData[nombreCampo]) {
+        this.tablaData[nombreCampo].splice(index, 1)
+      }
+    },
+
     /**
      * Determina si un campo select es manual o dinámico
      * @param {Object} campo - El campo a evaluar
@@ -396,10 +663,7 @@ export default {
     validateDynamicSelect(campo) {
       if (!this.isManualSelect(campo) && campo.dataSource) {
         // Validaciones adicionales para selects dinámicos
-        if (
-          !campo.dataSource.plantillaId ||
-          !campo.dataSource.campoMostrar
-        ) {
+        if (!campo.dataSource.plantillaId || !campo.dataSource.campoMostrar) {
           console.warn(`Select dinámico mal configurado: ${campo.name}`, campo.dataSource)
           return false
         }
@@ -426,14 +690,11 @@ export default {
         try {
           const token = localStorage.getItem('apiToken')
           // Cambiamos la ruta para obtener las secciones con campos
-          const response = await api.get(
-            `/plantillas/${this.selectedPlantilla}/secciones`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+          const response = await api.get(`/plantillas/${this.selectedPlantilla}/secciones`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
-          )
+          })
 
           if (response.data && Array.isArray(response.data.secciones)) {
             // Guardar las secciones con sus campos
@@ -449,11 +710,14 @@ export default {
               fields: seccion.fields || [],
             }))
 
-            // Inicializar subformularios
+            // Inicializar subformularios y tablas
             this.camposPlantilla.forEach((campo) => {
               if (campo.type === 'subform') {
                 this.subformData[campo.name] = []
                 this.subformFiles[campo.name] = []
+              }
+              if (campo.type === 'tabla') {
+                this.tablaData[campo.name] = []
               }
             })
 
@@ -667,6 +931,9 @@ export default {
           if (campo.type === 'file') {
             return !this.files[campo.name] || this.files[campo.name].length === 0
           }
+          if (campo.type === 'tabla') {
+            return !this.tablaData[campo.name] || this.tablaData[campo.name].length === 0
+          }
           return !this.documentData[campo.name]
         }
         return false
@@ -684,87 +951,95 @@ export default {
         return
       }
 
-      const formData = new FormData();
-  
-  // Construir estructura por secciones con soporte para subformularios anidados
-  const seccionesData = [];
-  
-  this.seccionesPlantilla.forEach((seccion) => {
-    const camposDeSeccion = seccion.fields || [];
-    const fields = {};
-    
-    camposDeSeccion.forEach((campo) => {
-      if (campo.type === 'subform') {
-        // Para subformularios, usar la estructura anidada
-        fields[campo.name] = this.subformData[campo.name] || [];
-      } else if (campo.type === 'file') {
-        // Para archivos, el manejo sigue igual
-        fields[campo.name] = null;
-      } else {
-        fields[campo.name] = this.documentData[campo.name] || '';
+      const formData = new FormData()
+
+      // Construir estructura por secciones con soporte para subformularios y tablas anidados
+      const seccionesData = []
+
+      this.seccionesPlantilla.forEach((seccion) => {
+        const camposDeSeccion = seccion.fields || []
+        const fields = {}
+
+        camposDeSeccion.forEach((campo) => {
+          if (campo.type === 'subform') {
+            // Para subformularios, usar la estructura anidada
+            fields[campo.name] = this.subformData[campo.name] || []
+          } else if (campo.type === 'tabla') {
+            // Para tablas, enviar solo los IDs de los documentos seleccionados
+            const tablaIds = (this.tablaData[campo.name] || [])
+              .map((fila) => fila._documentId)
+              .filter((id) => id)
+            fields[campo.name] = tablaIds
+          } else if (campo.type === 'file') {
+            // Para archivos, el manejo sigue igual
+            fields[campo.name] = null
+          } else {
+            fields[campo.name] = this.documentData[campo.name] || ''
+          }
+        })
+
+        seccionesData.push({
+          nombre: seccion.nombre,
+          fields,
+        })
+      })
+
+      // Adjuntar la estructura final al formData
+      formData.append('document_data[secciones]', JSON.stringify(seccionesData))
+
+      // Adjuntar archivos
+      for (const fieldName in this.files) {
+        this.files[fieldName].forEach((file, index) => {
+          formData.append(`archivos[${fieldName}][${index}]`, file)
+        })
       }
-    });
-    
-    seccionesData.push({
-      nombre: seccion.nombre,
-      fields,
-    });
-  });
-  
-  // Adjuntar la estructura final al formData
-  formData.append('document_data[secciones]', JSON.stringify(seccionesData));
-  
-  // Adjuntar archivos
-  for (const fieldName in this.files) {
-    this.files[fieldName].forEach((file, index) => {
-      formData.append(`archivos[${fieldName}][${index}]`, file);
-    });
-  }
-  
-  // Enviar solicitud
-  try {
-    const token = localStorage.getItem('apiToken');
-    const response = await api.post(
-      `/documentos/${this.selectedPlantilla}`,
-      formData,
-      {
-        headers: { 
-          'Content-Type': 'multipart/form-data', 
-          Authorization: `Bearer ${token}` 
-        },
+
+      // Enviar solicitud
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await api.post(`/documentos/${this.selectedPlantilla}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        Swal.fire({
+          title: 'Éxito',
+          text: 'Documento creado correctamente',
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+        })
+        this.resetForm()
+      } catch (error) {
+        console.error('Error al crear documento:', error)
+        this.showError(
+          'Error al crear el documento: ' +
+            (error.response?.data?.message || error.message || 'Error desconocido'),
+        )
       }
-    );
-    
-    Swal.fire({
-      title: 'Éxito',
-      text: 'Documento creado correctamente',
-      icon: 'success',
-      confirmButtonText: 'Aceptar',
-    });
-    this.resetForm();
-  } catch (error) {
-    console.error('Error al crear documento:', error);
-    this.showError(
-      'Error al crear el documento: ' +
-        (error.response?.data?.message || error.message || 'Error desconocido')
-    );
-  }
-},
+    },
 
     resetForm() {
       this.documentData = {}
       this.files = {}
+      this.tablaData = {}
+      this.subformData = {}
+      this.subformFiles = {}
 
       this.camposPlantilla.forEach((campo) => {
         if (campo.type === 'select') {
           this.documentData[campo.name] = ''
         }
-         if (campo.type === 'checkBox') {
-      this.documentData[campo.name] = [] // inicializa como array
-    }
+        if (campo.type === 'checkBox') {
+          this.documentData[campo.name] = [] // inicializa como array
+        }
         if (campo.type === 'subform') {
           this.subformData[campo.name] = []
           this.subformFiles[campo.name] = []
+        }
+        if (campo.type === 'tabla') {
+          this.tablaData[campo.name] = []
         }
       })
 
@@ -1274,6 +1549,35 @@ export default {
   background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* Estilos para tablas dinámicas */
+.tabla-dinamica-container {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: #f8f9fa;
+}
+
+.table-responsive {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  font-weight: 600;
+  color: #495057;
+}
+
+.table td {
+  vertical-align: middle;
+  border-color: #dee2e6;
 }
 
 /* Animaciones */
