@@ -150,7 +150,7 @@
         class="btn-remove-periodo"
         aria-label="Eliminar periodo"
       >
-        <i class="fas fa-times"></i>
+        <i class="fas fa-trash-alt"></i>
       </button>
     </div>
 
@@ -175,22 +175,7 @@
               Configuración de la estadística de la gráfica
             </h6>
             <div>
-                            <div class="col-md-12">
-                <label class="form-label">Nombre de la serie*</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-user"></i>
-                  </span>
-                  <input
-                    v-solo-texto
-                    v-model="nombreSerieTemporal"
-                    type="text"
-                    class="form-control"
-                    required
-                    placeholder="Ingrese el nombre de la serie"
-                  />
-                </div>
-              </div>
+                          
                     <button
         type="button"
         @click="abrirModalIndicadores"
@@ -199,9 +184,7 @@
         <i class="fas fa-plus"></i>
         <span>Agregar Serie</span>
       </button>
-<ConfigurarIndicador v-if="mostrarModal" :noRedirigir="true" @cerrar="mostrarModal = false" @configuracion-lista="manejarConfiguracionRecibida" />
-
-
+<ConfigurarIndicador v-if="mostrarModal" :noRedirigir="true"  :modoEstadisticas="true"  @cerrar="mostrarModal = false" @configuracion-lista="manejarConfiguracionRecibida" />
 
             </div>
           </div>
@@ -249,7 +232,6 @@ export default {
       descripcion: '',
       tipoGrafica: '',
       color: '',
-      nombreSerieTemporal: '',
       periodos: [{ inicio: null, fin: null }],
       series: [],
       mostrarModal: false,
@@ -285,19 +267,20 @@ export default {
   return `${day}-${month}-${year}`;
 },
 
-    manejarConfiguracionRecibida(configuracion) {
-      if (!this.nombreSerieTemporal.trim()) {
-        Swal.fire('Error', 'Debe ingresar un nombre para la serie', 'error')
-        return
-      }
+    manejarConfiguracionRecibida(data) {
+  // El modal ahora envía un OBJETO con { nombre, configuracion }
+  if (!data || !data.nombre || !data.configuracion) {
+    Swal.fire('Error', 'Datos incompletos desde el modal', 'error');
+    return;
+  }
 
-      this.series.push({
-        name: this.nombreSerieTemporal.trim(),
-        configuracion
-      })
+  this.series.push({
+    name: data.nombre,
+    configuracion: data.configuracion
+  });
 
-      this.mostrarModal = false
-    },
+  this.mostrarModal = false;
+},
 
     resetForm() {
       this.titulo = ''
@@ -306,7 +289,6 @@ export default {
       this.color = ''
       this.series = []
       this.periodos = [{ inicio: null, fin: null }]
-      this.nombreSerieTemporal = ''
     },
 
     generarLabelRango(inicio, fin) {

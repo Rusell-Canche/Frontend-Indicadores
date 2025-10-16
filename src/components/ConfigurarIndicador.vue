@@ -8,8 +8,12 @@
             <i class="fas fa-cog"></i>
           </div>
           <div class="modal-title-section">
-            <h3>Configurar Indicador</h3>
-            <p class="modal-subtitle">Ajusta los parámetros y configuraciones del indicador</p>
+            <h3>{{ modoEstadisticas ? 'Configurar Gráfica' : 'Configurar Indicador' }}</h3>
+            <p class="modal-subtitle">
+              {{ modoEstadisticas 
+                ? 'Ajusta los parámetros y configuración para la gráfica' 
+                : 'Ajusta los parámetros y configuraciones del indicador' }}
+            </p>
           </div>
         </div>
         <button @click="cerrarModal" class="medico-close-button">
@@ -19,6 +23,31 @@
 
       <!-- Body del modal -->
       <div class="medico-modal-body">
+
+                <!-- ✅ NUEVO: Campo de nombre de la serie (solo en modo estadísticas) -->
+        <div v-if="modoEstadisticas" class="form-section">
+          <h6 class="section-title">
+            <i class="fas fa-user me-2"></i>
+            Nombre de la serie
+          </h6>
+          <div class="col-md-12">
+            <div class="input-group modern-input">
+              <span class="input-group-text">
+                <i class="fas fa-tag"></i>
+              </span>
+              <input
+                v-solo-texto
+                v-model="nombreSerie"
+                type="text"
+                class="form-control"
+                placeholder="Ingrese el nombre de la serie"
+                required
+              />
+            </div>
+
+          </div>
+        </div>
+
         <!-- Control de nivel de subformulario -->
         <div class="form-section nivel-control">
           <h6 class="section-title">
@@ -468,6 +497,7 @@ export default {
           campoSeleccionado: '',
           condiciones: [],
           subConfiguracion: null, // Soporte recursivo
+           nombreSerie: '', // ✅ Nuevo campo para el nombre de la serie
         },
       },
     }
@@ -876,9 +906,21 @@ export default {
 
         // ✅ NUEVO: Si estamos en modo estadísticas (noRedirigir = true)
 if (this.noRedirigir) {
-  // Solo emitimos la configuración al padre
-  this.$emit('configuracion-lista', configuracion);
-  this.cerrarModal(); // cierra el modal normalmente
+  if (this.modoEstadisticas) {
+    // ✅ Validar nombre de la serie
+    if (!this.nombreSerie.trim()) {
+      this.mostrarNotificacion('Error', 'El nombre de la serie es obligatorio', 'error');
+      return;
+    }
+    // Emitir objeto con nombre y configuración
+    this.$emit('configuracion-lista', {
+      nombre: this.nombreSerie.trim(),
+      configuracion: configuracion
+    });
+  } else {
+    this.$emit('configuracion-lista', configuracion);
+  }
+  this.cerrarModal();
   return;
 }
 // ✅ A PARTIR DE AQUÍ: solo se ejecuta si NO es modo estadísticas → necesita indicador
