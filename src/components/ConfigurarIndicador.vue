@@ -382,7 +382,7 @@
               </table>
             </div>
 
-            <button @click="agregarCondicion" class="btn btn-sm btn-primary mt-2">
+            <button @click="agregarCondicion" type="button" class="btn btn-sm btn-primary mt-2">
               <i class="fas fa-plus me-1"></i> Agregar Condición Principal
             </button>
           </div>
@@ -839,6 +839,7 @@ export default {
     },
 
     agregarCondicion() {
+      console.log('Agregar condición principal')
       this.parametrosForm.condiciones.push({
         campo: this.camposFiltrables[0]?.name || '',
         operador: 'igual',

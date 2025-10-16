@@ -153,7 +153,7 @@
         </table>
       </div>
 
-      <button @click="agregarCondicion" class="btn btn-sm btn-primary mt-2">
+      <button @click="agregarCondicion" type="button" class="btn btn-sm btn-primary mt-2">
         <i class="fas fa-plus me-1"></i> Agregar Condición Nivel {{ nivel }}
       </button>
     </div>
