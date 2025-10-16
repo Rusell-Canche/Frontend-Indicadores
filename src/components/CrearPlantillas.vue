@@ -749,6 +749,7 @@ export default {
 
   watch: {
     seccionSeleccionada: 'onSeccionSeleccionada',
+    campoMostrar: 'cargarVistaPrevia',
     tablaSeccionSeleccionada: 'onTablaSeccionSeleccionada',
   },
 
@@ -1068,8 +1069,38 @@ export default {
       if (!this.seccionSeleccionada) return
 
       const seccion = this.seccionesPlantilla.find((s) => s.nombre === this.seccionSeleccionada)
+      if (seccion && seccion.fields) {
+        this.camposSeccion = seccion.fields
+        await this.cargarVistaPrevia()
+      }
     },
 
+    async cargarVistaPrevia() {
+      if (!this.plantillaSeleccionada || !this.seccionSeleccionada || !this.campoMostrar) return
+
+      this.cargandoOpciones = true
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await api.get(`/plantillas/${this.plantillaSeleccionada}/datos`, {
+          params: {
+            seccion: this.seccionSeleccionada,
+            campo: this.campoMostrar,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        const valores = response.data || []
+        this.opcionesPreview = [...new Set(valores.map((item) => item[this.campoMostrar]))].slice(
+          0,
+          10,
+        )
+      } catch (error) {
+        console.error('Error al cargar vista previa:', error)
+        this.opcionesPreview = []
+      } finally {
+        this.cargandoOpciones = false
+      }
+    },
 
     aplicarConfiguracionPlantilla() {
       if (!this.configuracionValida) return
