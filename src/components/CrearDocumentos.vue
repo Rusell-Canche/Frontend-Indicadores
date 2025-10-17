@@ -23,13 +23,78 @@
           </div>
 
           <div class="medico-body modal-body-custom">
+            <!-- Barra de búsqueda y controles -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                  </span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="busquedaTabla"
+                    placeholder="Buscar en los datos disponibles..."
+                    @keyup.enter="paginaActual = 1"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6 d-flex justify-content-between align-items-center">
+                <div class="form-text">
+                  Mostrando {{ datosPaginados.length }} de {{ datosFiltrados.length }} registros
+                  (Total: {{ datosTablaDisponibles.length }})
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <label class="form-label mb-0 me-2">Mostrar:</label>
+                  <select v-model="elementosPorPagina" class="form-select form-select-sm" style="width: auto;">
+                    <option value="5">5</option>
+                  </select>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="paginaActual = 1"
+                    :disabled="paginaActual === 1"
+                  >
+                    <i class="fas fa-angle-double-left"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="paginaActual--"
+                    :disabled="paginaActual === 1"
+                  >
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <span class="mx-2 align-self-center">
+                    Página {{ paginaActual }} de {{ totalPaginas }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="paginaActual++"
+                    :disabled="paginaActual >= totalPaginas"
+                  >
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="paginaActual = totalPaginas"
+                    :disabled="paginaActual >= totalPaginas"
+                  >
+                    <i class="fas fa-angle-double-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div class="row">
               <!-- Datos disponibles -->
               <div class="col-md-6">
-                <h6>Datos disponibles:</h6>
+                <h6>Datos disponibles ({{ datosFiltrados.length }}):</h6>
                 <div class="table-responsive" style="max-height: 400px">
-                  <table class="table table-bordered table-sm">
-                    <thead class="table-light">
+                  <table class="table table-bordered table-sm table-hover">
+                    <thead class="table-light sticky-top">
                       <tr>
                         <th>Seleccionar</th>
                         <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
@@ -38,17 +103,14 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(fila, index) in datosTablaDisponibles" :key="index">
+                      <tr v-for="(fila, index) in datosPaginados" :key="index">
                         <td>
                           <button
                             type="button"
                             class="btn btn-sm btn-success"
                             @click="seleccionarFilaTabla(fila)"
-                            :disabled="
-                              tablaSeleccionada.some(
-                                (f) => JSON.stringify(f) === JSON.stringify(fila),
-                              )
-                            "
+                            :disabled="tablaSeleccionada.some(f => f._documentId === fila._documentId)"
+                            :title="tablaSeleccionada.some(f => f._documentId === fila._documentId) ? 'Ya seleccionado' : 'Seleccionar'"
                           >
                             <i class="fas fa-plus"></i>
                           </button>
@@ -60,14 +122,28 @@
                     </tbody>
                   </table>
                 </div>
+                <div v-if="datosPaginados.length === 0" class="text-center py-3 text-muted">
+                  <i class="fas fa-inbox fa-2x mb-2"></i>
+                  <p>No se encontraron registros</p>
+                </div>
               </div>
 
               <!-- Datos seleccionados -->
               <div class="col-md-6">
-                <h6>Datos seleccionados ({{ tablaSeleccionada.length }}):</h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Datos seleccionados ({{ tablaSeleccionada.length }}):</h6>
+                  <button
+                    v-if="tablaSeleccionada.length > 0"
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    @click="tablaSeleccionada = []"
+                  >
+                    <i class="fas fa-trash me-1"></i> Limpiar todo
+                  </button>
+                </div>
                 <div class="table-responsive" style="max-height: 400px">
-                  <table class="table table-bordered table-sm">
-                    <thead class="table-light">
+                  <table class="table table-bordered table-sm table-hover">
+                    <thead class="table-light sticky-top">
                       <tr>
                         <th>Acción</th>
                         <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
@@ -82,6 +158,7 @@
                             type="button"
                             class="btn btn-sm btn-danger"
                             @click="deseleccionarFilaTabla(index)"
+                            title="Quitar selección"
                           >
                             <i class="fas fa-times"></i>
                           </button>
@@ -92,6 +169,10 @@
                       </tr>
                     </tbody>
                   </table>
+                </div>
+                <div v-if="tablaSeleccionada.length === 0" class="text-center py-3 text-muted">
+                  <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                  <p>No hay registros seleccionados</p>
                 </div>
               </div>
             </div>
@@ -104,7 +185,7 @@
             </button>
             <button type="button" class="btn btn-save" @click="guardarSeleccionTabla">
               <i class="fas fa-check me-2"></i>
-              Guardar selección
+              Guardar selección ({{ tablaSeleccionada.length }})
             </button>
           </div>
         </div>
@@ -310,7 +391,7 @@
                           :required="campo.required"
                         >
                           <option value="" disabled selected>Seleccione una opción</option>
-                          <!-- Select Manual (array de strings) -->
+                          <!-- Select Manual (array of strings) -->
                           <template v-if="isManualSelect(campo)">
                             <option
                               v-for="(option, index) in campo.options"
@@ -504,6 +585,38 @@ export default {
       tablaActual: null,
       datosTablaDisponibles: [],
       tablaSeleccionada: [],
+      // Nuevas propiedades para paginación y búsqueda
+      busquedaTabla: '',
+      paginaActual: 1,
+      elementosPorPagina: 5,
+    }
+  },
+  computed: {
+    // Filtra los datos según la búsqueda
+    datosFiltrados() {
+      if (!this.busquedaTabla) {
+        return this.datosTablaDisponibles
+      }
+      
+      const busqueda = this.busquedaTabla.toLowerCase()
+      return this.datosTablaDisponibles.filter(fila => {
+        return this.tablaActual.tableConfig.campos.some(columna => {
+          const valor = this.obtenerValorCampo(fila, columna)?.toString().toLowerCase() || ''
+          return valor.includes(busqueda)
+        })
+      })
+    },
+
+    // Pagina los datos filtrados
+    datosPaginados() {
+      const start = (this.paginaActual - 1) * this.elementosPorPagina
+      const end = start + this.elementosPorPagina
+      return this.datosFiltrados.slice(start, end)
+    },
+
+    // Calcula el total de páginas
+    totalPaginas() {
+      return Math.ceil(this.datosFiltrados.length / this.elementosPorPagina)
     }
   },
   methods: {
@@ -515,6 +628,8 @@ export default {
     async abrirModalTabla(campo) {
       this.tablaActual = campo
       this.modalTablaVisible = true
+      this.busquedaTabla = '' // Resetear búsqueda
+      this.paginaActual = 1   // Resetear a primera página
       this.tablaSeleccionada = [...(this.tablaData[campo.name] || [])]
 
       try {
@@ -576,10 +691,12 @@ export default {
       this.tablaActual = null
       this.datosTablaDisponibles = []
       this.tablaSeleccionada = []
+      this.busquedaTabla = ''
+      this.paginaActual = 1
     },
 
     seleccionarFilaTabla(fila) {
-      const existe = this.tablaSeleccionada.some((f) => JSON.stringify(f) === JSON.stringify(fila))
+      const existe = this.tablaSeleccionada.some((f) => f._documentId === fila._documentId)
       if (!existe) {
         this.tablaSeleccionada.push({ ...fila })
       }
@@ -1756,6 +1873,58 @@ export default {
 
   .modal-body-custom {
     padding: 1rem;
+  }
+}
+
+/* Estilos para la tabla con paginación y búsqueda */
+.sticky-top {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.075);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Mejoras para la paginación */
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .modal-dialog.modal-xl {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+  
+  .medico-body.modal-body-custom {
+    padding: 1rem;
+  }
+  
+  .table-responsive {
+    font-size: 0.8rem;
+  }
+  
+  .pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
 </style>
