@@ -256,6 +256,9 @@
       >
         <i class="fas fa-trash-alt"></i>
       </button>
+      
+
+      
     </div>
 
     <div class="text-center mt-3">
@@ -322,19 +325,29 @@
         }}
       </template>
     </Column>
-
-    <Column header="Acciones" style="width: 10%; text-align: center">
-      <template #body="slotProps">
-        <Button
-          icon="fas fa-trash"
-          @click="eliminarSerie(slotProps.index)"
-          text
-          severity="danger"
-          size="small"
-          v-tooltip="'Eliminar serie'"
-        />
-      </template>
-    </Column>
+<Column header="Acciones" style="width: 15%; text-align: center">
+  <template #body="slotProps">
+    <!-- Botón Editar -->
+    <Button
+      icon="fas fa-edit"
+      @click="editarSerie(slotProps.index)"
+      text
+      severity="info"
+      size="small"
+      v-tooltip="'Editar serie'"
+      class="me-2"
+    />
+    <!-- Botón Eliminar -->
+    <Button
+      icon="fas fa-trash"
+      @click="eliminarSerie(slotProps.index)"
+      text
+      severity="danger"
+      size="small"
+      v-tooltip="'Eliminar serie'"
+    />
+  </template>
+</Column>
   </DataTable>
 </div>
 <!-- Botón para agregar serie -->
@@ -346,7 +359,13 @@
   <i class="fas fa-plus"></i>
   <span>Agregar Serie</span>
 </button>
-<ConfigurarIndicador v-if="mostrarModal" :noRedirigir="true"  :modoEstadisticas="true"  @cerrar="mostrarModal = false" @configuracion-lista="manejarConfiguracionRecibida" />
+<ConfigurarIndicador 
+v-if="mostrarModal" 
+:noRedirigir="true"
+:modoEstadisticas="true"  
+:configuracion-edicion="serieEnEdicion"  
+@cerrar="mostrarModal = false; serieEnEdicion = null" 
+@configuracion-lista="manejarConfiguracionRecibida" />
 
             </div>
           </div>
@@ -413,13 +432,15 @@ export default {
       color: '',
       tipoGlobal: 'libre', // nuevo
       tipoGlobalAnterior: 'libre',
+      serieEnEdicion: null, // 👈 nueva propiedad para guardar la serie que se está editando
       SEMESTRES, // para usar en el template
       periodos: [
   {
     valor: null,   // Date para 'mes' o 'ciclo', string para 'semestre'
     inicio: null,
     fin: null,
-  }
+  },
+  
 ],
       series: [],
       mostrarModal: false,
@@ -464,7 +485,6 @@ export default {
       periodo.fin = new Date(finStr);
     }
   },
-
   cambiarTipoGlobal() {
   // Verificar si hay algún periodo con datos
   const tieneDatos = this.periodos.some(p => {
@@ -521,6 +541,10 @@ limpiarPeriodos() {
   eliminarSerie(index) {
     this.series.splice(index, 1);
   },
+  editarSerie(index) {
+ this.serieEnEdicion = { ...this.series[index] }; // Hacemos una copia
+  this.mostrarModal = true;
+},
 
     eliminarPeriodo(index) {
       if (this.periodos.length <= 1) {
@@ -542,19 +566,38 @@ limpiarPeriodos() {
   return `${day}-${month}-${year}`;
 },
 
-    manejarConfiguracionRecibida(data) {
-  // El modal ahora envía un OBJETO con { nombre, configuracion }
+ manejarConfiguracionRecibida(data) {
   if (!data || !data.nombre || !data.configuracion) {
     Swal.fire('Error', 'Datos incompletos desde el modal', 'error');
     return;
   }
 
-  this.series.push({
+  const nuevaSerie = {
     name: data.nombre,
     configuracion: data.configuracion
-  });
+  };
+
+  if (this.serieEnEdicion) {
+    // ✅ Modo edición: encontrar el índice y reemplazar
+    const index = this.series.findIndex(
+      serie => serie.name === this.serieEnEdicion.name &&
+               // Opcional: comparar también la configuración si el nombre puede repetirse
+               JSON.stringify(serie.configuracion) === JSON.stringify(this.serieEnEdicion.configuracion)
+    );
+
+    if (index !== -1) {
+      this.series.splice(index, 1, nuevaSerie);
+    } else {
+      // Si no se encuentra (raro, pero posible), agregar como nueva
+      this.series.push(nuevaSerie);
+    }
+  } else {
+    // ✅ Modo creación: agregar nueva
+    this.series.push(nuevaSerie);
+  }
 
   this.mostrarModal = false;
+  this.serieEnEdicion = null; // Limpiar por seguridad
 },
 
     resetForm() {

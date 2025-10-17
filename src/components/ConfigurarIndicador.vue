@@ -37,7 +37,7 @@
               </span>
               <input
                 v-solo-texto
-                v-model="nombreSerie"
+                v-model="parametrosForm.nombreSerie"
                 type="text"
                 class="form-control"
                 placeholder="Ingrese el nombre de la serie"
@@ -472,7 +472,7 @@ export default {
   components: {
     SubformRecursivo,
   },
-  props: ['id','noRedirigir','modoEstadisticas'],
+  props: ['id','noRedirigir','modoEstadisticas','configuracionEdicion'],
   data() {
     return {
       maxNivelSubformulario: 2, // Nueva variable para controlar el nivel máximo
@@ -485,7 +485,9 @@ export default {
       camposFechaDisponibles: [],
       indicadorSeleccionado: null,
       cargandoConfiguracion: false,
+        
       parametrosForm: {
+       nombreSerie: '', // ✅ Nuevo campo para el nombre de la serie
         plantillaSeleccionada: '',
         seccionSeleccionada: '',
         campoFechaFiltro: '',
@@ -497,7 +499,7 @@ export default {
           campoSeleccionado: '',
           condiciones: [],
           subConfiguracion: null, // Soporte recursivo
-           nombreSerie: '', // ✅ Nuevo campo para el nombre de la serie
+          
         },
       },
     }
@@ -549,6 +551,17 @@ export default {
       }
     })
   },
+  watch: {
+  configuracionEdicion: {
+    handler(nuevaConfig) {
+      if (nuevaConfig) {
+        console.log('✅ Configuración recibida en el modal de edición:', nuevaConfig);
+         this.parametrosForm.nombreSerie = nuevaConfig.name
+      }
+    },
+    immediate: true
+  }
+},
   methods: {
     validarSubconfiguracion(subconfig) {
       if (!subconfig.tipoOperacion) {
@@ -909,13 +922,13 @@ export default {
 if (this.noRedirigir) {
   if (this.modoEstadisticas) {
     // ✅ Validar nombre de la serie
-    if (!this.nombreSerie.trim()) {
+    if (!this.parametrosForm.nombreSerie.trim()) {
       this.mostrarNotificacion('Error', 'El nombre de la serie es obligatorio', 'error');
       return;
     }
     // Emitir objeto con nombre y configuración
     this.$emit('configuracion-lista', {
-      nombre: this.nombreSerie.trim(),
+      nombre: this.parametrosForm.nombreSerie.trim(),
       configuracion: configuracion
     });
   } else {
@@ -925,6 +938,7 @@ if (this.noRedirigir) {
   return;
 }
 // ✅ A PARTIR DE AQUÍ: solo se ejecuta si NO es modo estadísticas → necesita indicador
+
   const idIndicador = this.indicadorSeleccionado?._id || this.indicadorSeleccionado?.id
         if (!idIndicador) {
           this.mostrarNotificacion('Error', 'No se ha seleccionado un indicador', 'error')
@@ -987,7 +1001,9 @@ if (this.noRedirigir) {
     },
 
     resetParametrosForm() {
+      
       this.parametrosForm = {
+        nombreSerie: '', // ✅ Reiniciar el nombre de la serie
         plantillaSeleccionada: '',
         seccionSeleccionada: '',
         campoFechaFiltro: '',
