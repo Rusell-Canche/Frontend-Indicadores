@@ -518,6 +518,9 @@ limpiarPeriodos() {
     valor: null
   });
 },
+  eliminarSerie(index) {
+    this.series.splice(index, 1);
+  },
 
     eliminarPeriodo(index) {
       if (this.periodos.length <= 1) {
