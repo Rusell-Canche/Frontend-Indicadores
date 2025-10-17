@@ -4,7 +4,7 @@
       <i class="fas fa-indent me-2"></i>
       <span>Subformulario para {{ campo.alias || campo.name }}</span>
     </div>
-    
+
     <button type="button" @click="agregarEntrada" class="add-campo-button">
       <i class="fas fa-plus me-2"></i> Agregar entrada
     </button>
@@ -24,7 +24,7 @@
           <tr v-for="(fila, index) in filas" :key="index">
             <td v-for="subcampo in campo.subcampos" :key="subcampo.name">
               <!-- Renderizar subcampo normal -->
-              <template v-if="subcampo.type !== 'subform'">
+              <template v-if="subcampo.type !== 'subform' && subcampo.type !== 'tabla'">
                 <template v-if="subcampo.type === 'file'">
                   {{ fila[subcampo.name]?.name || 'Sin archivo' }}
                 </template>
@@ -38,7 +38,17 @@
                   {{ fila[subcampo.name] }}
                 </template>
               </template>
-              
+
+              <!-- Botón para tabla -->
+              <template v-else-if="subcampo.type === 'tabla'">
+                <span class="badge bg-info">
+                  {{
+                    Array.isArray(fila[subcampo.name]) ? fila[subcampo.name].length : 0
+                  }}
+                  registro(s)
+                </span>
+              </template>
+
               <!-- Botón para abrir modal del subformulario anidado -->
               <template v-else>
                 <button
@@ -107,11 +117,7 @@
                 Campos del Subformulario
               </h6>
 
-              <div
-                v-for="subcampo in campo.subcampos"
-                :key="subcampo.name"
-                class="campo-container"
-              >
+              <div v-for="subcampo in campo.subcampos" :key="subcampo.name" class="campo-container">
                 <div class="campo-header">
                   <div class="campo-title">
                     <i class="fas fa-grip-vertical me-2"></i>
@@ -122,7 +128,7 @@
 
                 <div class="campo-body">
                   <!-- Renderizar campos normales en el modal -->
-                  <template v-if="subcampo.type !== 'subform'">
+                  <template v-if="subcampo.type !== 'subform' && subcampo.type !== 'tabla'">
                     <!-- Campo de archivo -->
                     <div v-if="subcampo.type === 'file'" class="form-field">
                       <label class="form-label">
@@ -167,7 +173,7 @@
                       </div>
                     </div>
 
-                    <!-- Campo de tipo checkbox (CORREGIDO) -->
+                    <!-- Campo de tipo checkbox -->
                     <div v-else-if="subcampo.type === 'checkBox'" class="form-field">
                       <label class="form-label d-block mb-3">
                         <i class="fas fa-check-square me-2"></i>
@@ -175,7 +181,11 @@
                         <span v-if="subcampo.required" class="text-danger">*</span>
                       </label>
                       <div class="checkbox-container d-block">
-                        <div class="form-check mb-2" v-for="(option, index) in subcampo.options" :key="index">
+                        <div
+                          class="form-check mb-2"
+                          v-for="(option, index) in subcampo.options"
+                          :key="index"
+                        >
                           <input
                             class="form-check-input"
                             type="checkbox"
@@ -192,7 +202,6 @@
                         Seleccione una o más opciones
                       </small>
                     </div>
-
 
                     <!-- Campo select -->
                     <div v-else-if="subcampo.type === 'select'" class="form-field">
@@ -282,6 +291,38 @@
                     </div>
                   </template>
 
+                  <!-- Campo tipo tabla -->
+                  <div v-else-if="subcampo.type === 'tabla'" class="form-field">
+                    <label class="form-label">
+                      {{ subcampo.alias || subcampo.name }}
+                      <span v-if="subcampo.required" class="text-danger">*</span>
+                    </label>
+
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary mb-3"
+                      @click="abrirModalTabla(subcampo)"
+                    >
+                      <i class="fas fa-plus me-2"></i>
+                      Seleccionar datos para la tabla
+                    </button>
+
+                    <!-- Vista previa de IDs seleccionados -->
+                    <div
+                      v-if="
+                        datosTemporales[subcampo.name] && datosTemporales[subcampo.name].length > 0
+                      "
+                      class="alert alert-success"
+                    >
+                      <i class="fas fa-check-circle me-2"></i>
+                      {{ datosTemporales[subcampo.name].length }} registro(s) seleccionado(s)
+                    </div>
+                    <div v-else class="alert alert-info">
+                      <i class="fas fa-info-circle me-2"></i>
+                      No se han seleccionado registros
+                    </div>
+                  </div>
+
                   <!-- Botón para subformulario anidado en el modal principal -->
                   <div v-else class="form-field">
                     <label class="form-label">
@@ -337,7 +378,12 @@
                 <p class="header-subtitle">Subformulario anidado</p>
               </div>
             </div>
-            <button type="button" @click="cerrarModalSubformulario" class="close-button" aria-label="Close">
+            <button
+              type="button"
+              @click="cerrarModalSubformulario"
+              class="close-button"
+              aria-label="Close"
+            >
               <i class="fas fa-times"></i>
             </button>
           </div>
@@ -367,6 +413,115 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal para tabla dinámica -->
+    <div v-if="modalTablaVisible" class="modal fade show" style="display: block; z-index: 1060">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content modern-modal">
+          <div class="medico-header modal-header-custom">
+            <div class="header-content">
+              <div class="header-icon">
+                <i class="fas fa-table"></i>
+              </div>
+              <div class="header-title-section">
+                <h3>Seleccionar datos para {{ tablaActual?.alias || tablaActual?.name }}</h3>
+                <p class="header-subtitle">
+                  Plantilla: {{ tablaActual?.tableConfig?.plantillaNombre }} - Sección:
+                  {{ tablaActual?.tableConfig?.seccion }}
+                </p>
+              </div>
+            </div>
+            <button type="button" @click="cerrarModalTabla" class="close-button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="medico-body modal-body-custom">
+            <div class="row">
+              <!-- Datos disponibles -->
+              <div class="col-md-6">
+                <h6>Datos disponibles:</h6>
+                <div class="table-responsive" style="max-height: 400px">
+                  <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Seleccionar</th>
+                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ columna }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(fila, index) in datosTablaDisponibles" :key="index">
+                        <td>
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-success"
+                            @click="seleccionarFilaTabla(fila)"
+                            :disabled="
+                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                            "
+                          >
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </td>
+                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ obtenerValorCampo(fila, columna) || '-' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Datos seleccionados -->
+              <div class="col-md-6">
+                <h6>Datos seleccionados ({{ tablaSeleccionada.length }}):</h6>
+                <div class="table-responsive" style="max-height: 400px">
+                  <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Acción</th>
+                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ columna }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(fila, index) in tablaSeleccionada" :key="index">
+                        <td>
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-danger"
+                            @click="deseleccionarFilaTabla(index)"
+                          >
+                            <i class="fas fa-times"></i>
+                          </button>
+                        </td>
+                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ obtenerValorCampo(fila, columna) || '-' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="medico-footer">
+            <button type="button" class="btn btn-cancel" @click="cerrarModalTabla">
+              <i class="fas fa-times me-2"></i>
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-save" @click="guardarSeleccionTabla">
+              <i class="fas fa-check me-2"></i>
+              Guardar selección
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -376,16 +531,16 @@ export default {
   props: {
     campo: {
       type: Object,
-      required: true
+      required: true,
     },
     valor: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     nivel: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   data() {
     return {
@@ -393,213 +548,345 @@ export default {
       mostrarModal: false,
       indiceEditando: -1,
       datosTemporales: {},
-      // Nuevas variables reactivas
-mostrarModalSubformulario: false,
-subformularioActual: null,
-valoresSubformulario: [],
-indiceFilaSubformulario: null,
-nombreCampoSubformulario: null,
+      // Variables para subformularios anidados
+      mostrarModalSubformulario: false,
+      subformularioActual: null,
+      valoresSubformulario: [],
+      indiceFilaSubformulario: null,
+      nombreCampoSubformulario: null,
+      // Variables para tablas dinámicas
+      modalTablaVisible: false,
+      tablaActual: null,
+      datosTablaDisponibles: [],
+      tablaSeleccionada: [],
     }
   },
   watch: {
     valor: {
       handler(nuevoValor) {
-        this.filas = [...nuevoValor];
+        this.filas = [...nuevoValor]
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   methods: {
     // Métodos para manejar opciones de checkbox y select
     getSaveValue(option, campo) {
       if (typeof option === 'string') {
-        return option;
+        return option
       }
-      return option.campoGuardar || option.value || option;
+      return option.campoGuardar || option.value || option
     },
 
     getDisplayValue(option, campo) {
       if (typeof option === 'string') {
-        return option;
+        return option
       }
-      return option.campoMostrar || option.label || option.text || option;
+      return option.campoMostrar || option.label || option.text || option
     },
 
     getDisplayValueFromSaved(savedValue, campo) {
-      if (!campo.options) return savedValue;
-      
+      if (!campo.options) return savedValue
+
       if (this.isManualSelect(campo)) {
-        return savedValue;
+        return savedValue
       }
-      
-      const option = campo.options.find(opt => 
-        (opt.campoGuardar || opt.value) === savedValue
-      );
-      return option ? (option.campoMostrar || option.label || option.text) : savedValue;
+
+      const option = campo.options.find((opt) => (opt.campoGuardar || opt.value) === savedValue)
+      return option ? option.campoMostrar || option.label || option.text : savedValue
     },
 
-    // Nuevos métodos
-abrirModalSubformulario(indice, nombreCampo, campo) {
-  this.indiceFilaSubformulario = indice;
-  this.nombreCampoSubformulario = nombreCampo;
-  this.subformularioActual = campo;
-  this.valoresSubformulario = [...(this.filas[indice][nombreCampo] || [])];
-  this.mostrarModalSubformulario = true;
-},
+    // Métodos para subformularios anidados
+    abrirModalSubformulario(indice, nombreCampo, campo) {
+      this.indiceFilaSubformulario = indice
+      this.nombreCampoSubformulario = nombreCampo
+      this.subformularioActual = campo
+      this.valoresSubformulario = [...(this.filas[indice][nombreCampo] || [])]
+      this.mostrarModalSubformulario = true
+    },
 
-abrirModalSubformularioDesdeModal(nombreCampo, campo) {
-  this.nombreCampoSubformulario = nombreCampo;
-  this.subformularioActual = campo;
-  this.valoresSubformulario = [...(this.datosTemporales[nombreCampo] || [])];
-  this.mostrarModalSubformulario = true;
-},
+    abrirModalSubformularioDesdeModal(nombreCampo, campo) {
+      this.nombreCampoSubformulario = nombreCampo
+      this.subformularioActual = campo
+      this.valoresSubformulario = [...(this.datosTemporales[nombreCampo] || [])]
+      this.mostrarModalSubformulario = true
+    },
 
-cerrarModalSubformulario() {
-  this.mostrarModalSubformulario = false;
-  this.subformularioActual = null;
-  this.valoresSubformulario = [];
-  this.indiceFilaSubformulario = null;
-  this.nombreCampoSubformulario = null;
-},
+    cerrarModalSubformulario() {
+      this.mostrarModalSubformulario = false
+      this.subformularioActual = null
+      this.valoresSubformulario = []
+      this.indiceFilaSubformulario = null
+      this.nombreCampoSubformulario = null
+    },
 
-actualizarValoresSubformulario(nuevosValores) {
-  this.valoresSubformulario = nuevosValores;
-},
+    actualizarValoresSubformulario(nuevosValores) {
+      this.valoresSubformulario = nuevosValores
+    },
 
-guardarSubformulario() {
-  if (this.indiceFilaSubformulario !== null) {
-    // Actualizar desde la tabla
-    this.filas[this.indiceFilaSubformulario][this.nombreCampoSubformulario] = [...this.valoresSubformulario];
-    this.actualizarSubformularioAnidado(this.indiceFilaSubformulario, this.nombreCampoSubformulario, this.valoresSubformulario);
-  } else {
-    // Actualizar desde el modal principal
-    this.datosTemporales[this.nombreCampoSubformulario] = [...this.valoresSubformulario];
-  }
-  this.cerrarModalSubformulario();
-},
+    guardarSubformulario() {
+      if (this.indiceFilaSubformulario !== null) {
+        // Actualizar desde la tabla
+        this.filas[this.indiceFilaSubformulario][this.nombreCampoSubformulario] = [
+          ...this.valoresSubformulario,
+        ]
+        this.actualizarSubformularioAnidado(
+          this.indiceFilaSubformulario,
+          this.nombreCampoSubformulario,
+          this.valoresSubformulario,
+        )
+      } else {
+        // Actualizar desde el modal principal
+        this.datosTemporales[this.nombreCampoSubformulario] = [...this.valoresSubformulario]
+      }
+      this.cerrarModalSubformulario()
+    },
+
+    // Métodos para tablas dinámicas
+    async abrirModalTabla(campo) {
+      this.tablaActual = campo
+      this.modalTablaVisible = true
+
+      // Para crear nuevo: inicializar vacío o cargar lo que ya se seleccionó en esta sesión
+      this.tablaSeleccionada = []
+
+      // Si ya hay datos seleccionados en datosTemporales, cargarlos
+      const idsGuardados = this.datosTemporales[campo.name] || []
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        const api = (await import('@/services/api')).default
+
+        const response = await api.get(`/plantillas/${campo.tableConfig.plantillaId}/secciones`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        const seccion = response.data?.secciones?.find(
+          (s) => s.nombre === campo.tableConfig.seccion,
+        )
+        if (seccion && seccion.fields) {
+          const documentosResponse = await api.get(`/documentos/${campo.tableConfig.plantillaId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+
+          this.datosTablaDisponibles = this.procesarDatosParaTabla(
+            documentosResponse.data,
+            seccion,
+            campo.tableConfig.campos,
+          )
+
+          // Solo si hay IDs guardados, reconstruir la selección
+          if (idsGuardados.length > 0) {
+            this.tablaSeleccionada = this.datosTablaDisponibles.filter((fila) =>
+              idsGuardados.includes(fila._documentId),
+            )
+          }
+        }
+      } catch (error) {
+        console.error('Error al cargar datos de tabla:', error)
+        this.mostrarError('No se pudieron cargar los datos para la tabla')
+      }
+    },
+
+    procesarDatosParaTabla(documentos, seccion, camposConfigurados) {
+      const datosProcesados = []
+
+      documentos.forEach((documento) => {
+        const seccionDoc = documento.secciones?.find((s) => s.nombre === seccion.nombre)
+        if (seccionDoc) {
+          const fila = {
+            _documentId: documento._id || documento.id,
+          }
+          camposConfigurados.forEach((campoNombre) => {
+            const campo = seccionDoc.fields?.[campoNombre]
+            fila[campoNombre] = campo || '-'
+          })
+          datosProcesados.push(fila)
+        }
+      })
+
+      return datosProcesados
+    },
+
+    obtenerValorCampo(fila, nombreCampo) {
+      return fila[nombreCampo] || '-'
+    },
+
+    cerrarModalTabla() {
+      this.modalTablaVisible = false
+      this.tablaActual = null
+      this.datosTablaDisponibles = []
+      this.tablaSeleccionada = []
+    },
+
+    seleccionarFilaTabla(fila) {
+      console.log('=== SELECCIONAR FILA ===')
+      console.log('Fila a seleccionar:', fila._documentId)
+      console.log(
+        'TablaSeleccionada actual:',
+        this.tablaSeleccionada.map((f) => f._documentId),
+      )
+
+      const existe = this.tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+      console.log('Ya existe?', existe)
+
+      if (!existe) {
+        this.tablaSeleccionada.push({ ...fila })
+        console.log(
+          'Nueva TablaSeleccionada:',
+          this.tablaSeleccionada.map((f) => f._documentId),
+        )
+      }
+    },
+
+    deseleccionarFilaTabla(index) {
+      this.tablaSeleccionada.splice(index, 1)
+    },
+
+    guardarSeleccionTabla() {
+      if (this.tablaActual) {
+        // Extraer solo los IDs
+        const tablaIds = this.tablaSeleccionada.map((fila) => fila._documentId).filter((id) => id)
+        this.datosTemporales[this.tablaActual.name] = tablaIds
+        this.cerrarModalTabla()
+      }
+    },
+
+    eliminarFilaTabla(nombreCampo, index) {
+      if (Array.isArray(this.datosTemporales[nombreCampo])) {
+        this.datosTemporales[nombreCampo].splice(index, 1)
+      }
+    },
+
     isManualSelect(campo) {
       if (!campo.options || !Array.isArray(campo.options) || campo.options.length === 0) {
-        return true;
+        return true
       }
-      
-      const primeraOpcion = campo.options[0];
-      return typeof primeraOpcion === 'string';
+
+      const primeraOpcion = campo.options[0]
+      return typeof primeraOpcion === 'string'
     },
-    
+
     agregarEntrada() {
-      this.indiceEditando = -1;
-      this.datosTemporales = this.inicializarDatosTemporales();
-      this.mostrarModal = true;
+      this.indiceEditando = -1
+      this.datosTemporales = this.inicializarDatosTemporales()
+      this.mostrarModal = true
     },
-    
+
     editarEntrada(index) {
-      this.indiceEditando = index;
-      this.datosTemporales = {...this.filas[index]};
-      // 🔑 Normalizar valores de checkBox al editar
-  this.campo.subcampos.forEach(sub => {
-    if (sub.type === 'checkBox') {
-      let valor = this.datosTemporales[sub.name];
+      this.indiceEditando = index
+      this.datosTemporales = { ...this.filas[index] }
+      // Normalizar valores de checkBox al editar
+      this.campo.subcampos.forEach((sub) => {
+        if (sub.type === 'checkBox') {
+          let valor = this.datosTemporales[sub.name]
 
-      if (typeof valor === 'string') {
-        try {
-          valor = JSON.parse(valor);
-        } catch {
-          valor = [];
+          if (typeof valor === 'string') {
+            try {
+              valor = JSON.parse(valor)
+            } catch {
+              valor = []
+            }
+          }
+
+          if (!Array.isArray(valor)) {
+            valor = []
+          }
+
+          this.datosTemporales[sub.name] = [...valor]
         }
-      }
+      })
 
-      if (!Array.isArray(valor)) {
-        valor = [];
-      }
-
-      this.datosTemporales[sub.name] = [...valor];
-    }
-  });
-
-      this.mostrarModal = true;
+      this.mostrarModal = true
     },
-    
+
     eliminarEntrada(index) {
-      this.filas.splice(index, 1);
-      this.emitirActualizacion();
+      this.filas.splice(index, 1)
+      this.emitirActualizacion()
     },
-    
+
     cerrarModal() {
-      this.mostrarModal = false;
-      this.indiceEditando = -1;
-      this.datosTemporales = {};
+      this.mostrarModal = false
+      this.indiceEditando = -1
+      this.datosTemporales = {}
     },
-    
+
     guardarEntrada() {
       // Validar campos requeridos
-      const camposRequeridos = this.campo.subcampos.filter(sub => sub.required);
-      const esValido = camposRequeridos.every(sub => {
+      const camposRequeridos = this.campo.subcampos.filter((sub) => sub.required)
+      const esValido = camposRequeridos.every((sub) => {
         if (sub.type === 'subform') {
-          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0;
+          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
         }
         if (sub.type === 'checkBox') {
-      return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0;
-    }
-        return this.datosTemporales[sub.name] !== undefined && 
-               this.datosTemporales[sub.name] !== null && 
-               this.datosTemporales[sub.name] !== '';
-      });
-      
-      if (!esValido) {
-        this.mostrarError('Complete todos los campos requeridos');
-        return;
-      }
-      
-      if (this.indiceEditando === -1) {
-        this.filas.push({...this.datosTemporales});
-      } else {
-        this.filas[this.indiceEditando] = {...this.datosTemporales};
-      }
-      
-      this.emitirActualizacion();
-      this.cerrarModal();
-    },
-    
-inicializarDatosTemporales() {
-  const datos = {};
-  this.campo.subcampos.forEach(sub => {
-    if (sub.type === 'subform') {
-      datos[sub.name] = [];
-    } else if (sub.type === 'checkBox') {
-      datos[sub.name] = []; // inicializar como array vacío
-    } else {
-      datos[sub.name] = '';
-    }
-  });
-  return datos;
-},
+          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
+        }
+        if (sub.type === 'tabla') {
+          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
+        }
+        return (
+          this.datosTemporales[sub.name] !== undefined &&
+          this.datosTemporales[sub.name] !== null &&
+          this.datosTemporales[sub.name] !== ''
+        )
+      })
 
-    
+      if (!esValido) {
+        this.mostrarError('Complete todos los campos requeridos')
+        return
+      }
+
+      if (this.indiceEditando === -1) {
+        this.filas.push({ ...this.datosTemporales })
+      } else {
+        this.filas[this.indiceEditando] = { ...this.datosTemporales }
+      }
+
+      this.emitirActualizacion()
+      this.cerrarModal()
+    },
+
+    inicializarDatosTemporales() {
+      const datos = {}
+      this.campo.subcampos.forEach((sub) => {
+        if (sub.type === 'subform') {
+          datos[sub.name] = []
+        } else if (sub.type === 'checkBox') {
+          datos[sub.name] = []
+        } else if (sub.type === 'tabla') {
+          datos[sub.name] = []
+        } else {
+          datos[sub.name] = ''
+        }
+      })
+      return datos
+    },
+
     onCambioArchivo(event, nombreCampo) {
-      const archivo = event.target.files[0];
+      const archivo = event.target.files[0]
       if (archivo) {
-        this.datosTemporales[nombreCampo] = archivo;
+        this.datosTemporales[nombreCampo] = archivo
       }
     },
-    
+
     actualizarSubcampoAnidado(nombreCampo, nuevoValor) {
-      this.datosTemporales[nombreCampo] = nuevoValor;
+      this.datosTemporales[nombreCampo] = nuevoValor
     },
-    
+
     actualizarSubformularioAnidado(indiceFila, nombreCampo, nuevoValor) {
-      this.filas[indiceFila][nombreCampo] = nuevoValor;
-      this.emitirActualizacion();
+      this.filas[indiceFila][nombreCampo] = nuevoValor
+      this.emitirActualizacion()
     },
-    
+
     emitirActualizacion() {
-      this.$emit('actualizar', this.filas);
+      this.$emit('actualizar', this.filas)
     },
-    
+
     mostrarError(mensaje) {
       // Puedes implementar tu propio sistema de notificaciones aquí
-      alert(mensaje);
-    }
-  }
+      alert(mensaje)
+    },
+  },
 }
 </script>
 
