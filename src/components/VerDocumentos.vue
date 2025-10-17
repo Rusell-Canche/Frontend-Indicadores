@@ -762,6 +762,11 @@ export default {
 
       if (!valor || valor === 'null') return '-'
 
+       // Si es campo de fecha
+      if (subcampoDef?.type === 'date' && valor) {
+        return this.formatoFecha(valor)
+      }
+
       if (subcampoDef?.options && Array.isArray(subcampoDef.options)) {
         const option = subcampoDef.options.find((o) => o.campoGuardar === valor)
         return option ? option.campoMostrar : valor
@@ -1052,9 +1057,13 @@ export default {
      * Obtiene un valor "bonito" para mostrar en la tabla
      */
     getPrettyFieldValue(documento, fieldName) {
+      // Consigue el valor puro del campo
       const valor = this.getFieldValueFromDocument(documento, fieldName)
-      if (!valor) return null
+      
+      // Si el valor es nullo retorna null
+      if (valor == null) return '-'
 
+      // Busca la definición del campo
       const campo = this.getCampoDefinition(fieldName)
       if (!campo) return valor
 
