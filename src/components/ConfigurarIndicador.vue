@@ -546,7 +546,7 @@ export default {
   mounted() {
     this.indicadorSeleccionado = { _id: this.id }
     this.fetchPlantillasDisponibles().then(() => {
-      if (this.id) {
+      if (this.id || this.configuracionEdicion) {
         this.cargarConfiguracionExistente()
       }
     })
@@ -673,29 +673,37 @@ export default {
     async cargarConfiguracionExistente() {
       this.cargandoConfiguracion = true
       try {
-        const token = localStorage.getItem('apiToken')
-        if (!token) {
-          this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
-          return
-        }
 
-        const response = await api.get(
-          `/indicadores/${this.id}/configuracion`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
+        let config = {}
+
+        if (this.id) {
+          const token = localStorage.getItem('apiToken')
+          if (!token) {
+            this.mostrarNotificacion('Error', 'No hay sesión activa', 'error')
+            return
+          }
+
+          const response = await api.get(
+            `/indicadores/${this.id}/configuracion`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+              },
             },
-          },
-        )
+          )
 
-        if (!response.data || !response.data.configuracion) {
-          console.log('No hay configuración existente para este indicador')
-          return
+          if (!response.data || !response.data.configuracion) {
+            console.log('No hay configuración existente para este indicador')
+            return
+          }
+
+          config = response.data.configuracion
+        } else {
+          config = this.configuracionEdicion.configuracion
         }
 
-        const config = response.data.configuracion
 
         if (!config || typeof config !== 'object') {
           console.log('Configuración inválida o vacía')
