@@ -337,6 +337,16 @@
       v-tooltip="'Editar serie'"
       class="me-2"
     />
+      <!-- Botón Clonar -->
+  <Button
+    icon="fas fa-copy"
+    @click="clonarSerie(slotProps.index)"
+    text
+    severity="secondary"
+    size="small"
+    v-tooltip="'Clonar serie'"
+    class="me-2"
+  />
     <!-- Botón Eliminar -->
     <Button
       icon="fas fa-trash"
@@ -541,6 +551,15 @@ limpiarPeriodos() {
   eliminarSerie(index) {
     this.series.splice(index, 1);
   },
+  clonarSerie(index) {
+  const serieOriginal = this.series[index];
+  // Clonación profunda usando JSON.parse(JSON.stringify(...))
+  const serieClonada = {
+    name: `${serieOriginal.name} (Copia)`,
+    configuracion: JSON.parse(JSON.stringify(serieOriginal.configuracion))
+  };
+  this.series.push(serieClonada);
+},
   editarSerie(index) {
  this.serieEnEdicion = { ...this.series[index] }; // Hacemos una copia
   this.mostrarModal = true;
