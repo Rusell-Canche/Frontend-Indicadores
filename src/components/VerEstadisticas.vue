@@ -101,14 +101,14 @@
             </div>
           </div>
 
-<!-- Sección para el rango de periodos de la gráfica -->
+<!-- Sección para el rango de rangos de la gráfica -->
 <div class="form-section">
   <h6 class="section-title">
     <i class="fas fa-shield-alt me-2"></i>
     Rangos de fecha
   </h6>
 
-  <!-- Selector de tipo global (solo uno para todos los periodos) -->
+  <!-- Selector de tipo global (solo uno para todos los rangos) -->
   <div class="mb-4">
     <label class="form-label d-block">Tipo de rango:</label>
     <div class="d-flex flex-wrap gap-3">
@@ -159,10 +159,10 @@
     </div>
   </div>
 
-  <!-- Lista de periodos (todos usan el mismo tipoGlobal) -->
+  <!-- Lista de rangos (todos usan el mismo tipoGlobal) -->
   <div class="date-filter-simple">
     <div
-      v-for="(periodo, index) in periodos"
+      v-for="(periodo, index) in rangos"
       :key="index"
       class="filter-row"
       :class="{ 'has-remove-btn': index > 0 }"
@@ -386,6 +386,16 @@ v-if="mostrarModal"
               <i class="fas fa-eraser me-2"></i>
               Limpiar Formulario
             </button>
+                         <!-- Cancelar y limpiar todo -->
+  <button
+    v-if="ModoEditarGrafica"
+    type="button"
+    class="btn btn-cancel"
+    @click="cancelarEdicion"
+  >
+    <i class="fas fa-eraser me-2"></i>
+    Cancelar
+  </button>
             <button
               type="submit"
               class="btn btn-save"
@@ -396,8 +406,21 @@ v-if="mostrarModal"
                 ><i class="fas fa-user-plus me-2"></i
               ></span>
               <span v-else class="hover-icon"><i class="fas fa-user-check me-2"></i></span>
-              Crear Gráfica
+  {{ ModoEditarGrafica ? 'Crear nueva gráfica a partir de esta configuración' : 'Crear Gráfica' }}
             </button>
+            <!-- Botones de modo editar grafica -->
+              <!-- Actualizar gráfica -->
+  <button
+    v-if="ModoEditarGrafica"
+    type="button"
+    class="btn btn-save"
+    @click="actualizarGrafica"
+  >
+    <i class="fas fa-sync-alt me-2"></i>
+    Actualizar Gráfica
+  </button>
+ 
+
           </div>
         </form>
       </div>
@@ -405,6 +428,7 @@ v-if="mostrarModal"
   </div>
 </template>
 <script>
+import api from '@/services/api'
 import ConfigurarIndicador from '@/components/ConfigurarIndicador.vue'
 import Calendar from 'primevue/calendar'
 import Button from 'primevue/button'
@@ -444,7 +468,8 @@ export default {
       tipoGlobalAnterior: 'libre',
       serieEnEdicion: null, // 👈 nueva propiedad para guardar la serie que se está editando
       SEMESTRES, // para usar en el template
-      periodos: [
+      ModoEditarGrafica: false,
+      rangos: [
   {
     valor: null,   // Date para 'mes' o 'ciclo', string para 'semestre'
     inicio: null,
@@ -459,6 +484,29 @@ export default {
   },
   
   methods: {
+     cancelarEdicion() {
+    this.ModoEditarGrafica = false; // Desactiva el modo edición
+    this.resetForm();               // Limpia el formulario
+  },
+      async obtenerGraficaPorId(id) {
+  try {
+    const response = await api.get(`/graficas/${id}`);
+    this.grafica = response.data.graficas; // o response.data según tu API
+    console.log("Gráfica obtenida:", this.grafica);
+    this.ModoEditarGrafica = true;
+
+    // Rellenar el formulario con los datos de la consulta con el id obtenido de ver graficas
+    this.titulo = this.grafica.titulo;
+    this.descripcion = this.grafica.descripcion;
+    this.tipoGrafica = this.grafica.chartOptions.chart.type;
+    this.series = this.grafica.series; 
+    
+     
+
+  } catch (error) {
+    console.error('Error al obtener la gráfica:', error);
+  }
+},
     abrirModalIndicadores() {
       this.mostrarModal = true
     },
@@ -497,7 +545,7 @@ export default {
   },
   cambiarTipoGlobal() {
   // Verificar si hay algún periodo con datos
-  const tieneDatos = this.periodos.some(p => {
+  const tieneDatos = this.rangos.some(p => {
     if (this.tipoGlobalAnterior === 'libre') {
       return p.inicio || p.fin;
     } else {
@@ -508,7 +556,7 @@ export default {
   if (tieneDatos) {
     Swal.fire({
       title: '¿Cambiar tipo de rango?',
-      text: 'Perderás todos los datos ingresados y se eliminarán los periodos adicionales.',
+      text: 'Perderás todos los datos ingresados y se eliminarán los rangos adicionales.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, cambiar',
@@ -516,7 +564,7 @@ export default {
     }).then((result) => {
       if (result.isConfirmed) {
         // ✅ Restablecer a un solo periodo vacío
-        this.periodos = [{
+        this.rangos = [{
           inicio: null,
           fin: null,
           valor: null
@@ -535,14 +583,14 @@ export default {
   }
 },
 limpiarPeriodos() {
-  this.periodos = this.periodos.map(p => ({
+  this.rangos = this.rangos.map(p => ({
     inicio: null,
     fin: null,
     valor: null
   }));
 },
   agregarPeriodo() {
-  this.periodos.push({
+  this.rangos.push({
     inicio: null,
     fin: null,
     valor: null
@@ -566,7 +614,7 @@ limpiarPeriodos() {
 },
 
     eliminarPeriodo(index) {
-      if (this.periodos.length <= 1) {
+      if (this.rangos.length <= 1) {
         Swal.fire({
           icon: 'warning',
           title: 'No se puede eliminar',
@@ -574,7 +622,7 @@ limpiarPeriodos() {
         })
         return
       }
-      this.periodos.splice(index, 1)
+      this.rangos.splice(index, 1)
     },
     formatDateToDDMMYYYY(date) {
   if (!date) return '';
@@ -625,7 +673,7 @@ limpiarPeriodos() {
       this.tipoGrafica = ''
       this.color = ''
       this.series = []
-      this.periodos = [{ inicio: null, fin: null }]
+      this.rangos = [{ inicio: null, fin: null }]
     },
 
     generarLabelRango(inicio, fin) {
@@ -645,8 +693,8 @@ limpiarPeriodos() {
         return
       }
 
-      const periodosValidos = this.periodos.filter(p => p.inicio && p.fin)
-      if (periodosValidos.length === 0) {
+      const rangosValidos = this.rangos.filter(p => p.inicio && p.fin)
+      if (rangosValidos.length === 0) {
         Swal.fire('Error', 'Debe agregar al menos un rango de fechas válido', 'error')
         return
       }
@@ -666,7 +714,7 @@ limpiarPeriodos() {
         titulo: this.titulo,
         descripcion: this.descripcion,
         series: this.series,
-        rangos: periodosValidos.map(p => ({
+        rangos: rangosValidos.map(p => ({
   inicio: this.formatDateToDDMMYYYY(p.inicio),
   fin: this.formatDateToDDMMYYYY(p.fin),
   label: this.generarLabelRango(p.inicio, p.fin)
@@ -689,6 +737,15 @@ limpiarPeriodos() {
         Swal.fire('Error', error.response?.data?.message || 'No se pudo crear la gráfica', 'error')
       }
     }
+  },
+
+
+  mounted() {
+    console.log('se recibio la id', this.$route.query.id);
+    if (this.$route.query.id) {
+      this.obtenerGraficaPorId(this.$route.query.id);
+    }
+    
   }
 }
 </script>
