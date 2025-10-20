@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-4 ">
     <!-- Contenedor principal-->
     <div class="card shadow border-0 rounded-3">
       <!-- Header con el diseño moderno -->
@@ -56,7 +56,7 @@
                 </div>
               </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                 <label class="form-label">Tipo de gráfica*</label>
                 <div class="input-group modern-input">
                   <span class="input-group-text">
@@ -732,7 +732,10 @@ async submitForm() {
 </script>
 <style scoped>
 
-
+.container-fluid {
+  max-width: 2300px;
+  
+}
 
 .date-filter-simple {
   width: 100%;
@@ -903,7 +906,8 @@ async submitForm() {
   border-radius: 16px;
   border: 1px solid rgba(0, 0, 0, 0.05);
   position: relative;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+
 }
 
 .form-section::before {
@@ -913,7 +917,7 @@ async submitForm() {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #047857, #065f46);
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
   border-radius: 16px 16px 0 0;
 }
 
@@ -942,7 +946,7 @@ async submitForm() {
 }
 
 .modern-input .input-group-text {
-  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
   border: none;
   color: white;
   border-radius: 12px 0 0 12px;
@@ -998,7 +1002,7 @@ async submitForm() {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #047857, #065f46);
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
   transform: scaleX(0);
   transition: transform 0.3s ease;
   transform-origin: left;
