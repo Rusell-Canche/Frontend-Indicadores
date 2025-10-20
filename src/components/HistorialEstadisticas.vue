@@ -16,9 +16,43 @@
       </div>
       <!-- Body con el diseño moderno -->
       <div class="medico-body">
+        
+        
+          <!-- Sección de búsqueda -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-search me-2"></i>
+              Buscar gráfica
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <div class="input-group modern-input">
+                  <span class="plantilla-icon">
+                    <i class="fas fa-search"></i>
+                  </span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Búsqueda dinámica..."
+                    v-model="palabraClave"
+                  />
+                </div>
+                
+              </div>
+            </div>
+          </div>
+
+           <!-- Loading state -->
+        <div v-if="loading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="mt-2">Cargando gráficas...</p>
+        </div>
+
     <!-- Listado de plantillas -->
     <div class="plantilla-list">
-      <div v-for="grafica in arregloDeGraficas" :key="grafica.id" class="plantilla-card">
+      <div v-for="grafica in graficasPaginadas" :key="grafica.id" class="plantilla-card">
         <div class="plantilla-card-header">
           <div class="plantilla-icon">
             <i class="fas fa-file-alt"></i>
@@ -43,6 +77,34 @@
         </div>
       </div>
     </div>
+
+    <!-- Paginación -->
+<div v-if="!loading && graficasFiltradas.length > itemsPerPage" class="d-flex justify-content-center mt-4">
+  <nav>
+    <ul class="pagination">
+      <li class="page-item" :class="{ disabled: currentPage === 1 }">
+        <button class="page-link" @click="currentPage--" :disabled="currentPage === 1">
+          &laquo;
+        </button>
+      </li>
+
+      <li
+        v-for="page in totalPages"
+        :key="page"
+        class="page-item"
+        :class="{ active: page === currentPage }"
+      >
+        <button class="page-link" @click="currentPage = page">{{ page }}</button>
+      </li>
+
+      <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+        <button class="page-link" @click="currentPage++" :disabled="currentPage === totalPages">
+          &raquo;
+        </button>
+      </li>
+    </ul>
+  </nav>
+</div>
     
 
 
@@ -64,10 +126,7 @@
     <apexchart v-if="jsonGrafica" :options="jsonGrafica.chartOptions" :series="jsonGrafica.series" :type="jsonGrafica.tipo"
       height="350" />
 
-    <!-- Indicador de carga -->
-    <div v-else class="loading">
-      <i class="fa fa-spinner fa-spin"></i> Cargando configuración...
-    </div>
+   
   </div>
 
             </div>
@@ -95,11 +154,39 @@ export default {
       mostrarVistaGrafica: false,
       jsonGrafica: [],
       arregloDeGraficas: [],
+      loading: true,
+      palabraClave: '',
+      itemsPerPage: 9,
+      currentPage: 1, 
     }
   },
+  computed: {
+  graficasFiltradas() {
+    if (!this.palabraClave) return this.arregloDeGraficas
+
+    const busqueda = this.palabraClave.toLowerCase()
+    return this.arregloDeGraficas.filter(grafica =>
+      grafica.titulo.toLowerCase().includes(busqueda)
+    )
+  },
+   // Paginación: solo los items de la página actual
+  graficasPaginadas() {
+    const inicio = (this.currentPage - 1) * this.itemsPerPage
+    const fin = inicio + this.itemsPerPage
+    return this.graficasFiltradas.slice(inicio, fin)
+  },
+
+  // Total de páginas
+  totalPages() {
+    return Math.ceil(this.graficasFiltradas.length / this.itemsPerPage)
+  }
+
+}
+,
   
   methods: {
     async obtenerArregloDeGraficas() {
+      this.loading = true
       try {
         this.arregloDeGraficas = (await api.get('/graficas')).data.graficas
 
@@ -117,7 +204,7 @@ export default {
           text: 'Error al obtener las plantillas.',
         })
         console.log('Error al obtener las plantillas:', error)
-      }
+      }this.loading = false
     },
 
     async abrirVistaGrafica(id) {
@@ -182,6 +269,16 @@ openEditModal(id) {
 }
 </script>
 <style scoped>
+
+.form-section::before{
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
+  border-radius: 16px 16px 0 0 !important;
+}
+/* Loading spinner */
+.spinner-border {
+  color: #ff7700  !important;
+}
+
 /* Estilos base del diseño moderno */
 .card {
   border-radius: 20px;
@@ -189,6 +286,7 @@ openEditModal(id) {
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
   background: white;
   position: relative;
+  min-height: 650px;
 }
 
 /* Header con el diseño moderno */
@@ -202,16 +300,6 @@ openEditModal(id) {
   overflow: hidden;
 }
 
-.medico-header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  animation: shimmer 3s ease-in-out infinite;
-}
 /* Body con el diseño moderno */
 .medico-body {
   padding: 2rem;
@@ -320,6 +408,13 @@ openEditModal(id) {
   font-weight: 600;
   color: #2c3e50;
   line-height: 1.3;
+   word-break: break-word;
+  /* 👇 Clave para limitar a 2 líneas */
+  display: -webkit-box;             /* Permite usar line-clamp */
+  -webkit-box-orient: vertical;     /* Define orientación del texto */
+  -webkit-line-clamp: 2;            /* Máximo 2 líneas visibles */
+  overflow: hidden;                 /* Oculta el texto sobrante */
+  text-overflow: ellipsis; 
 }
 
 .plantilla-subtitle {

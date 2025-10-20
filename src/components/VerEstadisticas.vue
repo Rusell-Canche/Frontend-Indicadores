@@ -4,6 +4,7 @@
     <div class="card shadow border-0 rounded-3">
       <!-- Header con el diseño moderno -->
       <div class="medico-header">
+       
         <div class="header-content">
           <div class="header-icon">
             <i class="fas fa-file-text"></i>
@@ -21,8 +22,8 @@
         <form @submit.prevent="submitForm">
 
 
-          <!-- Sección de información básica -->
-          <div class="form-section">
+         <!-- Sección de información básica -->
+           <div class="form-section">
             <h6 class="section-title">
               <i class="fas fa-user me-2"></i>
               Información básica
