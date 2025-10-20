@@ -1,6 +1,21 @@
 <template>
   <div class="container-fluid py-4">
+<div class="card shadow border-0 rounded-3"> 
+        <!-- Header con el diseño moderno -->
+      <div class="medico-header">
+        <div class="header-content">
+          <div class="header-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="header-title-section">
+            <h3>Historial de estadísticas</h3>
+            <p class="header-subtitle">Administra las estadísticas creadas</p>
+          </div>
+        </div>
 
+      </div>
+      <!-- Body con el diseño moderno -->
+      <div class="medico-body">
     <!-- Listado de plantillas -->
     <div class="plantilla-list">
       <div v-for="grafica in arregloDeGraficas" :key="grafica.id" class="plantilla-card">
@@ -63,7 +78,8 @@
         </div>
       </div>
     </template>
-
+    </div>
+    </div>
   </div>
 </template>
 
@@ -166,210 +182,298 @@ openEditModal(id) {
 }
 </script>
 <style scoped>
+/* Estilos base del diseño moderno */
+.card {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  background: white;
+  position: relative;
+}
+
+/* Header con el diseño moderno */
+.medico-header {
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+}
+
+.medico-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+/* Body con el diseño moderno */
+.medico-body {
+  padding: 2rem;
+  background: white;
+}
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1;
+}
+
+.header-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-title-section h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-subtitle {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+/* Estilos mejorados para las tarjetas de plantillas */
 .plantilla-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
   padding: 0;
+  
 }
 
 .plantilla-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e9ecef;
-  transition: transform 0.2s, box-shadow 0.2s;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(220, 53, 69, 0.1);
+  position: relative;
+}
+
+.plantilla-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ff8c00, #ff7700);
+  border-radius: 16px 16px 0 0;
 }
 
 .plantilla-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(220, 53, 69, 0.2);
 }
 
 .plantilla-card-header {
-  padding: 1.25rem;
+  padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  border-bottom: 1px solid #f1f3f5;
+  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .plantilla-icon {
-  width: 48px;
-  height: 48px;
-  background: #dc3545;
-  border-radius: 10px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(90deg, #ff8c00, #ff7700);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-size: 1.25rem;
+  color: white;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.plantilla-info {
+  flex: 1;
 }
 
 .plantilla-title {
-  margin: 0;
+  margin: 0 0 0.25rem 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #212529;
+  color: #2c3e50;
+  line-height: 1.3;
+}
+
+.plantilla-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-weight: 400;
 }
 
 .plantilla-actions {
-  padding: 1rem 1.25rem;
   display: flex;
+  padding: 1rem 1.5rem;
+  background: white;
   gap: 0.75rem;
   justify-content: flex-end;
 }
 
 .btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 0.625rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  border: none;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+  left: 100%;
 }
 
 .btn-edit {
-  background: #28a745;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   color: white;
 }
 
 .btn-edit:hover {
-  background: #218838;
-}
-
-.btn-mapa {
-  background: #667eea;
-  color: white;
-}
-
-.btn-mapa:hover {
-  background: #5a67d8;
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
 }
 
 .btn-delete {
-  background: #dc3545;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   color: white;
 }
 
 .btn-delete:hover {
-  background: #c82333;
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
 }
 
-/* Modal */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+/* Modal con diseño moderno */
+.modal.fade.show {
+  background: rgba(0, 0, 0, 0.6);
+  
+}
+
+.modern-modal {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  background: white;
+  border: none;
+}
+
+.modal-header-custom {
+  padding: 2rem;
+  border-bottom: none;
+}
+
+.close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1050;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 1;
 }
 
-.modal-dialog {
-  max-width: 1140px;
-  width: 100%;
-  margin: 1.75rem auto;
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
 }
 
-.modal-content {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+.modal-body-custom {
+  padding: 2rem;
+  background: white;
 }
 
-.modal-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+/* Estilos para el mapa de plantilla */
+.btn-mapa {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-mapa:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  transform: translateY(-1px);
+}
+
+.mapa-modal {
+  height: 100vh;
+  border-radius: 0;
+}
+
+.mapa-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
-.modal-title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #212529;
+.mapa-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: #f8fafc;
 }
 
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  width: auto;
-  height: auto;
+.mapa-container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #e9ecef;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.btn-secondary:hover {
-  background: #5a6268;
-}
-
-/* Gráfica */
-.grafica-container h2 {
-  margin-bottom: 1.5rem;
-  color: #212529;
-  text-align: center;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #6c757d;
-  font-style: italic;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .plantilla-list {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .plantilla-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn {
-    justify-content: center;
-    width: 100%;
-  }
-
-  .modal-dialog {
-    margin: 1rem;
-    max-width: calc(100% - 2rem);
-  }
-}
 </style>

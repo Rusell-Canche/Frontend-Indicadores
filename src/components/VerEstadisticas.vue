@@ -3,6 +3,17 @@
     <!-- Contenedor principal-->
     <div class="card shadow border-0 rounded-3">
       <!-- Header con el diseño moderno -->
+      <div class="medico-header">
+        <div class="header-content">
+          <div class="header-icon">
+            <i class="fas fa-file-text"></i>
+          </div>
+          <div class="header-title-section">
+            <h3>Crear estadística</h3>
+            <p class="header-subtitle">Configura los campos para tu nueva estadística</p>
+          </div>
+        </div>
+      </div>
 
 
       <!-- Body con el diseño moderno -->
@@ -732,10 +743,7 @@ async submitForm() {
 </script>
 <style scoped>
 
-.container-fluid {
-  max-width: 2300px;
-  
-}
+
 
 .date-filter-simple {
   width: 100%;
@@ -837,7 +845,7 @@ async submitForm() {
 
 /* Header con el diseño moderno */
 .medico-header {
-  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
   padding: 2rem;
   display: flex;
   justify-content: space-between;
@@ -931,7 +939,7 @@ async submitForm() {
 }
 
 .section-title i {
-  color: #047857;
+  color: #ff8c00;
 }
 
 .form-label {
