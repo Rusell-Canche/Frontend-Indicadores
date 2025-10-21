@@ -4,7 +4,7 @@
     <div class="card shadow border-0 rounded-3">
       <!-- Header con el diseño moderno -->
       <div class="medico-header">
-       
+
         <div class="header-content">
           <div class="header-icon">
             <i class="fas fa-file-text"></i>
@@ -22,10 +22,10 @@
         <form @submit.prevent="submitForm">
 
 
-         <!-- Sección de información básica -->
-           <div class="form-section">
+          <!-- Sección de información básica -->
+          <div class="form-section">
             <h6 class="section-title">
-              <i class="fas fa-user me-2"></i>
+              <i class="fas fa-info-circle me-2"></i>
               Información básica
             </h6>
             <div>
@@ -33,18 +33,10 @@
                 <label class="form-label">Titulo*</label>
                 <div class="input-group modern-input">
                   <span class="input-group-text">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-font"></i>
                   </span>
-                  <input
-                    v-solo-texto
-                    v-model="titulo"
-                    type="text"
-                    id="nombre"
-                    name="nombre"
-                    class="form-control"
-                    required
-                    placeholder="Ingrese el nombre de la gráfica"
-                  />
+                  <input v-solo-texto v-model="titulo" type="text" id="nombre" name="nombre" class="form-control"
+                    required placeholder="Ingrese el nombre de la gráfica" />
                 </div>
               </div>
 
@@ -53,33 +45,23 @@
                 <label class="form-label">Descripción*</label>
                 <div class="input-group modern-input">
                   <span class="input-group-text">
-                    <i class="fas fa-envelope"></i>
+                    <i class="fas fa-font"></i>
                   </span>
-                  <input
-                    v-solo-correo
-                    v-model="descripcion"
-                    type="text"
-                    id="email"
-                    name="email"
-                    class="form-control"
-                    required
-                    placeholder="Ingrese alguna descripción de para la gráfica"
-                  />
+                  <input v-solo-correo v-model="descripcion" type="text" id="email" name="email" class="form-control"
+                    required placeholder="Ingrese alguna descripción de para la gráfica" />
                 </div>
               </div>
 
-                            <div class="col-md-12">
+              <div class="col-md-12">
                 <label class="form-label">Tipo de gráfica*</label>
                 <div class="input-group modern-input">
                   <span class="input-group-text">
-                    <i class="fas fa-venus-mars"></i>
+                    <i class="fas fa-font"></i>
                   </span>
                   <select v-model="tipoGrafica" id="genero" name="genero" class="form-control" required>
                     <option value="">Seleccione el tipo de gráfica</option>
                     <option value="bar">Barras</option>
                     <option value="line">Linea</option>
-              
-                    
                   </select>
                 </div>
               </div>
@@ -87,289 +69,184 @@
             </div>
           </div>
 
-<!-- Sección para el rango de rangos de la gráfica -->
-<div class="form-section">
-  <h6 class="section-title">
-    <i class="fas fa-shield-alt me-2"></i>
-    Rangos de fecha
-  </h6>
-
-  <!-- Selector de tipo global -->
-  <div class="mb-4">
-    <label class="form-label d-block">Tipo de rango:</label>
-    <div class="d-flex flex-wrap gap-3">
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="radio"
-          id="tipo-libre"
-          v-model="tipoGlobal"
-          value="libre"
-          @change="confirmarCambioTipo"
-        />
-        <label class="form-check-label" for="tipo-libre">Libre</label>
-      </div>
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="radio"
-          id="tipo-mes"
-          v-model="tipoGlobal"
-          value="mes"
-          @change="confirmarCambioTipo"
-        />
-        <label class="form-check-label" for="tipo-mes">Por mes</label>
-      </div>
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="radio"
-          id="tipo-ciclo"
-          v-model="tipoGlobal"
-          value="ciclo"
-          @change="confirmarCambioTipo"
-        />
-        <label class="form-check-label" for="tipo-ciclo">Por ciclo escolar</label>
-      </div>
-      <div class="form-check">
-        <input
-          class="form-check-input"
-          type="radio"
-          id="tipo-semestre"
-          v-model="tipoGlobal"
-          value="semestre"
-          @change="confirmarCambioTipo"
-        />
-        <label class="form-check-label" for="tipo-semestre">Por semestre</label>
-      </div>
-    </div>
-  </div>
-
-  <!-- Interfaz ÚNICA de selección -->
-  <div class="date-filter-simple mb-4 d-flex justify-content-center">
-    <!-- Libre: dos calendarios -->
-    <div v-if="tipoGlobal === 'libre'" class="d-flex gap-3 flex-wrap" style="max-width: 600px">
-      <div class="date-field" style="flex: 1; min-width: 220px">
-        <label for="fechaInicio" class="date-label">Fecha Inicio:</label>
-        <Calendar
-          id="fechaInicio"
-          v-model="tempInicio"
-          dateFormat="dd-mm-yy"
-          placeholder="Seleccionar fecha"
-          :showIcon="true"
-          class="w-100"
-        />
-      </div>
-      <div class="date-field" style="flex: 1; min-width: 220px">
-        <label for="fechaFin" class="date-label">Fecha Fin:</label>
-        <Calendar
-          id="fechaFin"
-          v-model="tempFin"
-          dateFormat="dd-mm-yy"
-          placeholder="Seleccionar fecha"
-          :showIcon="true"
-          class="w-100"
-        />
-      </div>
-    </div>
-
-    <!-- Por mes -->
-    <div v-else-if="tipoGlobal === 'mes'" class="date-field" style="width: 250px">
-      <label for="mes" class="date-label">Seleccionar mes/año:</label>
-      <Calendar
-        id="mes"
-        v-model="tempValor"
-        view="month"
-        dateFormat="mm/yy"
-        placeholder="Ej: 10/2025"
-        :showIcon="true"
-        class="w-100"
-      />
-    </div>
-
-    <!-- Por ciclo (año) -->
-    <div v-else-if="tipoGlobal === 'ciclo'" class="date-field" style="width: 250px">
-      <label for="anio" class="date-label">Seleccionar año:</label>
-      <Calendar
-        id="anio"
-        v-model="tempValor"
-        view="year"
-        dateFormat="yy"
-        placeholder="Ej: 2025"
-        :showIcon="true"
-        class="w-100"
-      />
-    </div>
-
-    <!-- Por semestre -->
-    <div v-else-if="tipoGlobal === 'semestre'" class="date-field" style="width: 250px">
-      <label for="semestreSelect" class="date-label">Seleccionar semestre:</label>
-      <select
-        id="semestreSelect"
-        v-model="tempValor"
-        class="form-control modern-input w-100"
-      >
-        <option value="">Seleccione un semestre</option>
-        <option
-          v-for="sem in SEMESTRES"
-          :key="sem.inicio"
-          :value="sem.inicio + '|' + sem.fin"
-        >
-          {{ sem.label }}
-        </option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Botón Agregar (siempre visible, centrado) -->
-  <div class="text-center mb-4">
-    <button
-      type="button"
-      @click="agregarRangoDesdeTemp"
-      :disabled="!puedeAgregarRango"
-      class="btn btn-primary"
-      style="padding: 0.5rem 1.5rem"
-    >
-      <i class="fas fa-plus me-1"></i> Agregar rango
-    </button>
-  </div>
-
-  <!-- Tabla de rangos agregados -->
-  <div v-if="rangos.length > 0" class="mt-4">
-    <h6 class="section-title">Rangos seleccionados</h6>
-    <DataTable
-      :value="rangos"
-      tableStyle="min-width: 40rem"
-      :showGridlines="true"
-    >
-      <Column header="Fecha Inicio" style="width: 30%">
-        <template #body="slotProps">
-          {{slotProps.data.inicio}}
-        </template>
-      </Column>
-      <Column header="Fecha Fin" style="width: 30%">
-        <template #body="slotProps">
-          {{slotProps.data.fin}}
-        </template>
-      </Column>
-      <Column header="Acciones" style="width: 20%; text-align: center">
-        <template #body="slotProps">
-          <Button
-            icon="fas fa-trash"
-            @click="eliminarRango(slotProps.index)"
-            text
-            severity="danger"
-            size="small"
-            v-tooltip="'Eliminar rango'"
-          />
-        </template>
-      </Column>
-    </DataTable>
-  </div>
-</div>
-
-
-<!-- Sección de las series o configuracion de la estadistica de la grafica -->
+          <!-- Sección para el rango de rangos de la gráfica -->
           <div class="form-section">
             <h6 class="section-title">
-              <i class="fas fa-user me-2"></i>
+              <i class="fas fa-arrows-h me-2"></i>
+              Rangos de fecha
+            </h6>
+
+            <!-- Selector de tipo global -->
+            <div class="mb-4">
+              <label class="form-label d-block">Tipo de rango:</label>
+              <div class="d-flex flex-wrap gap-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" id="tipo-libre" v-model="tipoGlobal" value="libre"
+                    @change="confirmarCambioTipo" />
+                  <label class="form-check-label" for="tipo-libre">Libre</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" id="tipo-mes" v-model="tipoGlobal" value="mes"
+                    @change="confirmarCambioTipo" />
+                  <label class="form-check-label" for="tipo-mes">Por mes</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" id="tipo-ciclo" v-model="tipoGlobal" value="ciclo"
+                    @change="confirmarCambioTipo" />
+                  <label class="form-check-label" for="tipo-ciclo">Por ciclo escolar</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" id="tipo-semestre" v-model="tipoGlobal" value="semestre"
+                    @change="confirmarCambioTipo" />
+                  <label class="form-check-label" for="tipo-semestre">Por semestre</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interfaz ÚNICA de selección -->
+            <div class="date-filter-simple mb-4 d-flex justify-content-center">
+              <!-- Libre: dos calendarios -->
+              <div v-if="tipoGlobal === 'libre'" class="d-flex gap-3 flex-wrap" style="max-width: 600px">
+                <div class="date-field" style="flex: 1; min-width: 220px">
+                  <label for="fechaInicio" class="date-label">Fecha Inicio:</label>
+                  <Calendar id="fechaInicio" v-model="tempInicio" dateFormat="dd-mm-yy" placeholder="Seleccionar fecha"
+                    :showIcon="true" class="w-100" />
+                </div>
+                <div class="date-field" style="flex: 1; min-width: 220px">
+                  <label for="fechaFin" class="date-label">Fecha Fin:</label>
+                  <Calendar id="fechaFin" v-model="tempFin" dateFormat="dd-mm-yy" placeholder="Seleccionar fecha"
+                    :showIcon="true" class="w-100" />
+                </div>
+              </div>
+
+              <!-- Por mes -->
+              <div v-else-if="tipoGlobal === 'mes'" class="date-field" style="width: 250px">
+                <label for="mes" class="date-label">Seleccionar mes/año:</label>
+                <Calendar id="mes" v-model="tempValor" view="month" dateFormat="mm/yy" placeholder="Ej: 10/2025"
+                  :showIcon="true" class="w-100" />
+              </div>
+
+              <!-- Por ciclo (año) -->
+              <div v-else-if="tipoGlobal === 'ciclo'" class="date-field" style="width: 250px">
+                <label for="anio" class="date-label">Seleccionar año:</label>
+                <Calendar id="anio" v-model="tempValor" view="year" dateFormat="yy" placeholder="Ej: 2025"
+                  :showIcon="true" class="w-100" />
+              </div>
+
+              <!-- Por semestre -->
+              <div v-else-if="tipoGlobal === 'semestre'" class="date-field" style="width: 250px">
+                <label for="semestreSelect" class="date-label">Seleccionar semestre:</label>
+                <select id="semestreSelect" v-model="tempValor" class="form-control modern-input w-100">
+                  <option value="">Seleccione un semestre</option>
+                  <option v-for="sem in SEMESTRES" :key="sem.inicio" :value="sem.inicio + '|' + sem.fin">
+                    {{ sem.label }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Botón Agregar (siempre visible, centrado) -->
+            <div class="text-center mb-4">
+              <button type="button" @click="agregarRangoDesdeTemp" :disabled="!puedeAgregarRango"
+                class="btn btn-primary" style="padding: 0.5rem 1.5rem">
+                <i class="fas fa-plus me-1"></i> Agregar rango
+              </button>
+            </div>
+
+            <!-- Tabla de rangos agregados -->
+            <div v-if="rangos.length > 0" class="mt-4">
+              <h6 class="section-title">Rangos seleccionados</h6>
+              <DataTable :value="rangos" tableStyle="min-width: 40rem" :showGridlines="true">
+                <Column header="Fecha Inicio" style="width: 30%">
+                  <template #body="slotProps">
+                    {{ slotProps.data.inicio }}
+                  </template>
+                </Column>
+                <Column header="Fecha Fin" style="width: 30%">
+                  <template #body="slotProps">
+                    {{ slotProps.data.fin }}
+                  </template>
+                </Column>
+                <Column header="Acciones" style="width: 20%; text-align: center">
+                  <template #body="slotProps">
+                    <Button icon="fas fa-trash" @click="eliminarRango(slotProps.index)" text severity="danger"
+                      size="small" v-tooltip="'Eliminar rango'" />
+                  </template>
+                </Column>
+              </DataTable>
+            </div>
+          </div>
+
+
+          <!-- Sección de las series o configuracion de la estadistica de la grafica -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-cog me-2"></i>
               Configuración estadística de la gráfica
             </h6>
             <div>
-<!-- Tabla de series agregadas -->
-<div v-if="series.length > 0" class="form-section mt-3">
-  <h6 class="section-title">
-    <i class="fas fa-list me-2"></i>
-    Series configuradas ({{ series.length }})
-  </h6>
+              <!-- Tabla de series agregadas -->
+              <div v-if="series.length > 0" class="form-section mt-3">
+                <h6 class="section-title">
+                  <i class="fas fa-list me-2"></i>
+                  Series configuradas ({{ series.length }})
+                </h6>
 
-  <DataTable
-    :value="series"
-    tableStyle="min-width: 50rem"
-    :showGridlines="true"
-  >
-    <Column field="name" header="Nombre de la serie" style="width: 15%" />
+                <DataTable :value="series" tableStyle="min-width: 50rem" :showGridlines="true">
+                  <Column field="name" header="Nombre de la serie" style="width: 15%" />
 
-    <Column header="Colección" style="width: 15%">
-      <template #body="slotProps">
-        {{ slotProps.data.configuracion.coleccion || '—' }}
-      </template>
-    </Column>
+                  <Column header="Colección" style="width: 15%">
+                    <template #body="slotProps">
+                      {{ slotProps.data.configuracion.coleccion || '—' }}
+                    </template>
+                  </Column>
 
-    <Column header="Operación" style="width: 12%">
-      <template #body="slotProps">
-        {{ slotProps.data.configuracion.operacion || '—' }}
-      </template>
-    </Column>
+                  <Column header="Operación" style="width: 12%">
+                    <template #body="slotProps">
+                      {{ slotProps.data.configuracion.operacion || '—' }}
+                    </template>
+                  </Column>
 
-    <Column header="Sección(es)" style="width: 20%">
-      <template #body="slotProps">
-        {{
-          Array.isArray(slotProps.data.configuracion.secciones)
-            ? slotProps.data.configuracion.secciones.join(', ')
-            : slotProps.data.configuracion.secciones || '—'
-        }}
-      </template>
-    </Column>
+                  <Column header="Sección(es)" style="width: 20%">
+                    <template #body="slotProps">
+                      {{
+                        Array.isArray(slotProps.data.configuracion.secciones)
+                          ? slotProps.data.configuracion.secciones.join(', ')
+                          : slotProps.data.configuracion.secciones || '—'
+                      }}
+                    </template>
+                  </Column>
 
-    <Column header="Campo fecha" style="width: 20%">
-      <template #body="slotProps">
-        {{
-          slotProps.data.configuracion.campoFechaFiltro?.[1] || '—'
-        }}
-      </template>
-    </Column>
-<Column header="Acciones" style="width: 15%; text-align: center">
-  <template #body="slotProps">
-    <!-- Botón Editar -->
-    <Button
-      icon="fas fa-edit"
-      @click="editarSerie(slotProps.index)"
-      text
-      severity="info"
-      size="small"
-      v-tooltip="'Editar serie'"
-      class="me-2"
-    />
-      <!-- Botón Clonar -->
-  <Button
-    icon="fas fa-copy"
-    @click="clonarSerie(slotProps.index)"
-    text
-    severity="secondary"
-    size="small"
-    v-tooltip="'Clonar serie'"
-    class="me-2"
-  />
-    <!-- Botón Eliminar -->
-    <Button
-      icon="fas fa-trash"
-      @click="eliminarSerie(slotProps.index)"
-      text
-      severity="danger"
-      size="small"
-      v-tooltip="'Eliminar serie'"
-    />
-  </template>
-</Column>
-  </DataTable>
-</div>
-<!-- Botón para agregar serie -->
-<button
-  type="button"
-  @click="abrirModalIndicadores"
-  class="btn-add-campo "
->
-  <i class="fas fa-plus"></i>
-  <span>Agregar Serie</span>
-</button>
-<ConfigurarIndicador 
-v-if="mostrarModal" 
-:noRedirigir="true"
-:modoEstadisticas="true"  
-:configuracion-edicion="serieEnEdicion"  
-@cerrar="mostrarModal = false; serieEnEdicion = null" 
-@configuracion-lista="manejarConfiguracionRecibida" />
+                  <Column header="Campo fecha" style="width: 20%">
+                    <template #body="slotProps">
+                      {{
+                        slotProps.data.configuracion.campoFechaFiltro?.[1] || '—'
+                      }}
+                    </template>
+                  </Column>
+                  <Column header="Acciones" style="width: 15%; text-align: center">
+                    <template #body="slotProps">
+                      <!-- Botón Editar -->
+                      <Button icon="fas fa-edit" @click="editarSerie(slotProps.index)" text severity="info" size="small"
+                        v-tooltip="'Editar serie'" class="me-2" />
+                      <!-- Botón Clonar -->
+                      <Button icon="fas fa-copy" @click="clonarSerie(slotProps.index)" text severity="secondary"
+                        size="small" v-tooltip="'Clonar serie'" class="me-2" />
+                      <!-- Botón Eliminar -->
+                      <Button icon="fas fa-trash" @click="eliminarSerie(slotProps.index)" text severity="danger"
+                        size="small" v-tooltip="'Eliminar serie'" />
+                    </template>
+                  </Column>
+                </DataTable>
+              </div>
+              <!-- Botón para agregar serie -->
+              <button type="button" @click="abrirModalIndicadores" class="btn-add-campo ">
+                <i class="fas fa-plus"></i>
+                <span>Agregar Serie</span>
+              </button>
+              <ConfigurarIndicador v-if="mostrarModal" :noRedirigir="true" :modoEstadisticas="true"
+                :configuracion-edicion="serieEnEdicion" @cerrar="mostrarModal = false; serieEnEdicion = null"
+                @configuracion-lista="manejarConfiguracionRecibida" />
 
             </div>
           </div>
@@ -380,40 +257,23 @@ v-if="mostrarModal"
               <i class="fas fa-eraser me-2"></i>
               Limpiar Formulario
             </button>
-                         <!-- Cancelar y limpiar todo -->
-  <button
-    v-if="ModoEditarGrafica"
-    type="button"
-    class="btn btn-cancel"
-    @click="cancelarEdicion"
-  >
-    <i class="fas fa-eraser me-2"></i>
-    Cancelar
-  </button>
-            <button
-              type="submit"
-              class="btn btn-save"
-              @mouseenter="isHovered = true"
-              @mouseleave="isHovered = false"
-            >
-              <span v-if="!isHovered" class="default-icon"
-                ><i class="fas fa-user-plus me-2"></i
-              ></span>
+            <!-- Cancelar y limpiar todo -->
+            <button v-if="ModoEditarGrafica" type="button" class="btn btn-cancel" @click="cancelarEdicion">
+              <i class="fas fa-eraser me-2"></i>
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-save" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
+              <span v-if="!isHovered" class="default-icon"><i class="fas fa-user-plus me-2"></i></span>
               <span v-else class="hover-icon"><i class="fas fa-user-check me-2"></i></span>
-  {{ ModoEditarGrafica ? 'Crear nueva gráfica a partir de esta configuración' : 'Crear Gráfica' }}
+              {{ ModoEditarGrafica ? 'Crear nueva gráfica a partir de esta configuración' : 'Crear Gráfica' }}
             </button>
             <!-- Botones de modo editar grafica -->
-              <!-- Actualizar gráfica -->
-  <button
-    v-if="ModoEditarGrafica"
-    type="button"
-    class="btn btn-save"
-    @click="submitForm"
-  >
-    <i class="fas fa-sync-alt me-2"></i>
-    Actualizar Gráfica
-  </button>
- 
+            <!-- Actualizar gráfica -->
+            <button v-if="ModoEditarGrafica" type="button" class="btn btn-save" @click="submitForm">
+              <i class="fas fa-sync-alt me-2"></i>
+              Actualizar Gráfica
+            </button>
+
 
           </div>
         </form>
@@ -448,23 +308,23 @@ export default {
     Button,
     DataTable,
     Column,
-    
+
 
   },
   computed: {
-  puedeAgregarRango() {
-    if (this.tipoGlobal === 'libre') {
-      return this.tempInicio && this.tempFin;
-    } else if (this.tipoGlobal === 'semestre') {
-      return !!this.tempValor;
-    } else {
-      // mes o ciclo
-      return !!this.tempValor;
+    puedeAgregarRango() {
+      if (this.tipoGlobal === 'libre') {
+        return this.tempInicio && this.tempFin;
+      } else if (this.tipoGlobal === 'semestre') {
+        return !!this.tempValor;
+      } else {
+        // mes o ciclo
+        return !!this.tempValor;
+      }
     }
-  }
-},
+  },
   data() {
-    
+
     return {
       titulo: '',
       descripcion: '',
@@ -476,184 +336,184 @@ export default {
       SEMESTRES, // para usar en el template
       ModoEditarGrafica: false,
       rangos: [],
-       tempInicio: null,
-    tempFin: null,
-    tempValor: null,
+      tempInicio: null,
+      tempFin: null,
+      tempValor: null,
       series: [],
       mostrarModal: false,
       isHovered: false
     }
   },
-  
-  methods: {
-     cancelarEdicion() {
-    this.ModoEditarGrafica = false; // Desactiva el modo edición
-    this.resetForm();               // Limpia el formulario
-  },
-      async obtenerGraficaPorId(id) {
-  try {
-    const response = await api.get(`/graficas/${id}`);
-    this.grafica = response.data.graficas; // o response.data según tu API
-    console.log("Gráfica obtenida:", this.grafica);
-    this.ModoEditarGrafica = true;
-    this.graficaId = id; 
-    // Rellenar el formulario con los datos de la consulta con el id obtenido de ver graficas
-    this.titulo = this.grafica.titulo;
-    this.descripcion = this.grafica.descripcion;
-    this.tipoGrafica = this.grafica.chartOptions.chart.type;
-    this.series = this.grafica.series; 
-    this.tipoGlobal = this.grafica.tipoRango; 
-    this.rangos = this.grafica.rangos;
 
-  } catch (error) {
-    console.error('Error al obtener la gráfica:', error);
-  }
-},
+  methods: {
+    cancelarEdicion() {
+      this.ModoEditarGrafica = false; // Desactiva el modo edición
+      this.resetForm();               // Limpia el formulario
+    },
+    async obtenerGraficaPorId(id) {
+      try {
+        const response = await api.get(`/graficas/${id}`);
+        this.grafica = response.data.graficas; // o response.data según tu API
+        console.log("Gráfica obtenida:", this.grafica);
+        this.ModoEditarGrafica = true;
+        this.graficaId = id;
+        // Rellenar el formulario con los datos de la consulta con el id obtenido de ver graficas
+        this.titulo = this.grafica.titulo;
+        this.descripcion = this.grafica.descripcion;
+        this.tipoGrafica = this.grafica.chartOptions.chart.type;
+        this.series = this.grafica.series;
+        this.tipoGlobal = this.grafica.tipoRango;
+        this.rangos = this.grafica.rangos;
+
+      } catch (error) {
+        console.error('Error al obtener la gráfica:', error);
+      }
+    },
     abrirModalIndicadores() {
       this.mostrarModal = true
     },
- 
-// Confirmar cambio de tipo si ya hay rangos
-  confirmarCambioTipo() {
-    if (this.rangos.length > 0) {
-      Swal.fire({
-        title: '¿Cambiar tipo de rango?',
-        text: 'Perderás todos los rangos agregados.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, cambiar',
-        cancelButtonText: 'Cancelar'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.rangos = [];
-          this.tipoGlobalAnterior = this.tipoGlobal;
-          this.limpiarTemporales();
-        } else {
-          this.$nextTick(() => {
-            this.tipoGlobal = this.tipoGlobalAnterior;
-          });
-        }
+
+    // Confirmar cambio de tipo si ya hay rangos
+    confirmarCambioTipo() {
+      if (this.rangos.length > 0) {
+        Swal.fire({
+          title: '¿Cambiar tipo de rango?',
+          text: 'Perderás todos los rangos agregados.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, cambiar',
+          cancelButtonText: 'Cancelar'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.rangos = [];
+            this.tipoGlobalAnterior = this.tipoGlobal;
+            this.limpiarTemporales();
+          } else {
+            this.$nextTick(() => {
+              this.tipoGlobal = this.tipoGlobalAnterior;
+            });
+          }
+        });
+      } else {
+        this.tipoGlobalAnterior = this.tipoGlobal;
+        this.limpiarTemporales();
+      }
+    },
+
+    limpiarTemporales() {
+      this.tempInicio = null;
+      this.tempFin = null;
+      this.tempValor = null;
+    },
+    agregarRangoDesdeTemp() {
+      let inicioDate = null;
+      let finDate = null;
+
+      if (this.tipoGlobal === 'libre') {
+        if (!this.tempInicio || !this.tempFin) return;
+        inicioDate = new Date(this.tempInicio);
+        finDate = new Date(this.tempFin);
+      } else if (this.tipoGlobal === 'mes' && this.tempValor) {
+        const d = new Date(this.tempValor);
+        const year = d.getFullYear();
+        const month = d.getMonth();
+        inicioDate = new Date(year, month, 1);
+        finDate = new Date(year, month + 1, 0);
+      } else if (this.tipoGlobal === 'ciclo' && this.tempValor) {
+        const year = new Date(this.tempValor).getFullYear();
+        inicioDate = new Date(year, 0, 1);
+        finDate = new Date(year, 11, 31);
+      } else if (this.tipoGlobal === 'semestre' && this.tempValor) {
+        const [inicioStr, finStr] = this.tempValor.split('|');
+        inicioDate = new Date(inicioStr);
+        finDate = new Date(finStr);
+      } else {
+        return;
+      }
+
+      if (isNaN(inicioDate) || isNaN(finDate)) return;
+
+      // ✅ Generar label usando los objetos Date
+      const label = this.generarLabelRango(inicioDate, finDate);
+
+      // ✅ Formatear fechas a string ANTES de guardar
+      const inicioStr = this.formatDateToDDMMYYYY(inicioDate);
+      const finStr = this.formatDateToDDMMYYYY(finDate);
+
+      // ✅ Guardar en el array como strings + label
+      this.rangos.push({
+        inicio: inicioStr,
+        fin: finStr,
+        label: label
       });
-    } else {
-      this.tipoGlobalAnterior = this.tipoGlobal;
+      console.log(this.rangos);
       this.limpiarTemporales();
-    }
-  },
-
-  limpiarTemporales() {
-    this.tempInicio = null;
-    this.tempFin = null;
-    this.tempValor = null;
-  },
-agregarRangoDesdeTemp() {
-  let inicioDate = null;
-  let finDate = null;
-
-  if (this.tipoGlobal === 'libre') {
-    if (!this.tempInicio || !this.tempFin) return;
-    inicioDate = new Date(this.tempInicio);
-    finDate = new Date(this.tempFin);
-  } else if (this.tipoGlobal === 'mes' && this.tempValor) {
-    const d = new Date(this.tempValor);
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    inicioDate = new Date(year, month, 1);
-    finDate = new Date(year, month + 1, 0);
-  } else if (this.tipoGlobal === 'ciclo' && this.tempValor) {
-    const year = new Date(this.tempValor).getFullYear();
-    inicioDate = new Date(year, 0, 1);
-    finDate = new Date(year, 11, 31);
-  } else if (this.tipoGlobal === 'semestre' && this.tempValor) {
-    const [inicioStr, finStr] = this.tempValor.split('|');
-    inicioDate = new Date(inicioStr);
-    finDate = new Date(finStr);
-  } else {
-    return;
-  }
-
-  if (isNaN(inicioDate) || isNaN(finDate)) return;
-
-  // ✅ Generar label usando los objetos Date
-  const label = this.generarLabelRango(inicioDate, finDate);
-
-  // ✅ Formatear fechas a string ANTES de guardar
-  const inicioStr = this.formatDateToDDMMYYYY(inicioDate);
-  const finStr = this.formatDateToDDMMYYYY(finDate);
-
-  // ✅ Guardar en el array como strings + label
-  this.rangos.push({
-    inicio: inicioStr,
-    fin: finStr,
-    label: label
-  });
-  console.log(this.rangos);
-  this.limpiarTemporales();
-},
+    },
     eliminarRango(index) {
-    this.rangos.splice(index, 1);
-  },
+      this.rangos.splice(index, 1);
+    },
 
 
-  eliminarSerie(index) {
-    this.series.splice(index, 1);
-  },
-  clonarSerie(index) {
-  const serieOriginal = this.series[index];
-  // Clonación profunda usando JSON.parse(JSON.stringify(...))
-  const serieClonada = {
-    name: `${serieOriginal.name} (Copia)`,
-    configuracion: JSON.parse(JSON.stringify(serieOriginal.configuracion))
-  };
-  this.series.push(serieClonada);
-},
-  editarSerie(index) {
- this.serieEnEdicion = { ...this.series[index] }; // Hacemos una copia
-  this.mostrarModal = true;
-},
+    eliminarSerie(index) {
+      this.series.splice(index, 1);
+    },
+    clonarSerie(index) {
+      const serieOriginal = this.series[index];
+      // Clonación profunda usando JSON.parse(JSON.stringify(...))
+      const serieClonada = {
+        name: `${serieOriginal.name} (Copia)`,
+        configuracion: JSON.parse(JSON.stringify(serieOriginal.configuracion))
+      };
+      this.series.push(serieClonada);
+    },
+    editarSerie(index) {
+      this.serieEnEdicion = { ...this.series[index] }; // Hacemos una copia
+      this.mostrarModal = true;
+    },
 
-   
+
     formatDateToDDMMYYYY(date) {
-  if (!date) return '';
-  const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0'); // +1 porque getMonth() empieza en 0
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-},
+      if (!date) return '';
+      const d = new Date(date);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0'); // +1 porque getMonth() empieza en 0
+      const year = d.getFullYear();
+      return `${day}-${month}-${year}`;
+    },
 
- manejarConfiguracionRecibida(data) {
-  if (!data || !data.nombre || !data.configuracion) {
-    Swal.fire('Error', 'Datos incompletos desde el modal', 'error');
-    return;
-  }
+    manejarConfiguracionRecibida(data) {
+      if (!data || !data.nombre || !data.configuracion) {
+        Swal.fire('Error', 'Datos incompletos desde el modal', 'error');
+        return;
+      }
 
-  const nuevaSerie = {
-    name: data.nombre,
-    configuracion: data.configuracion
-  };
+      const nuevaSerie = {
+        name: data.nombre,
+        configuracion: data.configuracion
+      };
 
-  if (this.serieEnEdicion) {
-    // ✅ Modo edición: encontrar el índice y reemplazar
-    const index = this.series.findIndex(
-      serie => serie.name === this.serieEnEdicion.name &&
-               // Opcional: comparar también la configuración si el nombre puede repetirse
-               JSON.stringify(serie.configuracion) === JSON.stringify(this.serieEnEdicion.configuracion)
-    );
+      if (this.serieEnEdicion) {
+        // ✅ Modo edición: encontrar el índice y reemplazar
+        const index = this.series.findIndex(
+          serie => serie.name === this.serieEnEdicion.name &&
+            // Opcional: comparar también la configuración si el nombre puede repetirse
+            JSON.stringify(serie.configuracion) === JSON.stringify(this.serieEnEdicion.configuracion)
+        );
 
-    if (index !== -1) {
-      this.series.splice(index, 1, nuevaSerie);
-    } else {
-      // Si no se encuentra (raro, pero posible), agregar como nueva
-      this.series.push(nuevaSerie);
-    }
-  } else {
-    // ✅ Modo creación: agregar nueva
-    this.series.push(nuevaSerie);
-  }
+        if (index !== -1) {
+          this.series.splice(index, 1, nuevaSerie);
+        } else {
+          // Si no se encuentra (raro, pero posible), agregar como nueva
+          this.series.push(nuevaSerie);
+        }
+      } else {
+        // ✅ Modo creación: agregar nueva
+        this.series.push(nuevaSerie);
+      }
 
-  this.mostrarModal = false;
-  this.serieEnEdicion = null; // Limpiar por seguridad
-},
+      this.mostrarModal = false;
+      this.serieEnEdicion = null; // Limpiar por seguridad
+    },
 
     resetForm() {
       this.titulo = ''
@@ -671,66 +531,66 @@ agregarRangoDesdeTemp() {
       const endYear = new Date(fin).getFullYear()
       return startYear === endYear ? `${startYear}` : `${startYear}-${endYear}`
     },
-async submitForm() {
-  if (!this.titulo || !this.descripcion || !this.tipoGrafica) {
-    Swal.fire('Error', 'Complete todos los campos obligatorios', 'error');
-    return;
-  }
+    async submitForm() {
+      if (!this.titulo || !this.descripcion || !this.tipoGrafica) {
+        Swal.fire('Error', 'Complete todos los campos obligatorios', 'error');
+        return;
+      }
 
-  if (this.series.length === 0) {
-    Swal.fire('Error', 'Debe agregar al menos una serie estadística', 'error');
-    return;
-  }
+      if (this.series.length === 0) {
+        Swal.fire('Error', 'Debe agregar al menos una serie estadística', 'error');
+        return;
+      }
 
-  if (this.rangos.length === 0) {
-    Swal.fire('Error', 'Debe agregar al menos un rango de fechas válido', 'error');
-    return;
-  }
+      if (this.rangos.length === 0) {
+        Swal.fire('Error', 'Debe agregar al menos un rango de fechas válido', 'error');
+        return;
+      }
 
-  const action = this.ModoEditarGrafica ? 'actualizar' : 'crear';
-  const result = await Swal.fire({
-    title: this.ModoEditarGrafica ? '¿Actualizar gráfica?' : '¿Crear gráfica?',
-    text: this.ModoEditarGrafica
-      ? `Se actualizará la gráfica "${this.titulo}".`
-      : `Se creará una gráfica de tipo "${this.tipoGrafica}" con el título "${this.titulo}".`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: `Sí, ${action}`,
-    cancelButtonText: 'Cancelar'
-  });
+      const action = this.ModoEditarGrafica ? 'actualizar' : 'crear';
+      const result = await Swal.fire({
+        title: this.ModoEditarGrafica ? '¿Actualizar gráfica?' : '¿Crear gráfica?',
+        text: this.ModoEditarGrafica
+          ? `Se actualizará la gráfica "${this.titulo}".`
+          : `Se creará una gráfica de tipo "${this.tipoGrafica}" con el título "${this.titulo}".`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: `Sí, ${action}`,
+        cancelButtonText: 'Cancelar'
+      });
 
-  if (!result.isConfirmed) return;
+      if (!result.isConfirmed) return;
 
-  const payload = {
-    titulo: this.titulo,
-    descripcion: this.descripcion,
-    series: this.series,
-    tipoRango: this.tipoGlobal,
-    rangos: this.rangos,
-    chartOptions: {
-      chart: { height: 350, type: this.tipoGrafica },
-      dataLabels: { enabled: false },
-      stroke: { show: true, width: 2 }
+      const payload = {
+        titulo: this.titulo,
+        descripcion: this.descripcion,
+        series: this.series,
+        tipoRango: this.tipoGlobal,
+        rangos: this.rangos,
+        chartOptions: {
+          chart: { height: 350, type: this.tipoGrafica },
+          dataLabels: { enabled: false },
+          stroke: { show: true, width: 2 }
+        }
+      };
+
+      try {
+        if (this.ModoEditarGrafica) {
+          // ✅ PUT usando tu servicio `api`
+          await api.put(`graficas/${this.graficaId}`, payload);
+          Swal.fire('¡Éxito!', 'Gráfica actualizada correctamente', 'success');
+        } else {
+          // ✅ POST usando tu servicio `api`
+          await api.post('graficas', payload);
+          Swal.fire('¡Éxito!', 'Gráfica creada correctamente', 'success');
+        }
+
+        this.resetForm();
+      } catch (error) {
+        console.error('Error en submitForm:', error);
+        Swal.fire('Error', error.response?.data?.message || 'No se pudo completar la operación', 'error');
+      }
     }
-  };
-
-  try {
-    if (this.ModoEditarGrafica) {
-      // ✅ PUT usando tu servicio `api`
-      await api.put(`graficas/${this.graficaId}`, payload);
-      Swal.fire('¡Éxito!', 'Gráfica actualizada correctamente', 'success');
-    } else {
-      // ✅ POST usando tu servicio `api`
-      await api.post('graficas', payload);
-      Swal.fire('¡Éxito!', 'Gráfica creada correctamente', 'success');
-    }
-
-    this.resetForm();
-  } catch (error) {
-    console.error('Error en submitForm:', error);
-    Swal.fire('Error', error.response?.data?.message || 'No se pudo completar la operación', 'error');
-  }
-}
   },
 
 
@@ -743,9 +603,6 @@ async submitForm() {
 }
 </script>
 <style scoped>
-
-
-
 .date-filter-simple {
   width: 100%;
   position: relative;
@@ -763,10 +620,12 @@ async submitForm() {
 
 
 :deep(.p-datatable .p-datatable-tbody > tr > td) {
-  padding: 0.015rem 0.75rem; /* Reduce el padding interno */
-  
-  
+  padding: 0.015rem 0.75rem;
+  /* Reduce el padding interno */
+
+
 }
+
 .date-field {
   margin-bottom: 1rem;
 }
@@ -786,7 +645,8 @@ async submitForm() {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #ef4444; /* rojo moderno */
+  background-color: #ef4444;
+  /* rojo moderno */
   color: white;
   border: none;
   display: flex;
@@ -814,9 +674,11 @@ async submitForm() {
 :deep(.p-calendar) {
   width: 100%;
 }
+
 :deep(.p-inputtext) {
   width: 100%;
 }
+
 .btn-primary {
   background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   border: none;
@@ -835,6 +697,7 @@ async submitForm() {
   box-shadow: 0 8px 25px rgba(4, 120, 87, 0.4);
   color: white;
 }
+
 /* Estilos base del diseño moderno */
 .card {
   border-radius: 20px;
@@ -1067,7 +930,7 @@ async submitForm() {
   transform: translateY(-1px);
 }
 
-.custom-checkbox:checked ~ .checkmark {
+.custom-checkbox:checked~.checkmark {
   background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   border-color: #047857;
   box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
@@ -1086,7 +949,7 @@ async submitForm() {
   transform: rotate(45deg);
 }
 
-.custom-checkbox:checked ~ .checkmark:after {
+.custom-checkbox:checked~.checkmark:after {
   display: block;
 }
 
@@ -1265,10 +1128,12 @@ async submitForm() {
 
 /* Animaciones */
 @keyframes shimmer {
+
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
+
   50% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
   }
