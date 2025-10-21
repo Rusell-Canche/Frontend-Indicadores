@@ -1,5 +1,5 @@
 <template>
-  <!-- Sección simple para elegir fecha de inicio y fecha fin -->
+  <!-- Sección simple para elegir fecha de inicio, fecha fin y tipo de indicador -->
   <div class="date-filter-simple mb-3">
     <div class="filter-row">
       <div class="date-field">
@@ -24,6 +24,20 @@
         />
       </div>
 
+      <div class="date-field">
+        <label for="tipoIndicador" class="date-label">Tipo de Indicador:</label>
+        <Dropdown
+          id="tipoIndicador"
+          v-model="tipoIndicadorSeleccionado"
+          :options="tiposIndicador"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Todos los tipos"
+          :showClear="true"
+          class="w-full"
+        />
+      </div>
+
       <div class="filter-buttons">
         <Button
           label="Filtrar"
@@ -36,7 +50,7 @@
           label="Limpiar"
           icon="pi pi-times"
           @click="limpiarFiltro"
-          v-if="fechaInicio || fechaFin"
+          v-if="fechaInicio || fechaFin || tipoIndicadorSeleccionado"
           class="p-button-secondary ml-2"
         />
       </div>
@@ -85,9 +99,9 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-              <Badge :value="`${indicadores.length} Total`" severity="info" size="large"></Badge>
+              <Badge :value="`${indicadoresFiltrados.length} Total`" severity="info" size="large"></Badge>
               <Badge
-                v-if="fechaInicio || fechaFin"
+                v-if="fechaInicio || fechaFin || tipoIndicadorSeleccionado"
                 value="Filtrado"
                 severity="success"
                 size="large"
@@ -98,10 +112,10 @@
       </template>
 
       <DataTable
-        :value="indicadores"
+        :value="indicadoresFiltrados"
         :paginator="true"
         :rows="itemsPerPage"
-        :totalRecords="indicadores.length"
+        :totalRecords="indicadoresFiltrados.length"
         paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 15, 20]"
         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
@@ -158,7 +172,7 @@
           <template #body="slotProps">
             <div>
               <div class="fw-semibold text-dark">{{ slotProps.data.nombreIndicador }}</div>
-              <small class="text-muted">Indicador principal</small>
+              <small class="text-muted">{{ slotProps.data.tipoIndicador }}</small>
             </div>
           </template>
         </Column>
@@ -346,7 +360,7 @@
 
       <template #footer>
         <div class="d-flex justify-content-between align-items-center">
-          <span>Total: {{ indicadores.length }} indicadores</span>
+          <span>Total: {{ indicadoresFiltrados.length }} indicadores</span>
           <span>Última actualización: {{ new Date().toLocaleString() }}</span>
         </div>
       </template>
@@ -365,6 +379,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Calendar from 'primevue/calendar'
+import Dropdown from 'primevue/dropdown'
 import Panel from 'primevue/panel'
 import Badge from 'primevue/badge'
 import Toast from 'primevue/toast'
@@ -376,6 +391,7 @@ export default {
     Column,
     Button,
     Calendar,
+    Dropdown,
     Panel,
     Badge,
     Toast,
@@ -398,9 +414,24 @@ export default {
       fechaInicio: inicioAno,
       fechaFin: hoy,
       vistaActual: 'resumen',
+      tipoIndicadorSeleccionado: null,
+      tiposIndicador: [
+        { label: 'Planeación', value: 'Planeacion' },
+        { label: 'Subdirección', value: 'Subdireccion' },
+      ],
     }
   },
   computed: {
+    // Filtrado solo por tipo de indicador (en frontend)
+    indicadoresFiltrados() {
+      if (!this.tipoIndicadorSeleccionado) {
+        return this.indicadores
+      }
+      
+      return this.indicadores.filter(
+        (indicador) => indicador.tipoIndicador === this.tipoIndicadorSeleccionado
+      )
+    },
     mostrarColumnaProyecto() {
       return this.vistaActual === 'resumen'
     },
@@ -439,8 +470,7 @@ export default {
       try {
         this.loading = true
 
-        const response = await api.get('/indicadores', {
-        })
+        const response = await api.get('/indicadores')
 
         if (response.status === 200) {
           if (Array.isArray(response.data.indicadores)) {
@@ -508,10 +538,7 @@ export default {
           fin: formatearFecha(this.fechaFin),
         }
 
-        const response = await api.post(
-          '/indicadores/filterByDates',
-          fechas,
-        )
+        const response = await api.post('/indicadores/filterByDates', fechas)
 
         if (response.status === 200) {
           if (Array.isArray(response.data.indicadores)) {
@@ -538,6 +565,7 @@ export default {
     limpiarFiltro() {
       this.fechaInicio = null
       this.fechaFin = null
+      this.tipoIndicadorSeleccionado = null
       this.fetchIndicadores() // Recargar todos los indicadores
     },
 
@@ -594,9 +622,7 @@ export default {
 
         console.log('Eliminando indicador con ID:', idIndicador) // Debug
 
-        const response = await api.delete(
-          `/indicadores/${idIndicador}`,
-        )
+        const response = await api.delete(`/indicadores/${idIndicador}`)
 
         if (response.status === 200) {
           this.mostrarNotificacion('Indicador eliminado exitosamente', 'success')
@@ -609,15 +635,10 @@ export default {
         }
       } catch (error) {
         console.error('Error completo al eliminar:', error)
-
-        // Mostrar error con SweetAlert2
-        await Swal.fire({
-          title: 'Error',
-          text: 'No se pudo eliminar el indicador. Por favor, intenta nuevamente.',
-          icon: 'error',
-          confirmButtonColor: '#3085d6',
-        })
-
+        this.mostrarNotificacion(
+          'No se pudo eliminar el indicador. Por favor, intenta nuevamente.',
+          'error'
+        )
         this.manejarErrores(error)
       }
     },
