@@ -46,7 +46,11 @@
                 </div>
                 <div class="d-flex gap-2 align-items-center">
                   <label class="form-label mb-0 me-2">Mostrar:</label>
-                  <select v-model="elementosPorPagina" class="form-select form-select-sm" style="width: auto;">
+                  <select
+                    v-model="elementosPorPagina"
+                    class="form-select form-select-sm"
+                    style="width: auto"
+                  >
                     <option value="5">5</option>
                   </select>
                   <button
@@ -109,8 +113,14 @@
                             type="button"
                             class="btn btn-sm btn-success"
                             @click="seleccionarFilaTabla(fila)"
-                            :disabled="tablaSeleccionada.some(f => f._documentId === fila._documentId)"
-                            :title="tablaSeleccionada.some(f => f._documentId === fila._documentId) ? 'Ya seleccionado' : 'Seleccionar'"
+                            :disabled="
+                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                            "
+                            :title="
+                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                                ? 'Ya seleccionado'
+                                : 'Seleccionar'
+                            "
                           >
                             <i class="fas fa-plus"></i>
                           </button>
@@ -597,10 +607,10 @@ export default {
       if (!this.busquedaTabla) {
         return this.datosTablaDisponibles
       }
-      
+
       const busqueda = this.busquedaTabla.toLowerCase()
-      return this.datosTablaDisponibles.filter(fila => {
-        return this.tablaActual.tableConfig.campos.some(columna => {
+      return this.datosTablaDisponibles.filter((fila) => {
+        return this.tablaActual.tableConfig.campos.some((columna) => {
           const valor = this.obtenerValorCampo(fila, columna)?.toString().toLowerCase() || ''
           return valor.includes(busqueda)
         })
@@ -617,7 +627,7 @@ export default {
     // Calcula el total de páginas
     totalPaginas() {
       return Math.ceil(this.datosFiltrados.length / this.elementosPorPagina)
-    }
+    },
   },
   methods: {
     actualizarSubformulario(nombreCampo, nuevoValor) {
@@ -629,7 +639,7 @@ export default {
       this.tablaActual = campo
       this.modalTablaVisible = true
       this.busquedaTabla = '' // Resetear búsqueda
-      this.paginaActual = 1   // Resetear a primera página
+      this.paginaActual = 1 // Resetear a primera página
       this.tablaSeleccionada = [...(this.tablaData[campo.name] || [])]
 
       try {
@@ -1070,7 +1080,7 @@ export default {
 
       const formData = new FormData()
 
-      // Construir estructura por secciones con soporte para subformularios y tablas anidados
+      // Construir estructura por secciones 
       const seccionesData = []
 
       this.seccionesPlantilla.forEach((seccion) => {
@@ -1079,16 +1089,14 @@ export default {
 
         camposDeSeccion.forEach((campo) => {
           if (campo.type === 'subform') {
-            // Para subformularios, usar la estructura anidada
             fields[campo.name] = this.subformData[campo.name] || []
           } else if (campo.type === 'tabla') {
-            // Para tablas, enviar solo los IDs de los documentos seleccionados
             const tablaIds = (this.tablaData[campo.name] || [])
               .map((fila) => fila._documentId)
               .filter((id) => id)
             fields[campo.name] = tablaIds
           } else if (campo.type === 'file') {
-            // Para archivos, el manejo sigue igual
+            // Para archivos, mantener null en los datos JSON
             fields[campo.name] = null
           } else {
             fields[campo.name] = this.documentData[campo.name] || ''
@@ -1101,17 +1109,47 @@ export default {
         })
       })
 
-      // Adjuntar la estructura final al formData
+      // Adjuntar la estructura final al formData 
       formData.append('document_data[secciones]', JSON.stringify(seccionesData))
 
-      // Adjuntar archivos
+      let fileIndex = 0
+
+      // Archivos de campos file principales
       for (const fieldName in this.files) {
-        this.files[fieldName].forEach((file, index) => {
-          formData.append(`archivos[${fieldName}][${index}]`, file)
-        })
+        if (this.files[fieldName] && Array.isArray(this.files[fieldName])) {
+          this.files[fieldName].forEach((file) => {
+            if (file instanceof File) {
+              // 'files'
+              formData.append(`files[${fileIndex}]`, file)
+              fileIndex++
+            }
+          })
+        }
       }
 
-      // Enviar solicitud
+      // Archivos de subformularios 
+      for (const fieldName in this.subformFiles) {
+        if (this.subformFiles[fieldName] && Array.isArray(this.subformFiles[fieldName])) {
+          this.subformFiles[fieldName].forEach((filaArchivos) => {
+            for (const subcampoName in filaArchivos) {
+              const archivo = filaArchivos[subcampoName]
+              if (archivo instanceof File) {
+                formData.append(`files[${fileIndex}]`, archivo)
+                fileIndex++
+              }
+            }
+          })
+        }
+      }
+      // Debug: verificar qué archivos se están enviando
+      console.log('Archivos a enviar:')
+      for (let pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(`- ${pair[0]}: ${pair[1].name}`)
+        }
+      }
+
+      // Enviar solicitud 
       try {
         const token = localStorage.getItem('apiToken')
         const response = await api.post(`/documentos/${this.selectedPlantilla}`, formData, {
@@ -1882,7 +1920,7 @@ export default {
   top: 0;
   background: white;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .table-hover tbody tr:hover {
@@ -1913,15 +1951,15 @@ export default {
     margin: 0.5rem;
     max-width: calc(100% - 1rem);
   }
-  
+
   .medico-body.modal-body-custom {
     padding: 1rem;
   }
-  
+
   .table-responsive {
     font-size: 0.8rem;
   }
-  
+
   .pagination-controls {
     flex-wrap: wrap;
     justify-content: center;
