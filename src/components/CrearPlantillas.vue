@@ -1071,36 +1071,11 @@ export default {
       const seccion = this.seccionesPlantilla.find((s) => s.nombre === this.seccionSeleccionada)
       if (seccion && seccion.fields) {
         this.camposSeccion = seccion.fields
-        await this.cargarVistaPrevia()
+        
       }
     },
 
-    async cargarVistaPrevia() {
-      if (!this.plantillaSeleccionada || !this.seccionSeleccionada || !this.campoMostrar) return
-
-      this.cargandoOpciones = true
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await api.get(`/plantillas/${this.plantillaSeleccionada}/datos`, {
-          params: {
-            seccion: this.seccionSeleccionada,
-            campo: this.campoMostrar,
-          },
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        const valores = response.data || []
-        this.opcionesPreview = [...new Set(valores.map((item) => item[this.campoMostrar]))].slice(
-          0,
-          10,
-        )
-      } catch (error) {
-        console.error('Error al cargar vista previa:', error)
-        this.opcionesPreview = []
-      } finally {
-        this.cargandoOpciones = false
-      }
-    },
+    
 
     aplicarConfiguracionPlantilla() {
       if (!this.configuracionValida) return
@@ -1146,7 +1121,7 @@ export default {
           this.tablaSeccionSeleccionada = campo.tableConfig.seccion
           await this.onTablaSeccionSeleccionada()
           this.tablaCamposSeleccionados = [...campo.tableConfig.campos]
-          await this.actualizarVistaPreviewTabla()
+          
         }
       } catch (error) {
         console.error('Error al cargar plantillas:', error)
@@ -1205,35 +1180,7 @@ export default {
       }
     },
 
-    async actualizarVistaPreviewTabla() {
-      if (
-        !this.tablaPlantillaSeleccionada ||
-        !this.tablaSeccionSeleccionada ||
-        this.tablaCamposSeleccionados.length === 0
-      ) {
-        this.tablaPreviewData = []
-        return
-      }
-
-      this.cargandoOpcionesTabla = true
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await api.get(`/plantillas/${this.tablaPlantillaSeleccionada}/datos`, {
-          params: {
-            seccion: this.tablaSeccionSeleccionada,
-          },
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        // Limitar a las primeras 5 filas para preview
-        this.tablaPreviewData = (response.data || []).slice(0, 5)
-      } catch (error) {
-        console.error('Error al cargar datos de tabla:', error)
-        this.tablaPreviewData = []
-      } finally {
-        this.cargandoOpcionesTabla = false
-      }
-    },
+    
 
     aplicarConfiguracionTabla() {
       if (!this.configuracionTablaValida) return
