@@ -7,9 +7,35 @@
           <h5 class="modal-title">Plantilla: {{ jsonData.nombre_plantilla || 'Sin nombre' }}</h5>
           <button type="button" class="btn-close btn-close-white" @click="cerrar"></button>
         </div>
-
+        
         <!-- Body -->
         <div class="modal-body bg-light">
+          <!-- 🔹 ACOTACIONES SUPERIORES -->
+          <div
+            class="mb-4 p-3 rounded bg-white border border-dark d-flex flex-wrap align-items-center justify-content-around acotaciones-sticky rba"
+            style="background-color: #e6e6e6;"
+          >
+            <div class="d-flex align-items-center me-3 mb-2">
+              <span class="acotacion-circulo" style="background-color: #8a7968;"></span>
+              <span class="ms-2 fw-bold">Secciones</span>
+            </div>
+            <div class="d-flex align-items-center me-3 mb-2">
+              <span class="acotacion-circulo" style="background-color: #fd8b00;"></span>
+              <span class="ms-2 fw-bold">Tablas</span>
+            </div>
+            <div class="d-flex align-items-center me-3 mb-2">
+              <span class="acotacion-circulo" style="background-color: #ffdd00;"></span>
+              <span class="ms-2 fw-bold">Campos atómicos</span>
+            </div>
+            <div class="d-flex align-items-center me-3 mb-2">
+              <span class="acotacion-circulo" style="background-color: #0070C0;"></span>
+              <span class="ms-2 fw-bold">Subformularios</span>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+              <span class="acotacion-circulo" style="background-color: #52b788;"></span>
+              <span class="ms-2 fw-bold">Cuadros de selección</span>
+            </div>
+          </div>
           <!-- Secciones -->
           <div
             v-for="(seccion, i) in jsonData.secciones || []"
@@ -59,19 +85,22 @@ export default {
       let clases = 'mb-3 mt-3 p-3  rounded '
       let estilos = `margin-left:${tab}px;border: 3px solid black;`
 
-      if (
-        (!campo.options || campo.options.length === 0) &&
-        (!campo.subcampos || campo.subcampos.length === 0) &&
-        campo.type !== 'subform'
-      ) {
-        clases += 'CamposSinElementos'
-      } else if (campo.type === 'subform') {
-        estilos += `background-color:${this.getSubformColor(nivel)};`
-      } else if (campo.type === 'select') {
-        clases += 'SelectsDivs'
-      } else {
-        clases += 'SelectsDivs'
-      }
+     if (campo.type === 'tabla') {
+  clases += ' TablaDiv'
+} else if (campo.type === 'subform') {
+  estilos += `background-color:${this.getSubformColor(nivel)};`
+} else if (campo.type === 'select') {
+  clases += 'SelectsDivs'
+} else if (
+  (!campo.options || campo.options.length === 0) &&
+  (!campo.subcampos || campo.subcampos.length === 0) &&
+  campo.type !== 'subform'
+) {
+  clases += 'CamposSinElementos'
+} else {
+  clases += 'SelectsDivs'
+}
+
 
       let html = `<div class="${clases}" style="${estilos}">`
       html += `<strong>${campo.name || 'Sin nombre'}</strong>`
@@ -117,12 +146,22 @@ export default {
     html += this.renderCampo(subcampo, nivel + 1)
   })
 }
+  // Campos internos de tabla (robusto)
+if (campo.type === 'tabla') {
+  console.log("entre en el else if de tipo tabla")
+   clases += ' TablaDiv'
+  const innerCampos = campo.campos || (campo.tableConfig && campo.tableConfig.campos) || []
+  innerCampos.forEach((subcampo) => {
+    html += this.renderCampo({ name: subcampo, type: 'text' }, nivel + 1)
+  })
+}
 
 
       html += `</div>`
       return html
     },
   },
+  
 }
 </script>
 
@@ -135,4 +174,21 @@ export default {
   background-color: #52b788 !important;
   border: 3px solid black;
 }
+.TablaDiv {
+  background-color: #fd8b00 !important;
+  border: 3px solid black;
+}
+.acotacion-circulo {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: 3px solid black;
+  display: inline-block;
+}
+.acotaciones-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
 </style>
