@@ -6,9 +6,9 @@
         <div class="header-left">
           <h1 class="main-title">
             <i class="fa fa-chart-bar me-3"></i>
-            Estadisticas
+            Estadísticas
           </h1>
-          <p class="main-subtitle">Sistema de gestión de Estadisticas</p>
+          <p class="main-subtitle"></p>
         </div>
       </div>
     </div>
@@ -26,8 +26,8 @@
               <i class="fa-solid fa-chart-line"></i>
             </div>
             <div class="tab-content-text">
-              <span class="tab-title">Crear Estadisticas</span>
-              <span class="tab-description">Creacion de estadisticas con parámetros</span>
+              <span class="tab-title">Crear Estadísticas</span>
+              <span class="tab-description">Creación de estadísticas</span>
             </div>
           </div>
           
@@ -40,8 +40,8 @@
               <i class="fas fa-chart-pie"></i>
             </div>
             <div class="tab-content-text">
-              <span class="tab-title">Historial de Estadisticas</span>
-              <span class="tab-description">Ver todas las Estadisticas creadas</span>
+              <span class="tab-title">Ver Estadísticas</span>
+              <span class="tab-description">Ver todas las Estadísticas creadas</span>
             </div>
           </div>
           

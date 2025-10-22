@@ -9,7 +9,7 @@
           </div>
           <div class="header-title-section">
             <h3>Historial de estadísticas</h3>
-            <p class="header-subtitle">Administra las estadísticas creadas</p>
+            <p class="header-subtitle">Estadísticas creadas</p>
           </div>
         </div>
 
@@ -66,9 +66,9 @@
             <i class="fas fa-edit"></i>
             <span>Editar</span>
           </button>
-          <button @click="abrirVistaGrafica(grafica.id)" class="btn btn-mapa" title="Ver mapa de la plantilla">
-            <i class="fas fa-project-diagram"></i>
-            <span>Mapa</span>
+          <button @click="abrirVistaGrafica(grafica.id)" class="btn btn-mapa" title="Ver">
+            <i class="fas fa-eye"></i>
+            <span>Ver</span>
           </button>
           <button @click="eliminarGrafica(grafica.id)" class="btn btn-delete" title="Eliminar plantilla">
             <i class="fas fa-trash-alt"></i>
