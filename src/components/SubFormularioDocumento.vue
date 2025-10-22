@@ -916,62 +916,94 @@ export default {
     },
 
     guardarEntrada() {
-      // Validar campos requeridos
-      const camposRequeridos = this.campo.subcampos.filter((sub) => sub.required)
-      const esValido = camposRequeridos.every((sub) => {
-        if (sub.type === 'subform') {
-          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
-        }
-        if (sub.type === 'checkBox') {
-          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
-        }
-        if (sub.type === 'tabla') {
-          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
-        }
-        return (
-          this.datosTemporales[sub.name] !== undefined &&
-          this.datosTemporales[sub.name] !== null &&
-          this.datosTemporales[sub.name] !== ''
-        )
-      })
+  // Validar campos requeridos
+  const camposRequeridos = this.campo.subcampos.filter((sub) => sub.required)
+  const esValido = camposRequeridos.every((sub) => {
+    if (sub.type === 'subform') {
+      return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
+    }
+    if (sub.type === 'checkBox') {
+      return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
+    }
+    if (sub.type === 'tabla') {
+      return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
+    }
+    if (sub.type === 'file') {
+      // Para archivos, verificar si hay un archivo nuevo o uno existente
+      return this.datosTemporales[sub.name] !== undefined && 
+             this.datosTemporales[sub.name] !== null
+    }
+    return (
+      this.datosTemporales[sub.name] !== undefined &&
+      this.datosTemporales[sub.name] !== null &&
+      this.datosTemporales[sub.name] !== ''
+    )
+  })
 
-      if (!esValido) {
-        this.mostrarError('Complete todos los campos requeridos')
-        return
-      }
+  if (!esValido) {
+    this.mostrarError('Complete todos los campos requeridos')
+    return
+  }
 
-      if (this.indiceEditando === -1) {
-        this.filas.push({ ...this.datosTemporales })
+  // Preparar datos para guardar - CORREGIDO PARA ARCHIVOS
+  const datosParaGuardar = {}
+  
+  this.campo.subcampos.forEach((sub) => {
+    if (sub.type === 'file') {
+      // Para archivos, mantener la referencia del archivo
+      if (this.datosTemporales[sub.name] instanceof File) {
+        // Es un archivo nuevo - mantener el objeto File
+        datosParaGuardar[sub.name] = this.datosTemporales[sub.name]
+      } else if (typeof this.datosTemporales[sub.name] === 'string') {
+        // Es una ruta existente (al editar)
+        datosParaGuardar[sub.name] = this.datosTemporales[sub.name]
       } else {
-        this.filas[this.indiceEditando] = { ...this.datosTemporales }
+        datosParaGuardar[sub.name] = null
       }
+    } else {
+      // Para otros tipos de campos, copiar el valor directamente
+      datosParaGuardar[sub.name] = this.datosTemporales[sub.name]
+    }
+  })
 
-      this.emitirActualizacion()
-      this.cerrarModal()
-    },
+  if (this.indiceEditando === -1) {
+    // Agregar nueva fila
+    this.filas.push(datosParaGuardar)
+  } else {
+    // Actualizar fila existente
+    this.filas[this.indiceEditando] = datosParaGuardar
+  }
+
+  this.emitirActualizacion()
+  this.cerrarModal()
+},
 
     inicializarDatosTemporales() {
-      const datos = {}
-      this.campo.subcampos.forEach((sub) => {
-        if (sub.type === 'subform') {
-          datos[sub.name] = []
-        } else if (sub.type === 'checkBox') {
-          datos[sub.name] = []
-        } else if (sub.type === 'tabla') {
-          datos[sub.name] = []
-        } else {
-          datos[sub.name] = ''
-        }
-      })
-      return datos
-    },
+    const datos = {}
+    this.campo.subcampos.forEach((sub) => {
+      if (sub.type === 'subform') {
+        datos[sub.name] = []
+      } else if (sub.type === 'checkBox') {
+        datos[sub.name] = []
+      } else if (sub.type === 'tabla') {
+        datos[sub.name] = []
+      } else if (sub.type === 'file') {
+        datos[sub.name] = null
+      } else {
+        datos[sub.name] = ''
+      }
+    })
+    return datos
+  },
+
 
     onCambioArchivo(event, nombreCampo) {
-      const archivo = event.target.files[0]
-      if (archivo) {
-        this.datosTemporales[nombreCampo] = archivo
-      }
-    },
+    const archivo = event.target.files[0]
+    if (archivo) {
+      // Guardar el archivo directamente en datosTemporales
+      this.datosTemporales[nombreCampo] = archivo
+    }
+  },
 
     actualizarSubcampoAnidado(nombreCampo, nuevoValor) {
       this.datosTemporales[nombreCampo] = nuevoValor

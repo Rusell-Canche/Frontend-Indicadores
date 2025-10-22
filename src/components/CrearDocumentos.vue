@@ -46,7 +46,11 @@
                 </div>
                 <div class="d-flex gap-2 align-items-center">
                   <label class="form-label mb-0 me-2">Mostrar:</label>
-                  <select v-model="elementosPorPagina" class="form-select form-select-sm" style="width: auto;">
+                  <select
+                    v-model="elementosPorPagina"
+                    class="form-select form-select-sm"
+                    style="width: auto"
+                  >
                     <option value="5">5</option>
                   </select>
                   <button
@@ -109,8 +113,14 @@
                             type="button"
                             class="btn btn-sm btn-success"
                             @click="seleccionarFilaTabla(fila)"
-                            :disabled="tablaSeleccionada.some(f => f._documentId === fila._documentId)"
-                            :title="tablaSeleccionada.some(f => f._documentId === fila._documentId) ? 'Ya seleccionado' : 'Seleccionar'"
+                            :disabled="
+                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                            "
+                            :title="
+                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                                ? 'Ya seleccionado'
+                                : 'Seleccionar'
+                            "
                           >
                             <i class="fas fa-plus"></i>
                           </button>
@@ -597,10 +607,10 @@ export default {
       if (!this.busquedaTabla) {
         return this.datosTablaDisponibles
       }
-      
+
       const busqueda = this.busquedaTabla.toLowerCase()
-      return this.datosTablaDisponibles.filter(fila => {
-        return this.tablaActual.tableConfig.campos.some(columna => {
+      return this.datosTablaDisponibles.filter((fila) => {
+        return this.tablaActual.tableConfig.campos.some((columna) => {
           const valor = this.obtenerValorCampo(fila, columna)?.toString().toLowerCase() || ''
           return valor.includes(busqueda)
         })
@@ -617,19 +627,38 @@ export default {
     // Calcula el total de páginas
     totalPaginas() {
       return Math.ceil(this.datosFiltrados.length / this.elementosPorPagina)
-    }
+    },
   },
   methods: {
     actualizarSubformulario(nombreCampo, nuevoValor) {
-      this.subformData[nombreCampo] = nuevoValor
-    },
+  // Asegurarse de que los objetos File se mantengan
+  this.subformData[nombreCampo] = nuevoValor.map(fila => {
+    const nuevaFila = { ...fila }
+    
+    // Buscar el campo subform correspondiente
+    const campoSubform = this.camposPlantilla.find(campo => 
+      campo.name === nombreCampo && campo.type === 'subform'
+    )
+    
+    if (campoSubform) {
+      campoSubform.subcampos.forEach(subcampo => {
+        if (subcampo.type === 'file' && nuevaFila[subcampo.name] instanceof File) {
+          // Mantener el objeto File - no convertirlo
+          nuevaFila[subcampo.name] = nuevaFila[subcampo.name]
+        }
+      })
+    }
+    
+    return nuevaFila
+  })
+},
 
     // Métodos para tablas dinámicas - CORREGIDOS
     async abrirModalTabla(campo) {
       this.tablaActual = campo
       this.modalTablaVisible = true
       this.busquedaTabla = '' // Resetear búsqueda
-      this.paginaActual = 1   // Resetear a primera página
+      this.paginaActual = 1 // Resetear a primera página
       this.tablaSeleccionada = [...(this.tablaData[campo.name] || [])]
 
       try {
@@ -1023,119 +1052,252 @@ export default {
       }
     },
     async onSubmit() {
-      const invalidSelects = this.camposPlantilla.filter(
-        (campo) => campo.type === 'select' && !this.validateDynamicSelect(campo),
-      )
+  const invalidSelects = this.camposPlantilla.filter(
+    (campo) => campo.type === 'select' && !this.validateDynamicSelect(campo),
+  )
+  if (invalidSelects.length > 0) {
+    this.showError('Algunos campos select están mal configurados')
+    return
+  }
 
-      if (invalidSelects.length > 0) {
-        this.showError('Algunos campos select están mal configurados')
-        return
+  // Validaciones previas
+  const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
+    if (campo.type === 'select' && campo.required) {
+      return !this.documentData[campo.name] || this.documentData[campo.name] === ''
+    }
+    return false
+  })
+  if (selectFieldsEmpty) {
+    this.showError('Por favor seleccione una opción en los campos obligatorios')
+    return
+  }
+
+  const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
+    if (campo.required || (campo.filterable && campo.type !== 'subform')) {
+      if (campo.type === 'file') {
+        return !this.files[campo.name] || this.files[campo.name].length === 0
       }
-      // Validaciones previas (esto no cambia)
-      const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
-        if (campo.type === 'select' && campo.required) {
-          return !this.documentData[campo.name] || this.documentData[campo.name] === ''
-        }
-        return false
-      })
-      if (selectFieldsEmpty) {
-        this.showError('Por favor seleccione una opción en los campos obligatorios')
-        return
+      if (campo.type === 'tabla') {
+        return !this.tablaData[campo.name] || this.tablaData[campo.name].length === 0
       }
+      return !this.documentData[campo.name]
+    }
+    return false
+  })
 
-      const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
-        if (campo.required || (campo.filterable && campo.type !== 'subform')) {
-          if (campo.type === 'file') {
-            return !this.files[campo.name] || this.files[campo.name].length === 0
-          }
-          if (campo.type === 'tabla') {
-            return !this.tablaData[campo.name] || this.tablaData[campo.name].length === 0
-          }
-          return !this.documentData[campo.name]
-        }
-        return false
-      })
+  const subformsEmpty = this.camposPlantilla.some((campo) => {
+    if (campo.type === 'subform' && (campo.required || campo.filterable)) {
+      return !this.subformData[campo.name] || this.subformData[campo.name].length === 0
+    }
+    return false
+  })
 
-      const subformsEmpty = this.camposPlantilla.some((campo) => {
-        if (campo.type === 'subform' && (campo.required || campo.filterable)) {
-          return !this.subformData[campo.name] || this.subformData[campo.name].length === 0
-        }
-        return false
-      })
+  if (requiredFieldsEmpty || subformsEmpty) {
+    this.showError('Complete todos los campos obligatorios')
+    return
+  }
 
-      if (requiredFieldsEmpty || subformsEmpty) {
-        this.showError('Complete todos los campos obligatorios')
-        return
-      }
+  const formData = new FormData()
 
-      const formData = new FormData()
+  // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
+  const fileMapping = {}
 
-      // Construir estructura por secciones con soporte para subformularios y tablas anidados
-      const seccionesData = []
+  // Construir estructura por secciones
+  const seccionesData = []
 
-      this.seccionesPlantilla.forEach((seccion) => {
-        const camposDeSeccion = seccion.fields || []
-        const fields = {}
+  this.seccionesPlantilla.forEach((seccion) => {
+    const camposDeSeccion = seccion.fields || []
+    const fields = {}
 
-        camposDeSeccion.forEach((campo) => {
-          if (campo.type === 'subform') {
-            // Para subformularios, usar la estructura anidada
-            fields[campo.name] = this.subformData[campo.name] || []
-          } else if (campo.type === 'tabla') {
-            // Para tablas, enviar solo los IDs de los documentos seleccionados
-            const tablaIds = (this.tablaData[campo.name] || [])
-              .map((fila) => fila._documentId)
-              .filter((id) => id)
-            fields[campo.name] = tablaIds
-          } else if (campo.type === 'file') {
-            // Para archivos, el manejo sigue igual
-            fields[campo.name] = null
+    camposDeSeccion.forEach((campo) => {
+      if (campo.type === 'subform') {
+        // Para subformularios - procesar filas
+        const subformRows = this.subformData[campo.name] || []
+        const processedRows = []
+
+        subformRows.forEach((fila, filaIndex) => {
+          const processedRow = {}
+
+          // Procesar cada subcampo del subformulario
+          campo.subcampos.forEach((subcampo) => {
+            if (subcampo.type === 'file') {
+              const archivo = fila[subcampo.name]
+              
+              if (archivo instanceof File) {
+                // Crear nombre único para el campo de archivo
+                const uniqueFieldName = `subform_${campo.name}_${filaIndex}_${subcampo.name}`
+                
+                // Agregar archivo al FormData
+                formData.append(`files[${uniqueFieldName}]`, archivo)
+                
+                // Guardar mapeo
+                fileMapping[uniqueFieldName] = {
+                  seccion: seccion.nombre,
+                  campo: campo.name,
+                  tipo: 'subform',
+                  subcampo: subcampo.name,
+                  fila: filaIndex
+                }
+                
+                // En los datos, dejar null (el backend lo llenará con la ruta)
+                processedRow[subcampo.name] = null
+              } else {
+                // Si ya es un string (ruta existente) o null, mantenerlo
+                processedRow[subcampo.name] = fila[subcampo.name] || null
+              }
+            } else {
+              // Para otros tipos de campos, copiar el valor directamente
+              // Asegurarse de que los valores de fecha sean strings
+              let valor = fila[subcampo.name]
+              
+              if (subcampo.type === 'date' && valor instanceof Date) {
+                // Convertir Date a string ISO para campos de fecha
+                valor = valor.toISOString().split('T')[0]
+              } else if (valor === undefined || valor === null) {
+                // Valor por defecto para campos vacíos
+                valor = ''
+              }
+              
+              processedRow[subcampo.name] = valor
+            }
+          })
+
+          processedRows.push(processedRow)
+        })
+
+        fields[campo.name] = processedRows
+
+      } else if (campo.type === 'tabla') {
+        // Para tablas
+        const tablaIds = (this.tablaData[campo.name] || [])
+          .map((fila) => fila._documentId)
+          .filter((id) => id)
+        fields[campo.name] = tablaIds
+
+      } else if (campo.type === 'file') {
+        // Para campos file normales
+        const archivos = this.files[campo.name]
+        
+        if (archivos && Array.isArray(archivos) && archivos.length > 0) {
+          // Si hay múltiples archivos
+          if (archivos.length === 1) {
+            const archivo = archivos[0]
+            if (archivo instanceof File) {
+              const uniqueFieldName = `file_${campo.name}`
+              
+              formData.append(`files[${uniqueFieldName}]`, archivo)
+              
+              fileMapping[uniqueFieldName] = {
+                seccion: seccion.nombre,
+                campo: campo.name,
+                tipo: 'file'
+              }
+              
+              // Dejar null, el backend lo llenará con la ruta
+              fields[campo.name] = null
+            } else {
+              // Si ya es un string (ruta existente)
+              fields[campo.name] = archivo
+            }
           } else {
-            fields[campo.name] = this.documentData[campo.name] || ''
+            // Múltiples archivos
+            archivos.forEach((archivo, idx) => {
+              if (archivo instanceof File) {
+                const uniqueFieldName = `file_${campo.name}_${idx}`
+                
+                formData.append(`files[${uniqueFieldName}]`, archivo)
+                
+                fileMapping[uniqueFieldName] = {
+                  seccion: seccion.nombre,
+                  campo: campo.name,
+                  tipo: 'file',
+                  index: idx
+                }
+              }
+            })
+            // Para múltiples archivos, dejar como array vacío
+            fields[campo.name] = []
           }
-        })
+        } else {
+          fields[campo.name] = null
+        }
 
-        seccionesData.push({
-          nombre: seccion.nombre,
-          fields,
-        })
-      })
+      } else if (campo.type === 'date') {
+        // Para campos de fecha - asegurar que sean strings
+        let valor = this.documentData[campo.name]
+        if (valor instanceof Date) {
+          valor = valor.toISOString().split('T')[0] // Formato YYYY-MM-DD
+        }
+        fields[campo.name] = valor || ''
 
-      // Adjuntar la estructura final al formData
-      formData.append('document_data[secciones]', JSON.stringify(seccionesData))
+      } else if (campo.type === 'checkBox') {
+        // Para checkboxes - asegurar que sea array
+        fields[campo.name] = Array.isArray(this.documentData[campo.name]) 
+          ? this.documentData[campo.name] 
+          : []
 
-      // Adjuntar archivos
-      for (const fieldName in this.files) {
-        this.files[fieldName].forEach((file, index) => {
-          formData.append(`archivos[${fieldName}][${index}]`, file)
-        })
+      } else {
+        // Otros campos (texto, number, select)
+        fields[campo.name] = this.documentData[campo.name] || ''
       }
+    })
 
-      // Enviar solicitud
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await api.post(`/documentos/${this.selectedPlantilla}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`,
-          },
-        })
+    seccionesData.push({
+      nombre: seccion.nombre,
+      fields,
+    })
+  })
 
-        Swal.fire({
-          title: 'Éxito',
-          text: 'Documento creado correctamente',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-        })
-        this.resetForm()
-      } catch (error) {
-        console.error('Error al crear documento:', error)
-        this.showError(
-          'Error al crear el documento: ' +
-            (error.response?.data?.message || error.message || 'Error desconocido'),
-        )
-      }
-    },
+  // Adjuntar la estructura al formData
+  formData.append('document_data', JSON.stringify({
+    secciones: seccionesData
+  }))
+
+  // Adjuntar el mapeo de archivos
+  formData.append('file_mapping', JSON.stringify(fileMapping))
+
+  // Debug - información detallada
+  console.log('=== ENVIANDO AL BACKEND ===')
+  console.log('Estructura JSON completa:')
+  console.log(JSON.stringify({ secciones: seccionesData }, null, 2))
+  console.log('\nFile Mapping:')
+  console.log(JSON.stringify(fileMapping, null, 2))
+  console.log('\nArchivos en FormData:')
+  for (let pair of formData.entries()) {
+    if (pair[1] instanceof File) {
+      console.log(`  ${pair[0]} -> ${pair[1].name} (${pair[1].size} bytes)`)
+    } else if (pair[0] === 'document_data' || pair[0] === 'file_mapping') {
+      console.log(`  ${pair[0]} -> (JSON data)`)
+    } else {
+      console.log(`  ${pair[0]} -> ${pair[1]}`)
+    }
+  }
+
+  // Enviar solicitud 
+  try {
+    const token = localStorage.getItem('apiToken')
+    const response = await api.post(`/documentos/${this.selectedPlantilla}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    Swal.fire({
+      title: 'Éxito',
+      text: 'Documento creado correctamente',
+      icon: 'success',
+      confirmButtonText: 'Aceptar',
+    })
+    this.resetForm()
+  } catch (error) {
+    console.error('Error al crear documento:', error)
+    this.showError(
+      'Error al crear el documento: ' +
+        (error.response?.data?.message || error.message || 'Error desconocido'),
+    )
+  }
+},
 
     resetForm() {
       this.documentData = {}
@@ -1882,7 +2044,7 @@ export default {
   top: 0;
   background: white;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .table-hover tbody tr:hover {
@@ -1913,15 +2075,15 @@ export default {
     margin: 0.5rem;
     max-width: calc(100% - 1rem);
   }
-  
+
   .medico-body.modal-body-custom {
     padding: 1rem;
   }
-  
+
   .table-responsive {
     font-size: 0.8rem;
   }
-  
+
   .pagination-controls {
     flex-wrap: wrap;
     justify-content: center;
