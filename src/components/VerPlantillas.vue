@@ -322,6 +322,7 @@
                               <option value="select">Lista de Selección</option>
                               <option value="checkBox">Selección múltiple</option>
                               <option value="subform">Subformulario</option>
+                              <option value="tabla">Tabla dinámica</option>
                             </select>
                           </div>
                         </div>
@@ -343,6 +344,56 @@
                         </div>
                       </div>
                       
+
+                      
+                    <!-- Configuración para TABLA (NUEVO) -->
+                    <div v-if="campo.type === 'tabla'" class="select-options-container">
+                      <div class="select-options-header">
+                        <div class="options-header-content">
+                          <i class="fas fa-table"></i>
+                          <span>Configuración de tabla para "{{ campo.name || 'este campo' }}"</span>
+                        </div>
+                      </div>
+
+                      <div class="mb-3 p-3">
+                        <button
+                          type="button"
+                          @click="abrirModalTabla(campo)"
+                          class="btn btn-outline-primary"
+                        >
+                          <i class="fas fa-table me-2"></i>
+                          Configurar columnas de la tabla
+                        </button>
+                      </div>
+
+                      <!-- Alert de configuración aplicada -->
+                      <div v-if="campo.tableConfig" class="alert alert-success mb-3">
+                        <div class="d-flex align-items-start">
+                          <i class="fas fa-check-circle me-3 mt-1"></i>
+                          <div>
+                            <strong>Configuración de tabla aplicada:</strong><br />
+                            Plantilla: <strong>"{{ getNombrePlantillaDataSource(campo.tableConfig.plantillaId) }}"</strong><br />
+                            Sección: <strong>"{{ campo.tableConfig.seccion }}"</strong><br />
+                            <div class="mt-2">
+                              <strong>Columnas configuradas ({{ campo.tableConfig.campos.length }}):</strong>
+                              <div class="mt-1">
+                                <span
+                                  v-for="(campoTabla, idx) in campo.tableConfig.campos"
+                                  :key="idx"
+                                  class="badge bg-primary me-1"
+                                >
+                                  {{ campoTabla }}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+
+
                                           <!-- Configuración de opciones para Opción Múltiple -->
 <div v-if="campo.type === 'checkBox'" class="select-options-container">
   <div class="select-options-header">
@@ -514,6 +565,160 @@
                           </div>
                         </div>
                       </div>
+                      
+    <!-- Modal para configurar tabla dinámica (NUEVO) -->
+    <div
+      v-if="modalTablaVisible"
+      class="medico-modal-backdrop"
+      @click.self="cerrarModalTabla"
+    >
+      <div class="medico-modal-content" @click.stop style="max-width: 800px">
+        <div class="medico-modal-header">
+          <div class="modal-header-content">
+            <div class="modal-icon">
+              <i class="fas fa-table"></i>
+            </div>
+            <div class="modal-title-section">
+              <h3>Configurar Tabla Dinámica</h3>
+              <p class="modal-subtitle">
+                Selecciona la plantilla, sección y campos para las columnas de la tabla
+              </p>
+            </div>
+          </div>
+          <button @click="cerrarModalTabla" class="medico-close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="medico-modal-body">
+          <div class="form-section">
+            <div class="mb-3">
+              <label class="form-label">Plantilla*</label>
+              <select
+                v-model="tablaPlantillaSeleccionada"
+                class="form-select"
+                @change="cargarSeccionesTabla"
+              >
+                <option value="">Seleccione una plantilla</option>
+                <option
+                  v-for="plantilla in plantillasDisponibles"
+                  :key="plantilla.id"
+                  :value="plantilla.id"
+                >
+                  {{ plantilla.nombre_plantilla || plantilla.title }}
+                </option>
+              </select>
+            </div>
+
+            <div class="mb-3" v-if="tablaSeccionesPlantilla.length > 0">
+              <label class="form-label">Sección*</label>
+              <select v-model="tablaSeccionSeleccionada" class="form-select">
+                <option value="">Seleccione una sección</option>
+                <option
+                  v-for="seccion in tablaSeccionesPlantilla"
+                  :key="seccion.nombre"
+                  :value="seccion.nombre"
+                >
+                  {{ seccion.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div v-if="tablaCamposDisponibles.length > 0" class="mb-3">
+              <label class="form-label">Selecciona los campos para las columnas*</label>
+              <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Selecciona múltiples campos que se mostrarán como columnas en la tabla
+              </div>
+              
+              <div class="campos-tabla-container">
+                <div
+                  v-for="campo in tablaCamposDisponibles"
+                  :key="campo.name"
+                  class="campo-tabla-item"
+                >
+                  <label class="checkbox-container">
+                    <input
+                      type="checkbox"
+                      class="custom-checkbox"
+                      :value="campo.name"
+                      v-model="tablaCamposSeleccionados"
+                      @change="actualizarVistaPreviewTabla"
+                    />
+                    <span class="checkmark"></span>
+                    <span class="checkbox-label">
+                      {{ campo.name }} 
+                      <span class="badge bg-secondary ms-2">{{ campo.type }}</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div v-if="tablaCamposSeleccionados.length > 0" class="mt-3">
+                <small class="text-muted">
+                  <i class="fas fa-check-circle text-success me-1"></i>
+                  {{ tablaCamposSeleccionados.length }} campo(s) seleccionado(s)
+                </small>
+              </div>
+            </div>
+
+            <!-- Vista previa de la tabla -->
+            <div v-if="tablaCamposSeleccionados.length > 0" class="mt-4">
+              <h6>Vista previa de la tabla:</h6>
+              <div v-if="cargandoOpcionesTabla" class="text-center p-4">
+                <i class="fas fa-spinner fa-spin"></i> Cargando datos...
+              </div>
+              <div v-else class="table-responsive">
+                <table class="table table-bordered table-sm">
+                  <thead class="table-light">
+                    <tr>
+                      <th v-for="campo in tablaCamposSeleccionados" :key="campo">
+                        {{ campo }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(row, index) in tablaPreviewData" :key="index">
+                      <td v-for="campo in tablaCamposSeleccionados" :key="campo">
+                        {{ row[campo] || '-' }}
+                      </td>
+                    </tr>
+                    <tr v-if="tablaPreviewData.length === 0">
+                      <td :colspan="tablaCamposSeleccionados.length" class="text-center text-muted">
+                        No hay datos disponibles
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <small class="text-muted">
+                  Mostrando primeras {{ tablaPreviewData.length }} filas
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="medico-modal-footer">
+          <button @click="cerrarModalTabla" class="btn btn-cancel">
+            <i class="fas fa-times me-2"></i>
+            Cancelar
+          </button>
+          <button
+            @click="aplicarConfiguracionTabla"
+            class="btn btn-save"
+            :disabled="!configuracionTablaValida"
+          >
+            <i class="fas fa-check me-2"></i>
+            Aplicar Configuración
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+
+
+
 <!-- Usamos el componente Subformulario para manejar recursividad -->
 <Subformulario
   v-if="campo.type === 'subform'"
@@ -739,9 +944,28 @@ vistaCompacta: false,
       cargandoOpciones: false,
       campoActual: null,
       esSubcampo: false, // Para identificar si es un campo o subcampo
+
+      
+      // Variables para el modal de TABLA (NUEVO)
+      modalTablaVisible: false,
+      tablaPlantillaSeleccionada: '',
+      tablaSeccionesPlantilla: [],
+      tablaSeccionSeleccionada: '',
+      tablaCamposDisponibles: [],
+      tablaCamposSeleccionados: [],
+      tablaPreviewData: [],
+      cargandoOpcionesTabla: false,
+      campoTablaActual: null,
     }
   },
   computed: {
+    configuracionTablaValida() {
+      return (
+        this.tablaPlantillaSeleccionada &&
+        this.tablaSeccionSeleccionada &&
+        this.tablaCamposSeleccionados.length > 0
+      )
+    },
     configuracionValida() {
       return this.plantillaSeleccionada && this.seccionSeleccionada && this.campoMostrar
     },
@@ -845,6 +1069,108 @@ vistaCompacta: false,
         console.log('Error al obtener los campos de la plantilla:', error)
       }
     },
+
+    // ========== MÉTODOS PARA TABLA DINÁMICA (NUEVO) ==========
+    async abrirModalTabla(campo) {
+      this.campoTablaActual = campo
+      this.modalTablaVisible = true
+      console.log("Campo tabla actual: ", this.campoTablaActual)
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await api.get('/plantillas', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        this.plantillasDisponibles = response.data || []
+        
+        // Si ya tiene configuración previa, cargarla
+        if (campo.tableConfig) {
+          this.tablaPlantillaSeleccionada = campo.tableConfig.plantillaId
+          await this.cargarSeccionesTabla()
+          this.tablaSeccionSeleccionada = campo.tableConfig.seccion
+          await this.onTablaSeccionSeleccionada()
+          this.tablaCamposSeleccionados = [...campo.tableConfig.campos]
+          
+        }
+      } catch (error) {
+        console.error('Error al cargar plantillas:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar las plantillas disponibles',
+        })
+      }
+    },
+
+    cerrarModalTabla() {
+      this.modalTablaVisible = false
+      this.resetModalTabla()
+    },
+
+    resetModalTabla() {
+      this.tablaPlantillaSeleccionada = ''
+      this.tablaSeccionesPlantilla = []
+      this.tablaSeccionSeleccionada = ''
+      this.tablaCamposDisponibles = []
+      this.tablaCamposSeleccionados = []
+      this.tablaPreviewData = []
+      this.campoTablaActual = null
+    },
+
+    async cargarSeccionesTabla() {
+      if (!this.tablaPlantillaSeleccionada) return
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await api.get(`/plantillas/${this.tablaPlantillaSeleccionada}/secciones`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        this.tablaSeccionesPlantilla = response.data?.secciones || []
+        this.tablaSeccionSeleccionada = ''
+        this.tablaCamposDisponibles = []
+        this.tablaCamposSeleccionados = []
+        this.tablaPreviewData = []
+      } catch (error) {
+        console.error('Error al cargar secciones para tabla:', error)
+      }
+    },
+
+    async onTablaSeccionSeleccionada() {
+      if (!this.tablaSeccionSeleccionada) return
+
+      const seccion = this.tablaSeccionesPlantilla.find(
+        (s) => s.nombre === this.tablaSeccionSeleccionada,
+      )
+      if (seccion && seccion.fields) {
+        this.tablaCamposDisponibles = seccion.fields
+        this.tablaCamposSeleccionados = []
+        this.tablaPreviewData = []
+      }
+    },
+
+
+    aplicarConfiguracionTabla() {
+      if (!this.configuracionTablaValida) return
+
+      this.campoTablaActual.tableConfig = {
+        plantillaId: this.tablaPlantillaSeleccionada,
+        plantillaNombre: this.getNombrePlantillaDataSource(this.tablaPlantillaSeleccionada),
+        seccion: this.tablaSeccionSeleccionada,
+        campos: [...this.tablaCamposSeleccionados],
+      }
+
+      this.cerrarModalTabla()
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Configuración aplicada',
+        text: `Tabla configurada con ${this.tablaCamposSeleccionados.length} columnas`,
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    },
+  
 async submitEditForm() {
   const token = localStorage.getItem('apiToken')
   const result = await Swal.fire({
@@ -1298,6 +1624,16 @@ getTipoTexto(tipo) {
   // Para subformularios (recursivo)
   if (campo.type === 'subform' && campo.subcampos && Array.isArray(campo.subcampos)) {
     campoLimpio.subcampos = campo.subcampos.map(subcampo => this.limpiarCampo(subcampo))
+  }
+
+    // ✅ NUEVO: si es una tabla, conservar su configuración completa
+  if (campo.type === 'tabla') {
+    campoLimpio.tableConfig = {
+      plantillaId: campo.tableConfig?.plantillaId || null,
+      plantillaNombre: campo.tableConfig?.plantillaNombre || '',
+      seccion: campo.tableConfig?.seccion || '',
+      campos: campo.tableConfig?.campos || []
+    }
   }
 
   return campoLimpio
