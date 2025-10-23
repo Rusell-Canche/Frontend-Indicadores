@@ -258,29 +258,27 @@
               >
                 <template #body="slotProps">
                   <!-- Recurso Digital -->
-                  <div v-if="campo === 'Recurso Digital'" class="file-badges">
-                    <template
-                      v-if="
-                        getPrettyFieldValue(slotProps.data, campo) &&
-                        Array.isArray(getFieldValueFromDocument(slotProps.data, campo))
-                      "
-                    >
-                      <span
-                        v-for="(file, index) in getFieldValueFromDocument(slotProps.data, campo)"
-                        :key="index"
-                        class="file-badge"
-                      >
-                        <i v-if="isImage(file)" class="fas fa-image me-1"></i>
-                        <i v-else-if="isVideo(file)" class="fas fa-video me-1"></i>
-                        <i v-else-if="isAudio(file)" class="fas fa-volume-up me-1"></i>
-                        <i v-else-if="isPDF(file)" class="fas fa-file-pdf me-1"></i>
-                        <i v-else class="fas fa-file me-1"></i>
-                        <span class="file-extension">{{
-                          file.split('.').pop()?.toUpperCase()
-                        }}</span>
-                      </span>
-                    </template>
-                    <span v-else class="no-files">Sin archivos</span>
+                  <div v-if="campo === 'Archivo'" class="file-badges">
+                    <Button
+                      icon="fa-solid  fa-eye"
+                      @click=" this.mostrarModalImagen = true;"
+                      text
+                      severity="info"
+                      size="small"
+                      v-tooltip="'Ver Archivo'"
+                    />
+                  </div>
+
+                   <!-- Recurso Digital -->
+                  <div v-if="campo === 'Tabla'" class="file-badges">
+                    <Button
+                      icon="fa-solid  fa-eye"
+                      @click=" this.mostrarModalTabla = true;"
+                      text
+                      severity="info"
+                      size="small"
+                      v-tooltip="'Ver Tabla'"
+                    />
                   </div>
 
                   <!-- Estado -->
@@ -362,6 +360,8 @@
       </div>
     </div>
 
+
+    
     <!-- REEMPLAZAR TODO EL MODAL INLINE CON EL COMPONENTE -->
     <EditDocumentModal
       :is-open="isModalOpen"
@@ -374,112 +374,211 @@
       @error="handleEditError"
     />
     <!-- Modal para ver subformularios - REEMPLAZAR el modal existente -->
-    <div v-if="showSubformModal" class="modal-backdrop">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content modern-modal">
-          <!-- Header con botón de cerrar estilo "Editar Documento" -->
-          <div class="medico-header modal-header-custom">
-            <div class="header-content">
-              <div class="header-icon">
-                <i class="fas fa-table"></i>
-              </div>
-              <div class="header-title-section">
-                <h3>
-                  Subformulario:
-                  {{ currentSubformDefinition?.alias || currentSubformDefinition?.name }}
-                </h3>
-                <p class="header-subtitle">
-                  Contenido del subformulario
-                  <span v-if="currentModalLevel > 0" class="badge badge-info ml-2">
-                    Nivel {{ currentModalLevel + 1 }}
-                  </span>
-                </p>
-              </div>
-            </div>
+<!-- Modal Subformularios (Bootstrap puro) -->
+<div v-if="showSubformModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
 
-            <!-- Botones de navegación -->
-            <div class="modal-nav-buttons">
-              <!-- Botón para volver al modal anterior (solo si hay más de un nivel) -->
-              <button
-                v-if="currentModalLevel > 0"
-                type="button"
-                @click="cerrarSubformModal"
-                class="nav-button back-button"
-                v-tooltip="'Volver al nivel anterior'"
-                aria-label="Back"
-              >
-                <i class="fas fa-arrow-left"></i>
-              </button>
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-table me-2"></i>
+          Subformulario:
+          {{ currentSubformDefinition?.alias || currentSubformDefinition?.name }}
+        </h5>
+        <div class="d-flex gap-2">
+          <button
+            v-if="currentModalLevel > 0"
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            @click="cerrarSubformModal"
+            title="Volver al nivel anterior"
+          >
+            <i class="fas fa-arrow-left"></i>
+          </button>
 
-              <!-- Botón de cerrar todo -->
-              <button
-                type="button"
-                @click="cerrarTodosLosModales"
-                class="close-button"
-                aria-label="Close"
-              >
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Body -->
-          <div class="modal-body">
-            <div
-              v-if="currentSubformData.length > 0 && currentSubformDefinition?.subcampos"
-              class="table-responsive"
-            >
-              <table class="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th v-for="subcampo in currentSubformDefinition.subcampos" :key="subcampo.name">
-                      {{ subcampo.alias || subcampo.name }}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(row, rowIndex) in currentSubformData" :key="rowIndex">
-                    <td v-for="subcampo in currentSubformDefinition.subcampos" :key="subcampo.name">
-                      <!-- Si es un subform, mostrar botón -->
-                      <span v-if="subcampo.type === 'subform'">
-                        <Button
-                          icon="fa-solid fa-magnifying-glass"
-                          @click="abrirModalSubform(row[subcampo.name], subcampo.name)"
-                          text
-                          severity="info"
-                          size="small"
-                          v-tooltip="'Ver subformulario anidado'"
-                        />
-                      </span>
-
-                      <!-- Si es valor normal -->
-                      <span v-else>
-                        {{ getPrettySubcampoValue(row, subcampo.name) }}
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div v-else class="text-muted text-center py-3">
-              No hay entradas en este subformulario
-            </div>
-          </div>
-
-          <!-- Footer con información del nivel actual (opcional) -->
-          <div v-if="currentModalLevel > 0" class="modal-footer text-muted">
-            <small>
-              <i class="fas fa-info-circle"></i>
-              Navegando en subformulario anidado (Nivel {{ currentModalLevel + 1 }})
-            </small>
-          </div>
+          <button
+            type="button"
+            class="btn-close"
+            @click="cerrarTodosLosModales"
+            aria-label="Close"
+          ></button>
         </div>
       </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <div
+          v-if="currentSubformData.length > 0 && currentSubformDefinition?.subcampos"
+          class="table-responsive"
+        >
+          <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th
+                  v-for="subcampo in currentSubformDefinition.subcampos"
+                  :key="subcampo.name"
+                >
+                  {{ subcampo.alias || subcampo.name }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, rowIndex) in currentSubformData" :key="rowIndex">
+                <td
+                  v-for="subcampo in currentSubformDefinition.subcampos"
+                  :key="subcampo.name"
+                >
+                  <span v-if="subcampo.type === 'subform'">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-info"
+                      @click="abrirModalSubform(row[subcampo.name], subcampo.name)"
+                      title="Ver subformulario anidado"
+                    >
+                      <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                  </span>
+
+                  <span v-else>
+                    {{ getPrettySubcampoValue(row, subcampo.name) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="text-muted text-center py-3">
+          No hay entradas en este subformulario.
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div v-if="currentModalLevel > 0" class="modal-footer">
+        <small class="text-muted">
+          <i class="fas fa-info-circle me-1"></i>
+          Navegando en subformulario anidado (Nivel {{ currentModalLevel + 1 }})
+        </small>
+      </div>
+
     </div>
+  </div>
+</div>
+
+<!-- Modal: Vista Archivo -->
+<!-- Modal Imagen (Bootstrap puro) -->
+<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog" @click.self="cerrarModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-image me-2"></i> Imagen
+        </h5>
+        <button type="button" class="btn-close" @click="cerrarModalImagen" aria-label="Close"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body text-center">
+        <h6 class="mb-3">Vista previa</h6>
+        <img
+          :src="`http://127.0.0.1:8000/storage/uploads/plantilla_x/1GhLBm1l2FKhhhWCv0qyDNPIGS9NJsShhX0ClpF1.png`"
+          alt="Vista previa"
+          class="img-fluid rounded shadow-sm border"
+        />
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @click="cerrarModalImagen">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal: Vista Archivo -->
+<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog" @click.self="cerrarModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-image me-2"></i> Imagen
+        </h5>
+        <button type="button" class="btn-close" @click="cerrarModalImagen" aria-label="Close"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body text-center">
+        <h6 class="mb-3">Vista previa</h6>
+        <img
+          :src="`http://127.0.0.1:8000/storage/uploads/plantilla_x/1GhLBm1l2FKhhhWCv0qyDNPIGS9NJsShhX0ClpF1.png`"
+          alt="Vista previa"
+          class="img-fluid rounded shadow-sm border"
+        />
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @click="cerrarModalImagen">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal: Vista Archivo -->
+<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog" @click.self="cerrarModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-image me-2"></i> Imagen
+        </h5>
+        <button type="button" class="btn-close" @click="cerrarModalImagen" aria-label="Close"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body text-center">
+        <h6 class="mb-3">Vista previa</h6>
+        <img
+          :src="`http://127.0.0.1:8000/storage/uploads/plantilla_x/1GhLBm1l2FKhhhWCv0qyDNPIGS9NJsShhX0ClpF1.png`"
+          alt="Vista previa"
+          class="img-fluid rounded shadow-sm border"
+        />
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @click="cerrarModalImagen">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
   </div>
 </template>
 
 <script>
+import api, { storage } from '@/services/api'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import EditDocumentModal from './EditDocumentModal.vue'
@@ -507,6 +606,8 @@ export default {
 
   data() {
     return {
+      //para mostrar la imagen de archivo
+      mostrarModalImagen: false,
       // Por estas que manejan múltiples niveles:
       modalStack: [], // Array que contiene información de cada modal abierto
       currentModalLevel: -1, // Índice del modal actual
@@ -739,6 +840,24 @@ export default {
         console.log('Modal cerrado, nuevo nivel:', this.currentModalLevel)
         console.log('Stack después de cerrar:', this.modalStack)
       }
+    },
+        async mostrarImagenEnModal(id) {
+      try {
+        this.mostrarModalImagen = true
+        console.log("SE ABRIO EL MODAL")
+      } catch (error) {
+        console.error("Error al cargar JSON de la plantilla:", error)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo cargar la vista gráfica.',
+        })
+      }
+    },
+
+    cerrarModalImagen() {
+      this.mostrarModalImagen = false
+      
     },
 
     cerrarTodosLosModales() {
@@ -1445,773 +1564,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-/* Estilos base del diseño moderno */
-.card {
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  background: white;
-  position: relative;
-}
-
-/* Header con el diseño moderno */
-.medico-header {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  padding: 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  position: relative;
-  overflow: hidden;
-}
-
-.medico-header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 100%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  z-index: 1;
-}
-
-.header-icon {
-  width: 60px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: white;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.header-title-section h3 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.header-subtitle {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 400;
-}
-
-/* Body con el diseño moderno */
-.medico-body {
-  padding: 2rem;
-  background: white;
-}
-
-.form-section {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  position: relative;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-
-.form-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #6c757d, #495057);
-  border-radius: 16px 16px 0 0;
-}
-
-.section-title {
-  color: #2c3e50;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-}
-
-.section-title i {
-  color: #6c757d;
-}
-
-.form-label {
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.modern-input {
-  position: relative;
-}
-
-.modern-input .input-group-text {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  border: none;
-  color: white;
-  border-radius: 12px 0 0 12px;
-  width: 50px;
-  justify-content: center;
-}
-
-.modern-input .form-control,
-.modern-input .form-select {
-  border: 2px solid #e9ecef;
-  border-left: none;
-  border-radius: 0 12px 12px 0;
-  padding: 0.75rem 1rem;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.modern-input .form-control:focus,
-.modern-input .form-select:focus {
-  border-color: #6c757d;
-  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
-  transform: translateY(-1px);
-}
-
-.form-text {
-  font-size: 0.875rem;
-  color: #6c757d;
-  margin-top: 0.25rem;
-}
-
-/* Tabla */
-.table-container {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.table-header {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-}
-
-.table-header-cell {
-  color: white;
-  font-weight: 600;
-  padding: 1rem;
-  border: none;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: transparent;
-}
-
-.table-row {
-  transition: all 0.2s ease;
-  border: none;
-}
-
-.table-row:hover {
-  background-color: #f8f9fa;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.table-cell {
-  padding: 1rem;
-  border-bottom: 1px solid #e9ecef;
-  vertical-align: middle;
-}
-
-.table-text {
-  color: #495057;
-  font-weight: 500;
-}
-
-/* Badges y estados */
-.file-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-.file-badge {
-  background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
-  border: 1px solid #dee2e6;
-  color: #495057;
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-weight: 500;
-}
-
-.file-extension {
-  font-weight: 600;
-}
-
-.no-files {
-  color: #6c757d;
-  font-style: italic;
-  font-size: 0.875rem;
-}
-
-.status-badge {
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-active {
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.status-pending {
-  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-  color: #856404;
-  border: 1px solid #ffeaa7;
-}
-
-.status-default {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  color: #495057;
-  border: 1px solid #dee2e6;
-}
-
-/* Botones de acción */
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.action-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid;
-  background: white;
-  cursor: pointer;
-  font-size: 0.875rem;
-}
-
-.edit-button {
-  border-color: #6c757d;
-  color: #6c757d;
-}
-
-.edit-button:hover {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
-}
-
-.delete-button {
-  border-color: #dc3545;
-  color: #dc3545;
-}
-
-.delete-button:hover {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-}
-
-/* Estado vacío */
-.empty-state {
-  text-align: center;
-  padding: 3rem 1rem;
-  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
-  border-radius: 12px;
-  border: 2px dashed #dee2e6;
-}
-
-.empty-icon {
-  font-size: 3rem;
-  color: #dee2e6;
-  margin-bottom: 1rem;
-}
-
-.empty-title {
-  color: #495057;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.empty-text {
-  color: #6c757d;
-  margin: 0;
-}
-
-/* Paginación */
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.pagination-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  border: 1px solid #dee2e6;
-  background: white;
-  color: #495057;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-}
-
-.pagination-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
-  background: #f8f9fa;
-}
-
-.pagination-button.active {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  color: white;
-  border-color: #6c757d;
-}
-
-/* Modal */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
-}
-
-.modal-dialog {
-  max-width: 600px;
-  width: 100%;
-  margin: 1.75rem;
-}
-
-.modal-content {
-  background-color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-}
-
-.modal-header {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  color: white;
-  padding: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.btn-close {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: rotate(90deg);
-}
-
-.modal-body {
-  padding: 1.5rem;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-/* Vista previa de archivos en modal */
-.file-upload-section {
-  margin-top: 0.5rem;
-}
-
-.file-preview {
-  margin-top: 1rem;
-}
-
-.preview-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: #495057;
-}
-
-.file-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.file-preview-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.file-preview-item:hover {
-  background: #e9ecef;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.file-preview-content {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-}
-
-.file-preview-icon {
-  color: #6c757d;
-  font-size: 1.25rem;
-}
-
-.file-preview-name {
-  font-size: 0.875rem;
-  color: #495057;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.remove-file-button {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  padding: 0;
-  border: 1px solid #dc3545;
-  color: #dc3545;
-  background: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.remove-file-button:hover {
-  background: #dc3545;
-  color: white;
-}
-
-/* Footer del modal */
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-}
-
-.btn-cancel {
-  background: linear-gradient(135deg, #adb5bd 0%, #6c757d 100%);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.btn-cancel:hover {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
-  color: white;
-}
-
-.btn-save {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.btn-save::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn-save:hover::before {
-  left: 100%;
-}
-
-.btn-save:hover {
-  background: linear-gradient(135deg, #495057 0%, #343a40 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
-  color: white;
-}
-
-/* Animaciones */
-@keyframes shimmer {
-  0%,
-  100% {
-    transform: translateX(-100%) translateY(-100%) rotate(45deg);
-  }
-  50% {
-    transform: translateX(100%) translateY(100%) rotate(45deg);
-  }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .medico-header {
-    padding: 1.5rem;
-  }
-
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .header-icon {
-    width: 50px;
-    height: 50px;
-    font-size: 1.25rem;
-  }
-
-  .header-title-section h3 {
-    font-size: 1.25rem;
-  }
-
-  .medico-body {
-    padding: 1.5rem;
-  }
-
-  .form-section {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .table-container {
-    overflow-x: auto;
-  }
-
-  .table-header-cell,
-  .table-cell {
-    padding: 0.75rem 0.5rem;
-    font-size: 0.875rem;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .action-button {
-    width: 32px;
-    height: 32px;
-  }
-
-  .modal-footer {
-    flex-direction: column;
-  }
-
-  .btn-cancel,
-  .btn-save {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 576px) {
-  .medico-header {
-    padding: 1rem;
-  }
-
-  .medico-body {
-    padding: 1rem;
-  }
-
-  .form-section {
-    padding: 0.75rem;
-  }
-
-  .table-header-cell,
-  .table-cell {
-    padding: 0.5rem 0.25rem;
-    font-size: 0.8rem;
-  }
-
-  .file-preview-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .modern-input .form-control,
-  .modern-input .form-select {
-    font-size: 0.9rem;
-  }
-}
-
-/* Estilos para la navegación de modales anidados */
-.modal-nav-buttons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.nav-button {
-  background: none;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 8px 10px;
-  color: #6c757d;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-.nav-button:hover {
-  background-color: #f8f9fa;
-  border-color: #adb5bd;
-  color: #495057;
-}
-
-.back-button {
-  background-color: #e3f2fd;
-  border-color: #2196f3;
-  color: #1976d2;
-}
-
-.back-button:hover {
-  background-color: #bbdefb;
-  border-color: #1976d2;
-  color: #0d47a1;
-}
-.close-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  z-index: 1;
-}
-
-.close-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-/* Badge para mostrar el nivel */
-.badge {
-  display: inline-block;
-  padding: 0.25em 0.4em;
-  font-size: 75%;
-  font-weight: 700;
-  line-height: 1;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: baseline;
-  border-radius: 0.25rem;
-}
-
-.badge-info {
-  color: #fff;
-  background-color: #17a2b8;
-}
-
-/* Estilos para el modal backdrop con múltiples niveles */
-.modal-backdrop {
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 1050;
-}
-
-/* Ajustar z-index para modales anidados */
-.modal-backdrop + .modal-backdrop {
-  z-index: 1055;
-  background-color: rgba(0, 0, 0, 0.3);
-}
-</style>
