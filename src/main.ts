@@ -19,6 +19,7 @@ import SoloCorreo from './directives/SoloCorreo.js'
 const app = createApp(App)
 
 const DEFAULT_TITLE = 'Vue';
+// Cambiar el título de la página según la ruta
 router.afterEach((to) => {
     // Use next tick to handle router history correctly
     // see: https://github.com/vuejs/vue-router/issues/914#issuecomment-384477609
@@ -27,6 +28,42 @@ router.afterEach((to) => {
         document.title = typeof title === 'string' ? title : DEFAULT_TITLE;
     });
 });
+
+// Verifica que el usuario tenga el permiso del modulo al intentar acceder a una ruta
+router.beforeEach((to) => {
+
+  // Obtenemos los permisos del localStorage
+  const permisosStr = localStorage.getItem('ui_permissions');
+  
+  // Si no hay permisos rederigimos al login si la pagina actual no es el login
+  if (!permisosStr && to.name !== 'Login') {
+    console.warn('No se encontraron permisos de usuario. Redirigiendo al login.');
+    return { name: 'Login' };
+  }
+
+  // Parseamos el objeto JSON
+  const uiPermissions: Record<string, boolean> = JSON.parse(permisosStr);
+
+  // Si la ruta no tiene meta.modulo, se deja pasar (no esta protegida)
+  if (!to.meta?.modulo) {
+    console.log('Ruta no protegida, acceso permitido');
+    return true;
+  }
+
+  // Parseamos el nombre del modulo a string
+  const modulo = to.meta.modulo as string;
+
+  // Verificamos si el usuario tiene permiso para el modulo
+  const tienePermiso = uiPermissions[modulo];
+
+  if (tienePermiso) {
+    console.log(`Acceso concedido al módulo: ${modulo}`);
+    return true;
+  } else {
+    console.warn(`Acceso denegado al módulo: ${modulo}`);
+    return { name: 'Forbidden' };
+  }
+})
 
 app.use(router)
 

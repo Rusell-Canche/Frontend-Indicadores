@@ -7,10 +7,15 @@
 
 <style scoped>
 .alert-box {
-  background-color: tomato;
+    background-color: tomato;
+    margin: 50px;
   color: white;
-  padding: 12px 20px;
+  border: 1px solid red;
   border-radius: 4px;
-  margin: 16px 0;
+  padding: 20px;
+}
+  
+strong {
+	color: red;    
 }
 </style>

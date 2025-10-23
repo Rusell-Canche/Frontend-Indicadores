@@ -258,16 +258,15 @@ export default {
       this.isLoading = true
       this.errors = {}
 
-      console.log('searchig...')
       try {
         const response = await api.post('/login', this.loginForm)
         console.log(response)
 
         // Guarda el token recibido (corrección principal)
         localStorage.setItem('apiToken', response.data.token)
-
+        localStorage.setItem('ui_permissions', JSON.stringify(response.data.ui_permissions))
         // Mostrar animación del mapache
-        this.showMapache = true
+        this.showMapache = false
 
         // Esperar a que termine la animación antes de redirigir
         setTimeout(() => {

@@ -55,12 +55,18 @@ const router = createRouter({
           path: '/Indicador',
           name: '/Indicador',
           component: Indicador,
+          meta: {
+            title: 'Indicadores',
+            modulo: 'indicadores'
+          },
           children: [
             {
               path: 'ver-indicadores',
               name: 'ver-indicadores',
               component: VerIndicadores,
-              meta: { title: 'Indicadores' },
+              meta: {
+                title: 'Indicadores',
+              },
               children: [
                 {
                   path: 'editar/:id',
@@ -82,7 +88,7 @@ const router = createRouter({
               path: 'CargarIndicador',
               name: 'CargarIndicador',
               component: Cargarindicadores,
-              meta: { title: 'Cargar Indicadores' }
+              meta: { title: 'Cargar Indicadores', }
             },
             {
               path: 'CrearIndicador',
@@ -96,7 +102,10 @@ const router = createRouter({
           path: '/Plantillas',
           name: 'Plantillas',
           component: Plantillas,
-          meta: { title: 'Plantillas' },
+          meta: {
+            title: 'Plantillas',
+            modulo: 'plantillas'
+          },
           children: [
             {
               path: 'VerPlantillas',
@@ -116,7 +125,10 @@ const router = createRouter({
           path: '/Documentos',
           name: 'Documentos',
           component: Documentos,
-          meta: { title: 'Documentos' },
+          meta: {
+            title: 'Documentos',
+            modulo: 'documentos'
+          },
           children: [
             {
               path: 'VerDocumentos',
@@ -136,7 +148,10 @@ const router = createRouter({
           path: '/Ejes',
           name: 'Ejes',
           component: Ejes,
-          meta: { title: 'Ejes' },
+          meta: {
+            title: 'Ejes',
+            module: 'ejes'
+          },
           children: [
             {
               path: 'VerEjes',
@@ -156,7 +171,10 @@ const router = createRouter({
           path: '/Usuarios',
           name: 'Usuarios',
           component: Usuarios,
-          meta: { title: 'Usuarios' },
+          meta: {
+            title: 'Usuarios',
+            modulo: 'usuarios'
+          },
           children: [
             {
               path: 'VerUsuarios',
@@ -193,7 +211,10 @@ const router = createRouter({
         {
           path: '/Reportes',
           name: 'Reportes',
-          meta: { title: 'Reportes' },
+          meta: {
+            title: 'Reportes',
+            modulo: 'reportes'
+          },
           component: Reportes,
           children: [
             {
@@ -214,7 +235,10 @@ const router = createRouter({
           path: '/Estadisticas',
           name: 'Estadisticas',
           component: Estadisticas,
-          meta: { title: 'Estadísticas' },
+          meta: {
+            title: 'Estadísticas',
+            modulo: 'estadisticas'
+          },
           children: [
             {
               path: 'VerEstadisticas',
