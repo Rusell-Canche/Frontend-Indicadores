@@ -488,6 +488,7 @@
 
 <script>
 import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -624,23 +625,12 @@ export default {
   },
 
   methods: {
-    async apiCall(endpoint, options = {}) {
-      const token = localStorage.getItem('apiToken')
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-        ...options,
-      }
-
-      const response = await axios(endpoint, config)
-      return response.data
-    },
 
     async getColecciones() {
       this.loading.colecciones = true
       try {
-        this.colecciones = await this.apiCall(
-          'http://127.0.0.1:8000/api/documentos/plantillas-redable',
-        )
+        const response = await api.get('/documentos/plantillas-redable')
+        this.colecciones = response.data
       } catch {
         this.showError('No se pudieron cargar las colecciones')
       } finally {
@@ -648,12 +638,11 @@ export default {
       }
     },
 
+
     async getCamposPlantilla(plantillaId) {
       try {
-        const response = await this.apiCall(
-          `http://127.0.0.1:8000/api/plantillas/${plantillaId}/secciones`,
-        )
-        return response?.secciones ? response : { secciones: [] }
+        const response = await api.get(`/plantillas/${plantillaId}/secciones`)
+        return response.data?.secciones ? response.data : { secciones: [] }
       } catch {
         return { secciones: [] }
       }
@@ -665,7 +654,7 @@ export default {
       try {
         const [camposPlantilla, documentos] = await Promise.all([
           this.getCamposPlantilla(this.selectedColeccion.id),
-          this.apiCall(`http://127.0.0.1:8000/api/documentos/${this.selectedColeccion.id}`),
+          api.get(`/documentos/${this.selectedColeccion.id}`).then(res => res.data),
         ])
 
         this.camposPlantilla = camposPlantilla
@@ -1246,22 +1235,17 @@ export default {
 
         // Si estamos en modo edición, hacer PUT, si no, hacer POST
         if (this.modoEdicion && this.reporteIdEdicion) {
-          await this.apiCall(`http://127.0.0.1:8000/api/reportes/${this.reporteIdEdicion}`, {
-            method: 'PUT',
-            data: reporteData,
-          })
+          await api.put(`/reportes/${this.reporteIdEdicion}`, reporteData)
           console.log('Reporte actualizado exitosamente')
         } else {
-          await this.apiCall('http://127.0.0.1:8000/api/reportes', {
-            method: 'POST',
-            data: reporteData,
-          })
+          await api.post('/reportes', reporteData)
           console.log('Reporte guardado exitosamente')
         }
       } catch (error) {
         console.error('Error guardando/actualizando reporte:', error)
       }
     },
+
     cancelarEdicion() {
       this.modoEdicion = false
       this.reporteIdEdicion = null
@@ -1417,13 +1401,12 @@ export default {
     },
     // Cargar reporte existente para editar
     async cargarReporteParaEditar(reporteId) {
-      // Activar modo edición
       this.modoEdicion = true
       this.reporteIdEdicion = reporteId
 
       try {
-        const response = await this.apiCall(`http://127.0.0.1:8000/api/reportes/${reporteId}`)
-        const reporte = response.data || response
+        const response = await api.get(`/reportes/${reporteId}`)
+        const reporte = response.data.data || response.data
 
         const plantillaId = reporte.coleccionId
 
