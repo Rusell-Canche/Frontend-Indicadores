@@ -266,7 +266,7 @@ export default {
         localStorage.setItem('apiToken', response.data.token)
         localStorage.setItem('ui_permissions', JSON.stringify(response.data.ui_permissions))
         // Mostrar animación del mapache
-        this.showMapache = false
+        this.showMapache = true
 
         // Esperar a que termine la animación antes de redirigir
         setTimeout(() => {
