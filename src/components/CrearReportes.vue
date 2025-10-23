@@ -487,7 +487,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import api from '@/services/api'
 import Swal from 'sweetalert2'
 import jsPDF from 'jspdf'
