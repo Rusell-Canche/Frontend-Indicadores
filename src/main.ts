@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import { createApp, nextTick } from 'vue'
 import App from './App.vue'
 import router from './router'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -18,6 +18,16 @@ import SoloTextoYNumeros from './directives/SoloTextoYNumeros.js'
 import SoloCorreo from './directives/SoloCorreo.js'
 
 const app = createApp(App)
+
+const DEFAULT_TITLE = 'Vue';
+router.afterEach((to) => {
+    // Use next tick to handle router history correctly
+    // see: https://github.com/vuejs/vue-router/issues/914#issuecomment-384477609
+    nextTick(() => {
+        const title = (to.meta as Record<string, any>)?.title;
+        document.title = typeof title === 'string' ? title : DEFAULT_TITLE;
+    });
+});
 
 app.use(router)
 

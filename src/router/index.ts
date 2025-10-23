@@ -37,6 +37,7 @@ const router = createRouter({
       path: '/',
       name: 'Login',
       component: Login,
+      meta: { title: 'Login' },
     },
     {
       path: '/PanelDeControl',
@@ -47,6 +48,7 @@ const router = createRouter({
           path: 'Bienvenida',
           name: 'Bienvenida',
           component: Bienvenida,
+          meta: { title: 'Bienvenida' }
         },
         {
           path: '/Indicador',
@@ -57,18 +59,21 @@ const router = createRouter({
               path: 'ver-indicadores',
               name: 'ver-indicadores',
               component: VerIndicadores,
+              meta: { title: 'Indicadores' },
               children: [
                 {
                   path: 'editar/:id',
                   name: 'editar-indicador',
                   component: EditarIndicador,
                   props: true,
+                  meta: { title: 'Editar Indicador' }
                 },
                 {
                   path: 'configurar/:id',
                   name: 'configurar-indicador',
                   component: ConfigurarIndicador,
                   props: true,
+                  meta: { title: 'Configurar Indicador' }
                 },
               ],
             },
@@ -76,11 +81,13 @@ const router = createRouter({
               path: 'CargarIndicador',
               name: 'CargarIndicador',
               component: Cargarindicadores,
+              meta: { title: 'Cargar Indicadores' }
             },
             {
               path: 'CrearIndicador',
               name: 'CrearIndicador',
               component: CrearIndicador,
+              meta: { title: 'Crear Indicador' }
             },
           ],
         },
@@ -88,16 +95,19 @@ const router = createRouter({
           path: '/Plantillas',
           name: 'Plantillas',
           component: Plantillas,
+          meta: { title: 'Plantillas' },
           children: [
             {
               path: 'VerPlantillas',
               name: 'VerPlantillas',
               component: VerPlantillas,
+              meta: { title: 'Ver Plantillas' }
             },
             {
               path: 'CrearPlantillas',
               name: 'CrearPlantillas',
               component: CrearPlantillas,
+              meta: { title: 'Crear Plantilla' }
             },
           ],
         },
@@ -105,16 +115,19 @@ const router = createRouter({
           path: '/Documentos',
           name: 'Documentos',
           component: Documentos,
+          meta: { title: 'Documentos' },
           children: [
             {
               path: 'VerDocumentos',
               name: 'VerDocumentos',
               component: VerDocumentos,
+              meta: { title: 'Ver Documentos' }
             },
             {
               path: 'CrearDocumentos',
               name: 'CrearDocumentos',
               component: CrearDocumentos,
+              meta: { title: 'Crear Documento' }
             },
           ],
         },
@@ -122,16 +135,19 @@ const router = createRouter({
           path: '/Ejes',
           name: 'Ejes',
           component: Ejes,
+          meta: { title: 'Ejes' },
           children: [
             {
               path: 'VerEjes',
               name: 'VerEjes',
               component: VerEjes,
+              meta: { title: 'Ver Ejes' },
             },
             {
               path: 'CrearEjes',
               name: 'CrearEjes',
               component: CrearEjes,
+              meta: { title: 'Crear Eje' },
             },
           ],
         },
@@ -139,30 +155,36 @@ const router = createRouter({
           path: '/Usuarios',
           name: 'Usuarios',
           component: Usuarios,
+          meta: { title: 'Usuarios' },
           children: [
             {
               path: 'VerUsuarios',
               name: 'VerUsuarios',
               component: VerUsuarios,
+              meta: { title: 'Ver Usuarios' },
             },
             {
               path: 'CrearUsuarios',
               name: 'CrearUsuarios',
               component: CrearUsuarios,
+              meta: { title: 'Crear Usuario' },
             },
             {
               path: 'CrearRoles',
               name: 'CrearRoles',
+              meta: { title: 'Crear Roles' },
               component: CrearRoles,
             },
             {
               path: 'AsignarPermisos',
               name: 'AsignarPermisos',
+              meta: { title: 'Asignar Permisos' },
               component: AsignarPermisos,
             },
             {
               path: 'VerRoles',
               name: 'VerRoles',
+              meta: { title: 'Ver Roles' },
               component: VerRoles,
             },
           ],
@@ -170,16 +192,19 @@ const router = createRouter({
         {
           path: '/Reportes',
           name: 'Reportes',
+          meta: { title: 'Reportes' },
           component: Reportes,
           children: [
             {
               path: 'VerReportes',
               name: 'VerReportes',
+              meta: { title: 'Ver Reportes' },
               component: VerReportes,
             },
             {
               path: 'CrearReportes',
               name: 'CrearReportes',
+              meta: { title: 'Crear Reportes' },
               component: CrearReportes,
             },
           ],
@@ -188,15 +213,18 @@ const router = createRouter({
           path: '/Estadisticas',
           name: 'Estadisticas',
           component: Estadisticas,
+          meta: { title: 'Estadísticas' },
           children: [
             {
               path: 'VerEstadisticas',
               name: 'VerEstadisticas',
+              meta: { title: 'Crear Estadísticas' },
               component: VerEstadisticas,
             },
             {
               path: 'HistorialEstadisticas',
               name: 'HistorialEstadisticas',
+              meta: { title: 'Ver Estadísticas' },
               component: HistorialEstadisticas,
             },
           ],
