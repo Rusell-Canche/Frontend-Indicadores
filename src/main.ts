@@ -10,7 +10,6 @@ import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
 import Tooltip from 'primevue/tooltip'
 
-
 //Importar las directivas
 import SoloNumeros from './directives/SoloNumeros.js' 
 import SoloTexto from './directives/SoloTexto.js'

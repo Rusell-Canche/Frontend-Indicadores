@@ -29,6 +29,7 @@ import VerRoles from '@/components/VerRoles.vue'
 import Estadisticas from '@/components/Estadisticas.vue'
 import VerEstadisticas from '@/components/VerEstadisticas.vue'
 import HistorialEstadisticas from '@/components/HistorialEstadisticas.vue'
+import Forbidden from '@/components/Forbidden.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -231,6 +232,12 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: '/forbidden',
+      name: 'Forbidden',
+      component: Forbidden,
+      meta: { title: 'Prohibido' }
+    }
   ],
 })
 
