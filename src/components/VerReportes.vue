@@ -396,6 +396,7 @@
 
 <script>
 import axios from 'axios'
+import api from '@/services/api'
 import Swal from 'sweetalert2'
 
 export default {
@@ -537,12 +538,7 @@ export default {
       this.error = null
 
       try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/reportes', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        const response = await api.get('/reportes')
         this.reportes = response.data.data || []
       } catch (err) {
         console.error('Error al cargar reportes:', err)
@@ -647,12 +643,7 @@ export default {
       this.eliminando = id
 
       try {
-        const token = localStorage.getItem('apiToken')
-        await axios.delete(`http://127.0.0.1:8000/api/reportes/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        await api.delete(`/reportes/${id}`)
         this.reportes = this.reportes.filter((reporte) => reporte.id !== id)
 
         Swal.fire({
@@ -688,7 +679,7 @@ export default {
       try {
         // Eliminar todos los reportes uno por uno
         await Promise.all(
-          this.reportes.map((reporte) => axios.delete(`/api/reportes/${reporte.id}`)),
+          this.reportes.map((reporte) => api.delete(`/reportes/${reporte.id}`)),
         )
 
         this.reportes = []
