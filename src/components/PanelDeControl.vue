@@ -14,31 +14,43 @@
           <i class="fas fa-home"></i>
           <span>PANEL DE CONTROL</span>
         </li>
+        
+        <!-- Indicadores - solo si tiene permiso -->
         <li
+          v-if="hasPermission('indicadores')"
           class="navigation-item"
-          :class="{ active: $route.path.includes ('/Indicador') }"
+          :class="{ active: $route.path.includes('/Indicador') }"
           @click="navigateTo('/Indicador')"
         >
           <i class="fas fa-tachometer-alt"></i>
           <span>Indicadores</span>
         </li>
+        
+        <!-- Ejes - solo si tiene permiso -->
         <li
+          v-if="hasPermission('ejes')"
           class="navigation-item"
-          :class="{ active: $route.path.includes ('/Ejes') }"
+          :class="{ active: $route.path.includes('/Ejes') }"
           @click="navigateTo('/Ejes')"
         >
           <i class="fas fa-arrows-alt-v"></i>
           <span>Ejes</span>
         </li>
+        
+        <!-- Plantillas - solo si tiene permiso -->
         <li
+          v-if="hasPermission('plantillas')"
           class="navigation-item"
-          :class="{ active: $route.path.includes ('/Plantillas') }"
+          :class="{ active: $route.path.includes('/Plantillas') }"
           @click="navigateTo('/Plantillas')"
         >
           <i class="fas fa-file"></i>
           <span>Plantillas</span>
         </li>
+        
+        <!-- Documentos - solo si tiene permiso -->
         <li
+          v-if="hasPermission('documentos')"
           class="navigation-item"
           :class="{ 
             active: $route.path.includes('/Documentos') 
@@ -48,25 +60,34 @@
           <i class="fas fa-file-alt"></i>
           <span>Documentos</span>
         </li>
+        
+        <!-- Reportes - solo si tiene permiso -->
         <li
+          v-if="hasPermission('reportes')"
           class="navigation-item"
-          :class="{ active: $route.path.includes ('/Reportes') }"
+          :class="{ active: $route.path.includes('/Reportes') }"
           @click="navigateTo('/Reportes')"
         >
           <i class="fa-solid fa-file-import"></i>
           <span>Reportes</span>
         </li>
+        
+        <!-- Estadísticas - solo si tiene permiso -->
         <li
+          v-if="hasPermission('estadisticas')"
           class="navigation-item"
-          :class="{ active: $route.path.includes ('/Estadisticas') }"
+          :class="{ active: $route.path.includes('/Estadisticas') }"
           @click="navigateTo('/Estadisticas')"
         >
           <i class="fa-solid fa-file-import"></i>
           <span>Estadísticas</span>
         </li>
+        
+        <!-- Usuarios - solo si tiene permiso -->
         <li
+          v-if="hasPermission('usuarios')"
           class="navigation-item"
-          :class="{ active: $route.path.includes ('/Usuarios') }"
+          :class="{ active: $route.path.includes('/Usuarios') }"
           @click="navigateTo('/Usuarios')"
         >
           <i class="fas fa-users"></i>
@@ -108,6 +129,9 @@
 <script>
 export default {
   mounted() {
+    // Cargar permisos al montar el componente
+    this.loadPermissions()
+    
     // Si la ruta actual es exactamente '/PanelDeControl', redirigir a Bienvenida
     if (this.$route.path === '/PanelDeControl') {
       this.$router.replace('/PanelDeControl/Bienvenida')
@@ -116,10 +140,42 @@ export default {
   data() {
     return {
       showLogoutModal: false,
-      isNavigating: false, // Flag para prevenir navegación múltiple
+      isNavigating: false,
+      uiPermissions: {}, // Objeto para almacenar los permisos
     }
   },
   methods: {
+    /**
+     * Carga los permisos desde localStorage
+     */
+    loadPermissions() {
+      const permisosStr = localStorage.getItem('ui_permissions')
+      if (permisosStr) {
+        try {
+          this.uiPermissions = JSON.parse(permisosStr)
+        } catch (error) {
+          console.error('Error al parsear permisos:', error)
+          this.uiPermissions = {}
+        }
+      } else {
+        this.uiPermissions = {}
+      }
+    },
+    
+    /**
+     * Verifica si el usuario tiene permiso para un módulo
+     * @param {string} modulo - Nombre del módulo a verificar
+     * @returns {boolean} - true si tiene permiso, false si no
+     */
+    hasPermission(modulo) {
+      // Si el módulo no existe en los permisos, considerarlo como público (siempre visible)
+      if (!(modulo in this.uiPermissions)) {
+        return true
+      }
+      // Si existe, verificar su valor
+      return this.uiPermissions[modulo] === true
+    },
+    
     navigateTo(path) {
       // Prevenir navegación múltiple si ya está navegando
       if (this.isNavigating) {
@@ -151,12 +207,12 @@ export default {
     handleLogout() {
       this.showLogoutModal = false
       localStorage.removeItem('apiToken')
+      localStorage.removeItem('ui_permissions') // Limpiar permisos también
       this.$router.push('/')
     },
   },
 }
 </script>
-
 <style scoped>
 * {
   box-sizing: border-box;
