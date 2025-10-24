@@ -379,8 +379,7 @@
       @error="handleEditError"
     />
     <!-- Modal para ver subformularios - REEMPLAZAR el modal existente -->
-<!-- Modal Subformularios (Bootstrap puro) -->
-<div v-if="showSubformModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog">
+<div v-if="showSubformModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog"  >
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
 
@@ -388,16 +387,16 @@
       <div class="modal-header">
         <h5 class="modal-title">
           <i class="fas fa-table me-2"></i>
-          Subformulario:
-          {{ currentSubformDefinition?.alias || currentSubformDefinition?.name }}
+          Subformulario: {{ currentSubformDefinition?.alias || currentSubformDefinition?.name }}
         </h5>
-        <div class="d-flex gap-2">
+        
           <button
             v-if="currentModalLevel > 0"
             type="button"
-            class="btn btn-outline-secondary btn-sm"
+            class="btn ms-auto"
             @click="cerrarSubformModal"
             title="Volver al nivel anterior"
+            
           >
             <i class="fas fa-arrow-left"></i>
           </button>
@@ -408,50 +407,61 @@
             @click="cerrarTodosLosModales"
             aria-label="Close"
           ></button>
-        </div>
+        
       </div>
 
       <!-- Body -->
       <div class="modal-body">
-        <div
-          v-if="currentSubformData.length > 0 && currentSubformDefinition?.subcampos"
-          class="table-responsive"
-        >
-          <table class="table table-bordered table-hover align-middle">
-            <thead class="table-light">
-              <tr>
-                <th
-                  v-for="subcampo in currentSubformDefinition.subcampos"
-                  :key="subcampo.name"
-                >
-                  {{ subcampo.alias || subcampo.name }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, rowIndex) in currentSubformData" :key="rowIndex">
-                <td
-                  v-for="subcampo in currentSubformDefinition.subcampos"
-                  :key="subcampo.name"
-                >
-                  <span v-if="subcampo.type === 'subform'">
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-info"
-                      @click="abrirModalSubform(row[subcampo.name], subcampo.name)"
-                      title="Ver subformulario anidado"
-                    >
-                      <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                  </span>
+        <div v-if="currentSubformData.length > 0 && currentSubformDefinition?.subcampos" class="table-responsive">
+          
+          <!-- Tabla PrimeVue compacta -->
+          <DataTable :value="currentSubformData" showGridlines responsiveLayout="scroll">
+            <Column
+              v-for="subcampo in currentSubformDefinition.subcampos"
+              :key="subcampo.name"
+              :field="subcampo.name"
+              :header="subcampo.alias || subcampo.name"
+            >
+              <template #body="slotProps">
+                <span v-if="subcampo.type === 'subform'">
+                  <Button
+                    icon="fa-solid fa-magnifying-glass"
+                    @click="abrirModalSubform(slotProps.data[subcampo.name], subcampo.name)"
+                    text
+                    severity="info"
+                    size="small"
+                    title="Ver subformulario anidado"
+                    v-tooltip="'Ver Subformulario'"
+                  />
+                
+                </span>
+                <span v-else-if="subcampo.type === 'tabla'">
+                  <Button
+                    icon="fa-solid fa-magnifying-glass"
+                    @click="mostrarModalTabla = true; tablaDinamica = getPrettySubcampoValue(slotProps.data, subcampo.name);"
+                    text
+                    severity="info"
+                    size="small"
+                    v-tooltip="'Ver Tabla'"
+                  />
+                </span>
+                <span v-else-if="subcampo.type === 'file'">
+                  <Button
+                    icon="fa-solid fa-eye"
+                    @click="mostrarModalImagen = true; archivo = getPrettySubcampoValue(slotProps.data, subcampo.name);"
+                    text
+                    severity="info"
+                    size="small"
+                    v-tooltip="'Ver Archivo'"
+                  />
+                </span>
+                <span v-else>
+                  {{ getPrettySubcampoValue(slotProps.data, subcampo.name) }}
+                </span>
+              </template>
+            </Column>
+          </DataTable>
 
-                  <span v-else>
-                    {{ getPrettySubcampoValue(row, subcampo.name) }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
         <div v-else class="text-muted text-center py-3">
           No hay entradas en este subformulario.
@@ -459,16 +469,21 @@
       </div>
 
       <!-- Footer -->
-      <div v-if="currentModalLevel > 0" class="modal-footer">
-        <small class="text-muted">
-          <i class="fas fa-info-circle me-1"></i>
-          Navegando en subformulario anidado (Nivel {{ currentModalLevel + 1 }})
-        </small>
-      </div>
+<div class="modal-footer">
+  <small v-if="currentModalLevel > 0" class="text-muted me-auto">
+    <i class="fas fa-info-circle me-1"></i>
+    Navegando en subformulario anidado (Nivel {{ currentModalLevel + 1 }})
+  </small>
+  <button type="button" class="btn btn-secondary" @click="cerrarTodosLosModales">
+    Cerrar
+  </button>
+</div>
+
 
     </div>
   </div>
 </div>
+
 
 
 
@@ -487,7 +502,7 @@
 
       <!-- Body -->
       <div class="modal-body text-center">
-        <h6 class="mb-3">Vista previa</h6>
+        
         <img
           :src="`http://127.0.0.1:8000/storage/${this.archivo}`"
           alt="Vista previa"
@@ -525,7 +540,6 @@
 
       <!-- Body -->
       <div class="modal-body text-center">
-        <h6 class="mb-3">Vista previa</h6>
 
            <!-- Tabla PrimeVue -->
         <DataTable v-if="tablaDinamica && tablaDinamica.length" :value="tablaDinamica" showGridlines responsiveLayout="scroll">
