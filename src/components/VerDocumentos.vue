@@ -269,6 +269,8 @@
                     />
                   </div>
 
+
+
                    
 
                   <!-- Estado -->
@@ -277,6 +279,18 @@
                     :severity="getStatusSeverity(getFieldValueFromDocument(slotProps.data, campo))"
                     :value="getFieldValueFromDocument(slotProps.data, campo)"
                   />
+
+                                    <!-- Tabla dinamica -->
+                  <div v-else-if="campo === 'Tabla'" class="file-badges">
+                    <Button
+                      icon="fa-solid  fa-magnifying-glass"
+                      @click=" this.mostrarModalTabla = true; this.tablaDinamica=getPrettyFieldValue(slotProps.data, campo); console.log('Tabla dinámica:', this.tablaDinamica);"
+                      text
+                      severity="info"
+                      size="small"
+                      v-tooltip="'Ver Tabla'"
+                    />
+                  </div>
 
                   <!-- Subformularios -->
                   <span v-else-if="getCampoDefinition(campo)?.type === 'subform'">
@@ -492,6 +506,56 @@
   </div>
 </div>
 
+
+
+
+
+<!-- Modal: Vista Tabla dinámica -->
+<div v-if="mostrarModalTabla" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog" @click.self="cerrarModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-table me-2"></i> Tabla dinámica
+        </h5>
+        <button type="button" class="btn-close" @click="cerrarModalTabla" aria-label="Close"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body text-center">
+        <h6 class="mb-3">Vista previa</h6>
+
+           <!-- Tabla PrimeVue -->
+        <DataTable v-if="tablaDinamica && tablaDinamica.length" :value="tablaDinamica" showGridlines responsiveLayout="scroll">
+          <Column
+            v-for="key in Object.keys(tablaDinamica[0])"
+            :key="key"
+            :field="key"
+            :header="key"
+          >
+          </Column>
+        </DataTable>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @click="cerrarModalTabla">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
   </div>
 </template>
 
@@ -524,6 +588,9 @@ export default {
 
   data() {
     return {
+      //para mostrar la tabla dinamica
+      tablaDinamica:null,
+      mostrarModalTabla: false,
 
       //para mostrar la imagen de archivo
       mostrarModalImagen: false,
@@ -761,18 +828,10 @@ export default {
         console.log('Stack después de cerrar:', this.modalStack)
       }
     },
-        async mostrarImagenEnModal(id) {
-      try {
-        this.mostrarModalImagen = true
-        console.log("SE ABRIO EL MODAL")
-      } catch (error) {
-        console.error("Error al cargar JSON de la plantilla:", error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo cargar la vista gráfica.',
-        })
-      }
+
+    cerrarModalTabla() {
+      this.mostrarModalTabla = false
+      this.tablaDinamica = null
     },
 
     cerrarModalImagen() {
