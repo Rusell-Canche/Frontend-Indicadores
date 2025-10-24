@@ -261,7 +261,7 @@
                   <div v-if="campo === 'Archivo'" class="file-badges">
                     <Button
                       icon="fa-solid  fa-eye"
-                      @click=" this.mostrarModalImagen = true;"
+                      @click=" this.mostrarModalImagen = true; this.archivo=getPrettyFieldValue(slotProps.data, campo);"
                       text
                       severity="info"
                       size="small"
@@ -269,17 +269,7 @@
                     />
                   </div>
 
-                   <!-- Recurso Digital -->
-                  <div v-if="campo === 'Tabla'" class="file-badges">
-                    <Button
-                      icon="fa-solid  fa-eye"
-                      @click=" this.mostrarModalTabla = true;"
-                      text
-                      severity="info"
-                      size="small"
-                      v-tooltip="'Ver Tabla'"
-                    />
-                  </div>
+                   
 
                   <!-- Estado -->
                   <Tag
@@ -356,6 +346,7 @@
               </template>
             </DataTable>
           </div>
+          
         </div>
       </div>
     </div>
@@ -465,40 +456,6 @@
   </div>
 </div>
 
-<!-- Modal: Vista Archivo -->
-<!-- Modal Imagen (Bootstrap puro) -->
-<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog" @click.self="cerrarModal">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-
-      <!-- Header -->
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="fas fa-image me-2"></i> Imagen
-        </h5>
-        <button type="button" class="btn-close" @click="cerrarModalImagen" aria-label="Close"></button>
-      </div>
-
-      <!-- Body -->
-      <div class="modal-body text-center">
-        <h6 class="mb-3">Vista previa</h6>
-        <img
-          :src="`http://127.0.0.1:8000/storage/uploads/plantilla_x/1GhLBm1l2FKhhhWCv0qyDNPIGS9NJsShhX0ClpF1.png`"
-          alt="Vista previa"
-          class="img-fluid rounded shadow-sm border"
-        />
-      </div>
-
-      <!-- Footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" @click="cerrarModalImagen">
-          Cerrar
-        </button>
-      </div>
-
-    </div>
-  </div>
-</div>
 
 
 <!-- Modal: Vista Archivo -->
@@ -518,7 +475,7 @@
       <div class="modal-body text-center">
         <h6 class="mb-3">Vista previa</h6>
         <img
-          :src="`http://127.0.0.1:8000/storage/uploads/plantilla_x/1GhLBm1l2FKhhhWCv0qyDNPIGS9NJsShhX0ClpF1.png`"
+          :src="`http://127.0.0.1:8000/storage/${this.archivo}`"
           alt="Vista previa"
           class="img-fluid rounded shadow-sm border"
         />
@@ -534,45 +491,6 @@
     </div>
   </div>
 </div>
-
-
-<!-- Modal: Vista Archivo -->
-<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog" @click.self="cerrarModal">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-
-      <!-- Header -->
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="fas fa-image me-2"></i> Imagen
-        </h5>
-        <button type="button" class="btn-close" @click="cerrarModalImagen" aria-label="Close"></button>
-      </div>
-
-      <!-- Body -->
-      <div class="modal-body text-center">
-        <h6 class="mb-3">Vista previa</h6>
-        <img
-          :src="`http://127.0.0.1:8000/storage/uploads/plantilla_x/1GhLBm1l2FKhhhWCv0qyDNPIGS9NJsShhX0ClpF1.png`"
-          alt="Vista previa"
-          class="img-fluid rounded shadow-sm border"
-        />
-      </div>
-
-      <!-- Footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" @click="cerrarModalImagen">
-          Cerrar
-        </button>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-
-
-
 
   </div>
 </template>
@@ -606,8 +524,10 @@ export default {
 
   data() {
     return {
+
       //para mostrar la imagen de archivo
       mostrarModalImagen: false,
+      archivo:null,
       // Por estas que manejan múltiples niveles:
       modalStack: [], // Array que contiene información de cada modal abierto
       currentModalLevel: -1, // Índice del modal actual
@@ -857,6 +777,7 @@ export default {
 
     cerrarModalImagen() {
       this.mostrarModalImagen = false
+      this.archivo = null
       
     },
 
