@@ -1558,3 +1558,15 @@ export default {
   },
 }
 </script>
+
+<style>
+.medico-header{
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+.modern-input .input-group-text{
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+.form-section::before{
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+</style>
