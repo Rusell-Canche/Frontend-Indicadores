@@ -268,11 +268,7 @@
                       v-tooltip="'Ver Archivo'"
                     />
                   </div>
-
-
-
                    
-
                   <!-- Estado -->
                   <Tag
                     v-else-if="campo === 'Estado'"
@@ -281,7 +277,7 @@
                   />
 
                                     <!-- Tabla dinamica -->
-                  <div v-else-if="campo === 'Tabla'" class="file-badges">
+                  <div v-else-if="getCampoDefinition(campo)?.type === 'tabla'" class="file-badges">
                     <Button
                       icon="fa-solid  fa-magnifying-glass"
                       @click=" this.mostrarModalTabla = true; this.tablaDinamica=getPrettyFieldValue(slotProps.data, campo); console.log('Tabla dinámica:', this.tablaDinamica);"
@@ -307,7 +303,7 @@
                   </span>
 
                   <!-- Otros campos -->
-                  <span v-else>
+                  <span v-else >
                     {{ getPrettyFieldValue(slotProps.data, campo) || '-' }}
                   </span>
                 </template>
@@ -1559,7 +1555,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .medico-header{
   background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
 }
