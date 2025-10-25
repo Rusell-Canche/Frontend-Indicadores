@@ -42,7 +42,7 @@ router.beforeEach((to) => {
   }
 
   // Parseamos el objeto JSON
-  const uiPermissions: Record<string, boolean> = JSON.parse(permisosStr);
+  const uiPermissions: Record<string, boolean> = JSON.parse(permisosStr || '{}');
 
   // Si la ruta no tiene meta.modulo, se deja pasar (no esta protegida)
   if (!to.meta?.modulo) {
