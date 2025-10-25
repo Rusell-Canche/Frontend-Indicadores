@@ -258,7 +258,7 @@
               >
                 <template #body="slotProps">
                   <!-- Recurso Digital -->
-                  <div v-if="campo === 'Archivo'" class="file-badges">
+                  <div v-if="getCampoDefinition(campo)?.type === 'file'" class="file-badges">
                     <Button
                       icon="fa-solid  fa-eye"
                       @click=" this.mostrarModalImagen = true; this.archivo=getPrettyFieldValue(slotProps.data, campo);"
