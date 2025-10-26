@@ -483,9 +483,9 @@
 
 
 
-<!-- Modal: Vista Archivo -->
-<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog" @click.self="cerrarModal">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
+<!--Modal para mostrar Imagenes-->
+<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);" aria-modal="true" role="dialog" @click.self="cerrarModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1100px;">
     <div class="modal-content">
 
       <!-- Header -->
@@ -497,13 +497,78 @@
       </div>
 
       <!-- Body -->
-      <div class="modal-body text-center">
-        
-        <img
-          :src="`http://127.0.0.1:8000/storage/${this.archivo}`"
-          alt="Vista previa"
-          class="img-fluid rounded shadow-sm border"
-        />
+      <div class="modal-body text-center" >
+          <Galleria
+            :value="Array.isArray(archivo) ? archivo : [archivo]"
+            :responsiveOptions="responsiveOptions"
+            :numVisible="5"
+            :circular="true"
+            containerStyle="max-width: 100%; height: 100%;"
+            :showThumbnails="true"
+            :showIndicators="false"
+          >
+            <!-- Imagen principal -->
+            <template #item="slotProps">
+              <div
+                style="
+                  width: 100%;
+                  height: 400px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background: linear-gradient(135deg, #f8f9fa 100%, #ffffff 100%);
+                  border-radius: 12px;
+                  padding: 16px;
+                  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+                "
+              >
+                <img
+                  :src="`http://127.0.0.1:8000/storage/${slotProps.item}`"
+                  alt="imagen"
+                  style="
+                    max-width: 100%;
+                    max-height: 100%;
+                    width: auto;
+                    height: auto;
+                    object-fit: contain;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+                    transition: transform 0.3s ease;
+                  "
+                 
+                />
+              </div>
+            </template>
+
+            <!-- Miniaturas -->
+            <template #thumbnail="slotProps">
+              <div   style="padding: 8px; display: inline-block;">
+                <div
+                  style="
+                    width: 120px;
+                    height: 90px;
+                    overflow: hidden;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    border: 3px solid transparent;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    background: #f8f9fa;
+                  "
+                >
+                  <img
+                    :src="`http://127.0.0.1:8000/storage/${slotProps.item}`"
+                    alt="miniatura"
+                    style="
+                      width: 100%;
+                      height: 100%;
+                      display: block;
+                    "
+                  />
+                </div>
+              </div>
+            </template>
+          </Galleria>
       </div>
 
       <!-- Footer -->
@@ -512,10 +577,10 @@
           Cerrar
         </button>
       </div>
-
     </div>
   </div>
 </div>
+
 
 
 
@@ -562,14 +627,11 @@
 </div>
 
 
-
-
-
-
   </div>
 </template>
 
 <script>
+import Galleria from 'primevue/galleria'
 import api, { storage } from '@/services/api'
 import axios from 'axios'
 import Swal from 'sweetalert2'
@@ -583,9 +645,11 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 
 export default {
+  name: 'GaleriaImagenes',
   name: 'VerDocumentos',
 
   components: {
+    Galleria,
     EditDocumentModal,
     DataTable,
     Column,
@@ -608,6 +672,13 @@ export default {
       // Por estas que manejan múltiples niveles:
       modalStack: [], // Array que contiene información de cada modal abierto
       currentModalLevel: -1, // Índice del modal actual
+
+      //para componente de galleria 
+       responsiveOptions: [
+        { breakpoint: '1024px', numVisible: 5 },
+        { breakpoint: '768px', numVisible: 3 },
+        { breakpoint: '560px', numVisible: 1 }
+      ],
 
       // Estado principal
       colecciones: [],
@@ -643,6 +714,14 @@ export default {
   },
 
   computed: {
+    // Computed property para obtener campos filtrables
+      imagenesParaGaleria() {
+    return this.archivo.map(ruta => ({
+      itemImageSrc: `http://127.0.0.1:8000/storage/${ruta}`,
+      thumbnailImageSrc: `http://127.0.0.1:8000/storage/${ruta}`, // misma imagen
+      alt: 'Imagen'
+    }));
+  },
     camposFiltrables() {
       if (!this.camposPlantilla?.secciones) return []
 
