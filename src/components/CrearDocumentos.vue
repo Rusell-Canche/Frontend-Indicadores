@@ -435,22 +435,38 @@
 
                     <!-- Campo de archivos -->
                     <div v-else-if="campo.type === 'file'" class="mt-2">
-                      <div class="input-group modern-input">
-                        <span class="input-group-text">
-                          <i class="fas fa-paperclip"></i>
-                        </span>
-                        <input
-                          type="file"
-                          class="form-control"
-                          :id="campo.name"
-                          :name="campo.name"
-                          @change="onFileChange($event, campo.name)"
-                          multiple
-                        />
+                      <label class="form-label d-block mb-3">
+                        <i class="fas fa-paperclip me-2"></i>
+                        {{ campo.alias || campo.name }}
+                        <span v-if="campo.required" class="text-danger">*</span>
+                      </label>
+
+                      <!-- Un solo input de archivo con múltiple -->
+                      <div class="file-input-group mb-3">
+                        <div class="input-group modern-input">
+                          <span class="input-group-text">
+                            <i class="fas fa-file"></i>
+                          </span>
+                          <input
+                            type="file"
+                            class="form-control"
+                            :id="campo.name"
+                            :name="campo.name"
+                            @change="onFileChange($event, campo.name)"
+                            multiple
+                            :key="fileInputKey"
+                          />
+                        </div>
                       </div>
+
                       <!-- Vista previa de archivos -->
-                      <div v-if="files[campo.name]" class="file-preview mt-3">
-                        <h6 class="preview-title">Archivos seleccionados:</h6>
+                      <div
+                        v-if="files[campo.name] && files[campo.name].length > 0"
+                        class="file-preview mt-3"
+                      >
+                        <h6 class="preview-title">
+                          Archivos seleccionados ({{ files[campo.name].length }}):
+                        </h6>
                         <div class="d-flex flex-wrap gap-3">
                           <div
                             class="file-item"
@@ -478,6 +494,18 @@
                               <i class="fas fa-times"></i>
                             </button>
                           </div>
+                        </div>
+
+                        <!-- Botón para limpiar todos los archivos -->
+                        <div class="mt-3">
+                          <button
+                            type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            @click="clearAllFiles(campo.name)"
+                          >
+                            <i class="fas fa-trash me-1"></i>
+                            Limpiar todos los archivos
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -582,6 +610,7 @@ export default {
       seccionesDocumento: [],
       documentData: {},
       files: {},
+      fileInputKey: 0,
       subformData: {}, // Guarda los datos de texto/número/fecha
       subformFiles: {}, // Guarda referencias a archivos
       showSubformModal: false,
@@ -631,27 +660,27 @@ export default {
   },
   methods: {
     actualizarSubformulario(nombreCampo, nuevoValor) {
-  // Asegurarse de que los objetos File se mantengan
-  this.subformData[nombreCampo] = nuevoValor.map(fila => {
-    const nuevaFila = { ...fila }
-    
-    // Buscar el campo subform correspondiente
-    const campoSubform = this.camposPlantilla.find(campo => 
-      campo.name === nombreCampo && campo.type === 'subform'
-    )
-    
-    if (campoSubform) {
-      campoSubform.subcampos.forEach(subcampo => {
-        if (subcampo.type === 'file' && nuevaFila[subcampo.name] instanceof File) {
-          // Mantener el objeto File - no convertirlo
-          nuevaFila[subcampo.name] = nuevaFila[subcampo.name]
+      // Asegurarse de que los objetos File se mantengan
+      this.subformData[nombreCampo] = nuevoValor.map((fila) => {
+        const nuevaFila = { ...fila }
+
+        // Buscar el campo subform correspondiente
+        const campoSubform = this.camposPlantilla.find(
+          (campo) => campo.name === nombreCampo && campo.type === 'subform',
+        )
+
+        if (campoSubform) {
+          campoSubform.subcampos.forEach((subcampo) => {
+            if (subcampo.type === 'file' && nuevaFila[subcampo.name] instanceof File) {
+              // Mantener el objeto File - no convertirlo
+              nuevaFila[subcampo.name] = nuevaFila[subcampo.name]
+            }
+          })
         }
+
+        return nuevaFila
       })
-    }
-    
-    return nuevaFila
-  })
-},
+    },
 
     // Métodos para tablas dinámicas - CORREGIDOS
     async abrirModalTabla(campo) {
@@ -879,11 +908,37 @@ export default {
     onFileChange(event, fieldName) {
       const fileList = event.target.files
       if (fileList.length > 0) {
-        // En Vue 3 podemos asignar directamente
-        this.files[fieldName] = Array.from(fileList)
+        // Convertir FileList a Array
+        const newFiles = Array.from(fileList)
+
+        // Inicializar el array si no existe
+        if (!this.files[fieldName]) {
+          this.files[fieldName] = []
+        }
+
+        // Agregar los nuevos archivos al array existente (ACUMULAR)
+        this.files[fieldName] = [...this.files[fieldName], ...newFiles]
+
+        // Forzar reset del input file para permitir seleccionar más archivos
+        this.resetFileInput(fieldName)
       }
     },
+    resetFileInput(fieldName) {
+      // Incrementar la key para forzar el re-render del input
+      this.fileInputKey += 1
 
+      // También resetear el valor del input directamente
+      const inputElement = document.getElementById(fieldName)
+      if (inputElement) {
+        inputElement.value = ''
+      }
+    },
+    triggerFileInput(fieldName) {
+      const inputElement = document.getElementById(fieldName)
+      if (inputElement) {
+        inputElement.click()
+      }
+    },
     isImageFile(file) {
       return file && file.type && file.type.startsWith('image/')
     },
@@ -895,11 +950,19 @@ export default {
     removeFile(fieldName, index) {
       if (this.files[fieldName]) {
         this.files[fieldName].splice(index, 1)
+
+        // Si no quedan archivos, limpiar el array
         if (this.files[fieldName].length === 0) {
-          // En Vue 3 podemos eliminar propiedades directamente
           delete this.files[fieldName]
         }
       }
+    },
+    clearAllFiles(fieldName) {
+      if (this.files[fieldName]) {
+        delete this.files[fieldName]
+      }
+      // Resetear el input file también
+      this.resetFileInput(fieldName)
     },
 
     // Métodos para subforms
@@ -1052,252 +1115,250 @@ export default {
       }
     },
     async onSubmit() {
-  const invalidSelects = this.camposPlantilla.filter(
-    (campo) => campo.type === 'select' && !this.validateDynamicSelect(campo),
-  )
-  if (invalidSelects.length > 0) {
-    this.showError('Algunos campos select están mal configurados')
-    return
-  }
-
-  // Validaciones previas
-  const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
-    if (campo.type === 'select' && campo.required) {
-      return !this.documentData[campo.name] || this.documentData[campo.name] === ''
-    }
-    return false
-  })
-  if (selectFieldsEmpty) {
-    this.showError('Por favor seleccione una opción en los campos obligatorios')
-    return
-  }
-
-  const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
-    if (campo.required || (campo.filterable && campo.type !== 'subform')) {
-      if (campo.type === 'file') {
-        return !this.files[campo.name] || this.files[campo.name].length === 0
+      const invalidSelects = this.camposPlantilla.filter(
+        (campo) => campo.type === 'select' && !this.validateDynamicSelect(campo),
+      )
+      if (invalidSelects.length > 0) {
+        this.showError('Algunos campos select están mal configurados')
+        return
       }
-      if (campo.type === 'tabla') {
-        return !this.tablaData[campo.name] || this.tablaData[campo.name].length === 0
+
+      // Validaciones previas
+      const selectFieldsEmpty = this.camposPlantilla.some((campo) => {
+        if (campo.type === 'select' && campo.required) {
+          return !this.documentData[campo.name] || this.documentData[campo.name] === ''
+        }
+        return false
+      })
+      if (selectFieldsEmpty) {
+        this.showError('Por favor seleccione una opción en los campos obligatorios')
+        return
       }
-      return !this.documentData[campo.name]
-    }
-    return false
-  })
 
-  const subformsEmpty = this.camposPlantilla.some((campo) => {
-    if (campo.type === 'subform' && (campo.required || campo.filterable)) {
-      return !this.subformData[campo.name] || this.subformData[campo.name].length === 0
-    }
-    return false
-  })
+      const requiredFieldsEmpty = this.camposPlantilla.some((campo) => {
+        if (campo.required || (campo.filterable && campo.type !== 'subform')) {
+          if (campo.type === 'file') {
+            return !this.files[campo.name] || this.files[campo.name].length === 0
+          }
+          if (campo.type === 'tabla') {
+            return !this.tablaData[campo.name] || this.tablaData[campo.name].length === 0
+          }
+          return !this.documentData[campo.name]
+        }
+        return false
+      })
 
-  if (requiredFieldsEmpty || subformsEmpty) {
-    this.showError('Complete todos los campos obligatorios')
-    return
-  }
+      const subformsEmpty = this.camposPlantilla.some((campo) => {
+        if (campo.type === 'subform' && (campo.required || campo.filterable)) {
+          return !this.subformData[campo.name] || this.subformData[campo.name].length === 0
+        }
+        return false
+      })
 
-  const formData = new FormData()
+      if (requiredFieldsEmpty || subformsEmpty) {
+        this.showError('Complete todos los campos obligatorios')
+        return
+      }
 
-  // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
-  const fileMapping = {}
+      const formData = new FormData()
 
-  // Construir estructura por secciones
-  const seccionesData = []
+      // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
+      const fileMapping = {}
 
-  this.seccionesPlantilla.forEach((seccion) => {
-    const camposDeSeccion = seccion.fields || []
-    const fields = {}
+      // Construir estructura por secciones
+      const seccionesData = []
 
-    camposDeSeccion.forEach((campo) => {
-      if (campo.type === 'subform') {
-        // Para subformularios - procesar filas
-        const subformRows = this.subformData[campo.name] || []
-        const processedRows = []
+      this.seccionesPlantilla.forEach((seccion) => {
+        const camposDeSeccion = seccion.fields || []
+        const fields = {}
 
-        subformRows.forEach((fila, filaIndex) => {
-          const processedRow = {}
+        camposDeSeccion.forEach((campo) => {
+          if (campo.type === 'subform') {
+            // Para subformularios - procesar filas
+            const subformRows = this.subformData[campo.name] || []
+            const processedRows = []
 
-          // Procesar cada subcampo del subformulario
-          campo.subcampos.forEach((subcampo) => {
-            if (subcampo.type === 'file') {
-              const archivo = fila[subcampo.name]
-              
-              if (archivo instanceof File) {
-                // Crear nombre único para el campo de archivo
-                const uniqueFieldName = `subform_${campo.name}_${filaIndex}_${subcampo.name}`
-                
-                // Agregar archivo al FormData
-                formData.append(`files[${uniqueFieldName}]`, archivo)
-                
-                // Guardar mapeo
-                fileMapping[uniqueFieldName] = {
-                  seccion: seccion.nombre,
-                  campo: campo.name,
-                  tipo: 'subform',
-                  subcampo: subcampo.name,
-                  fila: filaIndex
+            subformRows.forEach((fila, filaIndex) => {
+              const processedRow = {}
+
+              // Procesar cada subcampo del subformulario
+              campo.subcampos.forEach((subcampo) => {
+                if (subcampo.type === 'file') {
+                  const archivo = fila[subcampo.name]
+
+                  if (archivo instanceof File) {
+                    // Crear nombre único para el campo de archivo
+                    const uniqueFieldName = `subform_${campo.name}_${filaIndex}_${subcampo.name}`
+
+                    // Agregar archivo al FormData
+                    formData.append(`files[${uniqueFieldName}]`, archivo)
+
+                    // Guardar mapeo
+                    fileMapping[uniqueFieldName] = {
+                      seccion: seccion.nombre,
+                      campo: campo.name,
+                      tipo: 'subform',
+                      subcampo: subcampo.name,
+                      fila: filaIndex,
+                    }
+
+                    // En los datos, dejar null (el backend lo llenará con la ruta)
+                    processedRow[subcampo.name] = null
+                  } else {
+                    // Si ya es un string (ruta existente) o null, mantenerlo
+                    processedRow[subcampo.name] = fila[subcampo.name] || null
+                  }
+                } else {
+                  // Para otros tipos de campos, copiar el valor directamente
+                  // Asegurarse de que los valores de fecha sean strings
+                  let valor = fila[subcampo.name]
+
+                  if (subcampo.type === 'date' && valor instanceof Date) {
+                    // Convertir Date a string ISO para campos de fecha
+                    valor = valor.toISOString().split('T')[0]
+                  } else if (valor === undefined || valor === null) {
+                    // Valor por defecto para campos vacíos
+                    valor = ''
+                  }
+
+                  processedRow[subcampo.name] = valor
                 }
-                
-                // En los datos, dejar null (el backend lo llenará con la ruta)
-                processedRow[subcampo.name] = null
+              })
+
+              processedRows.push(processedRow)
+            })
+
+            fields[campo.name] = processedRows
+          } else if (campo.type === 'tabla') {
+            // Para tablas
+            const tablaIds = (this.tablaData[campo.name] || [])
+              .map((fila) => fila._documentId)
+              .filter((id) => id)
+            fields[campo.name] = tablaIds
+          } else if (campo.type === 'file') {
+            // Para campos file normales
+            const archivos = this.files[campo.name]
+
+            if (archivos && Array.isArray(archivos) && archivos.length > 0) {
+              // Si hay múltiples archivos
+              if (archivos.length === 1) {
+                const archivo = archivos[0]
+                if (archivo instanceof File) {
+                  const uniqueFieldName = `file_${campo.name}`
+
+                  formData.append(`files[${uniqueFieldName}]`, archivo)
+
+                  fileMapping[uniqueFieldName] = {
+                    seccion: seccion.nombre,
+                    campo: campo.name,
+                    tipo: 'file',
+                  }
+
+                  // Dejar null, el backend lo llenará con la ruta
+                  fields[campo.name] = null
+                } else {
+                  // Si ya es un string (ruta existente)
+                  fields[campo.name] = archivo
+                }
               } else {
-                // Si ya es un string (ruta existente) o null, mantenerlo
-                processedRow[subcampo.name] = fila[subcampo.name] || null
+                // Múltiples archivos
+                archivos.forEach((archivo, idx) => {
+                  if (archivo instanceof File) {
+                    const uniqueFieldName = `file_${campo.name}_${idx}`
+
+                    formData.append(`files[${uniqueFieldName}]`, archivo)
+
+                    fileMapping[uniqueFieldName] = {
+                      seccion: seccion.nombre,
+                      campo: campo.name,
+                      tipo: 'file',
+                      index: idx,
+                    }
+                  }
+                })
+                // Para múltiples archivos, dejar como array vacío
+                fields[campo.name] = []
               }
             } else {
-              // Para otros tipos de campos, copiar el valor directamente
-              // Asegurarse de que los valores de fecha sean strings
-              let valor = fila[subcampo.name]
-              
-              if (subcampo.type === 'date' && valor instanceof Date) {
-                // Convertir Date a string ISO para campos de fecha
-                valor = valor.toISOString().split('T')[0]
-              } else if (valor === undefined || valor === null) {
-                // Valor por defecto para campos vacíos
-                valor = ''
-              }
-              
-              processedRow[subcampo.name] = valor
+              fields[campo.name] = null
             }
-          })
-
-          processedRows.push(processedRow)
+          } else if (campo.type === 'date') {
+            // Para campos de fecha - asegurar que sean strings
+            let valor = this.documentData[campo.name]
+            if (valor instanceof Date) {
+              valor = valor.toISOString().split('T')[0] // Formato YYYY-MM-DD
+            }
+            fields[campo.name] = valor || ''
+          } else if (campo.type === 'checkBox') {
+            // Para checkboxes - asegurar que sea array
+            fields[campo.name] = Array.isArray(this.documentData[campo.name])
+              ? this.documentData[campo.name]
+              : []
+          } else {
+            // Otros campos (texto, number, select)
+            fields[campo.name] = this.documentData[campo.name] || ''
+          }
         })
 
-        fields[campo.name] = processedRows
+        seccionesData.push({
+          nombre: seccion.nombre,
+          fields,
+        })
+      })
 
-      } else if (campo.type === 'tabla') {
-        // Para tablas
-        const tablaIds = (this.tablaData[campo.name] || [])
-          .map((fila) => fila._documentId)
-          .filter((id) => id)
-        fields[campo.name] = tablaIds
+      // Adjuntar la estructura al formData
+      formData.append(
+        'document_data',
+        JSON.stringify({
+          secciones: seccionesData,
+        }),
+      )
 
-      } else if (campo.type === 'file') {
-        // Para campos file normales
-        const archivos = this.files[campo.name]
-        
-        if (archivos && Array.isArray(archivos) && archivos.length > 0) {
-          // Si hay múltiples archivos
-          if (archivos.length === 1) {
-            const archivo = archivos[0]
-            if (archivo instanceof File) {
-              const uniqueFieldName = `file_${campo.name}`
-              
-              formData.append(`files[${uniqueFieldName}]`, archivo)
-              
-              fileMapping[uniqueFieldName] = {
-                seccion: seccion.nombre,
-                campo: campo.name,
-                tipo: 'file'
-              }
-              
-              // Dejar null, el backend lo llenará con la ruta
-              fields[campo.name] = null
-            } else {
-              // Si ya es un string (ruta existente)
-              fields[campo.name] = archivo
-            }
-          } else {
-            // Múltiples archivos
-            archivos.forEach((archivo, idx) => {
-              if (archivo instanceof File) {
-                const uniqueFieldName = `file_${campo.name}_${idx}`
-                
-                formData.append(`files[${uniqueFieldName}]`, archivo)
-                
-                fileMapping[uniqueFieldName] = {
-                  seccion: seccion.nombre,
-                  campo: campo.name,
-                  tipo: 'file',
-                  index: idx
-                }
-              }
-            })
-            // Para múltiples archivos, dejar como array vacío
-            fields[campo.name] = []
-          }
+      // Adjuntar el mapeo de archivos
+      formData.append('file_mapping', JSON.stringify(fileMapping))
+
+      // Debug - información detallada
+      console.log('=== ENVIANDO AL BACKEND ===')
+      console.log('Estructura JSON completa:')
+      console.log(JSON.stringify({ secciones: seccionesData }, null, 2))
+      console.log('\nFile Mapping:')
+      console.log(JSON.stringify(fileMapping, null, 2))
+      console.log('\nArchivos en FormData:')
+      for (let pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(`  ${pair[0]} -> ${pair[1].name} (${pair[1].size} bytes)`)
+        } else if (pair[0] === 'document_data' || pair[0] === 'file_mapping') {
+          console.log(`  ${pair[0]} -> (JSON data)`)
         } else {
-          fields[campo.name] = null
+          console.log(`  ${pair[0]} -> ${pair[1]}`)
         }
-
-      } else if (campo.type === 'date') {
-        // Para campos de fecha - asegurar que sean strings
-        let valor = this.documentData[campo.name]
-        if (valor instanceof Date) {
-          valor = valor.toISOString().split('T')[0] // Formato YYYY-MM-DD
-        }
-        fields[campo.name] = valor || ''
-
-      } else if (campo.type === 'checkBox') {
-        // Para checkboxes - asegurar que sea array
-        fields[campo.name] = Array.isArray(this.documentData[campo.name]) 
-          ? this.documentData[campo.name] 
-          : []
-
-      } else {
-        // Otros campos (texto, number, select)
-        fields[campo.name] = this.documentData[campo.name] || ''
       }
-    })
 
-    seccionesData.push({
-      nombre: seccion.nombre,
-      fields,
-    })
-  })
+      // Enviar solicitud
+      try {
+        const token = localStorage.getItem('apiToken')
+        const response = await api.post(`/documentos/${this.selectedPlantilla}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
+        })
 
-  // Adjuntar la estructura al formData
-  formData.append('document_data', JSON.stringify({
-    secciones: seccionesData
-  }))
-
-  // Adjuntar el mapeo de archivos
-  formData.append('file_mapping', JSON.stringify(fileMapping))
-
-  // Debug - información detallada
-  console.log('=== ENVIANDO AL BACKEND ===')
-  console.log('Estructura JSON completa:')
-  console.log(JSON.stringify({ secciones: seccionesData }, null, 2))
-  console.log('\nFile Mapping:')
-  console.log(JSON.stringify(fileMapping, null, 2))
-  console.log('\nArchivos en FormData:')
-  for (let pair of formData.entries()) {
-    if (pair[1] instanceof File) {
-      console.log(`  ${pair[0]} -> ${pair[1].name} (${pair[1].size} bytes)`)
-    } else if (pair[0] === 'document_data' || pair[0] === 'file_mapping') {
-      console.log(`  ${pair[0]} -> (JSON data)`)
-    } else {
-      console.log(`  ${pair[0]} -> ${pair[1]}`)
-    }
-  }
-
-  // Enviar solicitud 
-  try {
-    const token = localStorage.getItem('apiToken')
-    const response = await api.post(`/documentos/${this.selectedPlantilla}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    Swal.fire({
-      title: 'Éxito',
-      text: 'Documento creado correctamente',
-      icon: 'success',
-      confirmButtonText: 'Aceptar',
-    })
-    this.resetForm()
-  } catch (error) {
-    console.error('Error al crear documento:', error)
-    this.showError(
-      'Error al crear el documento: ' +
-        (error.response?.data?.message || error.message || 'Error desconocido'),
-    )
-  }
-},
+        Swal.fire({
+          title: 'Éxito',
+          text: 'Documento creado correctamente',
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+        })
+        this.resetForm()
+      } catch (error) {
+        console.error('Error al crear documento:', error)
+        this.showError(
+          'Error al crear el documento: ' +
+            (error.response?.data?.message || error.message || 'Error desconocido'),
+        )
+      }
+    },
 
     resetForm() {
       this.documentData = {}
@@ -1305,6 +1366,7 @@ export default {
       this.tablaData = {}
       this.subformData = {}
       this.subformFiles = {}
+      this.fileInputKey += 1
 
       this.camposPlantilla.forEach((campo) => {
         if (campo.type === 'select') {
