@@ -42,9 +42,7 @@
               <!-- Botón para tabla -->
               <template v-else-if="subcampo.type === 'tabla'">
                 <span class="badge bg-info">
-                  {{
-                    Array.isArray(fila[subcampo.name]) ? fila[subcampo.name].length : 0
-                  }}
+                  {{ Array.isArray(fila[subcampo.name]) ? fila[subcampo.name].length : 0 }}
                   registro(s)
                 </span>
               </template>
@@ -135,20 +133,81 @@
                         {{ subcampo.alias || subcampo.name }}
                         <span v-if="subcampo.required" class="text-danger">*</span>
                       </label>
-                      <div class="input-group modern-input">
-                        <span class="input-group-text">
-                          <i class="fas fa-paperclip"></i>
-                        </span>
-                        <input
-                          type="file"
-                          class="form-control"
-                          @change="onCambioArchivo($event, subcampo.name)"
-                        />
+
+                      <!-- Un solo input de archivo con múltiple -->
+                      <div class="file-input-group mb-3">
+                        <div class="input-group modern-input">
+                          <span class="input-group-text">
+                            <i class="fas fa-file"></i>
+                          </span>
+                          <input
+                            type="file"
+                            class="form-control"
+                            :id="`subform_${campo.name}_${subcampo.name}`"
+                            @change="onCambioArchivo($event, subcampo.name)"
+                            multiple
+                            :key="getFileInputKey(subcampo.name)"
+                          />
+                        </div>
                       </div>
-                      <div v-if="datosTemporales[subcampo.name]?.name" class="file-info mt-2">
-                        <div class="current-file">
-                          <i class="fas fa-file me-2"></i>
-                          <span>{{ datosTemporales[subcampo.name].name }}</span>
+
+                      <!-- Botón para agregar más archivos -->
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary btn-sm mb-3"
+                        @click="triggerFileInput(subcampo.name)"
+                      >
+                        <i class="fas fa-plus me-1"></i>
+                        Agregar más archivos
+                      </button>
+
+                      <!-- Vista previa de archivos -->
+                      <div
+                        v-if="getArchivosSubcampo(subcampo.name).length > 0"
+                        class="file-preview mt-3"
+                      >
+                        <h6 class="preview-title">
+                          Archivos seleccionados ({{ getArchivosSubcampo(subcampo.name).length }}):
+                        </h6>
+                        <div class="d-flex flex-wrap gap-3">
+                          <div
+                            class="file-item"
+                            v-for="(file, index) in getArchivosSubcampo(subcampo.name)"
+                            :key="index"
+                          >
+                            <div class="file-content">
+                              <div v-if="isImageFile(file)" class="file-thumbnail">
+                                <img
+                                  :src="getThumbnailUrl(file)"
+                                  alt="Miniatura"
+                                  class="img-fluid"
+                                />
+                              </div>
+                              <div v-else class="file-icon">
+                                <i class="fas fa-file-alt"></i>
+                              </div>
+                              <span class="file-name">{{ file.name }}</span>
+                            </div>
+                            <button
+                              type="button"
+                              class="delete-button"
+                              @click="removeArchivoSubcampo(subcampo.name, index)"
+                            >
+                              <i class="fas fa-times"></i>
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Botón para limpiar todos los archivos -->
+                        <div class="mt-3">
+                          <button
+                            type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            @click="clearAllArchivosSubcampo(subcampo.name)"
+                          >
+                            <i class="fas fa-trash me-1"></i>
+                            Limpiar todos los archivos
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -460,7 +519,11 @@
                 </div>
                 <div class="d-flex gap-2 align-items-center">
                   <label class="form-label mb-0 me-2">Mostrar:</label>
-                  <select v-model="elementosPorPagina" class="form-select form-select-sm" style="width: auto;">
+                  <select
+                    v-model="elementosPorPagina"
+                    class="form-select form-select-sm"
+                    style="width: auto"
+                  >
                     <option value="5">5</option>
                   </select>
                   <button
@@ -523,8 +586,14 @@
                             type="button"
                             class="btn btn-sm btn-success"
                             @click="seleccionarFilaTabla(fila)"
-                            :disabled="tablaSeleccionada.some(f => f._documentId === fila._documentId)"
-                            :title="tablaSeleccionada.some(f => f._documentId === fila._documentId) ? 'Ya seleccionado' : 'Seleccionar'"
+                            :disabled="
+                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                            "
+                            :title="
+                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                                ? 'Ya seleccionado'
+                                : 'Seleccionar'
+                            "
                           >
                             <i class="fas fa-plus"></i>
                           </button>
@@ -646,6 +715,8 @@ export default {
       busquedaTabla: '',
       paginaActual: 1,
       elementosPorPagina: 5,
+      archivosSubformulario: {}, // { nombreSubcampo: [array de archivos] }
+      fileInputKeys: {}, // { nombreSubcampo: key } para resetear inputs
     }
   },
   watch: {
@@ -662,10 +733,10 @@ export default {
       if (!this.busquedaTabla) {
         return this.datosTablaDisponibles
       }
-      
+
       const busqueda = this.busquedaTabla.toLowerCase()
-      return this.datosTablaDisponibles.filter(fila => {
-        return this.tablaActual.tableConfig.campos.some(columna => {
+      return this.datosTablaDisponibles.filter((fila) => {
+        return this.tablaActual.tableConfig.campos.some((columna) => {
           const valor = this.obtenerValorCampo(fila, columna)?.toString().toLowerCase() || ''
           return valor.includes(busqueda)
         })
@@ -682,7 +753,7 @@ export default {
     // Calcula el total de páginas
     totalPaginas() {
       return Math.ceil(this.datosFiltrados.length / this.elementosPorPagina)
-    }
+    },
   },
   methods: {
     // Métodos para manejar opciones de checkbox y select
@@ -762,7 +833,7 @@ export default {
       this.tablaActual = campo
       this.modalTablaVisible = true
       this.busquedaTabla = '' // Resetear búsqueda
-      this.paginaActual = 1   // Resetear a primera página
+      this.paginaActual = 1 // Resetear a primera página
 
       // Para crear nuevo: inicializar vacío o cargar lo que ya se seleccionó en esta sesión
       this.tablaSeleccionada = [...(this.datosTemporales[campo.name] || [])]
@@ -880,11 +951,20 @@ export default {
     editarEntrada(index) {
       this.indiceEditando = index
       this.datosTemporales = { ...this.filas[index] }
-      // Normalizar valores de checkBox al editar
+
+      // Inicializar archivosSubformulario con los archivos existentes
       this.campo.subcampos.forEach((sub) => {
+        if (sub.type === 'file') {
+          const archivosExistentes = this.datosTemporales[sub.name] || []
+          if (Array.isArray(archivosExistentes) && archivosExistentes.length > 0) {
+            this.archivosSubformulario[sub.name] = [...archivosExistentes]
+          } else {
+            this.archivosSubformulario[sub.name] = []
+          }
+        }
+
         if (sub.type === 'checkBox') {
           let valor = this.datosTemporales[sub.name]
-
           if (typeof valor === 'string') {
             try {
               valor = JSON.parse(valor)
@@ -892,11 +972,9 @@ export default {
               valor = []
             }
           }
-
           if (!Array.isArray(valor)) {
             valor = []
           }
-
           this.datosTemporales[sub.name] = [...valor]
         }
       })
@@ -913,97 +991,168 @@ export default {
       this.mostrarModal = false
       this.indiceEditando = -1
       this.datosTemporales = {}
+      this.archivosSubformulario = {}
     },
 
     guardarEntrada() {
-  // Validar campos requeridos
-  const camposRequeridos = this.campo.subcampos.filter((sub) => sub.required)
-  const esValido = camposRequeridos.every((sub) => {
-    if (sub.type === 'subform') {
-      return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
-    }
-    if (sub.type === 'checkBox') {
-      return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
-    }
-    if (sub.type === 'tabla') {
-      return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
-    }
-    if (sub.type === 'file') {
-      // Para archivos, verificar si hay un archivo nuevo o uno existente
-      return this.datosTemporales[sub.name] !== undefined && 
-             this.datosTemporales[sub.name] !== null
-    }
-    return (
-      this.datosTemporales[sub.name] !== undefined &&
-      this.datosTemporales[sub.name] !== null &&
-      this.datosTemporales[sub.name] !== ''
-    )
-  })
+      // Validar campos requeridos
+      const camposRequeridos = this.campo.subcampos.filter((sub) => sub.required)
+      const esValido = camposRequeridos.every((sub) => {
+        if (sub.type === 'subform') {
+          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
+        }
+        if (sub.type === 'checkBox') {
+          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
+        }
+        if (sub.type === 'tabla') {
+          return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
+        }
+        if (sub.type === 'file') {
+          // Para archivos, verificar que haya al menos un archivo
+          return (
+            this.datosTemporales[sub.name] &&
+            Array.isArray(this.datosTemporales[sub.name]) &&
+            this.datosTemporales[sub.name].length > 0
+          )
+        }
+        return (
+          this.datosTemporales[sub.name] !== undefined &&
+          this.datosTemporales[sub.name] !== null &&
+          this.datosTemporales[sub.name] !== ''
+        )
+      })
 
-  if (!esValido) {
-    this.mostrarError('Complete todos los campos requeridos')
-    return
-  }
-
-  // Preparar datos para guardar - CORREGIDO PARA ARCHIVOS
-  const datosParaGuardar = {}
-  
-  this.campo.subcampos.forEach((sub) => {
-    if (sub.type === 'file') {
-      // Para archivos, mantener la referencia del archivo
-      if (this.datosTemporales[sub.name] instanceof File) {
-        // Es un archivo nuevo - mantener el objeto File
-        datosParaGuardar[sub.name] = this.datosTemporales[sub.name]
-      } else if (typeof this.datosTemporales[sub.name] === 'string') {
-        // Es una ruta existente (al editar)
-        datosParaGuardar[sub.name] = this.datosTemporales[sub.name]
-      } else {
-        datosParaGuardar[sub.name] = null
+      if (!esValido) {
+        this.mostrarError('Complete todos los campos requeridos')
+        return
       }
-    } else {
-      // Para otros tipos de campos, copiar el valor directamente
-      datosParaGuardar[sub.name] = this.datosTemporales[sub.name]
-    }
-  })
 
-  if (this.indiceEditando === -1) {
-    // Agregar nueva fila
-    this.filas.push(datosParaGuardar)
-  } else {
-    // Actualizar fila existente
-    this.filas[this.indiceEditando] = datosParaGuardar
-  }
+      // Preparar datos para guardar
+      const datosParaGuardar = {}
 
-  this.emitirActualizacion()
-  this.cerrarModal()
-},
+      this.campo.subcampos.forEach((sub) => {
+        if (sub.type === 'file') {
+          // Para archivos, mantener el array de archivos
+          datosParaGuardar[sub.name] = Array.isArray(this.datosTemporales[sub.name])
+            ? [...this.datosTemporales[sub.name]]
+            : []
+        } else {
+          // Para otros tipos de campos, copiar el valor directamente
+          datosParaGuardar[sub.name] = this.datosTemporales[sub.name]
+        }
+      })
 
+      if (this.indiceEditando === -1) {
+        // Agregar nueva fila
+        this.filas.push(datosParaGuardar)
+      } else {
+        // Actualizar fila existente
+        this.filas[this.indiceEditando] = datosParaGuardar
+      }
+
+      this.emitirActualizacion()
+      this.cerrarModal()
+    },
     inicializarDatosTemporales() {
-    const datos = {}
-    this.campo.subcampos.forEach((sub) => {
-      if (sub.type === 'subform') {
-        datos[sub.name] = []
-      } else if (sub.type === 'checkBox') {
-        datos[sub.name] = []
-      } else if (sub.type === 'tabla') {
-        datos[sub.name] = []
-      } else if (sub.type === 'file') {
-        datos[sub.name] = null
-      } else {
-        datos[sub.name] = ''
+      const datos = {}
+      this.archivosSubformulario = {} // Limpiar archivos al inicializar
+      this.fileInputKeys = {} // Resetear keys
+
+      this.campo.subcampos.forEach((sub) => {
+        if (sub.type === 'subform') {
+          datos[sub.name] = []
+        } else if (sub.type === 'checkBox') {
+          datos[sub.name] = []
+        } else if (sub.type === 'tabla') {
+          datos[sub.name] = []
+        } else if (sub.type === 'file') {
+          datos[sub.name] = [] // Ahora es un array
+          this.archivosSubformulario[sub.name] = [] // Inicializar array de archivos
+        } else {
+          datos[sub.name] = ''
+        }
+      })
+      return datos
+    },
+
+    onCambioArchivo(event, nombreSubcampo) {
+      const fileList = event.target.files
+      if (fileList.length > 0) {
+        // Convertir FileList a Array
+        const newFiles = Array.from(fileList)
+
+        // Inicializar el array si no existe
+        if (!this.archivosSubformulario[nombreSubcampo]) {
+          this.archivosSubformulario[nombreSubcampo] = []
+        }
+
+        // Agregar los nuevos archivos al array existente (ACUMULAR)
+        this.archivosSubformulario[nombreSubcampo] = [
+          ...this.archivosSubformulario[nombreSubcampo],
+          ...newFiles,
+        ]
+
+        // Actualizar datos temporales con el array de archivos
+        this.datosTemporales[nombreSubcampo] = this.archivosSubformulario[nombreSubcampo]
+
+        // Forzar reset del input file
+        this.resetFileInputSubcampo(nombreSubcampo)
       }
-    })
-    return datos
-  },
+    },
+    resetFileInputSubcampo(nombreSubcampo) {
+      // Incrementar la key para forzar el re-render del input
+      if (!this.fileInputKeys[nombreSubcampo]) {
+        this.fileInputKeys[nombreSubcampo] = 0
+      }
+      this.fileInputKeys[nombreSubcampo] += 1
 
+      // También resetear el valor del input directamente
+      const inputElement = document.getElementById(`subform_${this.campo.name}_${nombreSubcampo}`)
+      if (inputElement) {
+        inputElement.value = ''
+      }
+    },
+    getFileInputKey(nombreSubcampo) {
+      return `file_input_${nombreSubcampo}_${this.fileInputKeys[nombreSubcampo] || 0}`
+    },
+    triggerFileInput(nombreSubcampo) {
+      const inputElement = document.getElementById(`subform_${this.campo.name}_${nombreSubcampo}`)
+      if (inputElement) {
+        inputElement.click()
+      }
+    },
+    getArchivosSubcampo(nombreSubcampo) {
+      return this.archivosSubformulario[nombreSubcampo] || []
+    },
+    removeArchivoSubcampo(nombreSubcampo, index) {
+      if (this.archivosSubformulario[nombreSubcampo]) {
+        this.archivosSubformulario[nombreSubcampo].splice(index, 1)
 
-    onCambioArchivo(event, nombreCampo) {
-    const archivo = event.target.files[0]
-    if (archivo) {
-      // Guardar el archivo directamente en datosTemporales
-      this.datosTemporales[nombreCampo] = archivo
-    }
-  },
+        // Actualizar datos temporales
+        this.datosTemporales[nombreSubcampo] = this.archivosSubformulario[nombreSubcampo]
+
+        // Si no quedan archivos, limpiar
+        if (this.archivosSubformulario[nombreSubcampo].length === 0) {
+          delete this.archivosSubformulario[nombreSubcampo]
+          this.datosTemporales[nombreSubcampo] = []
+        }
+      }
+    },
+    clearAllArchivosSubcampo(nombreSubcampo) {
+      if (this.archivosSubformulario[nombreSubcampo]) {
+        delete this.archivosSubformulario[nombreSubcampo]
+      }
+      this.datosTemporales[nombreSubcampo] = []
+      this.resetFileInputSubcampo(nombreSubcampo)
+    },
+
+    isImageFile(file) {
+      return file && file.type && file.type.startsWith('image/')
+    },
+
+    getThumbnailUrl(file) {
+      return this.isImageFile(file) ? URL.createObjectURL(file) : null
+    },
 
     actualizarSubcampoAnidado(nombreCampo, nuevoValor) {
       this.datosTemporales[nombreCampo] = nuevoValor
@@ -1485,7 +1634,7 @@ export default {
   top: 0;
   background: white;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .table-hover tbody tr:hover {
@@ -1516,18 +1665,106 @@ export default {
     margin: 0.5rem;
     max-width: calc(100% - 1rem);
   }
-  
+
   .medico-body.modal-body-custom {
     padding: 1rem;
   }
-  
+
   .table-responsive {
     font-size: 0.8rem;
   }
-  
+
   .pagination-controls {
     flex-wrap: wrap;
     justify-content: center;
   }
+}
+/* Agregar estos estilos si no están presentes */
+.file-preview {
+  margin-top: 1rem;
+}
+
+.preview-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #495057;
+}
+
+.file-item {
+  position: relative;
+  width: 120px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.file-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.file-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.file-thumbnail {
+  width: 100%;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.file-thumbnail img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.file-icon {
+  font-size: 2rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.file-name {
+  font-size: 0.75rem;
+  color: #495057;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.delete-button {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+
+.delete-button:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 </style>
