@@ -144,7 +144,7 @@ export default {
       this.isLoading = true
 
       try {
-        const response = await axios.post('/indicadores/upload', formData,)
+        const response = await api.post('/indicadores/upload', formData,)
 
         await Swal.fire({
           icon: 'success',
