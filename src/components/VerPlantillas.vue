@@ -624,7 +624,7 @@
               </select>
             </div>
 
-            <div v-if="tablaCamposDisponibles.length > 0" class="mb-3">
+            <div v-if="tablaCamposDisponibles.length > 0 " class="mb-3">
               <label class="form-label">Selecciona los campos para las columnas*</label>
               <div class="alert alert-info mb-3">
                 <i class="fas fa-info-circle me-2"></i>
@@ -978,6 +978,7 @@ vistaCompacta: false,
   watch: {
     seccionSeleccionada: 'onSeccionSeleccionada',
     campoMostrar: 'cargarVistaPrevia',
+    tablaSeccionSeleccionada: 'onTablaSeccionSeleccionada',
   },
   components: {
     Subformulario,
