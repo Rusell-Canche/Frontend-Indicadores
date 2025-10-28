@@ -1175,6 +1175,7 @@ export default {
         camposDeSeccion.forEach((campo) => {
           if (campo.type === 'subform') {
             // Para subformularios - procesar filas
+            // Para subformularios - procesar filas
             const subformRows = this.subformData[campo.name] || []
             const processedRows = []
 
@@ -1184,40 +1185,47 @@ export default {
               // Procesar cada subcampo del subformulario
               campo.subcampos.forEach((subcampo) => {
                 if (subcampo.type === 'file') {
-                  const archivo = fila[subcampo.name]
+                  const archivos = fila[subcampo.name]
 
-                  if (archivo instanceof File) {
-                    // Crear nombre único para el campo de archivo
-                    const uniqueFieldName = `subform_${campo.name}_${filaIndex}_${subcampo.name}`
+                  if (Array.isArray(archivos) && archivos.length > 0) {
+                    // Procesar múltiples archivos del subformulario
+                    const archivosProcesados = []
 
-                    // Agregar archivo al FormData
-                    formData.append(`files[${uniqueFieldName}]`, archivo)
+                    archivos.forEach((archivo, archivoIndex) => {
+                      if (archivo instanceof File) {
+                        const uniqueFieldName = `subform_${campo.name}_${filaIndex}_${subcampo.name}_${archivoIndex}`
 
-                    // Guardar mapeo
-                    fileMapping[uniqueFieldName] = {
-                      seccion: seccion.nombre,
-                      campo: campo.name,
-                      tipo: 'subform',
-                      subcampo: subcampo.name,
-                      fila: filaIndex,
-                    }
+                        formData.append(`files[${uniqueFieldName}]`, archivo)
 
-                    // En los datos, dejar null (el backend lo llenará con la ruta)
-                    processedRow[subcampo.name] = null
+                        fileMapping[uniqueFieldName] = {
+                          seccion: seccion.nombre,
+                          campo: campo.name,
+                          tipo: 'subform',
+                          subcampo: subcampo.name,
+                          fila: filaIndex,
+                          archivoIndex: archivoIndex,
+                        }
+
+                        // Agregar placeholder para que el backend sepa que hay archivos
+                        archivosProcesados.push(null) // Backend llenará con rutas
+                      } else if (typeof archivo === 'string') {
+                        // Si ya es un string (ruta existente), mantenerlo
+                        archivosProcesados.push(archivo)
+                      }
+                    })
+
+                    processedRow[subcampo.name] = archivosProcesados
                   } else {
-                    // Si ya es un string (ruta existente) o null, mantenerlo
-                    processedRow[subcampo.name] = fila[subcampo.name] || null
+                    // Si no hay archivos o es un string individual (compatibilidad)
+                    processedRow[subcampo.name] = archivos || []
                   }
                 } else {
-                  // Para otros tipos de campos, copiar el valor directamente
-                  // Asegurarse de que los valores de fecha sean strings
+                  // Para otros tipos de campos...
                   let valor = fila[subcampo.name]
 
                   if (subcampo.type === 'date' && valor instanceof Date) {
-                    // Convertir Date a string ISO para campos de fecha
                     valor = valor.toISOString().split('T')[0]
                   } else if (valor === undefined || valor === null) {
-                    // Valor por defecto para campos vacíos
                     valor = ''
                   }
 

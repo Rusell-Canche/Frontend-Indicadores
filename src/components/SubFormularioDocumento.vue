@@ -128,6 +128,7 @@
                   <!-- Renderizar campos normales en el modal -->
                   <template v-if="subcampo.type !== 'subform' && subcampo.type !== 'tabla'">
                     <!-- Campo de archivo -->
+                    <!-- Campo de archivos - misma estructura que CrearDocumentos.vue -->
                     <div v-if="subcampo.type === 'file'" class="form-field">
                       <label class="form-label">
                         {{ subcampo.alias || subcampo.name }}
@@ -146,33 +147,28 @@
                             :id="`subform_${campo.name}_${subcampo.name}`"
                             @change="onCambioArchivo($event, subcampo.name)"
                             multiple
-                            :key="getFileInputKey(subcampo.name)"
+                            :key="fileInputKey"
                           />
                         </div>
                       </div>
 
-                      <!-- Botón para agregar más archivos -->
-                      <button
-                        type="button"
-                        class="btn btn-outline-primary btn-sm mb-3"
-                        @click="triggerFileInput(subcampo.name)"
-                      >
-                        <i class="fas fa-plus me-1"></i>
-                        Agregar más archivos
-                      </button>
-
                       <!-- Vista previa de archivos -->
                       <div
-                        v-if="getArchivosSubcampo(subcampo.name).length > 0"
+                        v-if="
+                          archivosSubformulario[subcampo.name] &&
+                          archivosSubformulario[subcampo.name].length > 0
+                        "
                         class="file-preview mt-3"
                       >
                         <h6 class="preview-title">
-                          Archivos seleccionados ({{ getArchivosSubcampo(subcampo.name).length }}):
+                          Archivos seleccionados ({{
+                            archivosSubformulario[subcampo.name].length
+                          }}):
                         </h6>
                         <div class="d-flex flex-wrap gap-3">
                           <div
                             class="file-item"
-                            v-for="(file, index) in getArchivosSubcampo(subcampo.name)"
+                            v-for="(file, index) in archivosSubformulario[subcampo.name]"
                             :key="index"
                           >
                             <div class="file-content">
@@ -211,7 +207,6 @@
                         </div>
                       </div>
                     </div>
-
                     <!-- Campo numérico -->
                     <div v-else-if="subcampo.type === 'number'" class="form-field">
                       <label class="form-label">
@@ -716,7 +711,7 @@ export default {
       paginaActual: 1,
       elementosPorPagina: 5,
       archivosSubformulario: {}, // { nombreSubcampo: [array de archivos] }
-      fileInputKeys: {}, // { nombreSubcampo: key } para resetear inputs
+      fileInputKey: 0, // Para forzar el reset del input file
     }
   },
   watch: {
@@ -952,19 +947,28 @@ export default {
       this.indiceEditando = index
       this.datosTemporales = { ...this.filas[index] }
 
-      // Inicializar archivosSubformulario con los archivos existentes
+      // INICIALIZAR ARCHIVOS INTERNOS DESDE DATOS EXISTENTES
+      this.archivosSubformulario = {}
       this.campo.subcampos.forEach((sub) => {
         if (sub.type === 'file') {
           const archivosExistentes = this.datosTemporales[sub.name] || []
-          if (Array.isArray(archivosExistentes) && archivosExistentes.length > 0) {
+
+          // Asegurar que sea un array
+          if (Array.isArray(archivosExistentes)) {
             this.archivosSubformulario[sub.name] = [...archivosExistentes]
+          } else if (archivosExistentes) {
+            // Si es un solo archivo (compatibilidad), convertirlo a array
+            this.archivosSubformulario[sub.name] = [archivosExistentes]
+            this.datosTemporales[sub.name] = [archivosExistentes]
           } else {
             this.archivosSubformulario[sub.name] = []
+            this.datosTemporales[sub.name] = []
           }
         }
 
         if (sub.type === 'checkBox') {
           let valor = this.datosTemporales[sub.name]
+
           if (typeof valor === 'string') {
             try {
               valor = JSON.parse(valor)
@@ -972,9 +976,11 @@ export default {
               valor = []
             }
           }
+
           if (!Array.isArray(valor)) {
             valor = []
           }
+
           this.datosTemporales[sub.name] = [...valor]
         }
       })
@@ -1008,7 +1014,7 @@ export default {
           return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
         }
         if (sub.type === 'file') {
-          // Para archivos, verificar que haya al menos un archivo
+          // VALIDACIÓN PARA MÚLTIPLES ARCHIVOS
           return (
             this.datosTemporales[sub.name] &&
             Array.isArray(this.datosTemporales[sub.name]) &&
@@ -1027,15 +1033,17 @@ export default {
         return
       }
 
-      // Preparar datos para guardar
+      // PREPARAR DATOS PARA GUARDAR - CON ARRAYS DE ARCHIVOS
       const datosParaGuardar = {}
 
       this.campo.subcampos.forEach((sub) => {
         if (sub.type === 'file') {
-          // Para archivos, mantener el array de archivos
-          datosParaGuardar[sub.name] = Array.isArray(this.datosTemporales[sub.name])
-            ? [...this.datosTemporales[sub.name]]
-            : []
+          // GUARDAR EL ARRAY COMPLETO DE ARCHIVOS
+          if (Array.isArray(this.datosTemporales[sub.name])) {
+            datosParaGuardar[sub.name] = [...this.datosTemporales[sub.name]]
+          } else {
+            datosParaGuardar[sub.name] = []
+          }
         } else {
           // Para otros tipos de campos, copiar el valor directamente
           datosParaGuardar[sub.name] = this.datosTemporales[sub.name]
@@ -1053,10 +1061,10 @@ export default {
       this.emitirActualizacion()
       this.cerrarModal()
     },
+
     inicializarDatosTemporales() {
       const datos = {}
       this.archivosSubformulario = {} // Limpiar archivos al inicializar
-      this.fileInputKeys = {} // Resetear keys
 
       this.campo.subcampos.forEach((sub) => {
         if (sub.type === 'subform') {
@@ -1066,8 +1074,7 @@ export default {
         } else if (sub.type === 'tabla') {
           datos[sub.name] = []
         } else if (sub.type === 'file') {
-          datos[sub.name] = [] // Ahora es un array
-          this.archivosSubformulario[sub.name] = [] // Inicializar array de archivos
+          datos[sub.name] = [] // ARRAY VACÍO para múltiples archivos
         } else {
           datos[sub.name] = ''
         }
@@ -1095,34 +1102,21 @@ export default {
         // Actualizar datos temporales con el array de archivos
         this.datosTemporales[nombreSubcampo] = this.archivosSubformulario[nombreSubcampo]
 
-        // Forzar reset del input file
-        this.resetFileInputSubcampo(nombreSubcampo)
+        // Forzar reset del input file para permitir seleccionar más archivos
+        this.resetFileInput()
       }
     },
-    resetFileInputSubcampo(nombreSubcampo) {
-      // Incrementar la key para forzar el re-render del input
-      if (!this.fileInputKeys[nombreSubcampo]) {
-        this.fileInputKeys[nombreSubcampo] = 0
-      }
-      this.fileInputKeys[nombreSubcampo] += 1
 
-      // También resetear el valor del input directamente
-      const inputElement = document.getElementById(`subform_${this.campo.name}_${nombreSubcampo}`)
-      if (inputElement) {
-        inputElement.value = ''
-      }
+    resetFileInput() {
+      // Incrementar la key para forzar el re-render del input
+      this.fileInputKey += 1
     },
-    getFileInputKey(nombreSubcampo) {
-      return `file_input_${nombreSubcampo}_${this.fileInputKeys[nombreSubcampo] || 0}`
-    },
+
     triggerFileInput(nombreSubcampo) {
       const inputElement = document.getElementById(`subform_${this.campo.name}_${nombreSubcampo}`)
       if (inputElement) {
         inputElement.click()
       }
-    },
-    getArchivosSubcampo(nombreSubcampo) {
-      return this.archivosSubformulario[nombreSubcampo] || []
     },
     removeArchivoSubcampo(nombreSubcampo, index) {
       if (this.archivosSubformulario[nombreSubcampo]) {
@@ -1131,19 +1125,20 @@ export default {
         // Actualizar datos temporales
         this.datosTemporales[nombreSubcampo] = this.archivosSubformulario[nombreSubcampo]
 
-        // Si no quedan archivos, limpiar
+        // Si no quedan archivos, limpiar el array
         if (this.archivosSubformulario[nombreSubcampo].length === 0) {
           delete this.archivosSubformulario[nombreSubcampo]
           this.datosTemporales[nombreSubcampo] = []
         }
       }
     },
+
     clearAllArchivosSubcampo(nombreSubcampo) {
       if (this.archivosSubformulario[nombreSubcampo]) {
         delete this.archivosSubformulario[nombreSubcampo]
       }
       this.datosTemporales[nombreSubcampo] = []
-      this.resetFileInputSubcampo(nombreSubcampo)
+      this.resetFileInput()
     },
 
     isImageFile(file) {
@@ -1679,7 +1674,6 @@ export default {
     justify-content: center;
   }
 }
-/* Agregar estos estilos si no están presentes */
 .file-preview {
   margin-top: 1rem;
 }
