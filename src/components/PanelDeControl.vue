@@ -91,7 +91,7 @@
           @click="navigateTo('/Usuarios')"
         >
           <i class="fas fa-users"></i>
-          <span>Usuarios</span>
+          <span>Administración</span>
         </li>
       </ul>
       <button class="logout-button" @click="showLogoutModal = true">

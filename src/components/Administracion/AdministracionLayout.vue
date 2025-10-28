@@ -6,9 +6,9 @@
         <div class="header-left">
           <h1 class="main-title">
             <i class="fas fa-users me-3"></i>
-            Usuarios
+            Adminstración de usuarios
           </h1>
-          <p class="main-subtitle">Sistema de gestión de usuarios</p>
+          <p class="main-subtitle">PLACEHOLDER</p>
         </div>
       </div>
     </div>
