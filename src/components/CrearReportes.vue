@@ -624,7 +624,6 @@ export default {
   },
 
   methods: {
-
     async getColecciones() {
       this.loading.colecciones = true
       try {
@@ -636,7 +635,6 @@ export default {
         this.loading.colecciones = false
       }
     },
-
 
     async getCamposPlantilla(plantillaId) {
       try {
@@ -653,7 +651,7 @@ export default {
       try {
         const [camposPlantilla, documentos] = await Promise.all([
           this.getCamposPlantilla(this.selectedColeccion.id),
-          api.get(`/documentos/${this.selectedColeccion.id}`).then(res => res.data),
+          api.get(`/documentos/${this.selectedColeccion.id}`).then((res) => res.data),
         ])
 
         this.camposPlantilla = camposPlantilla
@@ -1100,103 +1098,301 @@ export default {
 
       this.generandoReporte = true
       try {
-        const doc = new jsPDF('l', 'mm', 'a4')
+        const doc = new jsPDF('p', 'mm', 'a4')
+        let currentY = 20
 
+        // ========== ENCABEZADO DEL REPORTE ==========
         doc.setFontSize(18)
-        doc.text(this.tituloReporte, 20, 20)
+        doc.text(this.tituloReporte, 20, currentY)
+        currentY += 10
 
-        let yPosition = 30
         if (this.incluirFecha) {
-          doc.setFontSize(12)
-          doc.text(`Generado el: ${new Date().toLocaleString('es-MX')}`, 20, yPosition)
-          yPosition += 10
+          doc.setFontSize(10)
+          doc.text(`Generado el: ${new Date().toLocaleString('es-MX')}`, 20, currentY)
+          currentY += 8
         }
 
-        // Información de registros y filtros
-        doc.text(`Total de registros: ${this.documentosFiltrados.length}`, 20, yPosition)
-        yPosition += 10
+        doc.text(`Total de registros: ${this.documentosFiltrados.length}`, 20, currentY)
+        currentY += 15
 
-        // Información de filtros
-        if (this.filtrosActivos.length > 0) {
-          doc.text(`Filtros aplicados: ${this.filtrosActivos.length}`, 20, yPosition)
-          yPosition += 10
+        // ========== PROCESAR CADA DOCUMENTO ==========
+        for (let docIndex = 0; docIndex < this.documentosFiltrados.length; docIndex++) {
+          const documento = this.documentosFiltrados[docIndex]
 
-          this.filtrosActivos.forEach((filtro, index) => {
-            const campoNombre = this.formatFieldName(filtro.campo)
-            const operadorTexto = this.getOperadorTexto(filtro.operador)
-            const valorMostrar = filtro.valorDisplay || filtro.valor
+          // Verificar si necesitamos nueva página
+          if (currentY > 250) {
+            doc.addPage()
+            currentY = 20
+          }
 
-            const filtroTexto = `${index + 1}. ${campoNombre} ${operadorTexto} "${valorMostrar}"`
+          // ========== SECCIÓN MAESTRA (DATOS PRINCIPALES) ==========
+          doc.setFontSize(14)
+          doc.setFont(undefined, 'bold')
+          doc.text(`Registro ${docIndex + 1}`, 20, currentY)
+          currentY += 8
 
-            doc.setFontSize(10)
-            doc.text(filtroTexto, 25, yPosition)
-            yPosition += 7
-          })
-
-          yPosition += 5
-        }
-
-        // Información de ordenamiento
-        if (this.criteriosOrdenamiento.length > 0) {
-          doc.setFontSize(12)
-          doc.text(
-            `Ordenamiento aplicado: ${this.criteriosOrdenamiento.length} criterio(s)`,
-            20,
-            yPosition,
+          // Campos principales (no subformularios)
+          const camposPrincipales = this.camposSeleccionados.filter(
+            (campo) => !this.esCampoSubformulario(campo),
           )
-          yPosition += 10
 
-          this.criteriosOrdenamientoOrdenados.forEach((criterio, index) => {
-            const campoNombre = this.formatFieldName(criterio.campo)
-            const direccionTexto = criterio.direccion === 'asc' ? 'Ascendente' : 'Descendente'
-
-            const criterioTexto = `${index + 1}. ${campoNombre} (${direccionTexto})`
-
+          if (camposPrincipales.length > 0) {
             doc.setFontSize(10)
-            doc.text(criterioTexto, 25, yPosition)
-            yPosition += 7
-          })
+            doc.setFont(undefined, 'normal')
 
-          yPosition += 5
-        } else {
-          yPosition += 10
+            const datosPrincipales = camposPrincipales.map((campo) => [
+              this.formatFieldName(campo),
+              this.getFieldValueForReport(documento, campo),
+            ])
+
+            // Crear tabla simple para datos principales
+            autoTable(doc, {
+              startY: currentY,
+              head: [['Campo', 'Valor']],
+              body: datosPrincipales,
+              theme: 'grid',
+              styles: { fontSize: 9, cellPadding: 3 },
+              headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: 'bold' },
+              margin: { left: 20, right: 20 },
+              tableWidth: 'auto',
+            })
+
+            currentY = doc.lastAutoTable.finalY + 10
+          }
+
+          // ========== SECCIONES DE SUBFORMULARIOS ==========
+          const camposSubformularios = this.camposSeleccionados.filter((campo) =>
+            this.esCampoSubformulario(campo),
+          )
+
+          for (const campoSubform of camposSubformularios) {
+            // Verificar espacio en página
+            if (currentY > 200) {
+              doc.addPage()
+              currentY = 20
+            }
+
+            await this.generarSeccionSubformulario(doc, documento, campoSubform, currentY)
+            currentY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : currentY + 15
+          }
+
+          // Línea separadora entre registros
+          if (docIndex < this.documentosFiltrados.length - 1) {
+            doc.setDrawColor(200, 200, 200)
+            doc.line(20, currentY, 190, currentY)
+            currentY += 20
+          }
         }
-
-        const headers = this.camposSeleccionados.map((campo) => this.formatFieldName(campo))
-        const rows = this.documentosFiltrados.map((doc) =>
-          this.camposSeleccionados.map((campo) => this.getFieldValueForReport(doc, campo) || '-'),
-        )
-
-        autoTable(doc, {
-          head: [headers],
-          body: rows,
-          startY: yPosition,
-          styles: { fontSize: 9, cellPadding: 3 },
-          headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: 'bold' },
-          alternateRowStyles: { fillColor: [245, 245, 245] },
-          margin: { left: 20, right: 20 },
-          tableWidth: 'auto',
-        })
 
         const nombreArchivo = `${this.tituloReporte.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
         doc.save(nombreArchivo)
         this.guardarEnHistorial()
 
-        let mensaje = `PDF generado con ${this.documentosFiltrados.length} documentos`
-        if (this.filtrosActivos.length > 0) {
-          mensaje += ` filtrados`
-        }
-        if (this.criteriosOrdenamiento.length > 0) {
-          mensaje += ` y ordenados`
-        }
-
-        this.showSuccess(mensaje)
+        this.showSuccess(`PDF generado con ${this.documentosFiltrados.length} registros`)
       } catch (error) {
         console.error('Error generando PDF:', error)
         this.showError('Error al generar el PDF.')
       } finally {
         this.generandoReporte = false
       }
+    },
+    // Agrega este método a tu componente
+    async generarSeccionSubformulario(doc, documento, campoSubform, startY) {
+      const valorSubform = this.getFieldValueFromDocument(documento, campoSubform)
+
+      if (!valorSubform || !Array.isArray(valorSubform) || valorSubform.length === 0) {
+        return startY
+      }
+
+      // Título de la sección de subformulario
+      doc.setFontSize(12)
+      doc.setFont(undefined, 'bold')
+      doc.text(this.formatFieldName(campoSubform), 20, startY)
+      startY += 8
+
+      // Obtener la definición del campo para conocer su estructura
+      const campoDef = this.getCampoDefinition(campoSubform)
+
+      if (!campoDef || campoDef.type !== 'subform') {
+        return startY
+      }
+
+      // Procesar cada elemento del subformulario
+      for (let subIndex = 0; subIndex < valorSubform.length; subIndex++) {
+        const subItem = valorSubform[subIndex]
+
+        // Verificar espacio en página
+        if (startY > 250) {
+          doc.addPage()
+          startY = 20
+        }
+
+        // Subtítulo para el elemento del subformulario
+        doc.setFontSize(10)
+        doc.setFont(undefined, 'bold')
+        doc.text(`${this.formatFieldName(campoSubform)} ${subIndex + 1}`, 25, startY)
+        startY += 6
+
+        // Campos del primer nivel del subformulario
+        const subcamposNivel1 = this.obtenerSubcamposParaReporte(campoDef, subItem, 1)
+
+        if (subcamposNivel1.length > 0) {
+          autoTable(doc, {
+            startY: startY,
+            head: [['Campo', 'Valor']],
+            body: subcamposNivel1,
+            theme: 'grid',
+            styles: {
+              fontSize: 8,
+              cellPadding: 2,
+              lineColor: [200, 200, 200],
+            },
+            headStyles: {
+              fillColor: [100, 100, 100],
+              textColor: 255,
+              fontStyle: 'bold',
+            },
+            margin: { left: 25, right: 20 },
+            tableWidth: 'auto',
+          })
+          startY = doc.lastAutoTable.finalY + 5
+        }
+
+        // Procesar subformularios anidados (segundo nivel)
+        const subformAnidados = this.obtenerSubformulariosAnidados(campoDef, subItem)
+
+        for (const subformAnidado of subformAnidados) {
+          if (startY > 230) {
+            doc.addPage()
+            startY = 20
+          }
+
+          await this.generarSubformularioAnidado(doc, subItem, subformAnidado, startY)
+          startY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : startY + 10
+        }
+
+        // Separador entre elementos del subformulario
+        if (subIndex < valorSubform.length - 1) {
+          doc.setDrawColor(220, 220, 220)
+          doc.line(30, startY, 185, startY)
+          startY += 10
+        }
+      }
+
+      return startY
+    },
+    // Agrega estos métodos auxiliares
+    esCampoSubformulario(campoPath) {
+      const campoDef = this.getCampoDefinition(campoPath)
+      return campoDef && campoDef.type === 'subform'
+    },
+
+    obtenerSubcamposParaReporte(campoDef, subItem, nivel) {
+      const subcampos = []
+
+      if (!campoDef.subcampos || !Array.isArray(campoDef.subcampos)) {
+        return subcampos
+      }
+
+      campoDef.subcampos.forEach((subcampo) => {
+        if (subcampo.type !== 'subform') {
+          const valor = subItem[subcampo.name]
+          if (valor !== null && valor !== undefined && valor !== '') {
+            subcampos.push([
+              subcampo.alias || this.formatFieldName(subcampo.name),
+              this.formatearValorParaPDF(valor, subcampo),
+            ])
+          }
+        }
+      })
+
+      return subcampos
+    },
+
+    obtenerSubformulariosAnidados(campoDef, subItem) {
+      const subformsAnidados = []
+
+      if (!campoDef.subcampos) return subformsAnidados
+
+      campoDef.subcampos.forEach((subcampo) => {
+        if (subcampo.type === 'subform' && subItem[subcampo.name]) {
+          subformsAnidados.push({
+            nombre: subcampo.name,
+            definicion: subcampo,
+            datos: subItem[subcampo.name],
+          })
+        }
+      })
+
+      return subformsAnidados
+    },
+
+    async generarSubformularioAnidado(doc, parentItem, subformAnidado, startY) {
+      const { nombre, definicion, datos } = subformAnidado
+
+      if (!datos || !Array.isArray(datos) || datos.length === 0) {
+        return startY
+      }
+
+      // Título del subformulario anidado
+      doc.setFontSize(9)
+      doc.setFont(undefined, 'bold')
+      doc.text(`${definicion.alias || this.formatFieldName(nombre)}:`, 30, startY)
+      startY += 5
+
+      // Para cada elemento del subformulario anidado
+      for (let anidadoIndex = 0; anidadoIndex < datos.length; anidadoIndex++) {
+        const itemAnidado = datos[anidadoIndex]
+
+        if (startY > 240) {
+          doc.addPage()
+          startY = 20
+        }
+
+        // Campos del subformulario anidado
+        const camposAnidados = this.obtenerSubcamposParaReporte(definicion, itemAnidado, 2)
+
+        if (camposAnidados.length > 0) {
+          autoTable(doc, {
+            startY: startY,
+            head: [['Campo', 'Valor']],
+            body: camposAnidados,
+            theme: 'grid',
+            styles: {
+              fontSize: 7,
+              cellPadding: 1,
+              lineColor: [180, 180, 180],
+            },
+            headStyles: {
+              fillColor: [150, 150, 150],
+              textColor: 255,
+              fontStyle: 'bold',
+            },
+            margin: { left: 35, right: 20 },
+            tableWidth: 'auto',
+          })
+          startY = doc.lastAutoTable.finalY + 3
+        }
+      }
+
+      return startY
+    },
+
+    formatearValorParaPDF(valor, campoDef) {
+      if (Array.isArray(valor)) {
+        return `${valor.length} elemento(s)`
+      }
+
+      if (campoDef.type === 'date' && valor) {
+        return this.formatoFecha(valor)
+      }
+
+      if (campoDef.options && Array.isArray(campoDef.options)) {
+        const opcion = campoDef.options.find((o) => o.campoGuardar === valor || o.value === valor)
+        return opcion ? opcion.campoMostrar || opcion.label : valor
+      }
+
+      return String(valor)
     },
 
     getOperadorTexto(operador) {
