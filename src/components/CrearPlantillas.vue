@@ -107,11 +107,7 @@
     </div>
 
     <!-- Modal para configurar tabla dinámica (NUEVO) -->
-    <div
-      v-if="modalTablaVisible"
-      class="medico-modal-backdrop"
-      @click.self="cerrarModalTabla"
-    >
+    <div v-if="modalTablaVisible" class="medico-modal-backdrop" @click.self="cerrarModalTabla">
       <div class="medico-modal-content" @click.stop style="max-width: 800px">
         <div class="medico-modal-header">
           <div class="modal-header-content">
@@ -170,7 +166,7 @@
                 <i class="fas fa-info-circle me-2"></i>
                 Selecciona múltiples campos que se mostrarán como columnas en la tabla
               </div>
-              
+
               <div class="campos-tabla-container">
                 <div
                   v-for="campo in tablaCamposDisponibles"
@@ -187,7 +183,7 @@
                     />
                     <span class="checkmark"></span>
                     <span class="checkbox-label">
-                      {{ campo.name }} 
+                      {{ campo.name }}
                       <span class="badge bg-secondary ms-2">{{ campo.type }}</span>
                     </span>
                   </label>
@@ -442,7 +438,9 @@
                       <div class="select-options-header">
                         <div class="options-header-content">
                           <i class="fas fa-table"></i>
-                          <span>Configuración de tabla para "{{ campo.name || 'este campo' }}"</span>
+                          <span
+                            >Configuración de tabla para "{{ campo.name || 'este campo' }}"</span
+                          >
                         </div>
                       </div>
 
@@ -463,10 +461,19 @@
                           <i class="fas fa-check-circle me-3 mt-1"></i>
                           <div>
                             <strong>Configuración de tabla aplicada:</strong><br />
-                            Plantilla: <strong>"{{ getNombrePlantillaDataSource(campo.tableConfig.plantillaId) }}"</strong><br />
+                            Plantilla:
+                            <strong
+                              >"{{
+                                getNombrePlantillaDataSource(campo.tableConfig.plantillaId)
+                              }}"</strong
+                            ><br />
                             Sección: <strong>"{{ campo.tableConfig.seccion }}"</strong><br />
                             <div class="mt-2">
-                              <strong>Columnas configuradas ({{ campo.tableConfig.campos.length }}):</strong>
+                              <strong
+                                >Columnas configuradas ({{
+                                  campo.tableConfig.campos.length
+                                }}):</strong
+                              >
                               <div class="mt-1">
                                 <span
                                   v-for="(campoTabla, idx) in campo.tableConfig.campos"
@@ -571,8 +578,11 @@
                           <div>
                             <strong>Configuración de opciones dinámicas:</strong><br />
                             Las opciones se cargarán desde la plantilla
-                            <strong>"{{ getNombrePlantillaDataSource(campo.dataSource.plantillaId) }}"</strong>, 
-                            sección <strong>"{{ campo.dataSource.seccion }}"</strong><br />
+                            <strong
+                              >"{{
+                                getNombrePlantillaDataSource(campo.dataSource.plantillaId)
+                              }}"</strong
+                            >, sección <strong>"{{ campo.dataSource.seccion }}"</strong><br />
                             <span class="mt-1 d-block">
                               <small>
                                 Campo mostrado:
@@ -695,7 +705,7 @@ export default {
       selectedEje: '',
       indicadores: [],
       loading: true,
-      
+
       // Variables para el modal de SELECT
       modalPlantillaVisible: false,
       plantillasDisponibles: [],
@@ -947,20 +957,36 @@ export default {
           return
         }
 
+        // VALIDACIÓN CORREGIDA - no marca como inválidos los selects con dataSource
         const camposInvalidos = this.secciones.some((seccion) =>
           seccion.fields.some((campo) => {
-            if (campo.type === 'select' || campo.type === 'checkBox') {
+            if (campo.type === 'select') {
+              // Para select: es válido si tiene dataSource O tiene opciones manuales
               return !campo.dataSource && (!campo.options || campo.options.length === 0)
+            }
+            if (campo.type === 'checkBox') {
+              // Para checkBox: siempre debe tener opciones (solo manuales)
+              return !campo.options || campo.options.length === 0
             }
             if (campo.type === 'tabla') {
               return !campo.tableConfig
             }
             if (campo.type === 'subform' && campo.subcampos) {
-              return campo.subcampos.some(
-                (subcampo) =>
-                  (subcampo.type === 'select' || subcampo.type === 'checkBox') &&
-                  (!subcampo.options || subcampo.options.length === 0),
-              )
+              return campo.subcampos.some((subcampo) => {
+                if (subcampo.type === 'select') {
+                  // Para select en subformulario: misma lógica
+                  return (
+                    !subcampo.dataSource && (!subcampo.options || subcampo.options.length === 0)
+                  )
+                }
+                if (subcampo.type === 'checkBox') {
+                  return !subcampo.options || subcampo.options.length === 0
+                }
+                if (subcampo.type === 'tabla') {
+                  return !subcampo.tableConfig
+                }
+                return false
+              })
             }
             return false
           }),
@@ -1071,11 +1097,8 @@ export default {
       const seccion = this.seccionesPlantilla.find((s) => s.nombre === this.seccionSeleccionada)
       if (seccion && seccion.fields) {
         this.camposSeccion = seccion.fields
-        
       }
     },
-
-    
 
     aplicarConfiguracionPlantilla() {
       if (!this.configuracionValida) return
@@ -1113,7 +1136,7 @@ export default {
         })
 
         this.plantillasDisponibles = response.data || []
-        
+
         // Si ya tiene configuración previa, cargarla
         if (campo.tableConfig) {
           this.tablaPlantillaSeleccionada = campo.tableConfig.plantillaId
@@ -1121,7 +1144,6 @@ export default {
           this.tablaSeccionSeleccionada = campo.tableConfig.seccion
           await this.onTablaSeccionSeleccionada()
           this.tablaCamposSeleccionados = [...campo.tableConfig.campos]
-          
         }
       } catch (error) {
         console.error('Error al cargar plantillas:', error)
@@ -1179,8 +1201,6 @@ export default {
         this.tablaPreviewData = []
       }
     },
-
-    
 
     aplicarConfiguracionTabla() {
       if (!this.configuracionTablaValida) return
@@ -2346,7 +2366,7 @@ export default {
 }
 
 .campo-tabla-item:hover {
-  border-color: #4285F4;
+  border-color: #4285f4;
   box-shadow: 0 2px 4px rgba(66, 133, 244, 0.1);
 }
 

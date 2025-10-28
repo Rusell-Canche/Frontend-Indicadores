@@ -425,6 +425,7 @@
     </div>
 
     <!-- Vista previa del reporte -->
+    <!-- Vista previa del reporte - SOLO HTML -->
     <div class="form-section" v-if="mostrarPreview && datosReporte.length > 0">
       <h6 class="section-title">
         <i class="fas fa-eye me-2"></i>
@@ -445,28 +446,165 @@
         </p>
       </div>
 
-      <div class="table-responsive">
-        <table class="table table-striped table-bordered">
-          <thead class="table-dark">
-            <tr>
-              <th v-for="campo in camposSeleccionados" :key="campo">
-                {{ formatFieldName(campo) }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(documento, index) in datosReporte.slice(0, 10)" :key="index">
-              <td v-for="campo in camposSeleccionados" :key="campo">
-                {{ getFieldValueForReport(documento, campo) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Mostrar documentos individualmente con estructura jerárquica -->
+      <div
+        v-for="(documento, docIndex) in datosReporte.slice(0, 3)"
+        :key="docIndex"
+        class="preview-documento mb-4"
+      >
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="fas fa-file-alt me-2"></i>
+              Registro {{ docIndex + 1 }}
+            </h5>
+          </div>
+          <div class="card-body">
+            <!-- Campos principales -->
+            <div v-if="camposPrincipalesPreview.length > 0" class="mb-4">
+              <h6 class="text-primary mb-3">
+                <i class="fas fa-list me-2"></i>
+                Datos Principales
+              </h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                  <thead class="table-secondary">
+                    <tr>
+                      <th>Campo</th>
+                      <th>Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="campo in camposPrincipalesPreview" :key="campo">
+                      <td class="fw-bold" style="width: 40%">{{ formatFieldName(campo) }}</td>
+                      <td>{{ getFieldValueForReport(documento, campo) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Subformularios -->
+            <div v-for="subform in subformulariosPreview" :key="subform" class="mb-4">
+              <h6 class="text-success mb-3">
+                <i class="fas fa-list-ol me-2"></i>
+                {{ formatFieldName(subform) }}
+                <span class="badge bg-secondary ms-2">
+                  {{ contarElementosSubformulario(documento, subform) }} elemento(s)
+                </span>
+              </h6>
+
+              <div v-if="tieneDatosSubformulario(documento, subform)" class="subform-preview">
+                <div
+                  v-for="(item, itemIndex) in getFieldValueFromDocument(documento, subform).slice(
+                    0,
+                    2,
+                  )"
+                  :key="itemIndex"
+                  class="subform-item mb-3 p-3 border rounded"
+                >
+                  <h6 class="text-muted mb-2">
+                    <i class="fas fa-cube me-1"></i>
+                    {{ formatFieldName(subform) }} {{ itemIndex + 1 }}
+                  </h6>
+
+                  <!-- Si el subformulario contiene objetos con subformularios anidados -->
+                  <div
+                    v-if="esSubformularioConObjetos(documento, subform)"
+                    class="table-responsive"
+                  >
+                    <table class="table table-sm table-striped">
+                      <tbody>
+                        <tr
+                          v-for="subcampo in obtenerSubcamposDisponibles(subform)"
+                          :key="subcampo"
+                        >
+                          <td class="fw-bold" style="width: 40%">
+                            {{ formatFieldName(subcampo) }}
+                          </td>
+                          <td>
+                            <!-- Si este subcampo es a su vez un subformulario anidado -->
+                            <div
+                              v-if="
+                                esSubcampoSubformulario(subform, subcampo) &&
+                                Array.isArray(item[subcampo]) &&
+                                item[subcampo].length > 0
+                              "
+                            >
+                              <div
+                                v-for="(subItem, subItemIndex) in item[subcampo].slice(0, 2)"
+                                :key="subItemIndex"
+                                class="subform-anidado mt-2 p-2 bg-light rounded"
+                              >
+                                <small class="text-muted d-block mb-1">
+                                  {{ formatFieldName(subcampo) }} {{ subItemIndex + 1 }}
+                                </small>
+                                <div v-if="typeof subItem === 'object'">
+                                  <div
+                                    v-for="(valor, clave) in subItem"
+                                    :key="clave"
+                                    class="d-flex justify-content-between border-bottom pb-1 mb-1"
+                                  >
+                                    <span class="fw-bold">{{ formatFieldName(clave) }}:</span>
+                                    <span>{{ valor || '-' }}</span>
+                                  </div>
+                                </div>
+                                <div v-else class="text-center">
+                                  <span class="badge bg-primary">{{ subItem }}</span>
+                                </div>
+                              </div>
+                              <div
+                                v-if="item[subcampo].length > 2"
+                                class="text-center text-muted mt-1"
+                              >
+                                <small
+                                  ><i class="fas fa-ellipsis-h me-1"></i>Y
+                                  {{ item[subcampo].length - 2 }} más...</small
+                                >
+                              </div>
+                            </div>
+                            <!-- Si es un valor normal -->
+                            <div v-else>
+                              {{ obtenerValorSubcampoParaPreview(item, subcampo) }}
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Si el subformulario contiene valores directos (strings) -->
+                  <div v-else class="valor-directo">
+                    <span class="badge bg-primary">{{ item }}</span>
+                  </div>
+                </div>
+
+                <!-- Mensaje si hay más elementos -->
+                <div
+                  v-if="getFieldValueFromDocument(documento, subform).length > 2"
+                  class="text-center text-muted mt-2"
+                >
+                  <i class="fas fa-ellipsis-h me-2"></i>
+                  Y {{ getFieldValueFromDocument(documento, subform).length - 2 }} elemento(s)
+                  más...
+                </div>
+              </div>
+
+              <div v-else class="text-muted text-center py-3">
+                <i class="fas fa-inbox me-2"></i>
+                No hay datos en este subformulario
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <p v-if="datosReporte.length > 10" class="text-muted">
-        Mostrando los primeros 10 registros de {{ datosReporte.length }} totales.
-      </p>
+      <!-- Mensaje si hay más documentos -->
+      <div v-if="datosReporte.length > 3" class="alert alert-warning text-center">
+        <i class="fas fa-info-circle me-2"></i>
+        Mostrando los primeros 3 registros de {{ datosReporte.length }} totales. El PDF generado
+        contendrá todos los registros.
+      </div>
     </div>
 
     <!-- Estados de carga -->
@@ -624,6 +762,17 @@ export default {
     // ========== COMPUTED PARA ORDENAMIENTO ==========
     criteriosOrdenamientoOrdenados() {
       return [...this.criteriosOrdenamiento].sort((a, b) => a.prioridad - b.prioridad)
+    },
+    camposPrincipalesPreview() {
+      return this.camposSeleccionados.filter((campo) => !this.esCampoSubformulario(campo))
+    },
+
+    subformulariosPreview() {
+      return this.camposSeleccionados.filter((campo) => this.esCampoSubformulario(campo))
+    },
+
+    tieneSubformulariosSeleccionados() {
+      return this.subformulariosPreview.length > 0
     },
   },
 
@@ -1049,7 +1198,6 @@ export default {
       }
     },
 
-    
     aplicarFiltro(valor, filtro) {
       // Si el campo es de un subformulario (tiene puntos en el path)
       if (filtro.campo.includes('.')) {
@@ -1200,7 +1348,6 @@ export default {
       return documentosFiltrados
     },
 
-    
     obtenerValorDeSubcampo(item, campoPath) {
       console.log('obtenerValorDeSubcampo - item:', item, 'campoPath:', campoPath)
 
@@ -2053,6 +2200,70 @@ export default {
         await this.cargarReporteParaEditar(reporteId)
       }
     },
+    // Método para verificar si un subcampo es a su vez un subformulario
+    esSubcampoSubformulario(campoSubform, subcampoName) {
+      const campoDef = this.getCampoDefinition(campoSubform)
+      if (campoDef && campoDef.subcampos) {
+        const subcampoDef = campoDef.subcampos.find((sc) => sc.name === subcampoName)
+        return subcampoDef && subcampoDef.type === 'subform'
+      }
+      return false
+    },
+
+    // Método mejorado para obtener valor de subcampo en vista previa
+    obtenerValorSubcampoParaPreview(item, subcampo) {
+      if (typeof item === 'object' && item !== null) {
+        const valor = item[subcampo]
+
+        // Si el valor es un array de objetos (subformulario anidado)
+        if (Array.isArray(valor) && valor.length > 0 && typeof valor[0] === 'object') {
+          return `${valor.length} elemento(s) - Se mostrará anidado en el PDF`
+        }
+
+        // Si es un array de valores simples
+        if (Array.isArray(valor)) {
+          return valor.join(', ')
+        }
+
+        return valor || '-'
+      }
+      return item || '-'
+    },
+
+    // Método para contar elementos en subformulario
+    contarElementosSubformulario(documento, campoSubform) {
+      const valor = this.getFieldValueFromDocument(documento, campoSubform)
+      return Array.isArray(valor) ? valor.length : 0
+    },
+
+    // Método para verificar si tiene datos el subformulario
+    tieneDatosSubformulario(documento, campoSubform) {
+      const valor = this.getFieldValueFromDocument(documento, campoSubform)
+      return Array.isArray(valor) && valor.length > 0
+    },
+
+    // Método para verificar si es subformulario con objetos
+    esSubformularioConObjetos(documento, campoSubform) {
+      const valor = this.getFieldValueFromDocument(documento, campoSubform)
+      if (Array.isArray(valor) && valor.length > 0) {
+        const primerElemento = valor[0]
+        return (
+          typeof primerElemento === 'object' &&
+          !Array.isArray(primerElemento) &&
+          primerElemento !== null
+        )
+      }
+      return false
+    },
+
+    // Método para obtener subcampos disponibles
+    obtenerSubcamposDisponibles(campoSubform) {
+      const campoDef = this.getCampoDefinition(campoSubform)
+      if (campoDef && campoDef.subcampos) {
+        return campoDef.subcampos.map((subcampo) => subcampo.name)
+      }
+      return []
+    },
   },
 
   async mounted() {
@@ -2176,5 +2387,47 @@ export default {
 .btn-sm {
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
+}
+/* Estilos para la vista previa mejorada */
+.preview-documento {
+  border-left: 4px solid #007bff;
+}
+
+.preview-documento .card {
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.subform-preview .subform-item {
+  background-color: #f8f9fa;
+  border-left: 3px solid #28a745;
+}
+
+.subform-preview .subform-item:hover {
+  background-color: #e9ecef;
+}
+
+.valor-directo .badge {
+  font-size: 0.9em;
+  padding: 0.5em 0.75em;
+}
+
+.preview-config .card {
+  border: 1px solid #e9ecef;
+}
+
+.preview-config .badge {
+  font-size: 0.8em;
+}
+
+/* Mejoras responsive */
+@media (max-width: 768px) {
+  .preview-documento .table-responsive {
+    font-size: 0.875rem;
+  }
+
+  .subform-preview .subform-item {
+    padding: 1rem !important;
+  }
 }
 </style>
