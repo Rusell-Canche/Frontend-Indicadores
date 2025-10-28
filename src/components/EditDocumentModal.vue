@@ -1312,7 +1312,35 @@ procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
         // Llamada recursiva si es subform
         if (subcampoConfig?.type === 'subform' && Array.isArray(subcampoValor)) {
           this.procesarSubformularioEnFormData(formData, claveCompleta, subcampoValor, subcampoConfig)
-        } else if (subcampoConfig?.type === 'file' && subcampoValor instanceof File) {
+        }
+        
+        // ✅ MANEJO DE TABLA DENTRO DE SUBFORMULARIO (SOLO IDS)
+        else if (subcampoConfig?.type === 'tabla') {
+          // subcampoValor YA DEBE SER UN ARRAY DE IDS (strings)
+          let ids = []
+          if (Array.isArray(subcampoValor)) {
+            ids = subcampoValor.filter(id => id) // elimina null, undefined, ""
+          } else if (typeof subcampoValor === 'string') {
+            // En caso de que venga como JSON string (fallback)
+            try {
+              ids = JSON.parse(subcampoValor).filter(id => id)
+            } catch {
+              ids = []
+            }
+          }
+
+          if (ids.length > 0) {
+            ids.forEach(id => {
+              formData.append(`${claveCompleta}[]`, id)
+            })
+          } else {
+            // Opcional: enviar array vacío para limpiar
+            formData.append(`${claveCompleta}`, JSON.stringify([]))
+          }
+        }
+        
+        
+        else if (subcampoConfig?.type === 'file' && subcampoValor instanceof File) {
           formData.append(claveCompleta, subcampoValor)
         } else if (subcampoValor !== null && subcampoValor !== undefined && subcampoValor !== '') {
           const valorFinal = typeof subcampoValor === 'object' ? JSON.stringify(subcampoValor) : subcampoValor
