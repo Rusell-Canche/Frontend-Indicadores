@@ -599,14 +599,18 @@ export default {
     documentosFiltrados() {
       let documentos = [...this.documentos]
 
-      // Aplicar filtros dinámicos
+      // Primero: Filtrar documentos que cumplan al menos un elemento en cada subformulario filtrado
       if (this.filtrosActivos.length > 0) {
         documentos = documentos.filter((doc) => {
           return this.filtrosActivos.every((filtro) => {
             const valor = this.getFieldValueFromDocument(doc, filtro.campo)
-            return this.aplicarFiltro(valor, filtro)
+            return this.aplicarFiltroConSubformularios(doc, valor, filtro)
           })
         })
+
+        // Segundo: Para el reporte PDF, aplicar filtrado interno en subformularios
+        // PERO mantener los documentos aunque algunos subformularios queden vacíos
+        documentos = this.aplicarFiltroSubformularios(documentos)
       }
 
       // Aplicar ordenamiento
@@ -737,21 +741,69 @@ export default {
 
     // ========== MÉTODO MEJORADO PARA OBTENER VALORES ==========
     getFieldValueFromDocument(documento, fieldPath) {
-      // Si no es un path con puntos, buscar directamente
+      // Si es un campo de subformulario específico (ej: "Participa en movilidad.Período de la movilidad")
+      console.log('getFieldValueFromDocument - fieldPath:', fieldPath)
+
+      // Si es un campo de subformulario específico (ej: "Participa en movilidad.Período de la movilidad")
+      if (fieldPath.includes('.')) {
+        const pathParts = fieldPath.split('.')
+        const campoPrincipal = pathParts[0]
+
+        // Obtener el array del subformulario principal
+        const valorSubform = this.getFieldValueFromDocument(documento, campoPrincipal)
+
+        if (Array.isArray(valorSubform) && valorSubform.length > 0) {
+          const campoEspecifico = pathParts.slice(1).join('.')
+
+          console.log('Procesando subformulario:', {
+            campoPrincipal,
+            campoEspecifico,
+            valorSubform,
+          })
+
+          // Si los elementos son valores directos (strings, numbers), retornar el array completo
+          if (
+            valorSubform.some(
+              (item) =>
+                typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean',
+            )
+          ) {
+            console.log('Subformulario contiene valores directos, retornando array completo')
+            return valorSubform
+          }
+
+          // Si son objetos, extraer los valores del campo específico
+          const valores = valorSubform
+            .map((item) => this.obtenerValorDeSubcampo(item, campoEspecifico))
+            .filter((val) => val !== null && val !== undefined)
+
+          console.log('Valores extraídos del subformulario:', valores)
+
+          return valores.length > 0 ? valores : null
+        }
+
+        return null
+      }
+
+      // Código original para campos simples...
       if (!fieldPath.includes('.')) {
         // Buscar en secciones primero
         if (documento.secciones) {
           for (const seccion of documento.secciones) {
             if (seccion.fields && seccion.fields.hasOwnProperty(fieldPath)) {
-              return seccion.fields[fieldPath]
+              const valor = seccion.fields[fieldPath]
+              console.log(`Encontrado en secciones: ${fieldPath} =`, valor)
+              return valor
             }
           }
         }
         // Buscar directamente en el documento
-        return documento[fieldPath]
+        const valor = documento[fieldPath]
+        console.log(`Encontrado en documento: ${fieldPath} =`, valor)
+        return valor
       }
 
-      // Para paths con puntos (subformularios anidados)
+      // Para paths con puntos (subformularios anidados) - código original
       const pathParts = fieldPath.split('.')
       let currentValue = documento
 
@@ -794,6 +846,8 @@ export default {
 
     getFieldValueForReport(documento, fieldName) {
       const valor = this.getFieldValueFromDocument(documento, fieldName)
+      console.log(`getFieldValueForReport - ${fieldName}:`, valor)
+
       if (!valor) return '-'
 
       const campo = this.getCampoDefinition(fieldName)
@@ -803,8 +857,18 @@ export default {
         return this.formatoFecha(valor)
       }
       if (campo.options) {
-        const option = campo.options.find((o) => o.campoGuardar === valor)
-        return option ? option.campoMostrar : valor
+        // Si es un array, procesar cada elemento
+        if (Array.isArray(valor)) {
+          return valor
+            .map((v) => {
+              const option = campo.options.find((o) => o.campoGuardar === v)
+              return option ? option.campoMostrar : v
+            })
+            .join(', ')
+        } else {
+          const option = campo.options.find((o) => o.campoGuardar === valor)
+          return option ? option.campoMostrar : valor
+        }
       }
       if (Array.isArray(valor)) {
         return `${valor.length} elementos`
@@ -985,31 +1049,332 @@ export default {
       }
     },
 
+    
     aplicarFiltro(valor, filtro) {
-      // Si es un array (subformulario), verificar si algún elemento cumple el filtro
-      if (Array.isArray(valor)) {
-        return valor.some((item) => {
-          if (filtro.campo.includes('.')) {
-            const pathParts = filtro.campo.split('.')
-            const campoEspecifico = pathParts[pathParts.length - 1]
-            const valorItem = item[campoEspecifico]
-            return this.aplicarFiltroSimple(valorItem, filtro)
-          } else {
-            return this.aplicarFiltroSimple(item, filtro)
+      // Si el campo es de un subformulario (tiene puntos en el path)
+      if (filtro.campo.includes('.')) {
+        const pathParts = filtro.campo.split('.')
+        const campoSubform = pathParts[0] // Ej: "Participa en movilidad"
+        const campoEspecifico = pathParts.slice(1).join('.') // Ej: "Período de la movilidad"
+
+        // Si el valor es un array (subformulario), filtrar los elementos que cumplan
+        if (Array.isArray(valor)) {
+          // Filtrar solo los elementos que cumplan con el criterio
+          const elementosFiltrados = valor.filter((item) => {
+            const valorSubcampo = this.obtenerValorDeSubcampo(item, campoEspecifico)
+            return this.aplicarFiltroSimple(valorSubcampo, filtro)
+          })
+
+          // Retornar true si al menos un elemento cumple el filtro
+          // Y para el reporte, reemplazar el array original con el filtrado
+          if (elementosFiltrados.length > 0) {
+            // Aquí necesitamos modificar el documento temporalmente para el reporte
+            // Esto se manejará en un método separado
+            return true
           }
-        })
+          return false
+        }
       }
 
+      // Para campos normales (sin subformularios)
       return this.aplicarFiltroSimple(valor, filtro)
     },
+    // Agrega estos métodos nuevos:
 
+    // Reemplaza el método aplicarFiltroConSubformularios con este:
+    aplicarFiltroConSubformularios(documento, valor, filtro) {
+      console.log('Aplicando filtro:', {
+        campo: filtro.campo,
+        valorFiltro: filtro.valor,
+        operador: filtro.operador,
+        valorDocumento: valor,
+      })
+
+      // Si el campo es de un subformulario
+      if (filtro.campo.includes('.')) {
+        const pathParts = filtro.campo.split('.')
+        const campoSubform = pathParts[0]
+        const campoEspecifico = pathParts.slice(1).join('.')
+
+        if (Array.isArray(valor)) {
+          console.log(`Buscando en subformulario ${campoSubform}, campo ${campoEspecifico}`)
+          console.log('Array de valores:', valor)
+
+          // Verificar si al menos un elemento cumple el filtro
+          const algunoCumple = valor.some((item, index) => {
+            // Si los elementos del array son strings directos (como "VERANO/2022")
+            // entonces el "campo específico" no aplica, usamos el valor directo
+            let valorParaComparar
+
+            if (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean') {
+              // El array contiene valores directos, no objetos
+              valorParaComparar = item
+              console.log(`Elemento ${index} es valor directo:`, valorParaComparar)
+            } else {
+              // El array contiene objetos, buscar el campo específico
+              valorParaComparar = this.obtenerValorDeSubcampo(item, campoEspecifico)
+              console.log(`Elemento ${index} es objeto, valor extraído:`, valorParaComparar)
+            }
+
+            const cumple = this.aplicarFiltroSimple(valorParaComparar, filtro)
+
+            console.log(`  Elemento ${index}:`, {
+              item,
+              valorParaComparar,
+              cumple,
+            })
+
+            return cumple
+          })
+
+          console.log(`Resultado para ${filtro.campo}:`, algunoCumple)
+          return algunoCumple
+        } else {
+          console.log(`Campo ${filtro.campo} no es un array:`, valor)
+          return false
+        }
+      }
+
+      // Para campos normales
+      const resultado = this.aplicarFiltroSimple(valor, filtro)
+      console.log(`Resultado para campo normal ${filtro.campo}:`, resultado)
+      return resultado
+    },
+    aplicarFiltroSubformularios(documentos) {
+      // Solo aplicar si hay filtros de subformularios
+      const filtrosSubform = this.filtrosActivos.filter((filtro) => filtro.campo.includes('.'))
+
+      if (filtrosSubform.length === 0) {
+        return documentos
+      }
+
+      // Crear copia profunda para no modificar los documentos originales
+      const documentosFiltrados = JSON.parse(JSON.stringify(documentos))
+
+      documentosFiltrados.forEach((documento) => {
+        filtrosSubform.forEach((filtro) => {
+          const pathParts = filtro.campo.split('.')
+          const campoSubform = pathParts[0]
+          const campoEspecifico = pathParts.slice(1).join('.')
+
+          const valorSubform = this.getFieldValueFromDocument(documento, campoSubform)
+
+          if (Array.isArray(valorSubform)) {
+            console.log(`Filtrando subformulario ${campoSubform} para documento`, documento._id)
+
+            // Filtrar los elementos del subformulario que cumplan el criterio
+            const elementosFiltrados = valorSubform.filter((item) => {
+              let valorParaComparar
+
+              if (
+                typeof item === 'string' ||
+                typeof item === 'number' ||
+                typeof item === 'boolean'
+              ) {
+                // Valor directo
+                valorParaComparar = item
+              } else {
+                // Objeto, extraer campo específico
+                valorParaComparar = this.obtenerValorDeSubcampo(item, campoEspecifico)
+              }
+
+              return this.aplicarFiltroSimple(valorParaComparar, filtro)
+            })
+
+            console.log(
+              `Elementos filtrados para ${campoSubform}:`,
+              elementosFiltrados.length,
+              'de',
+              valorSubform.length,
+            )
+
+            // Solo actualizar si encontramos elementos que cumplan el filtro
+            if (elementosFiltrados.length > 0) {
+              this.establecerValorEnDocumento(documento, campoSubform, elementosFiltrados)
+            }
+            // Si no hay elementos que cumplan, dejamos el array original para que se muestre vacío en el PDF
+          }
+        })
+      })
+
+      return documentosFiltrados
+    },
+
+    
+    obtenerValorDeSubcampo(item, campoPath) {
+      console.log('obtenerValorDeSubcampo - item:', item, 'campoPath:', campoPath)
+
+      // Si el item es un string directo (como "VERANO/2022"), retornarlo directamente
+      if (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean') {
+        console.log('Item es valor primitivo, retornando directamente:', item)
+        return item
+      }
+
+      if (!item || typeof item !== 'object') {
+        console.log('Item inválido:', item)
+        return null
+      }
+
+      // Si el campoPath está vacío, retornar el item completo
+      if (!campoPath) {
+        return item
+      }
+
+      console.log('Buscando campo:', campoPath, 'en item:', item)
+
+      // Manejar paths anidados
+      if (campoPath.includes('.')) {
+        const subPathParts = campoPath.split('.')
+        let currentValue = item
+
+        for (const part of subPathParts) {
+          if (currentValue === null || currentValue === undefined) {
+            console.log(`Campo ${part} no encontrado - valor nulo`)
+            return null
+          }
+
+          if (Array.isArray(currentValue)) {
+            // Para arrays, tomar el primer elemento
+            if (currentValue.length > 0) {
+              currentValue = currentValue[0]
+              if (currentValue && typeof currentValue === 'object') {
+                currentValue = currentValue[part]
+              } else {
+                console.log(`Campo ${part} no es objeto después de array`)
+                return null
+              }
+            } else {
+              console.log(`Array ${part} vacío`)
+              return null
+            }
+          } else if (typeof currentValue === 'object') {
+            currentValue = currentValue[part]
+          } else {
+            console.log(`Valor no es objeto en ${part}:`, currentValue)
+            return null
+          }
+
+          console.log(`Valor después de ${part}:`, currentValue)
+        }
+
+        return currentValue
+      }
+
+      // Path simple - si el item es un objeto, buscar la propiedad
+      if (typeof item === 'object' && !Array.isArray(item)) {
+        const resultado = item[campoPath]
+        console.log(`Valor directo para ${campoPath}:`, resultado)
+        return resultado
+      }
+
+      // Si llegamos aquí, el item no es un objeto, retornar null
+      console.log('Item no es objeto, no se puede buscar propiedad:', item)
+      return null
+    },
+    // Método para debug - ver qué documentos y subformularios se están filtrando
+    mostrarDebugFiltros() {
+      console.log('=== DEBUG FILTROS ===')
+      console.log('Filtros activos:', [...this.filtrosActivos]) // Convertir Proxy a array
+      console.log('Documentos originales:', this.documentos.length)
+
+      const documentosFiltrados = this.documentos.filter((doc) => {
+        return this.filtrosActivos.every((filtro) => {
+          const valor = this.getFieldValueFromDocument(doc, filtro.campo)
+          const cumple = this.aplicarFiltroConSubformularios(doc, valor, filtro)
+
+          // Obtener ID del documento para debug
+          const docId = doc._id?.$oid || doc._id || 'sin-id'
+          console.log(`Documento ${docId}, filtro ${filtro.campo}:`, {
+            valor,
+            cumple,
+            filtroValor: filtro.valor,
+            filtroOperador: filtro.operador,
+          })
+
+          return cumple
+        })
+      })
+
+      console.log('Documentos después de filtro principal:', documentosFiltrados.length)
+
+      // Mostrar más detalles de los documentos que pasaron el filtro
+      if (documentosFiltrados.length > 0) {
+        console.log(
+          'Documentos que pasaron el filtro:',
+          documentosFiltrados.map((doc) => ({
+            id: doc._id?.$oid || doc._id,
+            nombre: this.getFieldValueFromDocument(doc, 'Nombre Completo'),
+          })),
+        )
+      }
+
+      console.log('=====================')
+    },
+
+    establecerValorEnDocumento(documento, campoPath, valor) {
+      const pathParts = campoPath.split('.')
+      let current = documento
+      let finalPart = pathParts[pathParts.length - 1]
+
+      try {
+        for (let i = 0; i < pathParts.length - 1; i++) {
+          const part = pathParts[i]
+
+          // Buscar en secciones primero
+          let foundInSecciones = false
+          if (current.secciones && Array.isArray(current.secciones)) {
+            for (const seccion of current.secciones) {
+              if (seccion.fields && seccion.fields.hasOwnProperty(part)) {
+                current = seccion.fields
+                foundInSecciones = true
+                break
+              }
+            }
+          }
+
+          if (!foundInSecciones) {
+            if (!current[part] || typeof current[part] !== 'object') {
+              current[part] = {}
+            }
+            current = current[part]
+          }
+        }
+
+        // Buscar en secciones para el campo final
+        if (current.secciones && Array.isArray(current.secciones)) {
+          for (const seccion of current.secciones) {
+            if (seccion.fields && seccion.fields.hasOwnProperty(finalPart)) {
+              seccion.fields[finalPart] = valor
+              return
+            }
+          }
+        }
+
+        // Establecer directamente
+        current[finalPart] = valor
+      } catch (error) {
+        console.error('Error estableciendo valor en documento:', error)
+        // En caso de error, no modificar el documento
+      }
+    },
+
+    // Método auxiliar para verificar si un campo es de subformulario
+    esCampoDeSubformulario(campoPath) {
+      return campoPath.includes('.')
+    },
+
+    // Asegúrate de que este método tenga suficiente logging:
     aplicarFiltroSimple(valor, filtro) {
+      console.log('aplicarFiltroSimple:', { valor, filtro })
+
       if (valor === null || valor === undefined) {
+        console.log('Valor nulo o undefined')
         return false
       }
 
       // Obtener la definición del campo para ver si es un select dinámico
       const campo = this.getCampoDefinition(filtro.campo)
+      console.log('Definición del campo:', campo)
 
       let valorADocumento = valor
       let valorBFiltro = filtro.valor
@@ -1017,6 +1382,7 @@ export default {
       // Si es un select dinámico, convertir campoGuardar a campoMostrar para la comparación
       if (campo && campo.options && Array.isArray(campo.options) && campo.options.length > 0) {
         const primerElemento = campo.options[0]
+        console.log('Opciones del campo:', campo.options)
 
         // Si es select dinámico (objetos con campoGuardar/campoMostrar)
         if (typeof primerElemento === 'object' && primerElemento.campoGuardar) {
@@ -1024,38 +1390,56 @@ export default {
           const opcionDoc = campo.options.find((o) => o.campoGuardar === valor)
           if (opcionDoc) {
             valorADocumento = opcionDoc.campoMostrar || valor
+            console.log('Valor documento convertido:', valorADocumento)
           }
 
           // Convertir el valor del filtro (campoGuardar) a campoMostrar
           const opcionFiltro = campo.options.find((o) => o.campoGuardar === filtro.valor)
           if (opcionFiltro) {
             valorBFiltro = opcionFiltro.campoMostrar || filtro.valor
+            console.log('Valor filtro convertido:', valorBFiltro)
           }
         }
-        // Si es select manual (array de strings), no hacemos conversión
       }
 
       const valorString = String(valorADocumento).toLowerCase()
       const filtroValor = String(valorBFiltro).toLowerCase()
 
+      console.log('Comparando:', {
+        valorString,
+        filtroValor,
+        operador: filtro.operador,
+      })
+
+      let resultado
       switch (filtro.operador) {
         case 'equals':
-          return valorString === filtroValor
+          resultado = valorString === filtroValor
+          break
         case 'contains':
-          return valorString.includes(filtroValor)
+          resultado = valorString.includes(filtroValor)
+          break
         case 'startsWith':
-          return valorString.startsWith(filtroValor)
+          resultado = valorString.startsWith(filtroValor)
+          break
         case 'endsWith':
-          return valorString.endsWith(filtroValor)
+          resultado = valorString.endsWith(filtroValor)
+          break
         case 'notEquals':
-          return valorString !== filtroValor // FIX: era "filtroValro"
+          resultado = valorString !== filtroValor
+          break
         case 'gt':
-          return parseFloat(valor) > parseFloat(filtro.valor)
+          resultado = parseFloat(valor) > parseFloat(filtro.valor)
+          break
         case 'lt':
-          return parseFloat(valor) < parseFloat(filtro.valor)
+          resultado = parseFloat(valor) < parseFloat(filtro.valor)
+          break
         default:
-          return true
+          resultado = true
       }
+
+      console.log('Resultado de aplicarFiltroSimple:', resultado)
+      return resultado
     },
 
     getDisplayValueForFilter(filtro) {
@@ -1091,6 +1475,7 @@ export default {
 
     // ========== GENERACIÓN DE PDF CON FILTROS ==========
     async generarReportePDF() {
+      this.mostrarDebugFiltros()
       if (this.camposSeleccionados.length === 0) {
         this.showError('Selecciona al menos un campo para el reporte')
         return
