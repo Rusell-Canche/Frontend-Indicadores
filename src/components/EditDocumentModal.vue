@@ -191,6 +191,69 @@
                         </div>
                       </div>
 
+                      
+                    <!-- Campo de tipo tabla -->
+                    <div v-else-if="campo.type === 'tabla'" class="mt-2">
+                      <div class="tabla-dinamica-container">
+                        <label class="form-label d-block mb-3">
+                          <i class="fas fa-table me-2"></i>
+                          {{ campo.alias || campo.name }}
+                          <span v-if="campo.required" class="text-danger">*</span>
+                        </label>
+
+                        <!-- Botón para abrir modal de selección de datos -->
+                        <button
+                          type="button"
+                          class="btn btn-outline-primary mb-3"
+                          @click="abrirModalTabla(campo)"
+                        >
+                          <i class="fas fa-plus me-2"></i>
+                          Seleccionar datos para la tabla
+                        </button>
+
+                        <!-- Vista previa de la tabla seleccionada -->
+                        <div
+                          v-if="tablaData[campo.name] && tablaData[campo.name].length > 0"
+                          class="table-responsive"
+                        >
+                          <table class="table table-bordered table-sm">
+                            <thead class="table-light">
+                              <tr>
+                                <th v-for="columna in campo.tableConfig.campos" :key="columna">
+                                  {{ columna }}
+                                </th>
+                                <th class="text-center">Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr v-for="(fila, index) in tablaData[campo.name]" :key="index">
+                                <td v-for="columna in campo.tableConfig.campos" :key="columna">
+                                  {{ obtenerValorCampo(fila, columna) || '-' }}
+                                </td>
+                                <td class="text-center">
+                                  <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    @click="eliminarFilaTabla(campo.name, index)"
+                                  >
+                                    <i class="fas fa-trash"></i>
+                                  </button>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <small class="text-muted">
+                            {{ tablaData[campo.name].length }} fila(s) seleccionada(s)
+                          </small>
+                        </div>
+
+                        <div v-else class="alert alert-info">
+                          <i class="fas fa-info-circle me-2"></i>
+                          No se han seleccionado datos para esta tabla
+                        </div>
+                      </div>
+                    </div>
+
                       <!-- CAMPO DE TIPO DATE -->
                       <div v-else-if="campo.type === 'date'" class="mt-2">
                         <div class="input-group modern-input">
@@ -267,7 +330,210 @@
             </div>
           </form>
         </div>
+        
       </div>
+    <!-- Modal para seleccionar datos de tabla -->
+    <div v-if="modalTablaVisible" class="modal fade show" style="display: block">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content modern-modal">
+          <div class="medico-header modal-header-custom">
+            <div class="header-content">
+              <div class="header-icon">
+                <i class="fas fa-table"></i>
+              </div>
+              <div class="header-title-section">
+                <h3>Seleccionar datos para {{ tablaActual?.alias || tablaActual?.name }}</h3>
+                <p class="header-subtitle">
+                  Plantilla: {{ tablaActual?.tableConfig?.plantillaNombre }} - Sección:
+                  {{ tablaActual?.tableConfig?.seccion }}
+                </p>
+              </div>
+            </div>
+            <button type="button" @click="cerrarModalTabla" class="close-button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="medico-body modal-body-custom">
+            <!-- Barra de búsqueda y controles -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                  </span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="busquedaTabla"
+                    placeholder="Buscar en los datos disponibles..."
+                    @keyup.enter="paginaActual = 1"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6 d-flex justify-content-between align-items-center">
+                <div class="form-text">
+                  Mostrando {{ datosPaginados.length }} de {{ datosFiltrados.length }} registros
+                  (Total: {{ datosTablaDisponibles.length }})
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <label class="form-label mb-0 me-2">Mostrar:</label>
+                  <select
+                    v-model="elementosPorPagina"
+                    class="form-select form-select-sm"
+                    style="width: auto"
+                  >
+                    <option value="5">5</option>
+                  </select>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="paginaActual = 1"
+                    :disabled="paginaActual === 1"
+                  >
+                    <i class="fas fa-angle-double-left"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="paginaActual--"
+                    :disabled="paginaActual === 1"
+                  >
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <span class="mx-2 align-self-center">
+                    Página {{ paginaActual }} de {{ totalPaginas }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="paginaActual++"
+                    :disabled="paginaActual >= totalPaginas"
+                  >
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    @click="paginaActual = totalPaginas"
+                    :disabled="paginaActual >= totalPaginas"
+                  >
+                    <i class="fas fa-angle-double-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Datos disponibles -->
+              <div class="col-md-6">
+                <h6>Datos disponibles ({{ datosFiltrados.length }}):</h6>
+                <div class="table-responsive" style="max-height: 400px">
+                  <table class="table table-bordered table-sm table-hover">
+                    <thead class="table-light sticky-top">
+                      <tr>
+                        <th>Seleccionar</th>
+                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ columna }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(fila, index) in datosPaginados" :key="index">
+                        <td>
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-success"
+                            @click="seleccionarFilaTabla(fila)"
+                            :disabled="
+                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                            "
+                            :title="
+                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                                ? 'Ya seleccionado'
+                                : 'Seleccionar'
+                            "
+                          >
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </td>
+                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ obtenerValorCampo(fila, columna) || '-' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-if="datosPaginados.length === 0" class="text-center py-3 text-muted">
+                  <i class="fas fa-inbox fa-2x mb-2"></i>
+                  <p>No se encontraron registros</p>
+                </div>
+              </div>
+
+              <!-- Datos seleccionados -->
+              <div class="col-md-6">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Datos seleccionados ({{ tablaSeleccionada.length }}):</h6>
+                  <button
+                    v-if="tablaSeleccionada.length > 0"
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    @click="tablaSeleccionada = []"
+                  >
+                    <i class="fas fa-trash me-1"></i> Limpiar todo
+                  </button>
+                </div>
+                <div class="table-responsive" style="max-height: 400px">
+                  <table class="table table-bordered table-sm table-hover">
+                    <thead class="table-light sticky-top">
+                      <tr>
+                        <th>Acción</th>
+                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ columna }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(fila, index) in tablaSeleccionada" :key="index">
+                        <td>
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-danger"
+                            @click="deseleccionarFilaTabla(index)"
+                            title="Quitar selección"
+                          >
+                            <i class="fas fa-times"></i>
+                          </button>
+                        </td>
+                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                          {{ obtenerValorCampo(fila, columna) || '-' }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-if="tablaSeleccionada.length === 0" class="text-center py-3 text-muted">
+                  <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                  <p>No hay registros seleccionados</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="medico-footer">
+            <button type="button" class="btn btn-cancel" @click="cerrarModalTabla">
+              <i class="fas fa-times me-2"></i>
+              Cancelar
+            </button>
+            <button type="button" class="btn btn-save" @click="guardarSeleccionTabla">
+              <i class="fas fa-check me-2"></i>
+              Guardar selección ({{ tablaSeleccionada.length }})
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+      
     </div>
   </div>
 
@@ -276,6 +542,7 @@
 
 
 <script>
+import api from '@/services/api'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import SubFormularioDocumento from './SubFormularioDocumento.vue'
@@ -288,6 +555,10 @@ export default {
   },
 
   props: {
+     tablaInicial: {
+    type: Object,
+    default: () => ({}),
+  },
     isOpen: {
       type: Boolean,
       default: false
@@ -310,6 +581,14 @@ export default {
 
   data() {
     return {
+         tablaData: {}, // donde se guardan los datos seleccionados de cada tabla
+    modalTablaVisible: false, // para abrir/cerrar modal
+    tablaActual: null, // almacena el campo actual (la tabla en uso)
+    datosTablaDisponibles: [], // lista de registros posibles a seleccionar
+    tablaSeleccionada: [], // lo que el usuario selecciona dentro del modal
+    busquedaTabla: '', // texto de búsqueda
+    paginaActual: 1, // número de página actual
+    elementosPorPagina: 5, // registros por página
       // Datos del documento
       documentoEdit: {},
       camposDocumentoEdit: [],
@@ -323,8 +602,23 @@ export default {
       editSubformFiles: {}
     }
   },
+  mounted(){
+     // Cargar datos iniciales si existen
+  if (Object.keys(this.tablaInicial).length > 0) {
+    this.tablaData = { ...this.tablaInicial }
+  }
+  },
 
   watch: {
+    tablaInicial: {
+  handler(newVal) {
+    if (newVal && Object.keys(newVal).length > 0) {
+      this.tablaData = { ...newVal }
+    }
+  },
+  deep: true
+}
+,
     documento: {
       handler(newDoc) {
         if (newDoc && Object.keys(newDoc).length > 0) {
@@ -345,10 +639,74 @@ export default {
   computed: {
     seccionesPlantilla() {
       return this.camposPlantilla?.secciones ?? []
-    }
+    },
+    // Filtra los datos según la búsqueda
+    datosFiltrados() {
+      if (!this.busquedaTabla) {
+        return this.datosTablaDisponibles
+      }
+
+      const busqueda = this.busquedaTabla.toLowerCase()
+      return this.datosTablaDisponibles.filter((fila) => {
+        return this.tablaActual.tableConfig.campos.some((columna) => {
+          const valor = this.obtenerValorCampo(fila, columna)?.toString().toLowerCase() || ''
+          return valor.includes(busqueda)
+        })
+      })
+    },
+
+    // Pagina los datos filtrados
+    datosPaginados() {
+      const start = (this.paginaActual - 1) * this.elementosPorPagina
+      const end = start + this.elementosPorPagina
+      return this.datosFiltrados.slice(start, end)
+    },
+
+    // Calcula el total de páginas
+    totalPaginas() {
+      return Math.ceil(this.datosFiltrados.length / this.elementosPorPagina)
+    },
+    
   },
 
   methods: {
+
+// 2. MÉTODO PARA CARGAR DATOS DE TABLA EXISTENTES
+async cargarDatosTablaExistentes(nombreCampo, ids, tableConfig) {
+  try {
+    // Hacer petición al backend para obtener los documentos completos
+    const plantilla = tableConfig.plantillaNombre
+    const seccion = tableConfig.seccion
+    
+    // Petición para obtener documentos por IDs
+    const response = await axios.post('/api/documentos/obtener-por-ids', {
+      ids: ids,
+      plantilla: plantilla,
+      seccion: seccion
+    })
+    
+    if (response.data && Array.isArray(response.data)) {
+      // Inicializar tablaData si no existe
+      if (!this.tablaData[nombreCampo]) {
+        this.$set(this.tablaData, nombreCampo, [])
+      }
+      
+      // Cargar los datos completos en tablaData
+      this.tablaData[nombreCampo] = response.data.map(doc => ({
+        ...doc,
+        _documentId: doc._id || doc._documentId
+      }))
+      
+      console.log(`✅ Cargados ${this.tablaData[nombreCampo].length} registros para ${nombreCampo}`)
+    }
+  } catch (error) {
+    console.error(`Error al cargar datos de tabla ${nombreCampo}:`, error)
+    // Si hay error, al menos inicializar con IDs vacíos para que no se pierdan
+    if (!this.tablaData[nombreCampo]) {
+      this.$set(this.tablaData, nombreCampo, [])
+    }
+  }
+},
 
       getSaveValue(option, campo) {
     if (typeof option === 'string') {
@@ -431,6 +789,31 @@ initializeEditData(documento) {
       }
     })
 
+    // === Inicializar campos de tipo tabla ===
+campos
+  .filter(campo => campo.type === 'tabla')
+  .forEach(campo => {
+    const nombreCampo = campo.name
+    let valorTabla = this.extraerValorCampoDelDocumento(documento, nombreCampo)
+
+    // Intentar parsear si viene en string JSON
+    if (typeof valorTabla === 'string') {
+      try {
+        valorTabla = JSON.parse(valorTabla)
+      } catch {
+        valorTabla = []
+      }
+    }
+
+    if (!Array.isArray(valorTabla)) {
+      valorTabla = []
+    }
+
+    // ✅ Guardar tanto en documentoEdit como en tablaData
+    this.documentoEdit[nombreCampo] = valorTabla
+    this.tablaData[nombreCampo] = [...valorTabla]
+  })
+
 
   // Inicializar subformularios
   campos
@@ -508,6 +891,7 @@ initializeEditData(documento) {
 
       return null
     },
+
 
     // ========== MODAL CONTROL ==========
     closeModal() {
@@ -727,6 +1111,105 @@ async submitEdit() {
   }
 },
 
+
+    // Métodos para tablas dinámicas - CORREGIDOS
+    async abrirModalTabla(campo) {
+      this.tablaActual = campo
+      this.modalTablaVisible = true
+      this.busquedaTabla = '' // Resetear búsqueda
+      this.paginaActual = 1 // Resetear a primera página
+      this.tablaSeleccionada = [...(this.tablaData[campo.name] || [])]
+
+      try {
+        const token = localStorage.getItem('apiToken')
+        // Usar la misma lógica que el select dinámico
+        const response = await api.get(`/plantillas/${campo.tableConfig.plantillaId}/secciones`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        // Buscar la sección específica
+        const seccion = response.data?.secciones?.find(
+          (s) => s.nombre === campo.tableConfig.seccion,
+        )
+        if (seccion && seccion.fields) {
+          // Obtener datos de documentos existentes para esta plantilla y sección
+          const documentosResponse = await api.get(`/documentos/${campo.tableConfig.plantillaId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+
+          // Procesar los datos para mostrar solo las columnas configuradas
+          this.datosTablaDisponibles = this.procesarDatosParaTabla(
+            documentosResponse.data,
+            seccion,
+            campo.tableConfig.campos,
+          )
+        }
+      } catch (error) {
+        console.error('Error al cargar datos de tabla:', error)
+        this.showError('No se pudieron cargar los datos para la tabla')
+      }
+    },
+
+    procesarDatosParaTabla(documentos, seccion, camposConfigurados) {
+      const datosProcesados = []
+
+      documentos.forEach((documento) => {
+        const seccionDoc = documento.secciones?.find((s) => s.nombre === seccion.nombre)
+        if (seccionDoc) {
+          const fila = {
+            _documentId: documento._id || documento.id,
+          }
+          camposConfigurados.forEach((campoNombre) => {
+            const campo = seccionDoc.fields?.[campoNombre]
+            fila[campoNombre] = campo || '-'
+          })
+          datosProcesados.push(fila)
+        }
+      })
+
+      return datosProcesados
+    },
+
+    obtenerValorCampo(fila, nombreCampo) {
+      return fila[nombreCampo] || '-'
+    },
+
+    cerrarModalTabla() {
+      this.modalTablaVisible = false
+      this.tablaActual = null
+      this.datosTablaDisponibles = []
+      this.tablaSeleccionada = []
+      this.busquedaTabla = ''
+      this.paginaActual = 1
+    },
+
+    seleccionarFilaTabla(fila) {
+      const existe = this.tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+      if (!existe) {
+        this.tablaSeleccionada.push({ ...fila })
+      }
+    },
+
+    deseleccionarFilaTabla(index) {
+      this.tablaSeleccionada.splice(index, 1)
+    },
+
+    guardarSeleccionTabla() {
+      if (this.tablaActual) {
+        this.tablaData[this.tablaActual.name] = [...this.tablaSeleccionada]
+        this.cerrarModalTabla()
+      }
+    },
+
+    eliminarFilaTabla(nombreCampo, index) {
+      if (this.tablaData[nombreCampo]) {
+        this.tablaData[nombreCampo].splice(index, 1)
+      }
+    },
+
+
+    // ========== PREPARAR FORM DATA ==========
+
     // 2. Corregir el método prepararFormData() para manejar subformularios correctamente
 prepararFormData() {
   const formData = new FormData()
@@ -760,7 +1243,31 @@ prepararFormData() {
           this.procesarSubformularioEnFormData(formData, clave, valor, campo)
         } else if (campo.type === 'file' && valor instanceof File) {
           formData.append(clave, valor)
-        } else if (valor !== null && valor !== undefined && valor !== '') {
+        } else if (campo.type === 'tabla') {
+          // CORRECCIÓN CRÍTICA: Obtener TODAS las filas (existentes + nuevas)
+          const tablaFilas = this.tablaData[nombreCampo] || []
+console.log(`🔄 Procesando campo tabla: ${nombreCampo}`, tablaFilas)
+
+          // Extraer todos los IDs (tanto los que ya existían como los nuevos)
+          /**/
+          const tablaIds = tablaFilas
+            .map(fila => fila._documentId || fila._id || fila.id)
+            .filter(id => id)
+
+          console.log(`📋 Campo ${nombreCampo}: enviando ${tablaIds.length} IDs`, tablaIds)
+
+          // Enviar cada ID como elemento del array
+          if (tablaIds.length > 0) {
+            tablaIds.forEach(id => {
+              formData.append(`${clave}[]`, id)
+            })
+          } else {
+            // Si no hay IDs, enviar array vacío explícito para limpiar
+            formData.append(`${clave}`, JSON.stringify([]))
+          }
+
+        } 
+else if (valor !== null && valor !== undefined && valor !== '') {
           const valorFinal = typeof valor === 'object' ? JSON.stringify(valor) : valor
           formData.append(clave, valorFinal)
         }
