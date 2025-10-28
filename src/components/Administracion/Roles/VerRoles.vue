@@ -36,130 +36,12 @@
           </div>
           <div class="col-md-6 d-flex justify-content-end">
             <button type="button" class="btn btn-primary me-2" @click="loadRoles">
-              <i class="fas fa-sync-alt me-2"></i>
-              Actualizar
-            </button>
-          </div>
-        </div>
-
-        <!-- Estado de carga -->
-        <div v-if="loading" class="text-center py-5">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
-          <p class="mt-3 text-muted">Cargando roles...</p>
-        </div>
-
-        <!-- Lista de roles -->
-        <div v-else-if="filteredRoles.length > 0" class="roles-grid">
-          <div v-for="role in filteredRoles" :key="role.id" class="role-card mb-4">
-            <!-- Header del rol -->
-            <div class="role-header">
-              <div class="role-info">
-                <h5 class="role-name">
-                  <i class="fas fa-user-tag me-2"></i>
-                  {{ role.nombre }}
-                </h5>
-                <p class="role-description">{{ role.descripcion }}</p>
-                <div class="role-meta">
-                  <span class="badge bg-primary me-2">
-                    <i class="fas fa-shield-alt me-1"></i>
-                    {{ getTotalPermissions(role) }} permisos
-                  </span>
-                  <span class="badge bg-info">
-                    <i class="fas fa-calendar me-1"></i>
-                    {{ formatDate(role.created_at) }}
-                  </span>
-                </div>
-              </div>
-              <div class="role-actions">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-primary me-2"
-                  @click="toggleRoleDetails(role.id)"
-                >
-                  <i class="fas fa-eye me-1"></i>
-                  {{ expandedRoles.includes(role.id) ? 'Ocultar' : 'Ver' }}
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-warning me-2"
-                  @click="editRole(role)"
-                >
-                  <i class="fas fa-edit me-1"></i>
-                  Editar
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-danger"
-                  @click="deleteRole(role)"
-                >
-                  <i class="fas fa-trash me-1"></i>
-                  Eliminar
-                </button>
-              </div>
-            </div>
-
-            <!-- Detalles expandibles del rol -->
-            <div v-if="expandedRoles.includes(role.id)" class="role-details">
-              <div class="permissions-section">
-                <h6 class="mb-3">
-                  <i class="fas fa-list me-2"></i>
-                  Permisos Asignados
-                </h6>
-
-                <div
-                  v-for="permiso in role.permisos"
-                  :key="permiso.id"
-                  class="permission-detail mb-3"
-                >
-                  <div class="permission-resource">
-                    <h6 class="resource-name">
-                      <i class="fas fa-database me-2"></i>
-                      {{ getResourceName(permiso.recurso) }}
-                    </h6>
-                    <p class="resource-description">
-                      {{ getResourceDescription(permiso.recurso) }}
-                    </p>
-                  </div>
-
-                  <div class="actions-grid">
-                    <div v-for="accionId in permiso.acciones" :key="accionId" class="action-badge">
-                      <span class="badge bg-secondary">
-                        <i :class="getActionIcon(getActionName(accionId))" class="me-1"></i>
-                        {{ capitalizeFirst(getActionName(accionId)) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Estado vacío -->
-        <div v-else class="no-roles-state">
-          <div class="text-center py-5">
-            <i class="fas fa-users-cog fa-3x text-muted mb-3"></i>
-            <h6 class="text-muted">No hay roles disponibles</h6>
-            <p class="text-muted small">
-              {{
-                searchTerm
-                  ? 'No se encontraron roles que coincidan con tu búsqueda'
-                  : 'Crea el primer rol para comenzar'
-              }}
-            </p>
-            <button
-              v-if="!searchTerm"
-              type="button"
-              class="btn btn-primary mt-3"
-              @click="$emit('create-role')"
-            >
               <i class="fas fa-plus me-2"></i>
-              Crear Primer Rol
+              Crear Rol
             </button>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -323,13 +205,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Swal from 'sweetalert2'
 import axios from 'axios'
-
+import type { Rol } from '@/models/rol'
+import { RolService, rolState } from '@/services/Administracion/rol.service'
 export default {
   data() {
     return {
+      rolState,
+
       // Lista de roles
       roles: [],
 
@@ -368,7 +253,10 @@ export default {
     },
   },
   async mounted() {
-    await this.loadInitialData()
+    
+    await RolService.fetchRoles(); // trae y actualiza automáticamente el state
+    console.table(this.rolState.roles, ['nombre', 'descripcion']);
+
   },
   methods: {
     // Cargar datos iniciales
