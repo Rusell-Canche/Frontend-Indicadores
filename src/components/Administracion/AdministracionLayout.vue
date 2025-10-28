@@ -32,19 +32,6 @@
           </div>
           <div
             class="tab"
-            :class="{ active: $route.name === 'CrearRoles' }"
-            @click="$router.push({ name: 'CrearRoles' })"
-          >
-            <div class="tab-icon">
-              <i class="fas fa-user-plus"></i>
-            </div>
-            <div class="tab-content-text">
-              <span class="tab-title">Crear Roles</span>
-              <span class="tab-description">Crea los roles del sistema</span>
-            </div>
-          </div>
-          <div
-            class="tab"
             :class="{ active: $route.name === 'AsignarPermisos' }"
             @click="$router.push({ name: 'AsignarPermisos' })"
           >
@@ -78,8 +65,8 @@
               <i class="fas fa-user-friends"></i>
             </div>
             <div class="tab-content-text">
-              <span class="tab-title">Ver Roles</span>
-              <span class="tab-description">Visualiza los roles que se han creado</span>
+              <span class="tab-title">Roles</span>
+              <span class="tab-description"> - </span>
             </div>
           </div>
           <!-- Indicador deslizante mejorado -->
