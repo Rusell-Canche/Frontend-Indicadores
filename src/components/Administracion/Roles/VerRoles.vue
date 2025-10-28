@@ -35,173 +35,74 @@
             </div>
           </div>
           <div class="col-md-6 d-flex justify-content-end">
-            <button type="button" class="btn btn-primary me-2" @click="loadRoles">
+            <button type="button" class="btn btn-primary me-2" @click="$router.push({name : 'CrearRoles'})">
               <i class="fas fa-plus me-2"></i>
-              Crear Rol
+              Crear rol
             </button>
           </div>
         </div>
+
+        <!-- Estado de carga -->
+        <div v-if="loading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="mt-3 text-muted">Cargando roles...</p>
+        </div>
+
+        <!-- Lista de roles -->
+        <div v-else class="roles-grid">
+          <div v-for="role in roles" :key="role._id" class="role-card mb-4">
+            <!-- Header del rol -->
+            <div class="role-header">
+              <div class="role-info">
+                <h5 class="role-name">
+                  <i class="fas fa-user-tag me-2"></i>
+                  {{ role.nombre }}
+                </h5>
+                <p class="role-description">{{ role.descripcion }}</p>
+                
+              </div>
+              <div class="role-actions">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary me-2"
+                  
+                >
+                  <i class="fas fa-eye me-1"></i>
+
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-warning me-2"
+               
+                >
+                  <i class="fas fa-edit me-1"></i>
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  
+                >
+                  <i class="fas fa-trash me-1"></i>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+
+            <!-- Detalles expandibles del rol -->
+
+          </div>
+        </div>
+
+        <!-- Estado vacío -->
 
       </div>
     </div>
 
     <!-- Modal de edición -->
-    <div
-      v-if="editingRole"
-      class="modal fade show"
-      style="display: block; background-color: rgba(0, 0, 0, 0.5)"
-      tabindex="-1"
-    >
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-edit me-2"></i>
-              Editar Rol: {{ editingRole.nombre }}
-            </h5>
-            <button type="button" class="btn-close" @click="closeEditModal"></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="updateRole">
-              <!-- Información básica -->
-              <div class="form-section mb-4">
-                <h6 class="section-title">
-                  <i class="fas fa-info-circle me-2"></i>
-                  Información del Rol
-                </h6>
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label">Nombre del Rol*</label>
-                    <div class="input-group modern-input">
-                      <span class="input-group-text">
-                        <i class="fas fa-tag"></i>
-                      </span>
-                      <input
-                        v-model="editForm.nombre"
-                        type="text"
-                        class="form-control"
-                        required
-                        placeholder="ej: super_usuario, administrador"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Descripción*</label>
-                    <div class="input-group modern-input">
-                      <span class="input-group-text">
-                        <i class="fas fa-align-left"></i>
-                      </span>
-                      <input
-                        v-model="editForm.descripcion"
-                        type="text"
-                        class="form-control"
-                        required
-                        placeholder="Describe las funciones de este rol"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <!-- Permisos -->
-              <div class="form-section">
-                <h6 class="section-title">
-                  <i class="fas fa-shield-alt me-2"></i>
-                  Permisos del Rol
-                </h6>
-
-                <!-- Selector de recurso -->
-                <div class="row g-3 mb-4">
-                  <div class="col-md-6">
-                    <label class="form-label">Agregar Recurso</label>
-                    <div class="input-group modern-input">
-                      <span class="input-group-text">
-                        <i class="fas fa-database"></i>
-                      </span>
-                      <select v-model="editForm.selectedResource" class="form-control">
-                        <option value="">Seleccione un recurso</option>
-                        <option v-for="recurso in recursos" :key="recurso.id" :value="recurso.id">
-                          {{ recurso.nombre }} - {{ recurso.descripcion }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-6 d-flex align-items-end">
-                    <button
-                      type="button"
-                      class="btn btn-primary"
-                      @click="addResourceToEdit"
-                      :disabled="!editForm.selectedResource"
-                    >
-                      <i class="fas fa-plus me-2"></i>
-                      Agregar Recurso
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Permisos asignados -->
-                <div v-if="editForm.permisos.length > 0">
-                  <div
-                    v-for="(permiso, index) in editForm.permisos"
-                    :key="index"
-                    class="resource-permission-card mb-3"
-                  >
-                    <div class="resource-header">
-                      <div class="resource-info">
-                        <h6 class="resource-name">
-                          {{ getResourceName(permiso.recurso) }}
-                        </h6>
-                        <p class="resource-description">
-                          {{ getResourceDescription(permiso.recurso) }}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-outline-danger"
-                        @click="removeResourceFromEdit(index)"
-                      >
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-
-                    <div class="permissions-grid">
-                      <div v-for="accion in acciones" :key="accion.id" class="permission-item">
-                        <label class="checkbox-container">
-                          <input
-                            type="checkbox"
-                            class="custom-checkbox"
-                            v-model="permiso.acciones"
-                            :value="accion.id"
-                          />
-                          <span class="checkmark"></span>
-                          <div class="permission-content">
-                            <span class="permission-title">
-                              <i :class="getActionIcon(accion.nombre)" class="me-2"></i>
-                              {{ capitalizeFirst(accion.nombre) }}
-                            </span>
-                            <span class="permission-description">{{ accion.descripcion }}</span>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-cancel" @click="closeEditModal">
-              <i class="fas fa-times me-2"></i>
-              Cancelar
-            </button>
-            <button type="button" class="btn btn-save" @click="updateRole">
-              <i class="fas fa-save me-2"></i>
-              Guardar Cambios
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -216,7 +117,7 @@ export default {
       rolState,
 
       // Lista de roles
-      roles: [],
+      roles: [] as Rol[],
 
       // Filtros
       searchTerm: '',
@@ -255,6 +156,7 @@ export default {
   async mounted() {
     
     await RolService.fetchRoles(); // trae y actualiza automáticamente el state
+    this.roles = rolState.roles || []
     console.table(this.rolState.roles, ['nombre', 'descripcion']);
 
   },
