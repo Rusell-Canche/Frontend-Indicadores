@@ -123,56 +123,82 @@
                         </div>
                       </div>
 
-                      <!-- CAMPO DE TIPO FILE -->
-                      <div v-else-if="campo.type === 'file'" class="mt-2">
+                    <!-- Campo de archivos -->
+                    <div v-else-if="campo.type === 'file'" class="mt-2">
+                      <label class="form-label d-block mb-3">
+                        <i class="fas fa-paperclip me-2"></i>
+                        {{ campo.alias || campo.name }}
+                        <span v-if="campo.required" class="text-danger">*</span>
+                      </label>
+
+                      <!-- Un solo input de archivo con múltiple -->
+                      <div class="file-input-group mb-3">
                         <div class="input-group modern-input">
                           <span class="input-group-text">
-                            <i class="fas fa-paperclip"></i>
+                            <i class="fas fa-file"></i>
                           </span>
                           <input
                             type="file"
                             class="form-control"
+                            :id="campo.name"
+                            :name="campo.name"
+                            @change="onFileChange($event, campo.name)"
                             multiple
-                            @change="handleFileUpload($event, campo.name)"
-                            accept="image/*,video/*,audio/*,.pdf"
+                            :key="fileInputKey"
                           />
                         </div>
-                        <!-- Vista previa de archivos -->
-                        <div
-                          v-if="documentoEdit[campo.name] && documentoEdit[campo.name].length"
-                          class="file-preview mt-3"
-                        >
-                          <h6 class="preview-title">Archivos actuales:</h6>
-                          <div class="d-flex flex-wrap gap-3">
-                            <div
-                              class="file-item"
-                              v-for="(file, index) in documentoEdit[campo.name]"
-                              :key="index"
-                            >
-                              <div class="file-content">
-                                <div v-if="isImage(file)" class="file-thumbnail">
-                                  <img
-                                    :src="getThumbnailUrl(file)"
-                                    alt="Miniatura"
-                                    class="img-fluid"
-                                  />
-                                </div>
-                                <div v-else class="file-icon">
-                                  <i class="fas fa-file-alt"></i>
-                                </div>
-                                <span class="file-name">{{ file.name }}</span>
+                      </div>
+
+                      <!-- Vista previa de archivos -->
+                      <div
+                        v-if="files[campo.name] && files[campo.name].length > 0"
+                        class="file-preview mt-3"
+                      >
+                        <h6 class="preview-title">
+                          Archivos seleccionados ({{ files[campo.name].length }}):
+                        </h6>
+                        <div class="d-flex flex-wrap gap-3">
+                          <div
+                            class="file-item"
+                            v-for="(file, index) in files[campo.name]"
+                            :key="index"
+                          >
+                            <div class="file-content">
+                              <div v-if="isImageFile(file)" class="file-thumbnail">
+                                <img
+                                  :src="getThumbnailUrl(file)"
+                                  alt="Miniatura"
+                                  class="img-fluid"
+                                />
                               </div>
-                              <button
-                                type="button"
-                                class="delete-button"
-                                @click="removeFile(index)"
-                              >
-                                <i class="fas fa-times"></i>
-                              </button>
+                              <div v-else class="file-icon">
+                                <i class="fas fa-file-alt"></i>
+                              </div>
+                              <span class="file-name">{{ file.name }}</span>
                             </div>
+                            <button
+                              type="button"
+                              class="delete-button"
+                              @click="removeFile(campo.name, index)"
+                            >
+                              <i class="fas fa-times"></i>
+                            </button>
                           </div>
                         </div>
+
+                        <!-- Botón para limpiar todos los archivos -->
+                        <div class="mt-3">
+                          <button
+                            type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            @click="clearAllFiles(campo.name)"
+                          >
+                            <i class="fas fa-trash me-1"></i>
+                            Limpiar todos los archivos
+                          </button>
+                        </div>
                       </div>
+                    </div>
 
                       <!-- CAMPO DE TIPO NUMBER -->
                       <div v-else-if="campo.type === 'number'" class="mt-2">
@@ -581,6 +607,10 @@ export default {
 
   data() {
     return {
+      // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
+      fileMapping: {},
+       files: {}, // ← Aquí va
+      fileInputKey: 0,
          tablaData: {}, // donde se guardan los datos seleccionados de cada tabla
     modalTablaVisible: false, // para abrir/cerrar modal
     tablaActual: null, // almacena el campo actual (la tabla en uso)
@@ -670,6 +700,110 @@ export default {
   },
 
   methods: {
+
+    
+    onFileChange(event, fieldName) {
+      const fileList = event.target.files
+      if (fileList.length > 0) {
+        // Convertir FileList a Array
+        const newFiles = Array.from(fileList)
+
+        // Inicializar el array si no existe
+        if (!this.files[fieldName]) {
+          this.files[fieldName] = []
+        }
+
+        // Agregar los nuevos archivos al array existente (ACUMULAR)
+        this.files[fieldName] = [...this.files[fieldName], ...newFiles]
+
+        // Forzar reset del input file para permitir seleccionar más archivos
+        this.resetFileInput(fieldName)
+      }
+    },
+    resetFileInput(fieldName) {
+      // Incrementar la key para forzar el re-render del input
+      this.fileInputKey += 1
+
+      // También resetear el valor del input directamente
+      const inputElement = document.getElementById(fieldName)
+      if (inputElement) {
+        inputElement.value = ''
+      }
+    },
+    triggerFileInput(fieldName) {
+      const inputElement = document.getElementById(fieldName)
+      if (inputElement) {
+        inputElement.click()
+      }
+    },
+    isImageFile(file) {
+      return file && file.type && file.type.startsWith('image/')
+    },
+
+    getThumbnailUrl(file) {
+      return this.isImageFile(file) ? URL.createObjectURL(file) : null
+    },
+
+    removeFile(fieldName, index) {
+      if (this.files[fieldName]) {
+        this.files[fieldName].splice(index, 1)
+
+        // Si no quedan archivos, limpiar el array
+        if (this.files[fieldName].length === 0) {
+          delete this.files[fieldName]
+        }
+      }
+    },
+    clearAllFiles(fieldName) {
+      if (this.files[fieldName]) {
+        delete this.files[fieldName]
+      }
+      // Resetear el input file también
+      this.resetFileInput(fieldName)
+    },
+
+    // Métodos para subforms
+    getSubformRows(fieldName) {
+      return this.subformData[fieldName] || []
+    },
+
+    openModal(campo, rowIndex = -1) {
+      this.currentSubformField = campo
+      this.editingIndex = rowIndex
+
+      // Inicializar datos del subformulario
+      const emptyData = campo.subcampos.reduce((acc, sub) => {
+        acc[sub.name] = sub.type === 'file' ? null : ''
+        return acc
+      }, {})
+
+      if (rowIndex === -1) {
+        // Nuevo registro
+        this.currentSubformData = { ...emptyData }
+      } else {
+        // Editar registro existente
+        const baseData = this.subformData[campo.name][rowIndex] || {}
+
+        // Combinar datos básicos con archivos
+        this.currentSubformData = { ...emptyData, ...baseData }
+
+        // Agregar archivos si existen
+        if (this.subformFiles[campo.name] && this.subformFiles[campo.name][rowIndex]) {
+          const fileData = this.subformFiles[campo.name][rowIndex]
+          // Iterar sobre cada nombre de campo
+          Object.keys(fileData).forEach((fieldName) => {
+            if (fileData[fieldName]) {
+              this.currentSubformData[fieldName] = fileData[fieldName]
+            }
+          })
+        }
+      }
+
+      this.showSubformModal = true
+    },
+
+
+
 
 // 2. MÉTODO PARA CARGAR DATOS DE TABLA EXISTENTES
 async cargarDatosTablaExistentes(nombreCampo, ids, tableConfig) {
@@ -871,6 +1005,12 @@ campos
       this.editSubformData = {}
       this.editSubformFiles = {}
       this.uploadedFiles = []
+
+      // Archivos / mapping / inputs
+  this.files = {}            // limpia archivos seleccionados en inputs
+  this.fileMapping = {}      // limpia el mapping que puedas usar
+  this.fileInputKey += 1     // fuerza re-render de inputs file para evitar valores residuales
+
     },
 
     getCampoPlantilla(nombreCampo) {
@@ -1047,38 +1187,6 @@ getSubformDataForEdit(fieldName) {
   return []
 },
 
-    // ========== ARCHIVOS ==========
-    handleFileUpload(event) {
-      this.uploadedFiles = Array.from(event.target.files)
-
-      if (!this.documentoEdit['Recurso Digital']) {
-        this.documentoEdit['Recurso Digital'] = []
-      }
-
-      this.uploadedFiles.forEach(file => {
-        this.documentoEdit['Recurso Digital'].push(file)
-      })
-
-      event.target.value = ''
-    },
-
-    removeFile(index) {
-      if (this.documentoEdit['Recurso Digital']) {
-        this.documentoEdit['Recurso Digital'].splice(index, 1)
-      }
-    },
-
-    // File type checkers
-    isImage: (file) => /\.(jpeg|jpg|png|gif)$/i.test(typeof file === 'string' ? file : file?.name || ''),
-    isVideo: (file) => /\.(mp4|mov|avi)$/i.test(typeof file === 'string' ? file : file?.name || ''),
-    isAudio: (file) => /\.(mp3|wav|ogg)$/i.test(typeof file === 'string' ? file : file?.name || ''),
-    isPDF: (file) => /\.pdf$/i.test(typeof file === 'string' ? file : file?.name || ''),
-
-    getFileName(file) {
-      if (typeof file === 'string') return file
-      if (file?.name) return file.name
-      return 'Archivo'
-    },
 
     // ========== SUBMIT ==========
 async submitEdit() {
@@ -1102,6 +1210,14 @@ async submitEdit() {
   this.loading = true
   try {
     const formData = this.prepararFormData()
+
+        // 👇👇👇 AGREGA ESTO PARA VER LO QUE SE ENVÍA 👇👇👇
+    const logObj = {}
+    for (const [key, value] of formData.entries()) {
+      logObj[key] = value instanceof File ? `[File: ${value.name}]` : value
+    }
+    console.log('🚀 Datos que se enviarán al backend:', logObj)
+    // 👆👆👆 FIN DEL BLOQUE DE LOG 👆👆👆
     this.$emit('save', formData)
   } catch (error) {
     console.error('Error preparando datos:', error)
@@ -1212,6 +1328,8 @@ async submitEdit() {
 
     // 2. Corregir el método prepararFormData() para manejar subformularios correctamente
 prepararFormData() {
+  // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
+      const fileMapping = {}
   const formData = new FormData()
 
   if (!Array.isArray(this.camposPlantilla.secciones)) {
@@ -1241,9 +1359,39 @@ prepararFormData() {
         if (campo.type === 'subform' && valor) {
           // Manejar subformularios
           this.procesarSubformularioEnFormData(formData, clave, valor, campo)
-        } else if (campo.type === 'file' && valor instanceof File) {
-          formData.append(clave, valor)
-        } else if (campo.type === 'tabla') {
+        } else if (campo.type === 'file') {
+  const archivos = this.files[campo.name]
+  const clave = `document_data[secciones][${indexSeccion}][fields][${nombreCampo}]`
+
+  if (archivos && Array.isArray(archivos) && archivos.length > 0) {
+    // Enviar los archivos reales
+    if (archivos.length === 1) {
+      const archivo = archivos[0]
+      if (archivo instanceof File) {
+        const uniqueFieldName = `file_${campo.name}`
+        formData.append(`files[${uniqueFieldName}]`, archivo)
+        // El campo en document_data se envía como null (el backend lo reemplazará)
+        formData.append(clave, 'null') // o simplemente no enviarlo, pero mejor enviar null
+      } else {
+        // Es una ruta existente (string), mantenerla
+        formData.append(clave, archivo)
+      }
+    } else {
+      // Múltiples archivos → enviar como array vacío o null según backend
+      archivos.forEach((archivo, idx) => {
+        if (archivo instanceof File) {
+          const uniqueFieldName = `file_${campo.name}_${idx}`
+          formData.append(`files[${uniqueFieldName}]`, archivo)
+        }
+      })
+      // Indicar que el campo debe ser un array vacío (o según lógica del backend)
+      formData.append(clave, JSON.stringify([]))
+    }
+  } else {
+    // No hay nuevos archivos → enviar null para mantener o limpiar
+    formData.append(clave, 'null')
+  }
+}else if (campo.type === 'tabla') {
           // CORRECCIÓN CRÍTICA: Obtener TODAS las filas (existentes + nuevas)
           const tablaFilas = this.tablaData[nombreCampo] || []
 console.log(`🔄 Procesando campo tabla: ${nombreCampo}`, tablaFilas)
@@ -1353,17 +1501,7 @@ procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
   }
 },
 
-    procesarArchivosRecurso(formData, archivos) {
-      if (Array.isArray(archivos)) {
-        archivos.forEach((archivo, index) => {
-          if (archivo instanceof File) {
-            formData.append(`Recurso Digital[${index}]`, archivo)
-          } else {
-            formData.append('existing_files[]', archivo)
-          }
-        })
-      }
-    },
+   
 
     procesarSubformularioDentroDeDocumentData(formData, campo, valor) {
       if (Array.isArray(valor)) {
@@ -1495,5 +1633,95 @@ procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
   align-items: center;
   position: relative;
   overflow: hidden;
+}
+
+
+/* Vista previa de archivos */
+.file-preview {
+  margin-top: 1rem;
+}
+
+.preview-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #495057;
+}
+
+.file-item {
+  position: relative;
+  width: 120px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.file-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.file-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.file-thumbnail {
+  width: 100%;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.file-thumbnail img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.file-icon {
+  font-size: 2rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.file-name {
+  font-size: 0.75rem;
+  color: #495057;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.delete-button {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+
+.delete-button:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 </style>
