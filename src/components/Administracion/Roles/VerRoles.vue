@@ -11,7 +11,7 @@
           <div class="header-title-section">
             <h3>Gestión de Roles</h3>
             <p class="header-subtitle">
-              Administra los roles del sistema: visualiza, edita y elimina
+              jjj
             </p>
           </div>
         </div>
@@ -68,7 +68,7 @@
 
             <!-- Menu de opciones para el rol -->
             <div class="rol-actions">
-              <button class="btn btn-sm btn-view">
+              <button @click="abrirModal(rol)" class="btn btn-sm btn-view">
                 <i class="fas fa-eye me-1" />
                 Ver
               </button>
@@ -83,14 +83,12 @@
             </div>
           </div>
         </div>
-
-        <!-- Estado vacío -->
-
+        <ModalVistaRol 
+          :visible="modalVisible" 
+          :rolID="rolSeleccionado?.id"
+          @close="cerrarModal" />
       </div>
     </div>
-
-    <!-- Modal de edición -->
-
   </div>
 </template>
 
@@ -99,13 +97,27 @@ import Swal from 'sweetalert2'
 import axios from 'axios'
 import type { Rol } from '@/models/rol'
 import { RolService, rolState } from '@/services/Administracion/rol.service'
+
+import ModalVistaRol from './ModalVistaRol.vue'
+import { ref } from 'vue'
+
 export default {
+   components: {
+    ModalVistaRol
+  },
   data() {
     return {
+      /** Controla si el modal es visible o no */
+      modalVisible: false,
+
+      /** Para comunicarse con el estado del servicio de los roles */
       rolState,
 
-      // Lista de roles
+      /** Lista de roles */
       roles: [] as Rol[],
+
+      /** El rol seleccionado actualmente */
+      rolSeleccionado: null as Rol | null,
 
       // Filtros
       searchTerm: '',
@@ -129,285 +141,23 @@ export default {
     }
   },
   computed: {
-    filteredRoles() {
-      if (!this.searchTerm) {
-        return this.roles
-      }
 
-      return this.roles.filter(
-        (role) =>
-          role.nombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-          role.descripcion.toLowerCase().includes(this.searchTerm.toLowerCase()),
-      )
-    },
   },
   async mounted() {
 
     await RolService.fetchRoles(); // trae y actualiza automáticamente el state
     this.roles = rolState.roles || []
-    console.table(this.rolState.roles, ['nombre', 'descripcion']);
-
   },
   methods: {
-    // Cargar datos iniciales
-    async loadInitialData() {
-      await Promise.all([this.loadRoles(), this.loadRecursos(), this.loadAcciones()])
+    abrirModal(rol: Rol) {
+      this.rolSeleccionado = rol
+      this.modalVisible = true
+      console.log('Modal abierto para rol:', rol.nombre) // Para debug
     },
 
-    // Cargar roles
-    async loadRoles() {
-      this.loading = true
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/roles', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.data.success) {
-          this.roles = response.data.roles
-        }
-      } catch (error) {
-        console.error('Error al cargar roles:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los roles',
-        })
-      } finally {
-        this.loading = false
-      }
-    },
-
-    // Cargar recursos
-    async loadRecursos() {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/recursos', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.data.success) {
-          this.recursos = response.data.recursos
-        }
-      } catch (error) {
-        console.error('Error al cargar recursos:', error)
-      }
-    },
-
-    // Cargar acciones
-    async loadAcciones() {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/acciones', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.data.success) {
-          this.acciones = response.data.acciones
-        }
-      } catch (error) {
-        console.error('Error al cargar acciones:', error)
-      }
-    },
-
-    // Alternar detalles del rol
-    toggleRoleDetails(roleId) {
-      const index = this.expandedRoles.indexOf(roleId)
-      if (index > -1) {
-        this.expandedRoles.splice(index, 1)
-      } else {
-        this.expandedRoles.push(roleId)
-      }
-    },
-
-    // Obtener nombre del recurso
-    getResourceName(resourceId) {
-      const recurso = this.recursos.find((r) => r.id === resourceId)
-      return recurso ? recurso.nombre : 'Recurso no encontrado'
-    },
-
-    // Obtener descripción del recurso
-    getResourceDescription(resourceId) {
-      const recurso = this.recursos.find((r) => r.id === resourceId)
-      return recurso ? recurso.descripcion : ''
-    },
-
-    // Obtener nombre de la acción
-    getActionName(actionId) {
-      const accion = this.acciones.find((a) => a.id === actionId)
-      return accion ? accion.nombre : 'Acción no encontrada'
-    },
-
-    // Obtener icono de la acción
-    getActionIcon(actionName) {
-      const iconMap = {
-        '*': 'fas fa-star',
-        crear: 'fas fa-plus',
-        leer: 'fas fa-eye',
-        actualizar: 'fas fa-edit',
-        eliminar: 'fas fa-trash',
-      }
-      return iconMap[actionName] || 'fas fa-cog'
-    },
-
-    // Capitalizar primera letra
-    capitalizeFirst(str) {
-      if (!str) return ''
-      return str.charAt(0).toUpperCase() + str.slice(1)
-    },
-
-    // Obtener total de permisos
-    getTotalPermissions(role) {
-      return role.permisos.reduce((total, permiso) => {
-        return total + (permiso.acciones ? permiso.acciones.length : 0)
-      }, 0)
-    },
-
-    // Formatear fecha
-    formatDate(dateString) {
-      if (!dateString) return 'N/A'
-      return new Date(dateString).toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
-    },
-
-    // Editar rol
-    editRole(role) {
-      this.editingRole = role
-      this.editForm = {
-        nombre: role.nombre,
-        descripcion: role.descripcion,
-        permisos: role.permisos.map((p) => ({
-          recurso: p.recurso,
-          acciones: [...p.acciones],
-        })),
-        selectedResource: '',
-      }
-    },
-
-    // Cerrar modal de edición
-    closeEditModal() {
-      this.editingRole = null
-      this.editForm = {
-        nombre: '',
-        descripcion: '',
-        permisos: [],
-        selectedResource: '',
-      }
-    },
-
-    // Agregar recurso en edición
-    addResourceToEdit() {
-      if (!this.editForm.selectedResource) return
-
-      const exists = this.editForm.permisos.find(
-        (p) => p.recurso === this.editForm.selectedResource,
-      )
-      if (exists) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Atención',
-          text: 'Este recurso ya ha sido asignado',
-        })
-        return
-      }
-
-      this.editForm.permisos.push({
-        recurso: this.editForm.selectedResource,
-        acciones: [],
-      })
-
-      this.editForm.selectedResource = ''
-    },
-
-    // Remover recurso en edición
-    removeResourceFromEdit(index) {
-      this.editForm.permisos.splice(index, 1)
-    },
-
-    // Actualizar rol
-    async updateRole() {
-      if (!this.editForm.nombre.trim() || !this.editForm.descripcion.trim()) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'El nombre y la descripción son obligatorios',
-        })
-        return
-      }
-
-      if (this.editForm.permisos.length === 0) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Debe asignar al menos un permiso',
-        })
-        return
-      }
-
-      const result = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: `¿Quieres actualizar el rol "${this.editForm.nombre}"?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, actualizar',
-        cancelButtonText: 'Cancelar',
-      })
-
-      if (result.isConfirmed) {
-        try {
-          const token = localStorage.getItem('apiToken')
-          const formData = {
-            nombre: this.editForm.nombre.trim(),
-            descripcion: this.editForm.descripcion.trim(),
-            permisos: this.editForm.permisos.map((p) => ({
-              recurso: p.recurso,
-              acciones: p.acciones,
-            })),
-          }
-
-          const response = await axios.put(
-            `http://127.0.0.1:8000/api/roles/${this.editingRole.id}`,
-            formData,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-            },
-          )
-
-          Swal.fire({
-            icon: 'success',
-            title: '¡Rol actualizado!',
-            text: `El rol "${this.editForm.nombre}" ha sido actualizado exitosamente`,
-          })
-
-          this.closeEditModal()
-          await this.loadRoles()
-        } catch (error) {
-          console.error('Error al actualizar rol:', error)
-          let errorMessage = 'Hubo un error al actualizar el rol.'
-
-          if (error.response?.data?.message) {
-            errorMessage = error.response.data.message
-          }
-
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: errorMessage,
-          })
-        }
-      }
+    cerrarModal() {
+      this.rolSeleccionado = null,
+        this.modalVisible = false
     },
 
     // Eliminar rol
