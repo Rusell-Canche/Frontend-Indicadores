@@ -101,8 +101,8 @@
                     <thead class="table-light sticky-top">
                       <tr>
                         <th>Seleccionar</th>
-                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
-                          {{ columna }}
+                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna.name">
+                          {{ columna.name }}
                         </th>
                       </tr>
                     </thead>
@@ -125,8 +125,8 @@
                             <i class="fas fa-plus"></i>
                           </button>
                         </td>
-                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
-                          {{ obtenerValorCampo(fila, columna) || '-' }}
+                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna.name">
+                          {{ obtenerValorCampo(fila, columna.name) || '-' }}
                         </td>
                       </tr>
                     </tbody>
@@ -156,8 +156,8 @@
                     <thead class="table-light sticky-top">
                       <tr>
                         <th>Acción</th>
-                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
-                          {{ columna }}
+                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna.name">
+                          {{ columna.name }}
                         </th>
                       </tr>
                     </thead>
@@ -173,8 +173,8 @@
                             <i class="fas fa-times"></i>
                           </button>
                         </td>
-                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
-                          {{ obtenerValorCampo(fila, columna) || '-' }}
+                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna.name">
+                          {{ obtenerValorCampo(fila, columna.name) || '-' }}
                         </td>
                       </tr>
                     </tbody>
@@ -328,16 +328,16 @@
                           <table class="table table-bordered table-sm">
                             <thead class="table-light">
                               <tr>
-                                <th v-for="columna in campo.tableConfig.campos" :key="columna">
-                                  {{ columna }}
+                                <th v-for="columna in campo.tableConfig.campos" :key="columna.name">
+                                  {{ columna.name }}
                                 </th>
                                 <th class="text-center">Acciones</th>
                               </tr>
                             </thead>
                             <tbody>
                               <tr v-for="(fila, index) in tablaData[campo.name]" :key="index">
-                                <td v-for="columna in campo.tableConfig.campos" :key="columna">
-                                  {{ obtenerValorCampo(fila, columna) || '-' }}
+                                <td v-for="columna in campo.tableConfig.campos" :key="columna.name">
+                                  {{ obtenerValorCampo(fila, columna.name) || '-' }}
                                 </td>
                                 <td class="text-center">
                                   <button
@@ -721,24 +721,25 @@ export default {
     },
 
     procesarDatosParaTabla(documentos, seccion, camposConfigurados) {
-      const datosProcesados = []
+  const datosProcesados = []
 
-      documentos.forEach((documento) => {
-        const seccionDoc = documento.secciones?.find((s) => s.nombre === seccion.nombre)
-        if (seccionDoc) {
-          const fila = {
-            _documentId: documento._id || documento.id,
-          }
-          camposConfigurados.forEach((campoNombre) => {
-            const campo = seccionDoc.fields?.[campoNombre]
-            fila[campoNombre] = campo || '-'
-          })
-          datosProcesados.push(fila)
-        }
+  documentos.forEach((documento) => {
+    const seccionDoc = documento.secciones?.find((s) => s.nombre === seccion.nombre)
+    if (seccionDoc) {
+      const fila = {
+        _documentId: documento._id || documento.id,
+      }
+      camposConfigurados.forEach((campoConfig) => {
+        const campoNombre = campoConfig.name // Acceder al nombre desde el objeto
+        const campo = seccionDoc.fields?.[campoNombre]
+        fila[campoNombre] = campo || '-'
       })
+      datosProcesados.push(fila)
+    }
+  })
 
-      return datosProcesados
-    },
+  return datosProcesados
+},
 
     obtenerValorCampo(fila, nombreCampo) {
       return fila[nombreCampo] || '-'
