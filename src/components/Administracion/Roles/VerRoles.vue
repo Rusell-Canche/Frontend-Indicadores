@@ -48,7 +48,7 @@
 
         <!-- Lista de roles -->
         <div class="rol-grid">
-          <div v-for="role in roles" :key="role._id" class="rol-card">
+          <div v-for="rol in roles" :key="rol.id" class="rol-card">
             <!-- Header del rol -->
             <div class="rol-card-header">
               <div class="rol-icon">
@@ -56,28 +56,28 @@
               </div>
               <div>
                 <h5 class="rol-name">
-                  {{ role.nombre }}
+                  {{ rol.nombre }}
                 </h5>
               </div>
             </div>
 
             <!-- Cuerpo del rol -->
             <div class="rol-info">
-              <p class="rol-description">{{ role.descripcion }}</p>
+              <p class="rol-description">{{ rol.descripcion }}</p>
             </div>
 
             <!-- Menu de opciones para el rol -->
             <div class="rol-actions">
-              <button type="button" class="btn btn-sm btn-view">
-                <i class="fas fa-eye me-1"></i>
+              <button class="btn btn-sm btn-view">
+                <i class="fas fa-eye me-1" />
                 Ver
               </button>
-              <button type="button" class="btn btn-sm btn-edit">
-                <i class="fas fa-edit me-1"></i>
+              <button class="btn btn-sm btn-edit">
+                <i class="fas fa-edit me-1" />
                 Editar
               </button>
-              <button type="button" class="btn btn-sm btn-delete">
-                <i class="fas fa-trash me-1"></i>
+              <button @click="eliminarRol(rol)" class="btn btn-sm btn-delete">
+                <i class="fas fa-trash me-1" />
                 Eliminar
               </button>
             </div>
@@ -411,10 +411,10 @@ export default {
     },
 
     // Eliminar rol
-    async deleteRole(role) {
-      const result = await Swal.fire({
+    async eliminarRol(rol: Rol) {
+      const respuesta = await Swal.fire({
         title: '¿Estás seguro?',
-        text: `¿Quieres eliminar el rol "${role.nombre}"? Esta acción no se puede deshacer.`,
+        text: `¿Quieres eliminar el rol "${rol.nombre}"? Esta acción no se puede deshacer.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Sí, eliminar',
@@ -422,35 +422,32 @@ export default {
         confirmButtonColor: '#d33',
       })
 
-      if (result.isConfirmed) {
+      if (respuesta.isConfirmed) {
         try {
-          const token = localStorage.getItem('apiToken')
-          await axios.delete(`http://127.0.0.1:8000/api/roles/${role.id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
+          await RolService.deleteRol(rol.id);
 
           Swal.fire({
+            title: 'Eliminado',
+            text: `El rol "${rol.nombre}" ha sido eliminado correctamente.`,
             icon: 'success',
-            title: '¡Rol eliminado!',
-            text: `El rol "${role.nombre}" ha sido eliminado exitosamente`,
-          })
+            timer: 2000
+          });
+        } catch (error: any) {
 
-          await this.loadRoles()
-        } catch (error) {
-          console.error('Error al eliminar rol:', error)
-          let errorMessage = 'Hubo un error al eliminar el rol.'
-
-          if (error.response?.data?.message) {
-            errorMessage = error.response.data.message
+          if (error.response?.status === 409) {
+            Swal.fire({
+              title: 'Error',
+              text: 'Este rol esta siendo usado por usuarios. No se pudo eliminar.',
+              icon: 'error'
+            })
+          } else {
+            // Errores genericos
+            Swal.fire({
+              title: 'Error',
+              text: 'No se pudo eliminar el rol. Inténtalo nuevamente.',
+              icon: 'error'
+            });
           }
-
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: errorMessage,
-          })
         }
       }
     },

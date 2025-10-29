@@ -5,7 +5,7 @@
  */
 export interface Rol {
   /** Identificador único del rol */
-  _id: string;
+  id: string;
 
   /** Nombre del rol */
   nombre: string;
