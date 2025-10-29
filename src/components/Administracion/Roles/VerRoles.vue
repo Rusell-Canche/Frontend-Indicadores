@@ -48,11 +48,11 @@
 
         <!-- Lista de roles -->
         <div class="rol-grid">
-          <div v-for="role in roles" :key="role._id" class="rol-card mb-4">
+          <div v-for="role in roles" :key="role._id" class="rol-card">
             <!-- Header del rol -->
             <div class="rol-card-header">
               <div class="rol-icon">
-                <i class="fas fa-user-tag me-2" />
+                <i class="fas fa-user-tag" />
               </div>
               <div>
                 <h5 class="role-name">
@@ -64,12 +64,11 @@
             <!-- Cuerpo del rol -->
             <div class="role-info">
               <p class="role-description">{{ role.descripcion }}</p>
-
             </div>
             <div class="rol-actions">
-              <button type="button" class="btn btn-sm btn-outline-primary me-2">
+              <button type="button" class="btn btn-sm btn-view">
                 <i class="fas fa-eye me-1"></i>
-
+                Ver
               </button>
               <button type="button" class="btn btn-sm btn-outline-warning me-2">
                 <i class="fas fa-edit me-1"></i>
@@ -495,17 +494,25 @@ export default {
   align-items: center;
   gap: 1rem;
   justify-content: flex-start;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .rol-icon {
   width: 50px;
   height: 50px;
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
   font-size: 1.25rem;
+}
+
+.role-description {
+  padding: 1rem 1.5rem;
+  color: #25282b;
+  font-size: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .rol-actions {
@@ -515,6 +522,7 @@ export default {
   gap: 0.75rem;
   justify-content: space-between;
 }
+
 
 /* ---------------------------------------- /
 
@@ -644,12 +652,6 @@ export default {
   color: #2c3e50;
   font-size: 1.2rem;
   font-weight: 600;
-}
-
-.role-description {
-  margin: 0 0 1rem 0;
-  color: #6c757d;
-  font-size: 0.95rem;
 }
 
 .role-meta {
@@ -1061,16 +1063,17 @@ export default {
 }
 
 /* Efectos de hover en botones outline - ACTUALIZADOS CON PALETA VERDE */
-.btn-outline-primary {
-  color: #047857;
-  border-color: #047857;
+.btn-view {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
-.btn-outline-primary:hover {
-  background-color: #047857;
-  border-color: #047857;
+.btn-view:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
   transform: translateY(-1px);
-  color: white;
 }
 
 .btn-outline-warning:hover {

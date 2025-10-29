@@ -99,7 +99,7 @@ export default {
   computed: {
     indicatorStyle() {
       // Calcula el índice según la ruta activa
-      const tabNames = ['CrearUsuarios', 'CrearRoles', 'AsignarPermisos', 'VerUsuarios', 'VerRoles']
+      const tabNames = ['VerUsuarios', 'VerRoles']
       const index = tabNames.indexOf(this.$route.name)
       const width = 100 / tabNames.length
       return {
