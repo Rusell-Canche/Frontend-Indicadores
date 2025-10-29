@@ -55,32 +55,32 @@
                 <i class="fas fa-user-tag" />
               </div>
               <div>
-                <h5 class="role-name">
+                <h5 class="rol-name">
                   {{ role.nombre }}
                 </h5>
               </div>
             </div>
 
             <!-- Cuerpo del rol -->
-            <div class="role-info">
-              <p class="role-description">{{ role.descripcion }}</p>
+            <div class="rol-info">
+              <p class="rol-description">{{ role.descripcion }}</p>
             </div>
+
+            <!-- Menu de opciones para el rol -->
             <div class="rol-actions">
               <button type="button" class="btn btn-sm btn-view">
                 <i class="fas fa-eye me-1"></i>
                 Ver
               </button>
-              <button type="button" class="btn btn-sm btn-outline-warning me-2">
+              <button type="button" class="btn btn-sm btn-edit">
                 <i class="fas fa-edit me-1"></i>
                 Editar
               </button>
-              <button type="button" class="btn btn-sm btn-outline-danger">
+              <button type="button" class="btn btn-sm btn-delete">
                 <i class="fas fa-trash me-1"></i>
                 Eliminar
               </button>
             </div>
-            <!-- Detalles expandibles del rol -->
-
           </div>
         </div>
 
@@ -465,6 +465,7 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
   padding: 0;
+  grid-auto-rows: 1fr;
 }
 
 .rol-card {
@@ -475,6 +476,8 @@ export default {
   transition: all 0.3s ease;
   border: 1px solid rgba(220, 53, 69, 0.1);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .rol-card::before {
@@ -496,6 +499,13 @@ export default {
   justify-content: flex-start;
 }
 
+.rol-name {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
 .rol-icon {
   width: 50px;
   height: 50px;
@@ -508,11 +518,17 @@ export default {
   font-size: 1.25rem;
 }
 
-.role-description {
+.rol-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.rol-description {
   padding: 1rem 1.5rem;
   color: #25282b;
   font-size: 1rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .rol-actions {
@@ -523,6 +539,41 @@ export default {
   justify-content: space-between;
 }
 
+/* Botones */
+.btn-view {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  transform: translateY(-1px);
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+}
 
 /* ---------------------------------------- /
 
@@ -641,36 +692,6 @@ export default {
 .role-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(4, 120, 87, 0.15);
-}
-
-.role-info {
-  flex: 1;
-}
-
-.role-name {
-  margin: 0 0 0.5rem 0;
-  color: #2c3e50;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-.role-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.role-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-/* Estilos de los detalles del rol */
-.role-details {
-  padding: 1.5rem;
-  background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
-  border-top: 3px solid #047857;
 }
 
 .permission-detail {
@@ -1060,32 +1081,6 @@ export default {
 
 .text-primary {
   color: #047857 !important;
-}
-
-/* Efectos de hover en botones outline - ACTUALIZADOS CON PALETA VERDE */
-.btn-view {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-.btn-view:hover {
-  background: linear-gradient(135deg, #5a67d8, #6b46c1);
-  transform: translateY(-1px);
-}
-
-.btn-outline-warning:hover {
-  background-color: #ffc107;
-  border-color: #ffc107;
-  transform: translateY(-1px);
-}
-
-.btn-outline-danger:hover {
-  background-color: #dc3545;
-  border-color: #dc3545;
-  transform: translateY(-1px);
 }
 
 /* Animaciones */
