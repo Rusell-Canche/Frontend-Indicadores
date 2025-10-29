@@ -20,22 +20,18 @@
       <!-- Body con el diseño moderno -->
       <div class="medico-body">
         <!-- Filtros y controles -->
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4 menu-roles">
           <div class="col-md-6">
             <div class="input-group modern-input">
               <span class="input-group-text">
                 <i class="fas fa-search"></i>
               </span>
-              <input
-                v-model="searchTerm"
-                type="text"
-                class="form-control"
-                placeholder="Buscar roles por nombre o descripción..."
-              />
+              <input v-model="searchTerm" type="text" class="form-control"
+                placeholder="Buscar roles por nombre o descripción..." />
             </div>
           </div>
           <div class="col-md-6 d-flex justify-content-end">
-            <button type="button" class="btn btn-primary me-2" @click="$router.push({name : 'CrearRoles'})">
+            <button type="button" class="btn btn-primary me-2" @click="$router.push({ name: 'CrearRoles' })">
               <i class="fas fa-plus me-2"></i>
               Crear rol
             </button>
@@ -51,46 +47,39 @@
         </div>
 
         <!-- Lista de roles -->
-        <div v-else class="roles-grid">
-          <div v-for="role in roles" :key="role._id" class="role-card mb-4">
+        <div class="rol-grid">
+          <div v-for="role in roles" :key="role._id" class="rol-card mb-4">
             <!-- Header del rol -->
-            <div class="role-header">
-              <div class="role-info">
+            <div class="rol-card-header">
+              <div class="rol-icon">
+                <i class="fas fa-user-tag me-2" />
+              </div>
+              <div>
                 <h5 class="role-name">
-                  <i class="fas fa-user-tag me-2"></i>
                   {{ role.nombre }}
                 </h5>
-                <p class="role-description">{{ role.descripcion }}</p>
-                
-              </div>
-              <div class="role-actions">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-primary me-2"
-                  
-                >
-                  <i class="fas fa-eye me-1"></i>
-
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-warning me-2"
-               
-                >
-                  <i class="fas fa-edit me-1"></i>
-                  Editar
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-danger"
-                  
-                >
-                  <i class="fas fa-trash me-1"></i>
-                  Eliminar
-                </button>
               </div>
             </div>
 
+            <!-- Cuerpo del rol -->
+            <div class="role-info">
+              <p class="role-description">{{ role.descripcion }}</p>
+
+            </div>
+            <div class="rol-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary me-2">
+                <i class="fas fa-eye me-1"></i>
+
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-warning me-2">
+                <i class="fas fa-edit me-1"></i>
+                Editar
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-trash me-1"></i>
+                Eliminar
+              </button>
+            </div>
             <!-- Detalles expandibles del rol -->
 
           </div>
@@ -154,7 +143,7 @@ export default {
     },
   },
   async mounted() {
-    
+
     await RolService.fetchRoles(); // trae y actualiza automáticamente el state
     this.roles = rolState.roles || []
     console.table(this.rolState.roles, ['nombre', 'descripcion']);
@@ -471,6 +460,64 @@ export default {
 </script>
 
 <style scoped>
+/* ESTILOS DE LA VISTA DE ROLES */
+.rol-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 0;
+}
+
+.rol-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 0px 0px 16px 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(220, 53, 69, 0.1);
+  position: relative;
+}
+
+.rol-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.rol-card-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: flex-start;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.rol-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.rol-actions {
+  display: flex;
+  padding: 1rem 1.5rem;
+  background: white;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+/* ---------------------------------------- /
+
 /* Estilos base del diseño moderno */
 .card {
   border-radius: 20px;
@@ -586,14 +633,6 @@ export default {
 .role-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(4, 120, 87, 0.15);
-}
-
-.role-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .role-info {
@@ -796,7 +835,7 @@ export default {
   transform: translateY(-1px);
 }
 
-.custom-checkbox:checked ~ .checkmark {
+.custom-checkbox:checked~.checkmark {
   background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   border-color: #047857;
   box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
@@ -815,7 +854,7 @@ export default {
   transform: rotate(45deg);
 }
 
-.custom-checkbox:checked ~ .checkmark:after {
+.custom-checkbox:checked~.checkmark:after {
   display: block;
 }
 
@@ -1048,10 +1087,12 @@ export default {
 
 /* Animaciones */
 @keyframes shimmer {
+
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
+
   50% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
   }
@@ -1062,6 +1103,7 @@ export default {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1105,7 +1147,7 @@ export default {
 /* Mejoras en la accesibilidad */
 .btn:focus,
 .form-control:focus,
-.custom-checkbox:focus ~ .checkmark {
+.custom-checkbox:focus~.checkmark {
   outline: 2px solid #047857;
   outline-offset: 2px;
 }
