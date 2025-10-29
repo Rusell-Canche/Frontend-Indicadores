@@ -498,6 +498,7 @@
 
       <!-- Body -->
       <div class="modal-body p-0">
+      
         <!-- Carrusel de Bootstrap con ref y evento -->
         <div 
           id="multimediaCarousel" 
@@ -579,10 +580,8 @@
                 <!-- Archivo no reconocido -->
                 <div v-else class="text-center">
                   <i class="fas fa-file" style="font-size: 80px; color: #6c757d;"></i>
-                  <p class="mt-3 text-muted">Archivo no compatible para vista previa</p>
-                  <a :href="`http://127.0.0.1:8000/storage/${item}`" target="_blank" class="btn btn-primary">
-                    <i class="fas fa-download me-2"></i>Descargar
-                  </a>
+                  <p class="mt-3 text-muted">Sin archivos disponibles</p>
+                  
                 </div>
 
               </div>
