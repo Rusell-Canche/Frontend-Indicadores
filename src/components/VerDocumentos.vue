@@ -365,6 +365,7 @@
     
     <!-- REEMPLAZAR TODO EL MODAL INLINE CON EL COMPONENTE -->
     <EditDocumentModal
+    :archivosarray="this.archivo"
       :is-open="isModalOpen"
       :documento="documentoParaEditar"
       :campos-plantilla="camposPlantilla"
@@ -916,7 +917,9 @@ export default {
   // En tu archivo VerDocumentos.vue, reemplaza la sección de methods con esto:
 
   methods: {
+    
      esImagen(ruta) {
+      console.log("Archivos array", this.archivosArray)
     const ext = ruta.toLowerCase().split('.').pop();
     return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext);
   },
@@ -1444,11 +1447,20 @@ export default {
     },
 
     // ========== MODAL DE EDICIÓN ==========
-    editarDocumento(documento) {
-      this.documentoParaEditar = { ...documento }
-      this.isModalOpen = true
-    },
+editarDocumento(documento) {
+  // 1. Asignar el documento
+  this.documentoParaEditar = { ...documento };
 
+  // 2. Asignar los archivos a `this.archivo` (que es la fuente de `archivosArray`)
+  this.archivo = documento.archivo; // o documento.archivos, según tu campo real
+
+  // 3. Abrir el modal
+  this.isModalOpen = true;
+  console.log("Arregloe de rutas con archivosArray",this.archivosArray)
+  console.log("Arreglo de rutas con this archivo",this.archivo)
+  console.log("Arreglo de rutas con this documento",this.documento.secciones[0].fields.Imagen)
+    console.log("Arreglo de rutas con this documento a editar",this.documentoParaEditar)
+},
     closeModal() {
       this.isModalOpen = false
       this.documentoParaEditar = {}

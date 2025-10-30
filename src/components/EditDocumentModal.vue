@@ -122,84 +122,79 @@
                           </select>
                         </div>
                       </div>
+<!-- Campo de archivos -->
+<div v-else-if="campo.type === 'file'" class="mt-2">
+  <label class="form-label d-block mb-3">
+    <i class="fas fa-paperclip me-2"></i>
+    {{ campo.alias || campo.name }}
+    <span v-if="campo.required" class="text-danger">*</span>
+  </label>
 
-                    <!-- Campo de archivos -->
-                    <div v-else-if="campo.type === 'file'" class="mt-2">
-                      <label class="form-label d-block mb-3">
-                        <i class="fas fa-paperclip me-2"></i>
-                        {{ campo.alias || campo.name }}
-                        <span v-if="campo.required" class="text-danger">*</span>
-                      </label>
+  <!-- Input de archivo (solo nuevos) -->
+  <div class="file-input-group mb-3">
+    <div class="input-group modern-input">
+      <span class="input-group-text">
+        <i class="fas fa-file"></i>
+      </span>
+      <input
+        type="file"
+        class="form-control"
+        :id="campo.name"
+        :name="campo.name"
+        @change="onFileChange($event, campo.name)"
+        multiple
+        :key="fileInputKey"
+      />
+    </div>
+  </div>
 
-                      <!-- Un solo input de archivo con múltiple -->
-                      <div class="file-input-group mb-3">
-                        <div class="input-group modern-input">
-                          <span class="input-group-text">
-                            <i class="fas fa-file"></i>
-                          </span>
-                          <input
-                            type="file"
-                            class="form-control"
-                            :id="campo.name"
-                            :name="campo.name"
-                            @change="onFileChange($event, campo.name)"
-                            multiple
-                            :key="fileInputKey"
-                          />
-                        </div>
-                      </div>
+  <!-- Vista previa solo de archivos nuevos -->
+  <div v-if="files[campo.name] && files[campo.name].length > 0" class="file-preview mt-3">
+    <h6 class="preview-title">
+      Archivos seleccionados ({{ files[campo.name].length }}):
+    </h6>
 
-                      <!-- Vista previa de archivos -->
-                      <div
-                        v-if="files[campo.name] && files[campo.name].length > 0"
-                        class="file-preview mt-3"
-                      >
-                        <h6 class="preview-title">
-                          Archivos seleccionados ({{ files[campo.name].length }}):
-                        </h6>
-                        <div class="d-flex flex-wrap gap-3">
-                          <div
-                            class="file-item"
-                            v-for="(file, index) in files[campo.name]"
-                            :key="index"
-                          >
-                            <div class="file-content">
-                              <div v-if="isImageFile(file)" class="file-thumbnail">
-                                <img
-                                  :src="getThumbnailUrl(file)"
-                                  alt="Miniatura"
-                                  class="img-fluid"
-                                />
-                              </div>
-                              <div v-else class="file-icon">
-                                <i class="fas fa-file-alt"></i>
-                              </div>
-                              <span class="file-name">{{ file.name }}</span>
-                            </div>
-                            <button
-                              type="button"
-                              class="delete-button"
-                              @click="removeFile(campo.name, index)"
-                            >
-                              <i class="fas fa-times"></i>
-                            </button>
-                          </div>
-                        </div>
+    <div class="d-flex flex-wrap gap-3">
+      <div
+        class="file-item"
+        v-for="(file, index) in files[campo.name]"
+        :key="'nuevo-' + index"
+      >
+        <div class="file-content">
+          <div v-if="isImageFile(file)" class="file-thumbnail">
+            <img
+              :src="getThumbnailUrl(file)"
+              alt="Miniatura"
+              class="img-fluid"
+            />
+          </div>
+          <div v-else class="file-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <span class="file-name">{{ file.name }}</span>
+        </div>
+        <button
+          type="button"
+          class="delete-button"
+          @click="removeFile(campo.name, index)"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
 
-                        <!-- Botón para limpiar todos los archivos -->
-                        <div class="mt-3">
-                          <button
-                            type="button"
-                            class="btn btn-outline-danger btn-sm"
-                            @click="clearAllFiles(campo.name)"
-                          >
-                            <i class="fas fa-trash me-1"></i>
-                            Limpiar todos los archivos
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
+    <div class="mt-3">
+      <button
+        type="button"
+        class="btn btn-outline-danger btn-sm"
+        @click="clearAllFiles(campo.name)"
+      >
+        <i class="fas fa-trash me-1"></i>
+        Limpiar todos los archivos
+      </button>
+    </div>
+  </div>
+</div>
                       <!-- CAMPO DE TIPO NUMBER -->
                       <div v-else-if="campo.type === 'number'" class="mt-2">
                         <div class="input-group modern-input">
@@ -581,6 +576,10 @@ export default {
   },
 
   props: {
+    archivosarray: {
+    type: Array,
+    default: () => []
+  },
      tablaInicial: {
     type: Object,
     default: () => ({}),
@@ -633,6 +632,7 @@ export default {
     }
   },
   mounted(){
+      console.log('✅ Prop archivosArray recibida:', this.archivosarray);
      // Cargar datos iniciales si existen
   if (Object.keys(this.tablaInicial).length > 0) {
     this.tablaData = { ...this.tablaInicial }
@@ -640,6 +640,18 @@ export default {
   },
 
   watch: {
+    
+    archivosArray: {
+      
+    handler(newVal) {
+      // Convertir las rutas (strings) en objetos útiles si es necesario
+      // Por ejemplo, para que el carrusel del hijo los entienda
+      this.uploadedFiles = Array.isArray(newVal) 
+        ? newVal.filter(item => item) 
+        : [];
+    },
+    immediate: true // se ejecuta al montar
+  },
     tablaInicial: {
   handler(newVal) {
     if (newVal && Object.keys(newVal).length > 0) {
@@ -700,6 +712,19 @@ export default {
   },
 
   methods: {
+   isImageUrl(url) {
+  if (typeof url !== 'string') return false
+  return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url)
+},
+
+ getFileName(file) {
+  if (!file) return 'Sin nombre'
+  if (typeof file === 'string') {
+    return file.split('/').pop() || 'archivo'
+  }
+  return file.name || 'archivo'
+},
+
 
     
     onFileChange(event, fieldName) {
@@ -715,9 +740,11 @@ export default {
 
         // Agregar los nuevos archivos al array existente (ACUMULAR)
         this.files[fieldName] = [...this.files[fieldName], ...newFiles]
-
+console.log('🔍 archivosArray recibido en el componente:', this.archivosarray)
         // Forzar reset del input file para permitir seleccionar más archivos
         this.resetFileInput(fieldName)
+        
+         console.log('📁 files después de agregar:', JSON.parse(JSON.stringify(this.files)))
       }
     },
     resetFileInput(fieldName) {
