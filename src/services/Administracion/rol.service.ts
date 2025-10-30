@@ -54,13 +54,10 @@ export const RolService = {
     async fetchRol(rolID: string) {
         try {
             // Obtenemos la respuesta de la api
-            const { response } = await rolApi.getRol(rolID);
-
-            console.log('Respuetaa')
-            console.log(response)
+            const { data } = await rolApi.getRol(rolID);
 
             // Separamos el rol de la respuesta
-            const rol: Rol = response.rol;
+            const rol: Rol = data.rol;
 
             // Retornamos el rol
             return rol;

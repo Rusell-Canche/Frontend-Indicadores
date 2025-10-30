@@ -25,6 +25,7 @@
                         <span> ID DEL ROL {{ rolID }}</span>
                     </div>
 
+                    <span> {{ rol }}</span>
                     <!-- Footer con botones -->
                     <div class="medico-footer">
                         <button @click="cerrar" class="btn btn-cancel" type="button">
@@ -67,8 +68,8 @@ export default defineComponent({
     emits: ['close'],
 
   watch: {
-    rolID() {
-        
+    async rolID() {
+        this.rol = await RolService.fetchRol(this.rolID);
     }
   },
     methods: {
@@ -78,7 +79,7 @@ export default defineComponent({
     },
 
     async mounted() {
-        this.rol = await RolService.fetchRol(this.rolID); // trae y actualiza automáticamente el state
+        // trae y actualiza automáticamente el state
     }
 })
 
