@@ -25,7 +25,22 @@
                         <span> ID DEL ROL {{ rolID }}</span>
                     </div>
 
-                    <span> {{ rol }}</span>
+                    <h3>Descripción</h3>
+                    <span>{{ rol?.descripcion }}</span>
+                    <div v-if="rol?.permisos?.allowed">
+                        <h3>Permisos concedidos</h3>
+                        <div v-for="permiso in rol?.permisos?.allowed">
+                            <h4>{{ permiso?.recurso?.nombre }}</h4>
+                            <span>{{ permiso?.recurso?.descripcion }}</span>
+                            <div>
+                                <ol>
+                                    <li v-for="accion in permiso?.acciones">
+                                        {{ accion.nombre }} - {{ accion.descripcion }}
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Footer con botones -->
                     <div class="medico-footer">
                         <button @click="cerrar" class="btn btn-cancel" type="button">
@@ -67,19 +82,19 @@ export default defineComponent({
 
     emits: ['close'],
 
-  watch: {
-    async rolID() {
-        this.rol = await RolService.fetchRol(this.rolID);
-    }
-  },
+    watch: {
+        async rolID() {
+            this.rol = await RolService.fetchRol(this.rolID);
+        }
+    },
     methods: {
         cerrar() {
             this.$emit('close')
         }
     },
 
-    async mounted() {
-        // trae y actualiza automáticamente el state
+    mounted() {
+
     }
 })
 

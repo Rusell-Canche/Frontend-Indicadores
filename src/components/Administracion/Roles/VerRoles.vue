@@ -149,12 +149,13 @@ export default {
     this.roles = rolState.roles || []
   },
   methods: {
+    /** Ajusta variables necesarias para mostrar el modal */
     abrirModal(rol: Rol) {
       this.rolSeleccionado = rol
       this.modalVisible = true
-      console.log('Modal abierto para rol:', rol.nombre) // Para debug
     },
 
+    /** Ajusta variables necesarias para cerrar el modal */
     cerrarModal() {
       this.rolSeleccionado = null,
         this.modalVisible = false

@@ -33,7 +33,7 @@ export const RolService = {
         try {
             // Obtenemos la respuesta de la api
             const { data } = await rolApi.getRoles();
-            console.log(data)
+
             // Separamos los roles de la respuesta
             const roles: Rol[] = data.roles;
 

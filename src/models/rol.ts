@@ -17,8 +17,15 @@ export interface Rol {
   permisos?: {
     /** Recursos permitidos */
     allowed?: {
-      /** Nombre del recurso */
-      recurso: string;
+      /** Recurso */
+      recurso?: {
+        /** NOmbre del recurso */
+        nombre?: string,
+        /** ID del recurso */
+        id: string,
+        /** Descripcion del recurso */
+        descripcion?: string,
+      };
       /** Acciones permitidas sobre el recurso */
       acciones: string[];
     }[];
