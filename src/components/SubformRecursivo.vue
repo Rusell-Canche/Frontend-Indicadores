@@ -2,14 +2,14 @@
   <div class="subform-config-section" :class="`nivel-${nivel}`">
     <h6 class="mt-3 mb-3">
       <i class="fas fa-layer-group me-2"></i>
-      Configuración del Subformulario - Nivel {{ nivel }}
+      Configuración de {{ esTabla ? 'Tabla' : 'Subformulario' }} - Nivel {{ nivel }}
       <span class="badge badge-nivel ms-2">{{ rutaCampo }}</span>
     </h6>
 
-    <!-- Operación para subformulario -->
+    <!-- Operación para subformulario/tabla -->
     <div class="row g-3">
       <div class="col-md-12">
-        <label class="form-label">Operación para Subformulario*</label>
+        <label class="form-label">Operación para {{ esTabla ? 'Tabla' : 'Subformulario' }}*</label>
         <div class="input-group modern-input">
           <span class="input-group-text">
             <i class="fas fa-calculator"></i>
@@ -33,13 +33,13 @@
       </div>
     </div>
 
-    <!-- Campo para subformulario -->
+    <!-- Campo para subformulario/tabla -->
     <div
       class="row g-3 mt-3"
       v-if="configuracion.tipoOperacion && configuracion.tipoOperacion !== 'contar'"
     >
       <div class="col-md-12">
-        <label class="form-label">Campo en Subformulario*</label>
+        <label class="form-label">Campo en {{ esTabla ? 'Tabla' : 'Subformulario' }}*</label>
         <div class="input-group modern-input">
           <span class="input-group-text">
             <i class="fas fa-tag"></i>
@@ -64,27 +64,27 @@
       </div>
     </div>
 
-    <!-- Configuración anidada recursiva si el campo seleccionado es subform -->
-    <div v-if="mostrarSubformAnidado && nivel < maxNivelSubformulario">
+    <div v-if="mostrarEstructuraAnidada && nivel < maxNivelSubformulario">
       <SubformRecursivo
         :configuracion="configuracion.subConfiguracion"
         :subcampos-disponibles="subcamposAnidados"
         :nivel="nivel + 1"
         :ruta-campo="rutaCampo + '.' + configuracion.campoSeleccionado"
         :max-nivel-subformulario="maxNivelSubformulario"
+        :es-tabla="esCampoAnidadoTabla"
         @configuracion-updated="onSubconfiguracionUpdated"
       />
     </div>
 
     <!-- Mensaje si se alcanza el nivel máximo -->
-    <div v-if="mostrarSubformAnidado && nivel >= maxNivelSubformulario" class="alert alert-info mt-3">
+    <div v-if="mostrarEstructuraAnidada && nivel >= maxNivelSubformulario" class="alert alert-info mt-3">
       <i class="fas fa-info-circle me-2"></i>
       Nivel máximo de anidamiento alcanzado ({{ maxNivelSubformulario }})
     </div>
 
-    <!-- Condiciones de subformulario -->
+    <!-- Condiciones de subformulario/tabla -->
     <div class="mt-4">
-      <h6>Condiciones de Subformulario - Nivel {{ nivel }}</h6>
+      <h6>Condiciones de {{ esTabla ? 'Tabla' : 'Subformulario' }} - Nivel {{ nivel }}</h6>
       <div class="table-responsive">
         <table class="table modern-table">
           <thead>
@@ -160,7 +160,10 @@
   </div>
 </template>
 
+
 <script>
+
+
 export default {
   name: 'SubformRecursivo',
   props: {
@@ -183,6 +186,10 @@ export default {
     maxNivelSubformulario: {
       type: Number,
       default: 2
+    },
+    esTabla: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -196,14 +203,33 @@ export default {
       )
       return campoSeleccionado && campoSeleccionado.type === 'subform'
     },
+    mostrarEstructuraAnidada() {
+      const campoSeleccionado = this.subcamposDisponibles.find(
+        c => c.name === this.configuracion.campoSeleccionado
+      )
+      return campoSeleccionado && (campoSeleccionado.type === 'subform' || campoSeleccionado.type === 'tabla')
+    },
     
     subcamposAnidados() {
       const campoSeleccionado = this.subcamposDisponibles.find(
         c => c.name === this.configuracion.campoSeleccionado
       )
-      return campoSeleccionado && campoSeleccionado.type === 'subform' 
-        ? (campoSeleccionado.subcampos || [])
-        : []
+      
+      if (campoSeleccionado) {
+        if (campoSeleccionado.type === 'subform') {
+          return campoSeleccionado.subcampos || []
+        } else if (campoSeleccionado.type === 'tabla' && campoSeleccionado.tableConfig) {
+          return campoSeleccionado.tableConfig.campos || []
+        }
+      }
+      
+      return []
+    },
+    esCampoAnidadoTabla() {
+      const campoSeleccionado = this.subcamposDisponibles.find(
+        c => c.name === this.configuracion.campoSeleccionado
+      )
+      return campoSeleccionado && campoSeleccionado.type === 'tabla'
     }
   },
   methods: {
@@ -315,6 +341,7 @@ export default {
         date: 'Fecha',
         file: 'Archivo',
         subform: 'Subformulario',
+        tabla: 'Tabla Dinámica',
         select: 'Selección'
       }
       return tipos[campo.type] || campo.type
@@ -371,5 +398,46 @@ export default {
 
 .nivel-4 .table {
   --bs-table-bg: #f8d7da;
+}
+.nivel-1.tabla {
+  border-left: 3px solid #17a2b8;
+}
+
+.nivel-2.tabla {
+  border-left: 3px solid #6f42c1;
+}
+
+.badge-nivel {
+  font-size: 0.7em;
+  background-color: #6c757d;
+}
+
+.subform-config-section .table {
+  --bs-table-bg: #f8f9fa;
+}
+
+.nivel-1 .table {
+  --bs-table-bg: #e3f2fd;
+}
+
+.nivel-2 .table {
+  --bs-table-bg: #e8f5e8;
+}
+
+.nivel-3 .table {
+  --bs-table-bg: #fff3cd;
+}
+
+.nivel-4 .table {
+  --bs-table-bg: #f8d7da;
+}
+
+/* ✅ NUEVO: Estilos específicos para tablas */
+.nivel-1.tabla .table {
+  --bs-table-bg: #d1ecf1;
+}
+
+.nivel-2.tabla .table {
+  --bs-table-bg: #e2e3f5;
 }
 </style>

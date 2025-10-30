@@ -607,6 +607,8 @@ export default {
 
   data() {
     return {
+      // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
+      fileMapping: {},
        files: {}, // ← Aquí va
       fileInputKey: 0,
          tablaData: {}, // donde se guardan los datos seleccionados de cada tabla
@@ -1003,6 +1005,12 @@ campos
       this.editSubformData = {}
       this.editSubformFiles = {}
       this.uploadedFiles = []
+
+      // Archivos / mapping / inputs
+  this.files = {}            // limpia archivos seleccionados en inputs
+  this.fileMapping = {}      // limpia el mapping que puedas usar
+  this.fileInputKey += 1     // fuerza re-render de inputs file para evitar valores residuales
+
     },
 
     getCampoPlantilla(nombreCampo) {
@@ -1202,6 +1210,14 @@ async submitEdit() {
   this.loading = true
   try {
     const formData = this.prepararFormData()
+
+        // 👇👇👇 AGREGA ESTO PARA VER LO QUE SE ENVÍA 👇👇👇
+    const logObj = {}
+    for (const [key, value] of formData.entries()) {
+      logObj[key] = value instanceof File ? `[File: ${value.name}]` : value
+    }
+    console.log('🚀 Datos que se enviarán al backend:', logObj)
+    // 👆👆👆 FIN DEL BLOQUE DE LOG 👆👆👆
     this.$emit('save', formData)
   } catch (error) {
     console.error('Error preparando datos:', error)
@@ -1312,6 +1328,8 @@ async submitEdit() {
 
     // 2. Corregir el método prepararFormData() para manejar subformularios correctamente
 prepararFormData() {
+  // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
+      const fileMapping = {}
   const formData = new FormData()
 
   if (!Array.isArray(this.camposPlantilla.secciones)) {
@@ -1341,9 +1359,39 @@ prepararFormData() {
         if (campo.type === 'subform' && valor) {
           // Manejar subformularios
           this.procesarSubformularioEnFormData(formData, clave, valor, campo)
-        } else if (campo.type === 'file' && valor instanceof File) {
-          formData.append(clave, valor)
-        } else if (campo.type === 'tabla') {
+        } else if (campo.type === 'file') {
+  const archivos = this.files[campo.name]
+  const clave = `document_data[secciones][${indexSeccion}][fields][${nombreCampo}]`
+
+  if (archivos && Array.isArray(archivos) && archivos.length > 0) {
+    // Enviar los archivos reales
+    if (archivos.length === 1) {
+      const archivo = archivos[0]
+      if (archivo instanceof File) {
+        const uniqueFieldName = `file_${campo.name}`
+        formData.append(`files[${uniqueFieldName}]`, archivo)
+        // El campo en document_data se envía como null (el backend lo reemplazará)
+        formData.append(clave, 'null') // o simplemente no enviarlo, pero mejor enviar null
+      } else {
+        // Es una ruta existente (string), mantenerla
+        formData.append(clave, archivo)
+      }
+    } else {
+      // Múltiples archivos → enviar como array vacío o null según backend
+      archivos.forEach((archivo, idx) => {
+        if (archivo instanceof File) {
+          const uniqueFieldName = `file_${campo.name}_${idx}`
+          formData.append(`files[${uniqueFieldName}]`, archivo)
+        }
+      })
+      // Indicar que el campo debe ser un array vacío (o según lógica del backend)
+      formData.append(clave, JSON.stringify([]))
+    }
+  } else {
+    // No hay nuevos archivos → enviar null para mantener o limpiar
+    formData.append(clave, 'null')
+  }
+}else if (campo.type === 'tabla') {
           // CORRECCIÓN CRÍTICA: Obtener TODAS las filas (existentes + nuevas)
           const tablaFilas = this.tablaData[nombreCampo] || []
 console.log(`🔄 Procesando campo tabla: ${nombreCampo}`, tablaFilas)
@@ -1453,17 +1501,7 @@ procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
   }
 },
 
-    procesarArchivosRecurso(formData, archivos) {
-      if (Array.isArray(archivos)) {
-        archivos.forEach((archivo, index) => {
-          if (archivo instanceof File) {
-            formData.append(`Recurso Digital[${index}]`, archivo)
-          } else {
-            formData.append('existing_files[]', archivo)
-          }
-        })
-      }
-    },
+   
 
     procesarSubformularioDentroDeDocumentData(formData, campo, valor) {
       if (Array.isArray(valor)) {

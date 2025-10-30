@@ -1205,11 +1205,20 @@ export default {
     aplicarConfiguracionTabla() {
       if (!this.configuracionTablaValida) return
 
+      // Obtener los campos con sus tipos
+      const camposConTipos = this.tablaCamposSeleccionados.map((campoNombre) => {
+        const campoEncontrado = this.tablaCamposDisponibles.find((c) => c.name === campoNombre)
+        return {
+          name: campoNombre,
+          type: campoEncontrado ? campoEncontrado.type : 'string', // Tipo por defecto si no se encuentra
+        }
+      })
+
       this.campoTablaActual.tableConfig = {
         plantillaId: this.tablaPlantillaSeleccionada,
         plantillaNombre: this.getNombrePlantillaDataSource(this.tablaPlantillaSeleccionada),
         seccion: this.tablaSeccionSeleccionada,
-        campos: [...this.tablaCamposSeleccionados],
+        campos: camposConTipos, // Ahora con nombre Y tipo
       }
 
       this.cerrarModalTabla()

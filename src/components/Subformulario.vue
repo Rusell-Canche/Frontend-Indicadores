@@ -112,11 +112,7 @@
   </div>
 
   <!-- Modal para configurar tabla dinámica en subformulario -->
-  <div
-    v-if="modalTablaVisible"
-    class="medico-modal-backdrop"
-    @click.self="cerrarModalTabla"
-  >
+  <div v-if="modalTablaVisible" class="medico-modal-backdrop" @click.self="cerrarModalTabla">
     <div class="medico-modal-content" @click.stop style="max-width: 800px">
       <div class="medico-modal-header">
         <div class="modal-header-content">
@@ -175,7 +171,7 @@
               <i class="fas fa-info-circle me-2"></i>
               Selecciona múltiples campos que se mostrarán como columnas en la tabla
             </div>
-            
+
             <div class="campos-tabla-container">
               <div
                 v-for="campo in tablaCamposDisponibles"
@@ -192,7 +188,7 @@
                   />
                   <span class="checkmark"></span>
                   <span class="checkbox-label">
-                    {{ campo.name }} 
+                    {{ campo.name }}
                     <span class="badge bg-secondary ms-2">{{ campo.type }}</span>
                   </span>
                 </label>
@@ -320,7 +316,12 @@
                 <span class="input-group-text">
                   <i class="fas fa-cog"></i>
                 </span>
-                <select v-model="subcampo.type" class="form-select" @change="handleTypeChange(subcampo)" required>
+                <select
+                  v-model="subcampo.type"
+                  class="form-select"
+                  @change="handleTypeChange(subcampo)"
+                  required
+                >
                   <option value="">Seleccione un tipo</option>
                   <option value="string">Texto</option>
                   <option value="number">Numérico</option>
@@ -355,7 +356,6 @@
                       :value="true"
                     />
                     <span class="radiomark"></span>
-                  
                   </label>
                 </div>
               </div>
@@ -388,10 +388,15 @@
                 <i class="fas fa-check-circle me-3 mt-1"></i>
                 <div>
                   <strong>Configuración de tabla aplicada:</strong><br />
-                  Plantilla: <strong>"{{ getNombrePlantillaDataSource(subcampo.tableConfig.plantillaId) }}"</strong><br />
+                  Plantilla:
+                  <strong
+                    >"{{ getNombrePlantillaDataSource(subcampo.tableConfig.plantillaId) }}"</strong
+                  ><br />
                   Sección: <strong>"{{ subcampo.tableConfig.seccion }}"</strong><br />
                   <div class="mt-2">
-                    <strong>Columnas configuradas ({{ subcampo.tableConfig.campos.length }}):</strong>
+                    <strong
+                      >Columnas configuradas ({{ subcampo.tableConfig.campos.length }}):</strong
+                    >
                     <div class="mt-1">
                       <span
                         v-for="(campoTabla, idx) in subcampo.tableConfig.campos"
@@ -418,7 +423,11 @@
 
             <!-- Opciones definidas manualmente -->
             <div class="select-options-body">
-              <div v-for="(option, optionIndex) in subcampo.options || []" :key="optionIndex" class="option-item">
+              <div
+                v-for="(option, optionIndex) in subcampo.options || []"
+                :key="optionIndex"
+                class="option-item"
+              >
                 <div class="option-content">
                   <div class="input-group modern-input-small">
                     <span class="input-group-text"><i class="fas fa-tag"></i></span>
@@ -428,7 +437,11 @@
                       placeholder="Texto de la opción"
                       required
                     />
-                    <button type="button" @click="quitarOpcion(subcampo, optionIndex)" class="btn-delete-option">
+                    <button
+                      type="button"
+                      @click="quitarOpcion(subcampo, optionIndex)"
+                      class="btn-delete-option"
+                    >
                       <i class="fas fa-trash"></i>
                     </button>
                   </div>
@@ -444,7 +457,12 @@
                     placeholder="Nueva opción"
                     @keyup.enter="agregarOpcion(subcampo)"
                   />
-                  <button type="button" @click="agregarOpcion(subcampo)" class="btn-add-option" :disabled="!subcampo.newOption">
+                  <button
+                    type="button"
+                    @click="agregarOpcion(subcampo)"
+                    class="btn-add-option"
+                    :disabled="!subcampo.newOption"
+                  >
                     <i class="fas fa-plus"></i> Agregar
                   </button>
                 </div>
@@ -480,9 +498,8 @@
                 <div>
                   <strong>Configuración de opciones dinámicas:</strong><br />
                   Las opciones se cargarán desde la plantilla
-                  <strong
-                    >"{{ subcampo.dataSource.plantillaNombre}}"</strong
-                  >, sección <strong>"{{ subcampo.dataSource.seccion }}"</strong><br />
+                  <strong>"{{ subcampo.dataSource.plantillaNombre }}"</strong>, sección
+                  <strong>"{{ subcampo.dataSource.seccion }}"</strong><br />
                   <span class="mt-1 d-block">
                     <small>
                       Campo mostrado:
@@ -545,7 +562,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Subformulario anidado (recursivo) -->
           <Subformulario
             v-if="subcampo.type === 'subform'"
@@ -665,7 +682,7 @@ export default {
       if (campo.type === 'subform' && !campo.subcampos) {
         campo.subcampos = []
         this.agregarSubcampo(campo)
-      } else if ((campo.type === 'select' || campo.type === 'checkBox')  && !campo.options) {
+      } else if ((campo.type === 'select' || campo.type === 'checkBox') && !campo.options) {
         campo.options = []
         campo.newOption = ''
       } else if (campo.type === 'tabla' && !campo.tableConfig) {
@@ -754,7 +771,6 @@ export default {
           await this.onSeccionSeleccionada()
           this.campoMostrar = campo.dataSource.campoMostrar
         }
-        
       } catch (error) {
         console.error('Error al cargar plantillas:', error)
         Swal.fire({
@@ -785,10 +801,9 @@ export default {
 
       try {
         const token = localStorage.getItem('apiToken')
-        const response = await api.get(
-          `/plantillas/${this.plantillaSeleccionada}/secciones`,
-          { headers: { Authorization: `Bearer ${token}` } },
-        )
+        const response = await api.get(`/plantillas/${this.plantillaSeleccionada}/secciones`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
 
         this.seccionesPlantilla = response.data?.secciones || []
         this.seccionSeleccionada = ''
@@ -843,7 +858,7 @@ export default {
         })
 
         this.plantillasDisponibles = response.data || []
-        
+
         // Si ya tiene configuración previa, cargarla
         if (campo.tableConfig) {
           this.tablaPlantillaSeleccionada = campo.tableConfig.plantillaId
@@ -943,11 +958,20 @@ export default {
     aplicarConfiguracionTabla() {
       if (!this.configuracionTablaValida) return
 
+      // Obtener los campos con sus tipos
+      const camposConTipos = this.tablaCamposSeleccionados.map((campoNombre) => {
+        const campoEncontrado = this.tablaCamposDisponibles.find((c) => c.name === campoNombre)
+        return {
+          name: campoNombre,
+          type: campoEncontrado ? campoEncontrado.type : 'string', // Tipo por defecto si no se encuentra
+        }
+      })
+
       this.campoTablaActual.tableConfig = {
         plantillaId: this.tablaPlantillaSeleccionada,
         plantillaNombre: this.getNombrePlantillaDataSource(this.tablaPlantillaSeleccionada),
         seccion: this.tablaSeccionSeleccionada,
-        campos: [...this.tablaCamposSeleccionados],
+        campos: camposConTipos, // Ahora con nombre Y tipo
       }
 
       this.cerrarModalTabla()
@@ -985,7 +1009,7 @@ export default {
 }
 
 .campo-tabla-item:hover {
-  border-color: #4285F4;
+  border-color: #4285f4;
   box-shadow: 0 2px 4px rgba(66, 133, 244, 0.1);
 }
 

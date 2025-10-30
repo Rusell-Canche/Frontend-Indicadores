@@ -509,7 +509,7 @@ export default {
       const campoSeleccionado = this.camposDisponibles.find(
         (c) => c.name === this.parametrosForm.campoSeleccionado,
       )
-      return campoSeleccionado && campoSeleccionado.type === 'subform'
+      return campoSeleccionado && (campoSeleccionado.type === 'subform' || campoSeleccionado.type === 'tabla')
     },
 
     tieneSubconfiguracion() {
@@ -844,10 +844,17 @@ export default {
         (c) => c.name === this.parametrosForm.campoSeleccionado,
       )
 
-      if (campoSeleccionado && campoSeleccionado.type === 'subform') {
-        this.subcamposDisponibles = campoSeleccionado.subcampos || []
+      if (campoSeleccionado && (campoSeleccionado.type === 'subform' || campoSeleccionado.type === 'tabla')) {
+        // Para tablas, usar los campos de tableConfig.campos
+        if (campoSeleccionado.type === 'tabla' && campoSeleccionado.tableConfig) {
+          this.subcamposDisponibles = campoSeleccionado.tableConfig.campos || []
+        } else {
+          // Para subformularios normales
+          this.subcamposDisponibles = campoSeleccionado.subcampos || []
+        }
+        
         this.subcamposFiltrables = this.subcamposDisponibles.filter(
-          (campo) => campo.type !== 'subform',
+          (campo) => campo.type !== 'subform' && campo.type !== 'tabla',
         )
       } else {
         this.subcamposDisponibles = []
@@ -855,8 +862,54 @@ export default {
       }
 
       this.camposFiltrables = this.camposDisponibles.filter(
-        (campo) => campo.type !== 'subform' || campo.type === 'subform',
+        (campo) => campo.type !== 'subform' && campo.type !== 'tabla',
       )
+    },
+    extraerCamposParaFiltros(fields, parentPath = '', parentName = '', seccionNombre = '') {
+      let camposFiltro = []
+
+      fields.forEach((campo) => {
+        const fullPath = parentPath ? `${parentPath}.${campo.name}` : campo.name
+        const displayName = parentName
+          ? `${parentName} > ${campo.alias || campo.name}`
+          : campo.alias || campo.name
+
+        // Agregar campo actual si no es subform ni tabla
+        if (campo.type !== 'subform' && campo.type !== 'tabla') {
+          camposFiltro.push({
+            name: campo.name,
+            fullPath: fullPath,
+            displayName: displayName,
+            alias: campo.alias,
+            seccion: seccionNombre,
+            type: campo.type
+          })
+        }
+
+        // Si es subformulario, buscar recursivamente
+        if (campo.type === 'subform' && campo.subcampos && Array.isArray(campo.subcampos)) {
+          const subcamposFiltro = this.extraerCamposParaFiltros(
+            campo.subcampos,
+            fullPath,
+            displayName,
+            seccionNombre,
+          )
+          camposFiltro = camposFiltro.concat(subcamposFiltro)
+        }
+
+        // ✅ NUEVO: Si es tabla, buscar en sus campos
+        if (campo.type === 'tabla' && campo.tableConfig && campo.tableConfig.campos) {
+          const camposTabla = this.extraerCamposParaFiltros(
+            campo.tableConfig.campos,
+            fullPath,
+            displayName,
+            seccionNombre,
+          )
+          camposFiltro = camposFiltro.concat(camposTabla)
+        }
+      })
+
+      return camposFiltro
     },
 
     agregarCondicion() {
@@ -1152,6 +1205,7 @@ if (this.noRedirigir) {
         date: 'Fecha',
         file: 'Archivo',
         subform: 'Subformulario',
+        tabla: 'Tabla Dinamica',
         select: 'Selección',
       }
       return tipos[campo.type] || campo.type
