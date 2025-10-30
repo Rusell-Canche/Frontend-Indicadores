@@ -63,42 +63,42 @@
 
                       <!-- CAMPO DE TIPO SUBFORM -->
                       <!-- CAMPO DE TIPO SUBFORM -->
-<SubFormularioDocumento
-  v-if="campo.type === 'subform'"
-  :campo="campo"
-  :valor="getSubformDataForEdit(campo.name)"
-  @actualizar="actualizarSubformulario($event, campo.name)"
-/>
+                      <SubFormularioDocumento
+                        v-if="campo.type === 'subform'"
+                        :campo="campo"
+                        :valor="getSubformDataForEdit(campo.name)"
+                        @actualizar="actualizarSubformulario($event, campo.name)"
+                      />
 
-
-                    <!-- Campo de tipo checkbox (CORREGIDO) -->
-                    <div v-else-if="campo.type === 'checkBox'" class="form-field">
-                      <label class="form-label d-block mb-3">
-                        <i class="fas fa-check-square me-2"></i>
-                        {{ campo.alias || campo.name }}
-                        <span v-if="campo.required" class="text-danger">*</span>
-                      </label>
-                      <div class="checkbox-container d-block">
-                        <div class="form-check mb-2" v-for="(option, index) in campo.options" :key="index">
-                          <input
-                            class="form-check-input"
-                            type="checkbox"
-                            :id="campo.name + '_' + index"
-                            :value="getSaveValue(option, campo)"
-                            v-model="documentoEdit[campo.name]"
-
-                          />
-                          <label class="form-check-label" :for="campo.name + '_' + index">
-                            {{ getDisplayValue(option, campo) }}
-                          </label>
+                      <!-- Campo de tipo checkbox (CORREGIDO) -->
+                      <div v-else-if="campo.type === 'checkBox'" class="form-field">
+                        <label class="form-label d-block mb-3">
+                          <i class="fas fa-check-square me-2"></i>
+                          {{ campo.alias || campo.name }}
+                          <span v-if="campo.required" class="text-danger">*</span>
+                        </label>
+                        <div class="checkbox-container d-block">
+                          <div
+                            class="form-check mb-2"
+                            v-for="(option, index) in campo.options"
+                            :key="index"
+                          >
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              :id="campo.name + '_' + index"
+                              :value="getSaveValue(option, campo)"
+                              v-model="documentoEdit[campo.name]"
+                            />
+                            <label class="form-check-label" :for="campo.name + '_' + index">
+                              {{ getDisplayValue(option, campo) }}
+                            </label>
+                          </div>
                         </div>
+                        <small class="form-text text-muted mt-2">
+                          Seleccione una o más opciones
+                        </small>
                       </div>
-                      <small class="form-text text-muted mt-2">
-                        Seleccione una o más opciones
-                      </small>
-                    </div>
-
-
 
                       <!-- CAMPO DE TIPO SELECT -->
                       <div v-else-if="campo.type === 'select'" class="mt-2">
@@ -111,90 +111,92 @@
                             v-model="documentoEdit[campo.name]"
                             :required="campo.required"
                           >
-                           <option
-  v-for="(option, index) in campo.options"
-  :key="index"
-  :value="isManualSelect(campo) ? option : option.campoGuardar"
->
-  {{ isManualSelect(campo) ? option : option.campoMostrar }}
-</option>
-
+                            <option
+                              v-for="(option, index) in campo.options"
+                              :key="index"
+                              :value="isManualSelect(campo) ? option : option.campoGuardar"
+                            >
+                              {{ isManualSelect(campo) ? option : option.campoMostrar }}
+                            </option>
                           </select>
                         </div>
                       </div>
-<!-- Campo de archivos -->
-<div v-else-if="campo.type === 'file'" class="mt-2">
-  <label class="form-label d-block mb-3">
-    <i class="fas fa-paperclip me-2"></i>
-    {{ campo.alias || campo.name }}
-    <span v-if="campo.required" class="text-danger">*</span>
-  </label>
+                      <!-- Campo de archivos -->
+                      <div v-else-if="campo.type === 'file'" class="mt-2">
+                        <label class="form-label d-block mb-3">
+                          <i class="fas fa-paperclip me-2"></i>
+                          {{ campo.alias || campo.name }}
+                          <span v-if="campo.required" class="text-danger">*</span>
+                        </label>
 
-  <!-- Input de archivo (solo nuevos) -->
-  <div class="file-input-group mb-3">
-    <div class="input-group modern-input">
-      <span class="input-group-text">
-        <i class="fas fa-file"></i>
-      </span>
-      <input
-        type="file"
-        class="form-control"
-        :id="campo.name"
-        :name="campo.name"
-        @change="onFileChange($event, campo.name)"
-        multiple
-        :key="fileInputKey"
-      />
-    </div>
-  </div>
+                        <!-- Input de archivo (solo nuevos) -->
+                        <div class="file-input-group mb-3">
+                          <div class="input-group modern-input">
+                            <span class="input-group-text">
+                              <i class="fas fa-file"></i>
+                            </span>
+                            <input
+                              type="file"
+                              class="form-control"
+                              :id="campo.name"
+                              :name="campo.name"
+                              @change="onFileChange($event, campo.name)"
+                              multiple
+                              :key="fileInputKey"
+                            />
+                          </div>
+                        </div>
 
-  <!-- Vista previa solo de archivos nuevos -->
-  <div v-if="files[campo.name] && files[campo.name].length > 0" class="file-preview mt-3">
-    <h6 class="preview-title">
-      Archivos seleccionados ({{ files[campo.name].length }}):
-    </h6>
+                        <!-- Vista previa solo de archivos nuevos -->
+                        <div
+                          v-if="files[campo.name] && files[campo.name].length > 0"
+                          class="file-preview mt-3"
+                        >
+                          <h6 class="preview-title">
+                            Archivos seleccionados ({{ files[campo.name].length }}):
+                          </h6>
 
-    <div class="d-flex flex-wrap gap-3">
-      <div
-        class="file-item"
-        v-for="(file, index) in files[campo.name]"
-        :key="'nuevo-' + index"
-      >
-        <div class="file-content">
-          <div v-if="isImageFile(file)" class="file-thumbnail">
-            <img
-              :src="getThumbnailUrl(file)"
-              alt="Miniatura"
-              class="img-fluid"
-            />
-          </div>
-          <div v-else class="file-icon">
-            <i class="fas fa-file-alt"></i>
-          </div>
-          <span class="file-name">{{ file.name }}</span>
-        </div>
-        <button
-          type="button"
-          class="delete-button"
-          @click="removeFile(campo.name, index)"
-        >
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    </div>
+                          <div class="d-flex flex-wrap gap-3">
+                            <div
+                              class="file-item"
+                              v-for="(file, index) in files[campo.name]"
+                              :key="'nuevo-' + index"
+                            >
+                              <div class="file-content">
+                                <div v-if="isImageFile(file)" class="file-thumbnail">
+                                  <img
+                                    :src="getThumbnailUrl(file)"
+                                    alt="Miniatura"
+                                    class="img-fluid"
+                                  />
+                                </div>
+                                <div v-else class="file-icon">
+                                  <i class="fas fa-file-alt"></i>
+                                </div>
+                                <span class="file-name">{{ file.name }}</span>
+                              </div>
+                              <button
+                                type="button"
+                                class="delete-button"
+                                @click="removeFile(campo.name, index)"
+                              >
+                                <i class="fas fa-times"></i>
+                              </button>
+                            </div>
+                          </div>
 
-    <div class="mt-3">
-      <button
-        type="button"
-        class="btn btn-outline-danger btn-sm"
-        @click="clearAllFiles(campo.name)"
-      >
-        <i class="fas fa-trash me-1"></i>
-        Limpiar todos los archivos
-      </button>
-    </div>
-  </div>
-</div>
+                          <div class="mt-3">
+                            <button
+                              type="button"
+                              class="btn btn-outline-danger btn-sm"
+                              @click="clearAllFiles(campo.name)"
+                            >
+                              <i class="fas fa-trash me-1"></i>
+                              Limpiar todos los archivos
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                       <!-- CAMPO DE TIPO NUMBER -->
                       <div v-else-if="campo.type === 'number'" class="mt-2">
                         <div class="input-group modern-input">
@@ -212,68 +214,67 @@
                         </div>
                       </div>
 
-                      
-                    <!-- Campo de tipo tabla -->
-                    <div v-else-if="campo.type === 'tabla'" class="mt-2">
-                      <div class="tabla-dinamica-container">
-                        <label class="form-label d-block mb-3">
-                          <i class="fas fa-table me-2"></i>
-                          {{ campo.alias || campo.name }}
-                          <span v-if="campo.required" class="text-danger">*</span>
-                        </label>
+                      <!-- Campo de tipo tabla -->
+                      <div v-else-if="campo.type === 'tabla'" class="mt-2">
+                        <div class="tabla-dinamica-container">
+                          <label class="form-label d-block mb-3">
+                            <i class="fas fa-table me-2"></i>
+                            {{ campo.alias || campo.name }}
+                            <span v-if="campo.required" class="text-danger">*</span>
+                          </label>
 
-                        <!-- Botón para abrir modal de selección de datos -->
-                        <button
-                          type="button"
-                          class="btn btn-outline-primary mb-3"
-                          @click="abrirModalTabla(campo)"
-                        >
-                          <i class="fas fa-plus me-2"></i>
-                          Seleccionar datos para la tabla
-                        </button>
+                          <!-- Botón para abrir modal de selección de datos -->
+                          <button
+                            type="button"
+                            class="btn btn-outline-primary mb-3"
+                            @click="abrirModalTabla(campo)"
+                          >
+                            <i class="fas fa-plus me-2"></i>
+                            Seleccionar datos para la tabla
+                          </button>
 
-                        <!-- Vista previa de la tabla seleccionada -->
-                        <div
-                          v-if="tablaData[campo.name] && tablaData[campo.name].length > 0"
-                          class="table-responsive"
-                        >
-                          <table class="table table-bordered table-sm">
-                            <thead class="table-light">
-                              <tr>
-                                <th v-for="columna in campo.tableConfig.campos" :key="columna">
-                                  {{ columna }}
-                                </th>
-                                <th class="text-center">Acciones</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr v-for="(fila, index) in tablaData[campo.name]" :key="index">
-                                <td v-for="columna in campo.tableConfig.campos" :key="columna">
-                                  {{ obtenerValorCampo(fila, columna) || '-' }}
-                                </td>
-                                <td class="text-center">
-                                  <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-danger"
-                                    @click="eliminarFilaTabla(campo.name, index)"
-                                  >
-                                    <i class="fas fa-trash"></i>
-                                  </button>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                          <small class="text-muted">
-                            {{ tablaData[campo.name].length }} fila(s) seleccionada(s)
-                          </small>
-                        </div>
+                          <!-- Vista previa de la tabla seleccionada -->
+                          <div
+                            v-if="tablaData[campo.name] && tablaData[campo.name].length > 0"
+                            class="table-responsive"
+                          >
+                            <table class="table table-bordered table-sm">
+                              <thead class="table-light">
+                                <tr>
+                                  <th v-for="columna in campo.tableConfig.campos" :key="columna">
+                                    {{ columna }}
+                                  </th>
+                                  <th class="text-center">Acciones</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr v-for="(fila, index) in tablaData[campo.name]" :key="index">
+                                  <td v-for="columna in campo.tableConfig.campos" :key="columna">
+                                    {{ obtenerValorCampo(fila, columna) || '-' }}
+                                  </td>
+                                  <td class="text-center">
+                                    <button
+                                      type="button"
+                                      class="btn btn-sm btn-outline-danger"
+                                      @click="eliminarFilaTabla(campo.name, index)"
+                                    >
+                                      <i class="fas fa-trash"></i>
+                                    </button>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <small class="text-muted">
+                              {{ tablaData[campo.name].length }} fila(s) seleccionada(s)
+                            </small>
+                          </div>
 
-                        <div v-else class="alert alert-info">
-                          <i class="fas fa-info-circle me-2"></i>
-                          No se han seleccionado datos para esta tabla
+                          <div v-else class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No se han seleccionado datos para esta tabla
+                          </div>
                         </div>
                       </div>
-                    </div>
 
                       <!-- CAMPO DE TIPO DATE -->
                       <div v-else-if="campo.type === 'date'" class="mt-2">
@@ -322,11 +323,7 @@
 
             <!-- Si no hay secciones, iterar directamente sobre camposDocumentoEdit -->
             <div v-else>
-              <div
-                v-for="(campoName, idx) in camposDocumentoEdit"
-                :key="idx"
-                class="form-section"
-              >
+              <div v-for="(campoName, idx) in camposDocumentoEdit" :key="idx" class="form-section">
                 <h6 class="section-title">
                   <i class="fas fa-edit me-2"></i>
                   {{ getCampoPlantilla(campoName)?.alias || formatFieldName(campoName) }}
@@ -351,216 +348,211 @@
             </div>
           </form>
         </div>
-        
       </div>
-    <!-- Modal para seleccionar datos de tabla -->
-    <div v-if="modalTablaVisible" class="modal fade show" style="display: block">
-      <div class="modal-dialog modal-xl">
-        <div class="modal-content modern-modal">
-          <div class="medico-header modal-header-custom">
-            <div class="header-content">
-              <div class="header-icon">
-                <i class="fas fa-table"></i>
-              </div>
-              <div class="header-title-section">
-                <h3>Seleccionar datos para {{ tablaActual?.alias || tablaActual?.name }}</h3>
-                <p class="header-subtitle">
-                  Plantilla: {{ tablaActual?.tableConfig?.plantillaNombre }} - Sección:
-                  {{ tablaActual?.tableConfig?.seccion }}
-                </p>
-              </div>
-            </div>
-            <button type="button" @click="cerrarModalTabla" class="close-button">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-
-          <div class="medico-body modal-body-custom">
-            <!-- Barra de búsqueda y controles -->
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-search"></i>
-                  </span>
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="busquedaTabla"
-                    placeholder="Buscar en los datos disponibles..."
-                    @keyup.enter="paginaActual = 1"
-                  />
+      <!-- Modal para seleccionar datos de tabla -->
+      <div v-if="modalTablaVisible" class="modal fade show" style="display: block">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content modern-modal">
+            <div class="medico-header modal-header-custom">
+              <div class="header-content">
+                <div class="header-icon">
+                  <i class="fas fa-table"></i>
+                </div>
+                <div class="header-title-section">
+                  <h3>Seleccionar datos para {{ tablaActual?.alias || tablaActual?.name }}</h3>
+                  <p class="header-subtitle">
+                    Plantilla: {{ tablaActual?.tableConfig?.plantillaNombre }} - Sección:
+                    {{ tablaActual?.tableConfig?.seccion }}
+                  </p>
                 </div>
               </div>
-              <div class="col-md-6 d-flex justify-content-between align-items-center">
-                <div class="form-text">
-                  Mostrando {{ datosPaginados.length }} de {{ datosFiltrados.length }} registros
-                  (Total: {{ datosTablaDisponibles.length }})
-                </div>
-                <div class="d-flex gap-2 align-items-center">
-                  <label class="form-label mb-0 me-2">Mostrar:</label>
-                  <select
-                    v-model="elementosPorPagina"
-                    class="form-select form-select-sm"
-                    style="width: auto"
-                  >
-                    <option value="5">5</option>
-                  </select>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    @click="paginaActual = 1"
-                    :disabled="paginaActual === 1"
-                  >
-                    <i class="fas fa-angle-double-left"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    @click="paginaActual--"
-                    :disabled="paginaActual === 1"
-                  >
-                    <i class="fas fa-chevron-left"></i>
-                  </button>
-                  <span class="mx-2 align-self-center">
-                    Página {{ paginaActual }} de {{ totalPaginas }}
-                  </span>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    @click="paginaActual++"
-                    :disabled="paginaActual >= totalPaginas"
-                  >
-                    <i class="fas fa-chevron-right"></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    @click="paginaActual = totalPaginas"
-                    :disabled="paginaActual >= totalPaginas"
-                  >
-                    <i class="fas fa-angle-double-right"></i>
-                  </button>
-                </div>
-              </div>
+              <button type="button" @click="cerrarModalTabla" class="close-button">
+                <i class="fas fa-times"></i>
+              </button>
             </div>
 
-            <div class="row">
-              <!-- Datos disponibles -->
-              <div class="col-md-6">
-                <h6>Datos disponibles ({{ datosFiltrados.length }}):</h6>
-                <div class="table-responsive" style="max-height: 400px">
-                  <table class="table table-bordered table-sm table-hover">
-                    <thead class="table-light sticky-top">
-                      <tr>
-                        <th>Seleccionar</th>
-                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
-                          {{ columna }}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(fila, index) in datosPaginados" :key="index">
-                        <td>
-                          <button
-                            type="button"
-                            class="btn btn-sm btn-success"
-                            @click="seleccionarFilaTabla(fila)"
-                            :disabled="
-                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
-                            "
-                            :title="
-                              tablaSeleccionada.some((f) => f._documentId === fila._documentId)
-                                ? 'Ya seleccionado'
-                                : 'Seleccionar'
-                            "
-                          >
-                            <i class="fas fa-plus"></i>
-                          </button>
-                        </td>
-                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
-                          {{ obtenerValorCampo(fila, columna) || '-' }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+            <div class="medico-body modal-body-custom">
+              <!-- Barra de búsqueda y controles -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="input-group modern-input">
+                    <span class="input-group-text">
+                      <i class="fas fa-search"></i>
+                    </span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      v-model="busquedaTabla"
+                      placeholder="Buscar en los datos disponibles..."
+                      @keyup.enter="paginaActual = 1"
+                    />
+                  </div>
                 </div>
-                <div v-if="datosPaginados.length === 0" class="text-center py-3 text-muted">
-                  <i class="fas fa-inbox fa-2x mb-2"></i>
-                  <p>No se encontraron registros</p>
+                <div class="col-md-6 d-flex justify-content-between align-items-center">
+                  <div class="form-text">
+                    Mostrando {{ datosPaginados.length }} de {{ datosFiltrados.length }} registros
+                    (Total: {{ datosTablaDisponibles.length }})
+                  </div>
+                  <div class="d-flex gap-2 align-items-center">
+                    <label class="form-label mb-0 me-2">Mostrar:</label>
+                    <select
+                      v-model="elementosPorPagina"
+                      class="form-select form-select-sm"
+                      style="width: auto"
+                    >
+                      <option value="5">5</option>
+                    </select>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      @click="paginaActual = 1"
+                      :disabled="paginaActual === 1"
+                    >
+                      <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      @click="paginaActual--"
+                      :disabled="paginaActual === 1"
+                    >
+                      <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="mx-2 align-self-center">
+                      Página {{ paginaActual }} de {{ totalPaginas }}
+                    </span>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      @click="paginaActual++"
+                      :disabled="paginaActual >= totalPaginas"
+                    >
+                      <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      @click="paginaActual = totalPaginas"
+                      :disabled="paginaActual >= totalPaginas"
+                    >
+                      <i class="fas fa-angle-double-right"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <!-- Datos seleccionados -->
-              <div class="col-md-6">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h6 class="mb-0">Datos seleccionados ({{ tablaSeleccionada.length }}):</h6>
-                  <button
-                    v-if="tablaSeleccionada.length > 0"
-                    type="button"
-                    class="btn btn-sm btn-outline-danger"
-                    @click="tablaSeleccionada = []"
-                  >
-                    <i class="fas fa-trash me-1"></i> Limpiar todo
-                  </button>
+              <div class="row">
+                <!-- Datos disponibles -->
+                <div class="col-md-6">
+                  <h6>Datos disponibles ({{ datosFiltrados.length }}):</h6>
+                  <div class="table-responsive" style="max-height: 400px">
+                    <table class="table table-bordered table-sm table-hover">
+                      <thead class="table-light sticky-top">
+                        <tr>
+                          <th>Seleccionar</th>
+                          <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                            {{ columna }}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(fila, index) in datosPaginados" :key="index">
+                          <td>
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-success"
+                              @click="seleccionarFilaTabla(fila)"
+                              :disabled="
+                                tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                              "
+                              :title="
+                                tablaSeleccionada.some((f) => f._documentId === fila._documentId)
+                                  ? 'Ya seleccionado'
+                                  : 'Seleccionar'
+                              "
+                            >
+                              <i class="fas fa-plus"></i>
+                            </button>
+                          </td>
+                          <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                            {{ obtenerValorCampo(fila, columna) || '-' }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div v-if="datosPaginados.length === 0" class="text-center py-3 text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p>No se encontraron registros</p>
+                  </div>
                 </div>
-                <div class="table-responsive" style="max-height: 400px">
-                  <table class="table table-bordered table-sm table-hover">
-                    <thead class="table-light sticky-top">
-                      <tr>
-                        <th>Acción</th>
-                        <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
-                          {{ columna }}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(fila, index) in tablaSeleccionada" :key="index">
-                        <td>
-                          <button
-                            type="button"
-                            class="btn btn-sm btn-danger"
-                            @click="deseleccionarFilaTabla(index)"
-                            title="Quitar selección"
-                          >
-                            <i class="fas fa-times"></i>
-                          </button>
-                        </td>
-                        <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
-                          {{ obtenerValorCampo(fila, columna) || '-' }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div v-if="tablaSeleccionada.length === 0" class="text-center py-3 text-muted">
-                  <i class="fas fa-clipboard-list fa-2x mb-2"></i>
-                  <p>No hay registros seleccionados</p>
+
+                <!-- Datos seleccionados -->
+                <div class="col-md-6">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">Datos seleccionados ({{ tablaSeleccionada.length }}):</h6>
+                    <button
+                      v-if="tablaSeleccionada.length > 0"
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      @click="tablaSeleccionada = []"
+                    >
+                      <i class="fas fa-trash me-1"></i> Limpiar todo
+                    </button>
+                  </div>
+                  <div class="table-responsive" style="max-height: 400px">
+                    <table class="table table-bordered table-sm table-hover">
+                      <thead class="table-light sticky-top">
+                        <tr>
+                          <th>Acción</th>
+                          <th v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                            {{ columna }}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(fila, index) in tablaSeleccionada" :key="index">
+                          <td>
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-danger"
+                              @click="deseleccionarFilaTabla(index)"
+                              title="Quitar selección"
+                            >
+                              <i class="fas fa-times"></i>
+                            </button>
+                          </td>
+                          <td v-for="columna in tablaActual.tableConfig.campos" :key="columna">
+                            {{ obtenerValorCampo(fila, columna) || '-' }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div v-if="tablaSeleccionada.length === 0" class="text-center py-3 text-muted">
+                    <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                    <p>No hay registros seleccionados</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="medico-footer">
-            <button type="button" class="btn btn-cancel" @click="cerrarModalTabla">
-              <i class="fas fa-times me-2"></i>
-              Cancelar
-            </button>
-            <button type="button" class="btn btn-save" @click="guardarSeleccionTabla">
-              <i class="fas fa-check me-2"></i>
-              Guardar selección ({{ tablaSeleccionada.length }})
-            </button>
+            <div class="medico-footer">
+              <button type="button" class="btn btn-cancel" @click="cerrarModalTabla">
+                <i class="fas fa-times me-2"></i>
+                Cancelar
+              </button>
+              <button type="button" class="btn btn-save" @click="guardarSeleccionTabla">
+                <i class="fas fa-check me-2"></i>
+                Guardar selección ({{ tablaSeleccionada.length }})
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-      
-    </div>
   </div>
-
-  
 </template>
-
 
 <script>
 import api from '@/services/api'
@@ -572,34 +564,34 @@ export default {
   name: 'EditDocumentModal',
 
   components: {
-    SubFormularioDocumento
+    SubFormularioDocumento,
   },
 
   props: {
     archivosarray: {
-    type: Array,
-    default: () => []
-  },
-     tablaInicial: {
-    type: Object,
-    default: () => ({}),
-  },
+      type: Array,
+      default: () => [],
+    },
+    tablaInicial: {
+      type: Object,
+      default: () => ({}),
+    },
     isOpen: {
       type: Boolean,
-      default: false
+      default: false,
     },
     documento: {
       type: Object,
-      default: () => ({})
+      default: () => ({}),
     },
     camposPlantilla: {
       type: Object,
-      default: () => []
+      default: () => [],
     },
     selectedColeccion: {
       type: Object,
-      default: null
-    }
+      default: null,
+    },
   },
 
   emits: ['close', 'save', 'success', 'error'],
@@ -608,16 +600,16 @@ export default {
     return {
       // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
       fileMapping: {},
-       files: {}, // ← Aquí va
+      files: {}, // ← Aquí va
       fileInputKey: 0,
-         tablaData: {}, // donde se guardan los datos seleccionados de cada tabla
-    modalTablaVisible: false, // para abrir/cerrar modal
-    tablaActual: null, // almacena el campo actual (la tabla en uso)
-    datosTablaDisponibles: [], // lista de registros posibles a seleccionar
-    tablaSeleccionada: [], // lo que el usuario selecciona dentro del modal
-    busquedaTabla: '', // texto de búsqueda
-    paginaActual: 1, // número de página actual
-    elementosPorPagina: 5, // registros por página
+      tablaData: {}, // donde se guardan los datos seleccionados de cada tabla
+      modalTablaVisible: false, // para abrir/cerrar modal
+      tablaActual: null, // almacena el campo actual (la tabla en uso)
+      datosTablaDisponibles: [], // lista de registros posibles a seleccionar
+      tablaSeleccionada: [], // lo que el usuario selecciona dentro del modal
+      busquedaTabla: '', // texto de búsqueda
+      paginaActual: 1, // número de página actual
+      elementosPorPagina: 5, // registros por página
       // Datos del documento
       documentoEdit: {},
       camposDocumentoEdit: [],
@@ -628,39 +620,34 @@ export default {
 
       // Subformularios
       editSubformData: {},
-      editSubformFiles: {}
+      editSubformFiles: {},
     }
   },
-  mounted(){
-      console.log('✅ Prop archivosArray recibida:', this.archivosarray);
-     // Cargar datos iniciales si existen
-  if (Object.keys(this.tablaInicial).length > 0) {
-    this.tablaData = { ...this.tablaInicial }
-  }
+  mounted() {
+    console.log('✅ Prop archivosArray recibida:', this.archivosarray)
+    // Cargar datos iniciales si existen
+    if (Object.keys(this.tablaInicial).length > 0) {
+      this.tablaData = { ...this.tablaInicial }
+    }
   },
 
   watch: {
-    
     archivosArray: {
-      
-    handler(newVal) {
-      // Convertir las rutas (strings) en objetos útiles si es necesario
-      // Por ejemplo, para que el carrusel del hijo los entienda
-      this.uploadedFiles = Array.isArray(newVal) 
-        ? newVal.filter(item => item) 
-        : [];
+      handler(newVal) {
+        // Convertir las rutas (strings) en objetos útiles si es necesario
+        // Por ejemplo, para que el carrusel del hijo los entienda
+        this.uploadedFiles = Array.isArray(newVal) ? newVal.filter((item) => item) : []
+      },
+      immediate: true, // se ejecuta al montar
     },
-    immediate: true // se ejecuta al montar
-  },
     tablaInicial: {
-  handler(newVal) {
-    if (newVal && Object.keys(newVal).length > 0) {
-      this.tablaData = { ...newVal }
-    }
-  },
-  deep: true
-}
-,
+      handler(newVal) {
+        if (newVal && Object.keys(newVal).length > 0) {
+          this.tablaData = { ...newVal }
+        }
+      },
+      deep: true,
+    },
     documento: {
       handler(newDoc) {
         if (newDoc && Object.keys(newDoc).length > 0) {
@@ -668,14 +655,14 @@ export default {
         }
       },
       immediate: true,
-      deep: true
+      deep: true,
     },
 
     isOpen(newVal) {
       if (!newVal) {
         this.resetData()
       }
-    }
+    },
   },
 
   computed: {
@@ -708,25 +695,22 @@ export default {
     totalPaginas() {
       return Math.ceil(this.datosFiltrados.length / this.elementosPorPagina)
     },
-    
   },
 
   methods: {
-   isImageUrl(url) {
-  if (typeof url !== 'string') return false
-  return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url)
-},
+    isImageUrl(url) {
+      if (typeof url !== 'string') return false
+      return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url)
+    },
 
- getFileName(file) {
-  if (!file) return 'Sin nombre'
-  if (typeof file === 'string') {
-    return file.split('/').pop() || 'archivo'
-  }
-  return file.name || 'archivo'
-},
+    getFileName(file) {
+      if (!file) return 'Sin nombre'
+      if (typeof file === 'string') {
+        return file.split('/').pop() || 'archivo'
+      }
+      return file.name || 'archivo'
+    },
 
-
-    
     onFileChange(event, fieldName) {
       const fileList = event.target.files
       if (fileList.length > 0) {
@@ -740,11 +724,54 @@ export default {
 
         // Agregar los nuevos archivos al array existente (ACUMULAR)
         this.files[fieldName] = [...this.files[fieldName], ...newFiles]
-console.log('🔍 archivosArray recibido en el componente:', this.archivosarray)
+        console.log('🔍 archivosArray recibido en el componente:', this.archivosarray)
         // Forzar reset del input file para permitir seleccionar más archivos
         this.resetFileInput(fieldName)
-        
-         console.log('📁 files después de agregar:', JSON.parse(JSON.stringify(this.files)))
+
+        console.log('📁 files después de agregar:', JSON.parse(JSON.stringify(this.files)))
+      }
+    },
+    async onFileChangeUrl(url, fieldName) {
+      try {
+        const originalUrl = 'http://127.0.0.1:8000/storage/' + url
+        const proxyUrl = `/api/proxy-file?url=${encodeURIComponent(originalUrl)}`
+        const response = await fetch('http://127.0.0.1:8000/api' + proxyUrl) // ✅ mismo origen → sin CORS
+
+        if (!response.ok) {
+          throw new Error(
+            `Error al descargar el archivo: ${response.status} ${response.statusText}`,
+          )
+        }
+
+        // 2. Convertir la respuesta a Blob
+        const blob = await response.blob()
+
+        // 3. Extraer el nombre del archivo desde la URL (o usar uno genérico)
+        const urlPath = new URL(originalUrl).pathname
+        const fileName = urlPath.substring(urlPath.lastIndexOf('/') + 1) || 'archivo_descargado'
+
+        // 4. Crear un objeto File (con metadatos útiles)
+        const file = new File([blob], fileName, { type: blob.type })
+
+        // 5. Inicializar el array si no existe
+        if (!this.files[fieldName]) {
+          this.files[fieldName] = []
+        }
+
+        // 6. Agregar el archivo descargado al array (acumular)
+        this.files[fieldName] = [...this.files[fieldName], file]
+
+        console.log(
+          '📁 files después de agregar desde URL:',
+          JSON.parse(JSON.stringify(this.files)),
+        )
+
+        // Opcional: emitir o actualizar otros datos si usas `archivosarray`
+        // Por ejemplo, si `archivosarray` es una copia reactiva:
+        // this.archivosarray = [...this.files[fieldName]];
+      } catch (error) {
+        console.error('❌ Error al cargar archivo desde URL:', error)
+        // Aquí podrías mostrar una notificación de error al usuario
       }
     },
     resetFileInput(fieldName) {
@@ -829,181 +856,192 @@ console.log('🔍 archivosArray recibido en el componente:', this.archivosarray)
       this.showSubformModal = true
     },
 
+    // 2. MÉTODO PARA CARGAR DATOS DE TABLA EXISTENTES
+    async cargarDatosTablaExistentes(nombreCampo, ids, tableConfig) {
+      try {
+        // Hacer petición al backend para obtener los documentos completos
+        const plantilla = tableConfig.plantillaNombre
+        const seccion = tableConfig.seccion
 
+        // Petición para obtener documentos por IDs
+        const response = await axios.post('/api/documentos/obtener-por-ids', {
+          ids: ids,
+          plantilla: plantilla,
+          seccion: seccion,
+        })
 
+        if (response.data && Array.isArray(response.data)) {
+          // Inicializar tablaData si no existe
+          if (!this.tablaData[nombreCampo]) {
+            this.$set(this.tablaData, nombreCampo, [])
+          }
 
-// 2. MÉTODO PARA CARGAR DATOS DE TABLA EXISTENTES
-async cargarDatosTablaExistentes(nombreCampo, ids, tableConfig) {
-  try {
-    // Hacer petición al backend para obtener los documentos completos
-    const plantilla = tableConfig.plantillaNombre
-    const seccion = tableConfig.seccion
-    
-    // Petición para obtener documentos por IDs
-    const response = await axios.post('/api/documentos/obtener-por-ids', {
-      ids: ids,
-      plantilla: plantilla,
-      seccion: seccion
-    })
-    
-    if (response.data && Array.isArray(response.data)) {
-      // Inicializar tablaData si no existe
-      if (!this.tablaData[nombreCampo]) {
-        this.$set(this.tablaData, nombreCampo, [])
+          // Cargar los datos completos en tablaData
+          this.tablaData[nombreCampo] = response.data.map((doc) => ({
+            ...doc,
+            _documentId: doc._id || doc._documentId,
+          }))
+
+          console.log(
+            `✅ Cargados ${this.tablaData[nombreCampo].length} registros para ${nombreCampo}`,
+          )
+        }
+      } catch (error) {
+        console.error(`Error al cargar datos de tabla ${nombreCampo}:`, error)
+        // Si hay error, al menos inicializar con IDs vacíos para que no se pierdan
+        if (!this.tablaData[nombreCampo]) {
+          this.$set(this.tablaData, nombreCampo, [])
+        }
       }
-      
-      // Cargar los datos completos en tablaData
-      this.tablaData[nombreCampo] = response.data.map(doc => ({
-        ...doc,
-        _documentId: doc._id || doc._documentId
-      }))
-      
-      console.log(`✅ Cargados ${this.tablaData[nombreCampo].length} registros para ${nombreCampo}`)
-    }
-  } catch (error) {
-    console.error(`Error al cargar datos de tabla ${nombreCampo}:`, error)
-    // Si hay error, al menos inicializar con IDs vacíos para que no se pierdan
-    if (!this.tablaData[nombreCampo]) {
-      this.$set(this.tablaData, nombreCampo, [])
-    }
-  }
-},
+    },
 
-      getSaveValue(option, campo) {
-    if (typeof option === 'string') {
-      return option
-    }
-    return option.campoGuardar || option.value || option
-  },
+    getSaveValue(option, campo) {
+      if (typeof option === 'string') {
+        return option
+      }
+      return option.campoGuardar || option.value || option
+    },
 
-  getDisplayValue(option, campo) {
-    if (typeof option === 'string') {
-      return option
-    }
-    return option.campoMostrar || option.label || option.text || option
-  },
+    getDisplayValue(option, campo) {
+      if (typeof option === 'string') {
+        return option
+      }
+      return option.campoMostrar || option.label || option.text || option
+    },
 
-  
     formatFieldName(fieldName) {
       const fieldMap = {
         created_at: 'Fecha de creación',
-        updated_at: 'Última actualización'
+        updated_at: 'Última actualización',
       }
 
-      return fieldMap[fieldName] ||
-        fieldName.replace(/_/g, ' ')
-          .replace(/\w\S*/g, word =>
-            word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()
-          )
+      return (
+        fieldMap[fieldName] ||
+        fieldName
+          .replace(/_/g, ' ')
+          .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.substr(1).toLowerCase())
+      )
     },
 
     // ========== INICIALIZACIÓN ==========
-   // 4. Corregir el método initializeEditData para manejar mejor los subformularios
-initializeEditData(documento) {
-  console.log('🔄 Inicializando datos de edición:', documento)
-  console.log('📋 Plantilla:', this.camposPlantilla)
+    // 4. Corregir el método initializeEditData para manejar mejor los subformularios
+    initializeEditData(documento) {
+      console.log('🔄 Inicializando datos de edición:', documento)
+      console.log('📋 Plantilla:', this.camposPlantilla)
 
-  this.documentoEdit = {}
-  if (documento._id) this.documentoEdit._id = documento._id
+      this.documentoEdit = {}
+      if (documento._id) this.documentoEdit._id = documento._id
 
-  // Obtener campos planos
-  let campos = []
-  if (this.camposPlantilla && Array.isArray(this.camposPlantilla.secciones)) {
-    this.camposPlantilla.secciones.forEach((seccion) => {
-      if (Array.isArray(seccion.fields)) {
-        campos.push(...seccion.fields)
+      // Obtener campos planos
+      let campos = []
+      if (this.camposPlantilla && Array.isArray(this.camposPlantilla.secciones)) {
+        this.camposPlantilla.secciones.forEach((seccion) => {
+          if (Array.isArray(seccion.fields)) {
+            campos.push(...seccion.fields)
+          }
+        })
       }
-    })
-  }
 
-  // Inicializar campos normales
-  campos
-    .filter((campo) => campo.type !== 'subform')
-    .forEach((campo) => {
-      const nombreCampo = campo.name
-      let valorCampo = this.extraerValorCampoDelDocumento(documento, nombreCampo)
-      
-      this.documentoEdit[nombreCampo] = valorCampo ?? ''
+      // Inicializar campos normales
+      campos
+        .filter((campo) => campo.type !== 'subform')
+        .forEach((campo) => {
+          const nombreCampo = campo.name
+          let valorCampo = this.extraerValorCampoDelDocumento(documento, nombreCampo)
+
+          //console.log('campo: ', nombreCampo)
+          //console.log('valor: ', valorCampo)
+
+          if (campo.type === 'file') {
+            if (Array.isArray(valorCampo)) {
+              valorCampo.forEach((campo) => {
+                this.onFileChangeUrl(campo, nombreCampo)
+              })
+            } else {
+              this.onFileChangeUrl(valorCampo, nombreCampo)
+            }
+          }
+
+          this.documentoEdit[nombreCampo] = valorCampo ?? ''
 
           // ✅ Manejo especial para checkBox
-    if (campo.type === 'checkBox') {
-      if (typeof valorCampo === 'string') {
-        try {
-          valorCampo = JSON.parse(valorCampo)
-        } catch {
-          valorCampo = []
-        }
-      }
-      if (!Array.isArray(valorCampo)) {
-        valorCampo = []
-      }
-      this.documentoEdit[nombreCampo] = [...valorCampo]
-      return
-    }
-      
-      // Manejar selects especiales
-      if (campo.type === 'select' && !this.isManualSelect(campo)) {
-        const option = campo.options?.find(o => o.campoGuardar === valorCampo)
-        if (option) {
-          this.documentoEdit[nombreCampo] = option.campoGuardar
-        }
-      }
-    })
+          if (campo.type === 'checkBox') {
+            if (typeof valorCampo === 'string') {
+              try {
+                valorCampo = JSON.parse(valorCampo)
+              } catch {
+                valorCampo = []
+              }
+            }
+            if (!Array.isArray(valorCampo)) {
+              valorCampo = []
+            }
+            this.documentoEdit[nombreCampo] = [...valorCampo]
+            return
+          }
 
-    // === Inicializar campos de tipo tabla ===
-campos
-  .filter(campo => campo.type === 'tabla')
-  .forEach(campo => {
-    const nombreCampo = campo.name
-    let valorTabla = this.extraerValorCampoDelDocumento(documento, nombreCampo)
+          // Manejar selects especiales
+          if (campo.type === 'select' && !this.isManualSelect(campo)) {
+            const option = campo.options?.find((o) => o.campoGuardar === valorCampo)
+            if (option) {
+              this.documentoEdit[nombreCampo] = option.campoGuardar
+            }
+          }
+        })
 
-    // Intentar parsear si viene en string JSON
-    if (typeof valorTabla === 'string') {
-      try {
-        valorTabla = JSON.parse(valorTabla)
-      } catch {
-        valorTabla = []
-      }
-    }
+      // === Inicializar campos de tipo tabla ===
+      campos
+        .filter((campo) => campo.type === 'tabla')
+        .forEach((campo) => {
+          const nombreCampo = campo.name
+          let valorTabla = this.extraerValorCampoDelDocumento(documento, nombreCampo)
 
-    if (!Array.isArray(valorTabla)) {
-      valorTabla = []
-    }
+          // Intentar parsear si viene en string JSON
+          if (typeof valorTabla === 'string') {
+            try {
+              valorTabla = JSON.parse(valorTabla)
+            } catch {
+              valorTabla = []
+            }
+          }
 
-    // ✅ Guardar tanto en documentoEdit como en tablaData
-    this.documentoEdit[nombreCampo] = valorTabla
-    this.tablaData[nombreCampo] = [...valorTabla]
-  })
+          if (!Array.isArray(valorTabla)) {
+            valorTabla = []
+          }
 
+          // ✅ Guardar tanto en documentoEdit como en tablaData
+          this.documentoEdit[nombreCampo] = valorTabla
+          this.tablaData[nombreCampo] = [...valorTabla]
+        })
 
-  // Inicializar subformularios
-  campos
-    .filter((campo) => campo.type === 'subform')
-    .forEach((campo) => {
-      const nombreCampo = campo.name
-      let valorSubform = this.extraerValorCampoDelDocumento(documento, nombreCampo)
-      
-      // Parsear si es string JSON
-      if (typeof valorSubform === 'string') {
-        try {
-          valorSubform = JSON.parse(valorSubform)
-        } catch (e) {
-          console.warn('⚠️ Error parseando subformulario:', valorSubform)
-          valorSubform = []
-        }
-      }
-      
-      // Asegurar que sea array
-      if (!Array.isArray(valorSubform)) {
-        valorSubform = []
-      }
-      
-      this.documentoEdit[nombreCampo] = [...valorSubform]
-    })
+      // Inicializar subformularios
+      campos
+        .filter((campo) => campo.type === 'subform')
+        .forEach((campo) => {
+          const nombreCampo = campo.name
+          let valorSubform = this.extraerValorCampoDelDocumento(documento, nombreCampo)
 
-  this.camposDocumentoEdit = campos.map((campo) => campo.name)
-  this.prepareSubformDataForEdit()
-},
+          // Parsear si es string JSON
+          if (typeof valorSubform === 'string') {
+            try {
+              valorSubform = JSON.parse(valorSubform)
+            } catch (e) {
+              console.warn('⚠️ Error parseando subformulario:', valorSubform)
+              valorSubform = []
+            }
+          }
+
+          // Asegurar que sea array
+          if (!Array.isArray(valorSubform)) {
+            valorSubform = []
+          }
+
+          this.documentoEdit[nombreCampo] = [...valorSubform]
+        })
+
+      this.camposDocumentoEdit = campos.map((campo) => campo.name)
+      this.prepareSubformDataForEdit()
+    },
     isManualSelect(campo) {
       if (!campo.options || !Array.isArray(campo.options) || campo.options.length === 0) {
         return true
@@ -1034,10 +1072,9 @@ campos
       this.uploadedFiles = []
 
       // Archivos / mapping / inputs
-  this.files = {}            // limpia archivos seleccionados en inputs
-  this.fileMapping = {}      // limpia el mapping que puedas usar
-  this.fileInputKey += 1     // fuerza re-render de inputs file para evitar valores residuales
-
+      this.files = {} // limpia archivos seleccionados en inputs
+      this.fileMapping = {} // limpia el mapping que puedas usar
+      this.fileInputKey += 1 // fuerza re-render de inputs file para evitar valores residuales
     },
 
     getCampoPlantilla(nombreCampo) {
@@ -1045,7 +1082,7 @@ campos
 
       for (const seccion of this.camposPlantilla.secciones) {
         if (Array.isArray(seccion.fields)) {
-          const campo = seccion.fields.find(campo => campo.name === nombreCampo)
+          const campo = seccion.fields.find((campo) => campo.name === nombreCampo)
           if (campo) return campo
         } else if (typeof seccion.fields === 'object') {
           for (const key in seccion.fields) {
@@ -1059,7 +1096,6 @@ campos
       return null
     },
 
-
     // ========== MODAL CONTROL ==========
     closeModal() {
       this.$emit('close')
@@ -1072,10 +1108,7 @@ campos
 
       let campos = []
 
-      if (
-        this.camposPlantilla &&
-        Array.isArray(this.camposPlantilla.secciones)
-      ) {
+      if (this.camposPlantilla && Array.isArray(this.camposPlantilla.secciones)) {
         this.camposPlantilla.secciones.forEach((seccion) => {
           if (Array.isArray(seccion.fields)) {
             seccion.fields.forEach((campo) => {
@@ -1091,9 +1124,9 @@ campos
         console.warn('⚠️ camposPlantilla.secciones no es un arreglo válido')
       }
 
-      const camposSubform = campos.filter(campo => campo.type === 'subform')
+      const camposSubform = campos.filter((campo) => campo.type === 'subform')
 
-      camposSubform.forEach(campo => {
+      camposSubform.forEach((campo) => {
         const fieldName = campo.name
         this.editSubformData[fieldName] = []
         this.editSubformFiles[fieldName] = []
@@ -1117,32 +1150,32 @@ campos
         }
       })
     },
-// 5. Método helper para extraer valores de campos del documento
-extraerValorCampoDelDocumento(documento, nombreCampo) {
-  // Buscar en las secciones del documento
-  if (Array.isArray(documento.secciones)) {
-    for (const seccion of documento.secciones) {
-      if (seccion.fields && typeof seccion.fields === 'object') {
-        if (nombreCampo in seccion.fields) {
-          return seccion.fields[nombreCampo]
+    // 5. Método helper para extraer valores de campos del documento
+    extraerValorCampoDelDocumento(documento, nombreCampo) {
+      // Buscar en las secciones del documento
+      if (Array.isArray(documento.secciones)) {
+        for (const seccion of documento.secciones) {
+          if (seccion.fields && typeof seccion.fields === 'object') {
+            if (nombreCampo in seccion.fields) {
+              return seccion.fields[nombreCampo]
+            }
+          }
         }
       }
-    }
-  }
-  
-  // Buscar en el nivel raíz del documento
-  if (documento[nombreCampo] !== undefined) {
-    return documento[nombreCampo]
-  }
-  
-  return null
-},
+
+      // Buscar en el nivel raíz del documento
+      if (documento[nombreCampo] !== undefined) {
+        return documento[nombreCampo]
+      }
+
+      return null
+    },
     separarDatosYArchivos(row, campo) {
       const datos = {}
       const archivos = {}
 
-      Object.keys(row).forEach(key => {
-        const subcampo = campo.subcampos.find(sub => sub.name === key)
+      Object.keys(row).forEach((key) => {
+        const subcampo = campo.subcampos.find((sub) => sub.name === key)
         if (subcampo?.type === 'file') {
           archivos[key] = row[key]
         } else {
@@ -1152,108 +1185,105 @@ extraerValorCampoDelDocumento(documento, nombreCampo) {
 
       return { datos, archivos }
     },
-    
 
-// ========== MÉTODOS FALTANTES PARA EditDocumentModal.vue ==========
+    // ========== MÉTODOS FALTANTES PARA EditDocumentModal.vue ==========
 
-// 1. Agregar el método actualizarSubformulario que falta
-actualizarSubformulario(nuevosValores, nombreCampo) {
-  console.log('📝 Actualizando subformulario:', nombreCampo, nuevosValores)
-  
-  // Asegurar que nuevosValores sea un array
-  const valoresArray = Array.isArray(nuevosValores) ? nuevosValores : []
-  
-  // Actualizar el valor en documentoEdit
-  this.documentoEdit[nombreCampo] = [...valoresArray]
-  
-  // También actualizar en editSubformData para mantener consistencia
-  if (this.editSubformData[nombreCampo] !== undefined) {
-    this.editSubformData[nombreCampo] = valoresArray.map(row => {
-      const campo = this.getCampoPlantilla(nombreCampo)
-      if (campo && campo.subcampos) {
-        const { datos } = this.separarDatosYArchivos(row, campo)
-        return datos
+    // 1. Agregar el método actualizarSubformulario que falta
+    actualizarSubformulario(nuevosValores, nombreCampo) {
+      console.log('📝 Actualizando subformulario:', nombreCampo, nuevosValores)
+
+      // Asegurar que nuevosValores sea un array
+      const valoresArray = Array.isArray(nuevosValores) ? nuevosValores : []
+
+      // Actualizar el valor en documentoEdit
+      this.documentoEdit[nombreCampo] = [...valoresArray]
+
+      // También actualizar en editSubformData para mantener consistencia
+      if (this.editSubformData[nombreCampo] !== undefined) {
+        this.editSubformData[nombreCampo] = valoresArray.map((row) => {
+          const campo = this.getCampoPlantilla(nombreCampo)
+          if (campo && campo.subcampos) {
+            const { datos } = this.separarDatosYArchivos(row, campo)
+            return datos
+          }
+          return row
+        })
       }
-      return row
-    })
-  }
-  
-  console.log('✅ Subformulario actualizado en documentoEdit:', this.documentoEdit[nombreCampo])
-},
 
-// 2. Mejorar el método getSubformDataForEdit para evitar problemas de tipo
-getSubformDataForEdit(fieldName) {
-  console.log(`🔍 Obteniendo datos de subformulario para: ${fieldName}`)
-  
-  let valor = this.documentoEdit[fieldName]
-  console.log(`📋 Valor actual:`, valor, typeof valor)
-  
-  // Si es string, intentar parsearlo
-  if (typeof valor === 'string') {
-    try {
-      valor = JSON.parse(valor)
-    } catch (e) {
-      console.warn('⚠️ Error parseando subformulario como JSON:', valor)
-      valor = []
-    }
-  }
-  
-  // Asegurar que sea array
-  if (Array.isArray(valor)) {
-    console.log(`✅ Retornando array con ${valor.length} elementos`)
-    return valor
-  }
-  
-  // Fallback: intentar usar editSubformData
-  if (this.editSubformData[fieldName] && Array.isArray(this.editSubformData[fieldName])) {
-    console.log(`🔄 Usando datos de editSubformData`)
-    return this.editSubformData[fieldName]
-  }
-  
-  console.log(`📭 Retornando array vacío para ${fieldName}`)
-  return []
-},
+      console.log('✅ Subformulario actualizado en documentoEdit:', this.documentoEdit[nombreCampo])
+    },
 
+    // 2. Mejorar el método getSubformDataForEdit para evitar problemas de tipo
+    getSubformDataForEdit(fieldName) {
+      console.log(`🔍 Obteniendo datos de subformulario para: ${fieldName}`)
+
+      let valor = this.documentoEdit[fieldName]
+      console.log(`📋 Valor actual:`, valor, typeof valor)
+
+      // Si es string, intentar parsearlo
+      if (typeof valor === 'string') {
+        try {
+          valor = JSON.parse(valor)
+        } catch (e) {
+          console.warn('⚠️ Error parseando subformulario como JSON:', valor)
+          valor = []
+        }
+      }
+
+      // Asegurar que sea array
+      if (Array.isArray(valor)) {
+        console.log(`✅ Retornando array con ${valor.length} elementos`)
+        return valor
+      }
+
+      // Fallback: intentar usar editSubformData
+      if (this.editSubformData[fieldName] && Array.isArray(this.editSubformData[fieldName])) {
+        console.log(`🔄 Usando datos de editSubformData`)
+        return this.editSubformData[fieldName]
+      }
+
+      console.log(`📭 Retornando array vacío para ${fieldName}`)
+      return []
+    },
 
     // ========== SUBMIT ==========
-async submitEdit() {
-  if (this.loading) return
+    async submitEdit() {
+      if (this.loading) return
 
-  // Validar que los subformularios tengan datos válidos
-  const camposSubform = this.seccionesPlantilla
-    .flatMap(s => s.fields || [])
-    .filter(c => c.type === 'subform')
-  
-  for (const campo of camposSubform) {
-    const valor = this.documentoEdit[campo.name]
-    if (valor && Array.isArray(valor)) {
-      // Filtrar filas vacías
-      this.documentoEdit[campo.name] = valor.filter(fila => {
-        return Object.values(fila).some(val => val && val !== '')
-      })
-    }
-  }
+      // Validar que los subformularios tengan datos válidos
+      const camposSubform = this.seccionesPlantilla
+        .flatMap((s) => s.fields || [])
+        .filter((c) => c.type === 'subform')
 
-  this.loading = true
-  try {
-    const formData = this.prepararFormData()
+      for (const campo of camposSubform) {
+        const valor = this.documentoEdit[campo.name]
+        if (valor && Array.isArray(valor)) {
+          // Filtrar filas vacías
+          this.documentoEdit[campo.name] = valor.filter((fila) => {
+            return Object.values(fila).some((val) => val && val !== '')
+          })
+        }
+      }
+
+      this.loading = true
+      try {
+        const formData = this.prepararFormData()
 
         // 👇👇👇 AGREGA ESTO PARA VER LO QUE SE ENVÍA 👇👇👇
-    const logObj = {}
-    for (const [key, value] of formData.entries()) {
-      logObj[key] = value instanceof File ? `[File: ${value.name}]` : value
-    }
-    console.log('🚀 Datos que se enviarán al backend:', logObj)
-    // 👆👆👆 FIN DEL BLOQUE DE LOG 👆👆👆
-    this.$emit('save', formData)
-  } catch (error) {
-    console.error('Error preparando datos:', error)
-    this.showError('Error al preparar los datos del documento')
-  } finally {
-    this.loading = false
-  }
-},
-
+        const logObj = {}
+        for (const [key, value] of formData.entries()) {
+          logObj[key] = value instanceof File ? `[File: ${value.name}]` : value
+        }
+        console.log('🚀 Datos que se enviarán al backend:', logObj)
+        // 👆👆👆 FIN DEL BLOQUE DE LOG 👆👆👆
+        this.$emit('save', formData)
+      } catch (error) {
+        console.error('Error preparando datos:', error)
+        this.showError('Error al preparar los datos del documento')
+      } finally {
+        this.loading = false
+      }
+    },
 
     // Métodos para tablas dinámicas - CORREGIDOS
     async abrirModalTabla(campo) {
@@ -1350,110 +1380,107 @@ async submitEdit() {
       }
     },
 
-
     // ========== PREPARAR FORM DATA ==========
 
     // 2. Corregir el método prepararFormData() para manejar subformularios correctamente
-prepararFormData() {
-  // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
+    prepararFormData() {
+      // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
       const fileMapping = {}
-  const formData = new FormData()
+      const formData = new FormData()
 
-  if (!Array.isArray(this.camposPlantilla.secciones)) {
-    console.warn('❌ Plantilla sin secciones')
-    return formData
-  }
-
-  // Agregar el ID del documento si existe
-  if (this.documentoEdit._id) {
-    formData.append('_id', this.documentoEdit._id)
-  }
-
-  this.camposPlantilla.secciones.forEach((seccion, indexSeccion) => {
-    const nombreSeccion = seccion.nombre
-    const fields = seccion.fields
-
-    if (Array.isArray(fields)) {
-      fields.forEach(campo => {
-        const nombreCampo = campo.name
-        const valor = this.documentoEdit[nombreCampo]
-        
-        // Skip _id field ya que lo manejamos arriba
-        if (nombreCampo === '_id') return
-
-        const clave = `document_data[secciones][${indexSeccion}][fields][${nombreCampo}]`
-
-        if (campo.type === 'subform' && valor) {
-          // Manejar subformularios
-          this.procesarSubformularioEnFormData(formData, clave, valor, campo)
-        } else if (campo.type === 'file') {
-  const archivos = this.files[campo.name]
-  const clave = `document_data[secciones][${indexSeccion}][fields][${nombreCampo}]`
-
-  if (archivos && Array.isArray(archivos) && archivos.length > 0) {
-    // Enviar los archivos reales
-    if (archivos.length === 1) {
-      const archivo = archivos[0]
-      if (archivo instanceof File) {
-        const uniqueFieldName = `file_${campo.name}`
-        formData.append(`files[${uniqueFieldName}]`, archivo)
-        // El campo en document_data se envía como null (el backend lo reemplazará)
-        formData.append(clave, 'null') // o simplemente no enviarlo, pero mejor enviar null
-      } else {
-        // Es una ruta existente (string), mantenerla
-        formData.append(clave, archivo)
+      if (!Array.isArray(this.camposPlantilla.secciones)) {
+        console.warn('❌ Plantilla sin secciones')
+        return formData
       }
-    } else {
-      // Múltiples archivos → enviar como array vacío o null según backend
-      archivos.forEach((archivo, idx) => {
-        if (archivo instanceof File) {
-          const uniqueFieldName = `file_${campo.name}_${idx}`
-          formData.append(`files[${uniqueFieldName}]`, archivo)
+
+      // Agregar el ID del documento si existe
+      if (this.documentoEdit._id) {
+        formData.append('_id', this.documentoEdit._id)
+      }
+
+      this.camposPlantilla.secciones.forEach((seccion, indexSeccion) => {
+        const nombreSeccion = seccion.nombre
+        const fields = seccion.fields
+
+        if (Array.isArray(fields)) {
+          fields.forEach((campo) => {
+            const nombreCampo = campo.name
+            const valor = this.documentoEdit[nombreCampo]
+
+            // Skip _id field ya que lo manejamos arriba
+            if (nombreCampo === '_id') return
+
+            const clave = `document_data[secciones][${indexSeccion}][fields][${nombreCampo}]`
+
+            if (campo.type === 'subform' && valor) {
+              // Manejar subformularios
+              this.procesarSubformularioEnFormData(formData, clave, valor, campo)
+            } else if (campo.type === 'file') {
+              const archivos = this.files[campo.name]
+              const clave = `document_data[secciones][${indexSeccion}][fields][${nombreCampo}]`
+
+              if (archivos && Array.isArray(archivos) && archivos.length > 0) {
+                // Enviar los archivos reales
+                if (archivos.length === 1) {
+                  const archivo = archivos[0]
+                  if (archivo instanceof File) {
+                    const uniqueFieldName = `file_${campo.name}`
+                    formData.append(`files[${uniqueFieldName}]`, archivo)
+                    // El campo en document_data se envía como null (el backend lo reemplazará)
+                    formData.append(clave, 'null') // o simplemente no enviarlo, pero mejor enviar null
+                  } else {
+                    // Es una ruta existente (string), mantenerla
+                    formData.append(clave, archivo)
+                  }
+                } else {
+                  // Múltiples archivos → enviar como array vacío o null según backend
+                  archivos.forEach((archivo, idx) => {
+                    if (archivo instanceof File) {
+                      const uniqueFieldName = `file_${campo.name}_${idx}`
+                      formData.append(`files[${uniqueFieldName}]`, archivo)
+                    }
+                  })
+                  // Indicar que el campo debe ser un array vacío (o según lógica del backend)
+                  formData.append(clave, JSON.stringify([]))
+                }
+              } else {
+                // No hay nuevos archivos → enviar null para mantener o limpiar
+                formData.append(clave, 'null')
+              }
+            } else if (campo.type === 'tabla') {
+              // CORRECCIÓN CRÍTICA: Obtener TODAS las filas (existentes + nuevas)
+              const tablaFilas = this.tablaData[nombreCampo] || []
+              console.log(`🔄 Procesando campo tabla: ${nombreCampo}`, tablaFilas)
+
+              // Extraer todos los IDs (tanto los que ya existían como los nuevos)
+              /**/
+              const tablaIds = tablaFilas
+                .map((fila) => fila._documentId || fila._id || fila.id)
+                .filter((id) => id)
+
+              console.log(`📋 Campo ${nombreCampo}: enviando ${tablaIds.length} IDs`, tablaIds)
+
+              // Enviar cada ID como elemento del array
+              if (tablaIds.length > 0) {
+                tablaIds.forEach((id) => {
+                  formData.append(`${clave}[]`, id)
+                })
+              } else {
+                // Si no hay IDs, enviar array vacío explícito para limpiar
+                formData.append(`${clave}`, JSON.stringify([]))
+              }
+            } else if (valor !== null && valor !== undefined && valor !== '') {
+              const valorFinal = typeof valor === 'object' ? JSON.stringify(valor) : valor
+              formData.append(clave, valorFinal)
+            }
+          })
         }
+
+        formData.append(`document_data[secciones][${indexSeccion}][nombre]`, nombreSeccion)
       })
-      // Indicar que el campo debe ser un array vacío (o según lógica del backend)
-      formData.append(clave, JSON.stringify([]))
-    }
-  } else {
-    // No hay nuevos archivos → enviar null para mantener o limpiar
-    formData.append(clave, 'null')
-  }
-}else if (campo.type === 'tabla') {
-          // CORRECCIÓN CRÍTICA: Obtener TODAS las filas (existentes + nuevas)
-          const tablaFilas = this.tablaData[nombreCampo] || []
-console.log(`🔄 Procesando campo tabla: ${nombreCampo}`, tablaFilas)
 
-          // Extraer todos los IDs (tanto los que ya existían como los nuevos)
-          /**/
-          const tablaIds = tablaFilas
-            .map(fila => fila._documentId || fila._id || fila.id)
-            .filter(id => id)
-
-          console.log(`📋 Campo ${nombreCampo}: enviando ${tablaIds.length} IDs`, tablaIds)
-
-          // Enviar cada ID como elemento del array
-          if (tablaIds.length > 0) {
-            tablaIds.forEach(id => {
-              formData.append(`${clave}[]`, id)
-            })
-          } else {
-            // Si no hay IDs, enviar array vacío explícito para limpiar
-            formData.append(`${clave}`, JSON.stringify([]))
-          }
-
-        } 
-else if (valor !== null && valor !== undefined && valor !== '') {
-          const valorFinal = typeof valor === 'object' ? JSON.stringify(valor) : valor
-          formData.append(clave, valorFinal)
-        }
-      })
-    }
-
-    formData.append(`document_data[secciones][${indexSeccion}][nombre]`, nombreSeccion)
-  })
-
-  return formData
-},
+      return formData
+    },
 
     agregarCampoAFormData(formData, campo, valor) {
       if (campo === '_id') return
@@ -1474,66 +1501,71 @@ else if (valor !== null && valor !== undefined && valor !== '') {
       }
     },
     // Método recursivo para procesar subformularios en FormData
-procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
-  if (Array.isArray(valor)) {
-    // Si es un array, iteramos sus elementos
-    valor.forEach((fila, filaIndex) => {
-      if (!fila || typeof fila !== 'object') return
+    procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
+      if (Array.isArray(valor)) {
+        // Si es un array, iteramos sus elementos
+        valor.forEach((fila, filaIndex) => {
+          if (!fila || typeof fila !== 'object') return
 
-      Object.entries(fila).forEach(([subcampoNombre, subcampoValor]) => {
-        const claveCompleta = `${claveBase}[${filaIndex}][${subcampoNombre}]`
-        const subcampoConfig = campo.subcampos?.find(sc => sc.name === subcampoNombre)
+          Object.entries(fila).forEach(([subcampoNombre, subcampoValor]) => {
+            const claveCompleta = `${claveBase}[${filaIndex}][${subcampoNombre}]`
+            const subcampoConfig = campo.subcampos?.find((sc) => sc.name === subcampoNombre)
 
-        // Llamada recursiva si es subform
-        if (subcampoConfig?.type === 'subform' && Array.isArray(subcampoValor)) {
-          this.procesarSubformularioEnFormData(formData, claveCompleta, subcampoValor, subcampoConfig)
-        }
-        
-        // ✅ MANEJO DE TABLA DENTRO DE SUBFORMULARIO (SOLO IDS)
-        else if (subcampoConfig?.type === 'tabla') {
-          // subcampoValor YA DEBE SER UN ARRAY DE IDS (strings)
-          let ids = []
-          if (Array.isArray(subcampoValor)) {
-            ids = subcampoValor.filter(id => id) // elimina null, undefined, ""
-          } else if (typeof subcampoValor === 'string') {
-            // En caso de que venga como JSON string (fallback)
-            try {
-              ids = JSON.parse(subcampoValor).filter(id => id)
-            } catch {
-              ids = []
+            // Llamada recursiva si es subform
+            if (subcampoConfig?.type === 'subform' && Array.isArray(subcampoValor)) {
+              this.procesarSubformularioEnFormData(
+                formData,
+                claveCompleta,
+                subcampoValor,
+                subcampoConfig,
+              )
             }
-          }
 
-          if (ids.length > 0) {
-            ids.forEach(id => {
-              formData.append(`${claveCompleta}[]`, id)
-            })
-          } else {
-            // Opcional: enviar array vacío para limpiar
-            formData.append(`${claveCompleta}`, JSON.stringify([]))
-          }
-        }
-        
-        
-        else if (subcampoConfig?.type === 'file' && subcampoValor instanceof File) {
-          formData.append(claveCompleta, subcampoValor)
-        } else if (subcampoValor !== null && subcampoValor !== undefined && subcampoValor !== '') {
-          const valorFinal = typeof subcampoValor === 'object' ? JSON.stringify(subcampoValor) : subcampoValor
-          formData.append(claveCompleta, valorFinal)
-        }
-      })
-    })
-  } else {
-    console.warn('⚠️ Valor de subformulario no es array:', valor)
-  }
-},
+            // ✅ MANEJO DE TABLA DENTRO DE SUBFORMULARIO (SOLO IDS)
+            else if (subcampoConfig?.type === 'tabla') {
+              // subcampoValor YA DEBE SER UN ARRAY DE IDS (strings)
+              let ids = []
+              if (Array.isArray(subcampoValor)) {
+                ids = subcampoValor.filter((id) => id) // elimina null, undefined, ""
+              } else if (typeof subcampoValor === 'string') {
+                // En caso de que venga como JSON string (fallback)
+                try {
+                  ids = JSON.parse(subcampoValor).filter((id) => id)
+                } catch {
+                  ids = []
+                }
+              }
 
-   
+              if (ids.length > 0) {
+                ids.forEach((id) => {
+                  formData.append(`${claveCompleta}[]`, id)
+                })
+              } else {
+                // Opcional: enviar array vacío para limpiar
+                formData.append(`${claveCompleta}`, JSON.stringify([]))
+              }
+            } else if (subcampoConfig?.type === 'file' && subcampoValor instanceof File) {
+              formData.append(claveCompleta, subcampoValor)
+            } else if (
+              subcampoValor !== null &&
+              subcampoValor !== undefined &&
+              subcampoValor !== ''
+            ) {
+              const valorFinal =
+                typeof subcampoValor === 'object' ? JSON.stringify(subcampoValor) : subcampoValor
+              formData.append(claveCompleta, valorFinal)
+            }
+          })
+        })
+      } else {
+        console.warn('⚠️ Valor de subformulario no es array:', valor)
+      }
+    },
 
     procesarSubformularioDentroDeDocumentData(formData, campo, valor) {
       if (Array.isArray(valor)) {
         valor.forEach((row, rowIndex) => {
-          Object.keys(row).forEach(subcampo => {
+          Object.keys(row).forEach((subcampo) => {
             const subvalor = row[subcampo]
             const clave = `document_data[${campo}][${rowIndex}][${subcampo}]`
 
@@ -1546,7 +1578,7 @@ procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
         })
       }
     },
-    
+
     // ========== UI HELPERS ==========
     showSuccess(message) {
       Swal.fire({
@@ -1554,7 +1586,7 @@ procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
         text: message,
         icon: 'success',
         confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#6c757d'
+        confirmButtonColor: '#6c757d',
       })
     },
 
@@ -1564,14 +1596,12 @@ procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
         text: message,
         icon: 'error',
         confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#6c757d'
+        confirmButtonColor: '#6c757d',
       })
-    }
-  }
+    },
+  },
 }
 </script>
-
-
 
 <style scoped>
 /* Header con el diseño moderno - CAMBIADO A GRIS */
@@ -1588,7 +1618,6 @@ procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
 /* Modal con diseño moderno */
 .modal.fade.show {
   background: rgba(0, 0, 0, 0.6);
-  
 }
 
 .modern-modal {
@@ -1661,7 +1690,6 @@ procesarSubformularioEnFormData(formData, claveBase, valor, campo) {
   position: relative;
   overflow: hidden;
 }
-
 
 /* Vista previa de archivos */
 .file-preview {
