@@ -33,7 +33,7 @@ export const RolService = {
         try {
             // Obtenemos la respuesta de la api
             const { data } = await rolApi.getRoles();
-
+            console.log(data)
             // Separamos los roles de la respuesta
             const roles: Rol[] = data.roles;
 
@@ -44,6 +44,30 @@ export const RolService = {
             rolState.roles = [];
         } finally {
             // nothing
+        }
+    },
+
+    /**
+     * Consigue un rol en especifico
+     */
+
+    async fetchRol(rolID: string) {
+        try {
+            // Obtenemos la respuesta de la api
+            const { response } = await rolApi.getRol(rolID);
+
+            console.log('Respuetaa')
+            console.log(response)
+
+            // Separamos el rol de la respuesta
+            const rol: Rol = response.rol;
+
+            // Retornamos el rol
+            return rol;
+        } catch (error) {
+            console.error("Error al obtener el rol", error);
+
+            return null;
         }
     },
 

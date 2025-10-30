@@ -9,7 +9,7 @@
                             <i class="fas fa-eye"></i>
                         </div>
                         <div class="header-title-section">
-                            <h3>Rol {nombre-rol} </h3>
+                            <h3>Rol {{ rol?.nombre }} </h3>
                         </div>
                     </div>
                     <button @click="cerrar" type="button" class="close-button" aria-label="Close">
@@ -44,28 +44,41 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import type { Rol } from '@/models/rol'
+import { RolService } from '@/services/Administracion/rol.service'
 
 export default defineComponent({
-  name: 'ModalVistaRol',
-
-  props: {
-    visible: {
-      type: Boolean,
-      required: true
+    name: 'ModalVistaRol',
+    data() {
+        return {
+            /** El rol seleccionado actual */
+            rol: null as Rol | null
+        }
     },
-    rolID: {
-        type: String,
-        required: false
-    }
-  },
 
-  emits: ['close'],
+    props: {
+        visible: {
+            type: Boolean,
+            required: true
+        },
+        rolID: {
+            type: String,
+            required: false,
+            default: ''
+        }
+    },
 
-  methods: {
-    cerrar() {
-      this.$emit('close')
+    emits: ['close'],
+
+    methods: {
+        cerrar() {
+            this.$emit('close')
+        }
+    },
+
+    async mounted() {
+        this.rol = await RolService.fetchRol(this.rolID); // trae y actualiza automáticamente el state
     }
-  },
 })
 
 </script>
