@@ -73,158 +73,7 @@
             </div>
           </div>
 
-          <!-- Sección de permisos -->
-          <div class="form-section">
-            <h6 class="section-title">
-              <i class="fas fa-shield-alt me-2"></i>
-              Permisos del Rol
-            </h6>
-
-            <!-- Selector de recurso -->
-            <div class="row g-3 mb-4">
-              <div class="col-md-6">
-                <label class="form-label">Seleccionar Recurso</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-database"></i>
-                  </span>
-                  <select
-                    v-model="selectedResource"
-                    class="form-control"
-                    @change="onResourceChange"
-                  >
-                    <option value="">Seleccione un recurso</option>
-                    <option v-for="recurso in recursos" :key="recurso.id" :value="recurso.id">
-                      {{ recurso.nombre }} - {{ recurso.descripcion }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6 d-flex align-items-end">
-                <button
-                  type="button"
-                  class="btn btn-primary"
-                  @click="addResourcePermission"
-                  :disabled="!selectedResource"
-                >
-                  <i class="fas fa-plus me-2"></i>
-                  Agregar Recurso
-                </button>
-              </div>
-            </div>
-
-            <!-- Lista de recursos asignados -->
-            <div v-if="permisos.length > 0" class="assigned-resources">
-              <h6 class="mb-3">
-                <i class="fas fa-list me-2"></i>
-                Recursos Asignados ({{ permisos.length }})
-              </h6>
-
-              <div
-                v-for="(permiso, index) in permisos"
-                :key="index"
-                class="resource-permission-card mb-3"
-              >
-                <div class="resource-header">
-                  <div class="resource-info">
-                    <h6 class="resource-name">
-                      {{ getResourceName(permiso.recurso) }}
-                    </h6>
-                    <p class="resource-description">
-                      {{ getResourceDescription(permiso.recurso) }}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-danger"
-                    @click="removeResourcePermission(index)"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-
-                <!-- Grid de acciones dinámico -->
-                <div class="permissions-grid">
-                  <div v-for="accion in acciones" :key="accion.id" class="permission-item">
-                    <label class="checkbox-container">
-                      <input
-                        type="checkbox"
-                        class="custom-checkbox"
-                        v-model="permiso.acciones"
-                        :value="accion.id"
-                        :disabled="hasWildcardPermission(permiso.acciones)"
-                      />
-                      <span class="checkmark"></span>
-                      <div class="permission-content">
-                        <span class="permission-title">
-                          <i :class="getActionIcon(accion.nombre)" class="me-2"></i>
-                          {{ capitalizeFirst(accion.nombre) }}
-                        </span>
-                        <span class="permission-description">{{ accion.descripcion }}</span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                <!-- Resumen de permisos seleccionados -->
-                <div v-if="permiso.acciones.length > 0" class="permissions-summary mt-2">
-                  <small class="text-muted">
-                    <i class="fas fa-check-circle me-1"></i>
-                    {{ permiso.acciones.length }} acción(es) seleccionada(s)
-                  </small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Estado cuando no hay permisos -->
-            <div v-else class="no-permissions-state">
-              <div class="text-center py-5">
-                <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
-                <h6 class="text-muted">No hay permisos asignados</h6>
-                <p class="text-muted small">
-                  Selecciona un recurso y agrégalo para comenzar a configurar los permisos
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Vista previa del JSON (opcional - para desarrollo) -->
-          <div v-if="showPreview" class="form-section">
-            <h6 class="section-title">
-              <i class="fas fa-code me-2"></i>
-              Vista Previa del JSON
-            </h6>
-            <div class="json-preview">
-              <pre>{{ getPreviewJson() }}</pre>
-            </div>
-          </div>
-
-          <!-- Footer con botones -->
-          <div class="medico-footer">
-            <button type="button" class="btn btn-secondary me-2" @click="togglePreview">
-              <i class="fas fa-eye me-2"></i>
-              {{ showPreview ? 'Ocultar' : 'Ver' }} Preview
-            </button>
-            <button type="button" class="btn btn-cancel" @click="resetForm">
-              <i class="fas fa-eraser me-2"></i>
-              Limpiar Formulario
-            </button>
-            <button
-              type="submit"
-              class="btn btn-save"
-              :disabled="!canSubmit"
-              @mouseenter="isHovered = true"
-              @mouseleave="isHovered = false"
-            >
-              <span v-if="!isHovered" class="default-icon">
-                <i class="fas fa-user-tag me-2"></i>
-              </span>
-              <span v-else class="hover-icon">
-                <i class="fas fa-check me-2"></i>
-              </span>
-              Crear Rol
-            </button>
-          </div>
+          <AsignarPermisos/>
         </form>
       </div>
     </div>
@@ -234,8 +83,12 @@
 <script>
 import Swal from 'sweetalert2'
 import axios from 'axios'
+import AsignarPermisos from '@/components/Administracion/AsignarPermisos.vue';
 
 export default {
+  components: {
+    AsignarPermisos,
+  },
   data() {
     return {
       // Campos básicos del rol
