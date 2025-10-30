@@ -19,32 +19,6 @@
         <div class="tabs-header">
           <div
             class="tab"
-            :class="{ active: $route.name === 'CrearUsuarios' }"
-            @click="$router.push({ name: 'CrearUsuarios' })"
-          >
-            <div class="tab-icon">
-              <i class="fas fa-user-plus"></i>
-            </div>
-            <div class="tab-content-text">
-              <span class="tab-title">Crear usuario</span>
-              <span class="tab-description">Crea un usuario para el sistema</span>
-            </div>
-          </div>
-          <div
-            class="tab"
-            :class="{ active: $route.name === 'AsignarPermisos' }"
-            @click="$router.push({ name: 'AsignarPermisos' })"
-          >
-            <div class="tab-icon">
-              <i class="fas fa-user-plus"></i>
-            </div>
-            <div class="tab-content-text">
-              <span class="tab-title">Asignar Permisos</span>
-              <span class="tab-description">Asignale Permisos y Recursos a un usuario</span>
-            </div>
-          </div>
-          <div
-            class="tab"
             :class="{ active: $route.name === 'VerUsuarios' }"
             @click="$router.push({ name: 'VerUsuarios' })"
           >

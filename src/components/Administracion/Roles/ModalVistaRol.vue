@@ -16,22 +16,17 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-
                 <!-- Body del modal con el diseño moderno -->
                 <div class="medico-body modal-body-custom">
-                    <!-- Nota informativa -->
-                    <div class="alert alert-info mb-4">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <span> ID DEL ROL {{ rolID }}</span>
+                    <div class="form-section">
+                        <h1 class="section-title">Descripción</h1>
+                        <span class="form-label">{{ rol?.descripcion }}</span>
                     </div>
-
-                    <h3>Descripción</h3>
-                    <span>{{ rol?.descripcion }}</span>
-                    <div v-if="rol?.permisos?.allowed">
-                        <h3>Permisos concedidos</h3>
-                        <div v-for="permiso in rol?.permisos?.allowed">
-                            <h4>{{ permiso?.recurso?.nombre }}</h4>
-                            <span>{{ permiso?.recurso?.descripcion }}</span>
+                    <div v-if="rol?.permisos?.allowed" class="form-section">
+                        <h1 class="section-title">Permisos concedidos</h1>
+                        <div v-for="permiso in rol?.permisos?.allowed" class="form-section mt-1">
+                            <h2 class="form-label">{{ permiso?.recurso?.nombre }}</h2>
+                            <span class="section-title">{{ permiso?.recurso?.descripcion }}</span>
                             <div>
                                 <ol>
                                     <li v-for="accion in permiso?.acciones">
@@ -364,7 +359,7 @@ export default defineComponent({
     margin-bottom: 2rem;
     padding: 1.5rem;
     background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
-    border-radius: 16px;
+    border-radius: 0px 0px 16px 16px;
     border: 1px solid rgba(0, 0, 0, 0.05);
     position: relative;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -377,7 +372,7 @@ export default defineComponent({
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #4e73df, #224abe);
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
     border-radius: 16px 16px 0 0;
 }
 
