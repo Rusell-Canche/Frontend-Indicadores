@@ -29,11 +29,7 @@
                     <div class="medico-footer">
                         <button @click="cerrar" class="btn btn-cancel" type="button">
                             <i class="fas fa-times me-2"></i>
-                            Cancelar
-                        </button>
-                        <button class="btn btn-save" type="button">
-                            <i class="fas fa-save me-2"></i>
-                            Guardar Cambios
+                            Cerrar
                         </button>
                     </div>
                 </div>
@@ -43,7 +39,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, watch } from 'vue'
 import type { Rol } from '@/models/rol'
 import { RolService } from '@/services/Administracion/rol.service'
 
@@ -70,6 +66,11 @@ export default defineComponent({
 
     emits: ['close'],
 
+  watch: {
+    rolID() {
+        
+    }
+  },
     methods: {
         cerrar() {
             this.$emit('close')
