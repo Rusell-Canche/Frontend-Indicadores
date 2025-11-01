@@ -21,14 +21,12 @@
                     </div>
                 </TabPanel>
                 <TabPanel value="1">
-                    <div class="m-0">
-                        Aqui formulario de rutas
-                    </div>
                     <div class="recursos-permisos">
-                        <Accordion value="0">
-                            <AccordionPanel v-for="recurso in recursos" :key="recurso._id" :value="recurso.nombre">
+                        <Accordion :value="['0']" multiple>
+                            <AccordionPanel v-for="recurso in recursos" :key="recurso._id" :value="recurso.nombre" class="m-0" >
                                 <AccordionHeader>{{ recurso.nombre }}</AccordionHeader>
                                 <AccordionContent>
+                                    <span class="form-label">{{ recurso?.descripcion }}</span>
                                     <div class="acciones">
                                         <label v-for="accion in acciones" :key="accion._id" class="me-3">
                                             <input type="checkbox" :value="accion._id" />
@@ -53,8 +51,6 @@
 
 <script lang="ts">
 import { defineComponent, watch } from 'vue'
-import type { Rol } from '@/models/rol'
-import { RolService } from '@/services/Administracion/rol.service'
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
@@ -64,6 +60,10 @@ import Accordion from 'primevue/accordion';
 import AccordionPanel from 'primevue/accordionpanel';
 import AccordionHeader from 'primevue/accordionheader';
 import AccordionContent from 'primevue/accordioncontent';
+import { RecursoService, recursoState } from '../../services/Administracion/recurso.service';
+import { AccionService, accionesState } from '@/services/Administracion/accion.service';
+import type { Recurso } from '@/models/recurso';
+import type { Accion } from '@/models/accion';
 
 export default defineComponent({
     name: 'AsignarPermisos',
@@ -80,6 +80,15 @@ export default defineComponent({
     },
     data() {
         return {
+            /** Comunicacion con el estado del servicio de recursos */
+            recursoState,
+            accionesState,
+            /** Lista de recursos */
+            recursos: [] as Recurso[],
+
+            /**LIsta de acciones */
+            acciones: [] as Accion[],
+
             uiPermissions: {
                 'Indicadores': true,
                 'Plantillas': true,
@@ -87,14 +96,6 @@ export default defineComponent({
                 'Reportes': true,
                 'Estadisticas': true
             },
-            recursos: [
-                { 'nombre': 'Indicadores', '_id': '123123' },
-                { 'nombre': 'Recursos', '_id': '123123' }
-            ],
-            acciones: [
-                { 'nombre': 'Leer', '_id': '123456' },
-                { 'nombre': 'Escribir', '_id': '112341234' }
-            ],
 
             permisosGlobales: {},
             permisosIndividuales: {},
@@ -114,13 +115,31 @@ export default defineComponent({
 
     },
 
-    mounted() {
+    async mounted() {
+        /**COnseguimos los recursos del sistema */
+        await RecursoService.fetchRecursos();
+        this.recursos = recursoState.recursos ?? [];
 
+        await AccionService.fetchAcciones();
+        this.acciones = accionesState.acciones ?? [];
     }
 })
 
 </script>
 <style scoped>
+
+/** Sobrescribir estilos de p-panel (ESTO NORMALMENTE NO SE HACE)
+    Pero en este caso hay un estilo que se sobrepone que no encuentro
+*/
+.p-accordionpanel {
+    display: flex
+;
+    flex-direction: column;
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    border-color: #e2e8f0;
+}
+
 /* Estilos base del diseño moderno */
 .card {
     border-radius: 20px;
