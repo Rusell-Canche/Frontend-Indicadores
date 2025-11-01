@@ -8,19 +8,38 @@
             </TabList>
             <TabPanels>
                 <TabPanel value="0">
-                    <div class="m-0">
-                        <ol>
-                            <li>Indicadores</li>
-                            <li>Plantillas</li>
-                            <li>Documentos</li>
-                            <li>Indicadores</li>
-                        </ol>
+                    <div class="ui-permissions m-0">
+                        <h5>Permisos de interfaz</h5>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div v-for="(valor, clave) in uiPermissions" :key="clave">
+                                <label>
+                                    <input type="checkbox" v-model="uiPermissions[clave]" />
+                                    {{ clave.charAt(0).toUpperCase() + clave.slice(1) }}
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </TabPanel>
                 <TabPanel value="1">
                     <div class="m-0">
                         Aqui formulario de rutas
                     </div>
+                    <div class="recursos-permisos">
+                        <Accordion value="0">
+                            <AccordionPanel v-for="recurso in recursos" :key="recurso._id" :value="recurso.nombre">
+                                <AccordionHeader>{{ recurso.nombre }}</AccordionHeader>
+                                <AccordionContent>
+                                    <div class="acciones">
+                                        <label v-for="accion in acciones" :key="accion._id" class="me-3">
+                                            <input type="checkbox" :value="accion._id" />
+                                            {{ accion.nombre }}
+                                        </label>
+                                    </div>
+                                </AccordionContent>
+                            </AccordionPanel>
+                        </Accordion>
+                    </div>
+
                 </TabPanel>
                 <TabPanel value="2">
                     <p class="m-0">
@@ -41,6 +60,10 @@ import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
+import Accordion from 'primevue/accordion';
+import AccordionPanel from 'primevue/accordionpanel';
+import AccordionHeader from 'primevue/accordionheader';
+import AccordionContent from 'primevue/accordioncontent';
 
 export default defineComponent({
     name: 'AsignarPermisos',
@@ -49,13 +72,35 @@ export default defineComponent({
         TabList,
         Tab,
         TabPanels,
-        TabPanel
+        TabPanel,
+        Accordion,
+        AccordionPanel,
+        AccordionHeader,
+        AccordionContent
     },
     data() {
         return {
-            /** El rol seleccionado actual */
+            uiPermissions: {
+                'Indicadores': true,
+                'Plantillas': true,
+                'Documentos': true,
+                'Reportes': true,
+                'Estadisticas': true
+            },
+            recursos: [
+                { 'nombre': 'Indicadores', '_id': '123123' },
+                { 'nombre': 'Recursos', '_id': '123123' }
+            ],
+            acciones: [
+                { 'nombre': 'Leer', '_id': '123456' },
+                { 'nombre': 'Escribir', '_id': '112341234' }
+            ],
+
+            permisosGlobales: {},
+            permisosIndividuales: {},
         }
     },
+
 
     props: {
     },
