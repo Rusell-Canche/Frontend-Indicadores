@@ -677,7 +677,7 @@
            <!-- Tabla PrimeVue -->
         <DataTable v-if="tablaDinamica && tablaDinamica.length" :value="tablaDinamica" showGridlines responsiveLayout="scroll">
           <Column
-            v-for="key in Object.keys(tablaDinamica[0])"
+            v-for="key in Object.keys(tablaDinamica[0]).filter(k => k !== '_documentId')"
             :key="key"
             :field="key"
             :header="key"
