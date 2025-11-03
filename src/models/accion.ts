@@ -5,7 +5,7 @@
  */
 export interface Accion {
     /** ID de la accion */
-    _id: string,
+    id: string,
     /** Clave interna de la accion */
     clave: string,
     /** Nombre del comodin */

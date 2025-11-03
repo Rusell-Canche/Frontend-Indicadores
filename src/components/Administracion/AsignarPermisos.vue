@@ -20,16 +20,19 @@
                         </div>
                     </div>
                 </TabPanel>
+                <!-- Permisos para manejar rutas -->
                 <TabPanel value="1">
                     <div class="recursos-permisos">
                         <Accordion :value="['0']" multiple>
-                            <AccordionPanel v-for="recurso in recursos" :key="recurso._id" :value="recurso.nombre" class="m-0" >
+                            <AccordionPanel v-for="recurso in recursos" :key="recurso.id" :value="recurso.nombre"
+                                class="m-0">
                                 <AccordionHeader>{{ recurso.nombre }}</AccordionHeader>
                                 <AccordionContent>
                                     <span class="form-label">{{ recurso?.descripcion }}</span>
                                     <div class="acciones">
-                                        <label v-for="accion in acciones" :key="accion._id" class="me-3">
-                                            <input type="checkbox" :value="accion._id" />
+                                        <label v-for="accion in acciones" :key="accion.id" class="me-3">
+                                            <input type="checkbox" :value="accion.id"
+                                                v-model="permisosGlobales[recurso.id]" />
                                             {{ accion.nombre }}
                                         </label>
                                     </div>
@@ -40,12 +43,39 @@
 
                 </TabPanel>
                 <TabPanel value="2">
-                    <p class="m-0">
-                        Aqui formulario de registros
-                    </p>
+                    <div class="registros-permisos">
+                        <div class="mb-3">
+                            <label>Tipo de recurso:</label>
+                            <select v-model="tipoSeleccionado">
+                                <option value="plantilla">Plantillas</option>
+                                <option value="documento">Documentos</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <Accordion :value="['0']" multiple>
+                                <AccordionPanel v-for="plantilla in plantillas" :key="plantilla.id"
+                                    :value="plantilla.nombre_plantilla" class="m-0">
+                                    <AccordionHeader>{{ plantilla.nombre_plantilla }}</AccordionHeader>
+                                    <AccordionContent>
+                                        <div class="acciones">
+                                            <label v-for="accion in acciones" :key="accion.id" class="me-3">
+                                                <input type="checkbox" :value="accion.id"
+                                                    v-model="permisosIndividuales[tipoSeleccionado][plantilla?.id]" />
+                                                {{ accion.nombre }}
+                                            </label>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionPanel>
+                            </Accordion>
+                        </div>
+                    </div>
                 </TabPanel>
             </TabPanels>
         </Tabs>
+        <button @click="console.log(getPermisosFinales())" class="btn btn-primary">
+            Ver permisos generados
+        </button>
     </div>
 </template>
 
@@ -62,8 +92,10 @@ import AccordionHeader from 'primevue/accordionheader';
 import AccordionContent from 'primevue/accordioncontent';
 import { RecursoService, recursoState } from '../../services/Administracion/recurso.service';
 import { AccionService, accionesState } from '@/services/Administracion/accion.service';
+import { PlantillaService, plantillaState } from '@/services/Administracion/plantilla.service';
 import type { Recurso } from '@/models/recurso';
 import type { Accion } from '@/models/accion';
+import type { Plantilla } from '@/models/plantilla';
 
 export default defineComponent({
     name: 'AsignarPermisos',
@@ -83,35 +115,68 @@ export default defineComponent({
             /** Comunicacion con el estado del servicio de recursos */
             recursoState,
             accionesState,
+            plantillaState,
             /** Lista de recursos */
             recursos: [] as Recurso[],
 
             /**LIsta de acciones */
             acciones: [] as Accion[],
 
+            /** Lista de plantillas */
+            plantillas: [] as Plantilla[],
+
             uiPermissions: {
-                'Indicadores': true,
-                'Plantillas': true,
-                'Documentos': true,
-                'Reportes': true,
-                'Estadisticas': true
+                'Indicadores': false,
+                'Plantillas': false,
+                'Documentos': false,
+                'Reportes': false,
+                'Estadisticas': false
             },
 
-            permisosGlobales: {},
-            permisosIndividuales: {},
+            permisosGlobales: {} as Record<string, string[]>,
+            permisosIndividuales: {
+                plantilla: {},
+                documento: {}
+            } as Record<'plantilla' | 'documento', Record<string, string[]>>,
+
+            tipoSeleccionado: 'plantilla',
         }
     },
-
 
     props: {
     },
 
     emits: [],
 
-    watch: {
-
-    },
     methods: {
+        getPermisosFinales() {
+            const allowed: { recurso: string; acciones: string[] }[] = [];
+
+            // Permisos globales
+            for (const [recurso, acciones] of Object.entries(this.permisosGlobales)) {
+                if (acciones.length) allowed.push({ recurso, acciones });
+            }
+
+            // Permisos individuales — con prefijo según tipo
+            for (const tipo of ['plantilla', 'documento']) {
+                for (const [recurso, acciones] of Object.entries(this.permisosIndividuales[tipo])) {
+                    if (acciones.length) {
+                        allowed.push({
+                            recurso: `${tipo}:${recurso}`, // prefijo
+                            acciones
+                        });
+                    }
+                }
+            }
+
+            return {
+                ui_permissions: this.uiPermissions,
+                permisos: {
+                    allowed,
+                    denied: []
+                }
+            };
+        },
 
     },
 
@@ -122,18 +187,58 @@ export default defineComponent({
 
         await AccionService.fetchAcciones();
         this.acciones = accionesState.acciones ?? [];
+
+        await PlantillaService.fetchPlantillas();
+        this.plantillas = plantillaState.plantillas ?? [];
+
+        this.recursos.forEach(r => {
+            this.permisosGlobales[r.id] = [];
+        });
+
+        const nuevosIndividuales = { plantilla: {}, documento: {} } as Record<'plantilla' | 'documento', Record<string, string[]>>;
+
+        this.plantillas.forEach(p => {
+            nuevosIndividuales.plantilla[p.id] = [];
+            nuevosIndividuales.documento[p.id] = [];
+        });
+
+        this.permisosIndividuales = nuevosIndividuales;
+
+
+    },
+
+    watch: {
+        uiPermissions: {
+            handler(newVal) {
+                //console.log('uiPermissions cambiado:', newVal);
+            },
+            deep: true, // ← Necesario para objetos
+            immediate: true // ← Ejecuta inmediatamente al montar
+        },
+        permisosGlobales: {
+            handler(newVal) {
+                //console.log('permisosGlobales cambiado:', newVal);
+            },
+            deep: true,
+            immediate: true
+        },
+        permisosIndividuales: {
+            handler(newVal) {
+                console.log('permisosIndividuales cambiado:', newVal);
+            },
+            deep: true,
+            immediate: true
+        }
     }
 })
 
 </script>
 <style scoped>
-
 /** Sobrescribir estilos de p-panel (ESTO NORMALMENTE NO SE HACE)
     Pero en este caso hay un estilo que se sobrepone que no encuentro
 */
 .p-accordionpanel {
-    display: flex
-;
+    display: flex;
     flex-direction: column;
     border-style: solid;
     border-width: 0 0 1px 0;

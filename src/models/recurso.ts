@@ -5,7 +5,7 @@
  */
 export interface Recurso {
     /** ID del recurso */
-    _id: string,
+    id: string,
     /** Clave interna del recurso */
     clave: string,
     /** Nombre del comodin */
