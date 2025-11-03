@@ -1,3 +1,5 @@
+import type { Accion } from "./accion";
+
 /**
  * Representa un Rol de usuario.
  * 
@@ -27,7 +29,7 @@ export interface Rol {
         descripcion?: string,
       };
       /** Acciones permitidas sobre el recurso */
-      acciones: string[];
+      acciones: Accion[];
     }[];
     /** Recursos denegados */
     denied?: {
