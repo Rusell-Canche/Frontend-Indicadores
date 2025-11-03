@@ -1,5 +1,18 @@
 <template>
     <div class="card">
+        <div class="mb-3 col-md-12" style="padding: 1.25rem 1.25rem 0rem 1.25rem;">
+            <label class="form-label">Modo de asignación</label>
+            <div class="input-group modern-input">
+                <span class="input-group-text">
+                    <i class="fas fa-font"></i>
+                </span>
+                <select v-model="modoSeleccionado" class="form-control">
+                    <option value="allowed">Permitir</option>
+                    <option value="denied">Negar</option>
+                </select>
+            </div>
+        </div>
+
         <Tabs value="0">
             <TabList>
                 <Tab value="0">Modulos</Tab>
@@ -44,12 +57,17 @@
                 </TabPanel>
                 <TabPanel value="2">
                     <div class="registros-permisos">
-                        <div class="mb-3">
-                            <label>Tipo de recurso:</label>
-                            <select v-model="tipoSeleccionado">
-                                <option value="plantilla">Plantillas</option>
-                                <option value="documento">Documentos</option>
-                            </select>
+                        <div class="mb-3 col-md-12">
+                            <label class="form-label">Tipo de recurso:</label>
+                            <div class="input-group modern-input">
+                                <span class="input-group-text">
+                                    <i class="fas fa-font"></i>
+                                </span>
+                                <select v-model="tipoSeleccionado" class="form-control">
+                                    <option value="plantilla">Plantillas</option>
+                                    <option value="documento">Documentos</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div>
@@ -140,6 +158,7 @@ export default defineComponent({
             } as Record<'plantilla' | 'documento', Record<string, string[]>>,
 
             tipoSeleccionado: 'plantilla',
+            modoSeleccionado: 'allowed'
         }
     },
 
@@ -252,11 +271,14 @@ export default defineComponent({
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
     background: white;
     position: relative;
+
+    /** VAriable para controlar el color principal */
+    --main-color: linear-gradient(135deg, #047857 0%, #065f46 100%);
 }
 
 /* Header con el diseño moderno usando #4e73df */
 .medico-header {
-    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    background: var(--main-color);
     padding: 2rem;
     display: flex;
     justify-content: space-between;
@@ -522,7 +544,7 @@ export default defineComponent({
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    background: var(--main-color);
     border-radius: 16px 16px 0 0;
 }
 
@@ -551,7 +573,7 @@ export default defineComponent({
 }
 
 .modern-input .input-group-text {
-    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    background: var(--main-color);
     border: none;
     color: white;
     border-radius: 12px 0 0 12px;
