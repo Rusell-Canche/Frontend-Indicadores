@@ -751,6 +751,31 @@ export default {
     },
   },
   methods: {
+
+  async onArchivoDesdeUrl(url, nombreSubcampo) {
+    try {
+      const originalUrl = 'http://127.0.0.1:8000/storage/' + url
+      const proxyUrl = `/api/proxy-file?url=${encodeURIComponent(originalUrl)}`
+      const response = await fetch('http://127.0.0.1:8000/api' + proxyUrl)
+
+      if (!response.ok) throw new Error(`Error: ${response.status}`)
+
+      const blob = await response.blob()
+      const urlPath = new URL(originalUrl).pathname
+      const fileName = urlPath.substring(urlPath.lastIndexOf('/') + 1) || 'archivo_descargado'
+      const file = new File([blob], fileName, { type: blob.type })
+
+      // Inicializar si no existe
+      if (!this.archivosSubformulario[nombreSubcampo]) {
+        this.archivosSubformulario[nombreSubcampo] = []
+      }
+
+      this.archivosSubformulario[nombreSubcampo].push(file)
+      this.datosTemporales[nombreSubcampo] = [...this.archivosSubformulario[nombreSubcampo]]
+    } catch (error) {
+      console.error('❌ Error al cargar archivo desde URL en subformulario:', error)
+    }
+  },
     // Métodos para manejar opciones de checkbox y select
     getSaveValue(option, campo) {
       if (typeof option === 'string') {
@@ -947,25 +972,40 @@ export default {
     editarEntrada(index) {
       this.indiceEditando = index
       this.datosTemporales = { ...this.filas[index] }
+      this.archivosSubformulario = {}
 
       // INICIALIZAR ARCHIVOS INTERNOS DESDE DATOS EXISTENTES
       this.archivosSubformulario = {}
       this.campo.subcampos.forEach((sub) => {
-        if (sub.type === 'file') {
-          const archivosExistentes = this.datosTemporales[sub.name] || []
+         if (sub.type === 'file') {
+      const archivosExistentes = this.datosTemporales[sub.name] || []
+      const listaArchivos = Array.isArray(archivosExistentes)
+        ? archivosExistentes
+        : archivosExistentes
+          ? [archivosExistentes]
+          : []
 
-          // Asegurar que sea un array
-          if (Array.isArray(archivosExistentes)) {
-            this.archivosSubformulario[sub.name] = [...archivosExistentes]
-          } else if (archivosExistentes) {
-            // Si es un solo archivo (compatibilidad), convertirlo a array
-            this.archivosSubformulario[sub.name] = [archivosExistentes]
-            this.datosTemporales[sub.name] = [archivosExistentes]
-          } else {
-            this.archivosSubformulario[sub.name] = []
-            this.datosTemporales[sub.name] = []
-          }
+      // Limpiar archivos previos
+      this.archivosSubformulario[sub.name] = []
+
+      // Convertir cada URL en File (asincrónicamente)
+      listaArchivos.forEach((archivo) => {
+        if (typeof archivo === 'string') {
+          // Es una URL → convertir a File
+          this.onArchivoDesdeUrl(archivo, sub.name)
+        } else if (archivo instanceof File) {
+          // Ya es un File → agregar directamente
+          this.archivosSubformulario[sub.name].push(archivo)
+          this.datosTemporales[sub.name] = [...this.archivosSubformulario[sub.name]]
         }
+      })
+
+      // Si no hay ninguno, inicializar vacío
+      if (!this.archivosSubformulario[sub.name]) {
+        this.archivosSubformulario[sub.name] = []
+        this.datosTemporales[sub.name] = []
+      }
+    }
 
         if (sub.type === 'checkBox') {
           let valor = this.datosTemporales[sub.name]
@@ -1015,13 +1055,10 @@ export default {
           return this.datosTemporales[sub.name] && this.datosTemporales[sub.name].length > 0
         }
         if (sub.type === 'file') {
-          // VALIDACIÓN PARA MÚLTIPLES ARCHIVOS
-          return (
-            this.datosTemporales[sub.name] &&
-            Array.isArray(this.datosTemporales[sub.name]) &&
-            this.datosTemporales[sub.name].length > 0
-          )
-        }
+      // ✅ VALIDAR USANDO archivosSubformulario (fuente de verdad)
+      const archivos = this.archivosSubformulario[sub.name] || []
+      return archivos.length > 0
+    }
         return (
           this.datosTemporales[sub.name] !== undefined &&
           this.datosTemporales[sub.name] !== null &&
@@ -1039,18 +1076,21 @@ export default {
 
       this.campo.subcampos.forEach((sub) => {
         if (sub.type === 'file') {
-          // GUARDAR EL ARRAY COMPLETO DE ARCHIVOS
-          if (Array.isArray(this.datosTemporales[sub.name])) {
-            datosParaGuardar[sub.name] = [...this.datosTemporales[sub.name]]
-          } else {
-            datosParaGuardar[sub.name] = []
-          }
-        } else {
+      // ✅ SIEMPRE usar archivosSubformulario, y clonar el array
+      datosParaGuardar[sub.name] = [...(this.archivosSubformulario[sub.name] || [])]
+    }else {
           // Para otros tipos de campos, copiar el valor directamente
           datosParaGuardar[sub.name] = this.datosTemporales[sub.name]
         }
       })
 
+       // 🔥 AGREGAR ESTO: Actualizar archivosSubformulario del padre
+this.campo.subcampos.forEach((sub) => {
+  if (sub.type === 'file' && this.archivosSubformulario[sub.name]) {
+    const claveArchivo = `${this.campo.name}_${this.indiceEditando >= 0 ? this.indiceEditando : this.filas.length}_${sub.name}`
+    this.$emit('actualizar-archivos-subform', claveArchivo, this.archivosSubformulario[sub.name])
+  }
+})
       if (this.indiceEditando === -1) {
         // Agregar nueva fila
         this.filas.push(datosParaGuardar)
@@ -1160,6 +1200,7 @@ export default {
     },
 
     emitirActualizacion() {
+      
       this.$emit('actualizar', this.filas)
     },
 

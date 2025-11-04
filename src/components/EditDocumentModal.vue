@@ -68,6 +68,7 @@
                         :campo="campo"
                         :valor="getSubformDataForEdit(campo.name)"
                         @actualizar="actualizarSubformulario($event, campo.name)"
+                        @actualizar-archivos-subform="actualizarArchivosSubform"
                       />
 
                       <!-- Campo de tipo checkbox (CORREGIDO) -->
@@ -598,6 +599,7 @@ export default {
 
   data() {
     return {
+      archivosSubformularios: {},
       // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
       fileMapping: {},
       files: {}, // ← Aquí va
@@ -698,6 +700,10 @@ export default {
   },
 
   methods: {
+    actualizarArchivosSubform(clave, archivos) {
+  this.archivosSubformularios[clave] = archivos
+  console.log('📎 Archivos de subform actualizados:', clave, archivos)
+},
     isImageUrl(url) {
       if (typeof url !== 'string') return false
       return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url)
@@ -1070,6 +1076,7 @@ export default {
       this.editSubformData = {}
       this.editSubformFiles = {}
       this.uploadedFiles = []
+       this.archivosSubformularios = {}
 
       // Archivos / mapping / inputs
       this.files = {} // limpia archivos seleccionados en inputs
@@ -1276,6 +1283,7 @@ export default {
         }
         console.log('🚀 Datos que se enviarán al backend:', logObj)
         // 👆👆👆 FIN DEL BLOQUE DE LOG 👆👆👆
+        
         this.$emit('save', formData)
       } catch (error) {
         console.error('Error preparando datos:', error)
@@ -1544,9 +1552,42 @@ export default {
                 // Opcional: enviar array vacío para limpiar
                 formData.append(`${claveCompleta}`, JSON.stringify([]))
               }
-            } else if (subcampoConfig?.type === 'file' && subcampoValor instanceof File) {
-              formData.append(claveCompleta, subcampoValor)
-            } else if (
+            } else if (subcampoConfig?.type === 'file') {
+  // 🔥 BUSCAR ARCHIVOS EN archivosSubformularios PRIMERO
+  const claveArchivo = `${campo.name}_${filaIndex}_${subcampoNombre}`
+  const archivosReales = this.archivosSubformularios[claveArchivo]
+  
+  if (archivosReales && archivosReales.length > 0) {
+    archivosReales.forEach((archivo, idx) => {
+      if (archivo instanceof File) {
+        const uniqueKey = `subform_${campo.name}_${filaIndex}_${subcampoNombre}_${idx}`
+        formData.append(`files[${uniqueKey}]`, archivo)
+      }
+    })
+    formData.append(claveCompleta, 'null')
+  } else if (Array.isArray(subcampoValor) && subcampoValor.length > 0) {
+    // ✅ CAMBIO: Enviar cada ruta individualmente, NO como JSON string
+    subcampoValor.forEach((ruta, idx) => {
+      formData.append(`${claveCompleta}[${idx}]`, ruta)
+    })
+  } else if (typeof subcampoValor === 'string' && subcampoValor !== 'null') {
+    // ✅ NUEVO: Si viene como string JSON, parsearlo y enviar correctamente
+    try {
+      const rutas = JSON.parse(subcampoValor)
+      if (Array.isArray(rutas)) {
+        rutas.forEach((ruta, idx) => {
+          formData.append(`${claveCompleta}[${idx}]`, ruta)
+        })
+      } else {
+        formData.append(claveCompleta, subcampoValor)
+      }
+    } catch {
+      formData.append(claveCompleta, subcampoValor)
+    }
+  } else {
+    formData.append(claveCompleta, JSON.stringify([]))
+  }
+}else if (
               subcampoValor !== null &&
               subcampoValor !== undefined &&
               subcampoValor !== ''
