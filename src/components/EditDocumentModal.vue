@@ -1322,7 +1322,8 @@ export default {
           const fila = {
             _documentId: documento._id || documento.id,
           }
-          camposConfigurados.forEach((campoNombre) => {
+          camposConfigurados.forEach((campoConfig) => {
+            const campoNombre = campoConfig.name
             const campo = seccionDoc.fields?.[campoNombre]
             fila[campoNombre] = campo || '-'
           })
