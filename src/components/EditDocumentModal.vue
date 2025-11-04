@@ -556,7 +556,7 @@
 </template>
 
 <script>
-import api from '@/services/api'
+import api, { downloadStorageFile } from '@/services/api'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import SubFormularioDocumento from './SubFormularioDocumento.vue'
@@ -701,9 +701,9 @@ export default {
 
   methods: {
     actualizarArchivosSubform(clave, archivos) {
-  this.archivosSubformularios[clave] = archivos
-  console.log('📎 Archivos de subform actualizados:', clave, archivos)
-},
+      this.archivosSubformularios[clave] = archivos
+      console.log('📎 Archivos de subform actualizados:', clave, archivos)
+    },
     isImageUrl(url) {
       if (typeof url !== 'string') return false
       return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url)
@@ -739,45 +739,27 @@ export default {
     },
     async onFileChangeUrl(url, fieldName) {
       try {
-        const originalUrl = 'http://127.0.0.1:8000/storage/' + url
-        const proxyUrl = `/api/proxy-file?url=${encodeURIComponent(originalUrl)}`
-        const response = await fetch('http://127.0.0.1:8000/api' + proxyUrl) // ✅ mismo origen → sin CORS
+        // Descargar el archivo desde la URL
+        const file = await downloadStorageFile(url)
 
-        if (!response.ok) {
-          throw new Error(
-            `Error al descargar el archivo: ${response.status} ${response.statusText}`,
-          )
-        }
-
-        // 2. Convertir la respuesta a Blob
-        const blob = await response.blob()
-
-        // 3. Extraer el nombre del archivo desde la URL (o usar uno genérico)
-        const urlPath = new URL(originalUrl).pathname
-        const fileName = urlPath.substring(urlPath.lastIndexOf('/') + 1) || 'archivo_descargado'
-
-        // 4. Crear un objeto File (con metadatos útiles)
-        const file = new File([blob], fileName, { type: blob.type })
-
-        // 5. Inicializar el array si no existe
+        // Inicializar el array si no existe
         if (!this.files[fieldName]) {
           this.files[fieldName] = []
         }
 
-        // 6. Agregar el archivo descargado al array (acumular)
+        // Agregar el archivo descargado al array
         this.files[fieldName] = [...this.files[fieldName], file]
 
         console.log(
           '📁 files después de agregar desde URL:',
           JSON.parse(JSON.stringify(this.files)),
         )
-
-        // Opcional: emitir o actualizar otros datos si usas `archivosarray`
-        // Por ejemplo, si `archivosarray` es una copia reactiva:
-        // this.archivosarray = [...this.files[fieldName]];
       } catch (error) {
         console.error('❌ Error al cargar archivo desde URL:', error)
-        // Aquí podrías mostrar una notificación de error al usuario
+        if (error.response) {
+          console.error('Status:', error.response.status)
+          console.error('Data:', error.response.data)
+        }
       }
     },
     resetFileInput(fieldName) {
@@ -1076,7 +1058,7 @@ export default {
       this.editSubformData = {}
       this.editSubformFiles = {}
       this.uploadedFiles = []
-       this.archivosSubformularios = {}
+      this.archivosSubformularios = {}
 
       // Archivos / mapping / inputs
       this.files = {} // limpia archivos seleccionados en inputs
@@ -1283,7 +1265,7 @@ export default {
         }
         console.log('🚀 Datos que se enviarán al backend:', logObj)
         // 👆👆👆 FIN DEL BLOQUE DE LOG 👆👆👆
-        
+
         this.$emit('save', formData)
       } catch (error) {
         console.error('Error preparando datos:', error)
@@ -1553,41 +1535,41 @@ export default {
                 formData.append(`${claveCompleta}`, JSON.stringify([]))
               }
             } else if (subcampoConfig?.type === 'file') {
-  // 🔥 BUSCAR ARCHIVOS EN archivosSubformularios PRIMERO
-  const claveArchivo = `${campo.name}_${filaIndex}_${subcampoNombre}`
-  const archivosReales = this.archivosSubformularios[claveArchivo]
-  
-  if (archivosReales && archivosReales.length > 0) {
-    archivosReales.forEach((archivo, idx) => {
-      if (archivo instanceof File) {
-        const uniqueKey = `subform_${campo.name}_${filaIndex}_${subcampoNombre}_${idx}`
-        formData.append(`files[${uniqueKey}]`, archivo)
-      }
-    })
-    formData.append(claveCompleta, 'null')
-  } else if (Array.isArray(subcampoValor) && subcampoValor.length > 0) {
-    // ✅ CAMBIO: Enviar cada ruta individualmente, NO como JSON string
-    subcampoValor.forEach((ruta, idx) => {
-      formData.append(`${claveCompleta}[${idx}]`, ruta)
-    })
-  } else if (typeof subcampoValor === 'string' && subcampoValor !== 'null') {
-    // ✅ NUEVO: Si viene como string JSON, parsearlo y enviar correctamente
-    try {
-      const rutas = JSON.parse(subcampoValor)
-      if (Array.isArray(rutas)) {
-        rutas.forEach((ruta, idx) => {
-          formData.append(`${claveCompleta}[${idx}]`, ruta)
-        })
-      } else {
-        formData.append(claveCompleta, subcampoValor)
-      }
-    } catch {
-      formData.append(claveCompleta, subcampoValor)
-    }
-  } else {
-    formData.append(claveCompleta, JSON.stringify([]))
-  }
-}else if (
+              // 🔥 BUSCAR ARCHIVOS EN archivosSubformularios PRIMERO
+              const claveArchivo = `${campo.name}_${filaIndex}_${subcampoNombre}`
+              const archivosReales = this.archivosSubformularios[claveArchivo]
+
+              if (archivosReales && archivosReales.length > 0) {
+                archivosReales.forEach((archivo, idx) => {
+                  if (archivo instanceof File) {
+                    const uniqueKey = `subform_${campo.name}_${filaIndex}_${subcampoNombre}_${idx}`
+                    formData.append(`files[${uniqueKey}]`, archivo)
+                  }
+                })
+                formData.append(claveCompleta, 'null')
+              } else if (Array.isArray(subcampoValor) && subcampoValor.length > 0) {
+                // ✅ CAMBIO: Enviar cada ruta individualmente, NO como JSON string
+                subcampoValor.forEach((ruta, idx) => {
+                  formData.append(`${claveCompleta}[${idx}]`, ruta)
+                })
+              } else if (typeof subcampoValor === 'string' && subcampoValor !== 'null') {
+                // ✅ NUEVO: Si viene como string JSON, parsearlo y enviar correctamente
+                try {
+                  const rutas = JSON.parse(subcampoValor)
+                  if (Array.isArray(rutas)) {
+                    rutas.forEach((ruta, idx) => {
+                      formData.append(`${claveCompleta}[${idx}]`, ruta)
+                    })
+                  } else {
+                    formData.append(claveCompleta, subcampoValor)
+                  }
+                } catch {
+                  formData.append(claveCompleta, subcampoValor)
+                }
+              } else {
+                formData.append(claveCompleta, JSON.stringify([]))
+              }
+            } else if (
               subcampoValor !== null &&
               subcampoValor !== undefined &&
               subcampoValor !== ''
