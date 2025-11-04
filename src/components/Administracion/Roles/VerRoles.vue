@@ -72,10 +72,9 @@
                 <i class="fas fa-eye me-1" />
                 Ver
               </button>
-              <button class="btn btn-sm btn-edit">
-                <i class="fas fa-edit me-1" />
-                Editar
-              </button>
+              <router-link :to="{name: 'EditarRol', params: { id: rol.id }}" class=" btn btn-sm btn-edit"> <i
+                  class="fas fa-edit me-1" />
+                Editar </router-link>
               <button @click="eliminarRol(rol)" class="btn btn-sm btn-delete">
                 <i class="fas fa-trash me-1" />
                 Eliminar
@@ -83,10 +82,7 @@
             </div>
           </div>
         </div>
-        <ModalVistaRol 
-          :visible="modalVisible" 
-          :rolID="rolSeleccionado?.id"
-          @close="cerrarModal" />
+        <ModalVistaRol :visible="modalVisible" :rolID="rolSeleccionado?.id" @close="cerrarModal" />
       </div>
     </div>
   </div>
@@ -102,7 +98,7 @@ import ModalVistaRol from './ModalVistaRol.vue'
 import { ref } from 'vue'
 
 export default {
-   components: {
+  components: {
     ModalVistaRol
   },
   data() {

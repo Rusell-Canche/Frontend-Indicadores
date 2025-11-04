@@ -31,6 +31,7 @@ import VerUsuarios from '@/components/Administracion/Usuarios/VerUsuarios.vue'
 import CrearUsuarios from '@/components/Administracion/Usuarios/CrearUsuarios.vue'
 import CrearRoles from '@/components/Administracion/Roles/CrearRoles.vue'
 import VerRoles from '@/components/Administracion/Roles/VerRoles.vue'
+import EditarRol from '@/components/Administracion/Roles/EditarRol.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -206,6 +207,12 @@ const router = createRouter({
               name: 'VerRoles',
               meta: { title: 'Ver Roles' },
               component: VerRoles,
+            },
+            {
+              path: 'EditarRol/:id',
+              name: 'EditarRol',
+              meta: { title: 'Editar Rol' },
+              component: EditarRol,
             },
           ],
         },

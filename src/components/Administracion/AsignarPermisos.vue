@@ -95,7 +95,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch } from 'vue'
+import { defineComponent, watch, nextTick } from 'vue'
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
@@ -121,11 +121,11 @@ import type { Plantilla } from '@/models/plantilla';
  * @property {boolean} Estadisticas - Permiso para módulo de Estadísticas
  */
 interface UiPermissions {
-    Indicadores: boolean;
-    Plantillas: boolean;
-    Documentos: boolean;
-    Reportes: boolean;
-    Estadisticas: boolean;
+    indicadores: boolean;
+    plantillas: boolean;
+    documentos: boolean;
+    reportes: boolean;
+    estadisticas: boolean;
 }
 
 /**
@@ -212,11 +212,11 @@ export default defineComponent({
             plantillas: [] as Plantilla[],
             /** Permisos de interfaz de usuario por módulo */
             uiPermissions: {
-                'Indicadores': false,
-                'Plantillas': false,
-                'Documentos': false,
-                'Reportes': false,
-                'Estadisticas': false
+                'indicadores': false,
+                'plantillas': false,
+                'documentos': false,
+                'reportes': false,
+                'estadisticas': false
             } as UiPermissions,
             /** Permisos globales organizados por modo (allowed/denied) */
             permisosGlobales: {
@@ -237,6 +237,20 @@ export default defineComponent({
 
     props: {
         permisos: {
+            type: Object,
+            required: false,
+            default: () => ({})
+        },
+
+        /** Permisos descargados al momento de editar (sin formatear) */
+        permisosCargados: {
+            type: Object,
+            required: false,
+            default: () => ({})
+        },
+
+        /** Permisos de UI descargados al momento de editar (sin formatear) */
+        uiPermissionsCargados: {
             type: Object,
             required: false,
             default: () => ({})
@@ -336,11 +350,109 @@ export default defineComponent({
                 ui_permissions: this.uiPermissions,
                 permisos: { allowed, denied }
             };
+        },
+
+        precargarDatos() {
+            // Recorremos los uiPermissionsCargados para asignarlos al otro
+            if (this.uiPermissionsCargados) {
+                for (let key in this.uiPermissionsCargados) {
+                    if (key in this.uiPermissions) {
+                        // Hacer type casting a la clave
+                        const validKey = key as keyof UiPermissions;
+                        this.uiPermissions[validKey] = this.uiPermissionsCargados[validKey];
+                    }
+                }
+            }
+
+            // Recurremos permisosEspecificos precargados
+            // Suponiendo que this.permisosCargados ya tiene el JSON que mostraste
+            if (this.permisosCargados) {
+                // Recorremos los permisos permitidos (allowed)
+                if (this.permisosCargados.allowed) {
+                    this.permisosCargados.allowed.forEach((permiso: any) => {
+                        const recurso = permiso.recurso;
+                        const acciones = permiso.acciones?.map((a: any) => a.id) || [];
+
+                        switch (recurso.tipo) {
+                            // 🔹 Permisos globales (rutas)
+                            case 'ruta': {
+                                if (!this.permisosGlobales.allowed[recurso.id]) {
+                                    this.permisosGlobales.allowed[recurso.id] = [];
+                                }
+                                this.permisosGlobales.allowed[recurso.id].push(...acciones);
+                                break;
+                            }
+
+                            case 'plantilla': {
+                                // Determinamos si es de plantilla o documento
+                                const tipo = recurso.tipo.toLowerCase().includes('plantilla')
+                                    ? 'plantilla'
+                                    : 'documento';
+
+                                if (!this.permisosIndividuales.allowed[tipo][recurso.id]) {
+                                    this.permisosIndividuales.allowed[tipo][recurso.id] = [];
+                                }
+                                this.permisosIndividuales.allowed[tipo][recurso.id].push(...acciones);
+                                break;
+                            }
+
+                            case 'documento': {
+                                // Determinamos si es de plantilla o documento
+                                const tipo = recurso.tipo.toLowerCase().includes('documento')
+                                    ? 'documento'
+                                    : 'plantilla';
+
+                                if (!this.permisosIndividuales.allowed[tipo][recurso.id]) {
+                                    this.permisosIndividuales.allowed[tipo][recurso.id] = [];
+                                }
+
+                                this.permisosIndividuales.allowed[tipo][recurso.id].push(...acciones);
+                                break;
+                            }
+                        }
+                    });
+                }
+
+                // Si tienes denegados también, puedes hacer lo mismo pero con denied
+                if (this.permisosCargados.denied) {
+                    this.permisosCargados.denied.forEach((permiso: any) => {
+                        const recurso = permiso.recurso;
+                        const acciones = permiso.acciones?.map((a: any) => a.id) || [];
+
+                        switch (recurso.tipo) {
+                            case 'ruta': {
+                                if (!this.permisosGlobales.denied[recurso.id]) {
+                                    this.permisosGlobales.denied[recurso.id] = [];
+                                }
+                                this.permisosGlobales.denied[recurso.id].push(...acciones);
+                                break;
+                            }
+                            case 'comodín': {
+                                const tipo = recurso.nombre.toLowerCase().includes('plantilla')
+                                    ? 'plantilla'
+                                    : 'documento';
+
+                                if (!this.permisosIndividuales.denied[tipo][recurso.id]) {
+                                    this.permisosIndividuales.denied[tipo][recurso.id] = [];
+                                }
+                                this.permisosIndividuales.denied[tipo][recurso.id].push(...acciones);
+                                break;
+                            }
+                        }
+                    });
+                }
+            }
+
         }
     },
 
     async mounted() {
         await this.inicializarDatos();
+        // Esperar a que Vue reactive termine de renderizar los checkboxes
+        await nextTick();
+
+        // Ahora sí, precargar valores
+        this.precargarDatos();
     },
     emitirPermisos() {
         const resultado = this.getPermisosFinales();
@@ -350,6 +462,7 @@ export default defineComponent({
         permisosGlobales: {
             handler() {
                 this.$emit('update:permisos', this.getPermisosFinales());
+                //
             },
             deep: true
         },
@@ -364,6 +477,26 @@ export default defineComponent({
                 this.$emit('update:permisos', this.getPermisosFinales());
             },
             deep: true
+        },
+
+        permisosCargados: {
+            handler(nuevo) {
+                if (nuevo && Object.keys(nuevo).length > 0) {
+                    this.precargarDatos();
+                }
+            },
+            deep: true,
+            immediate: true
+        },
+
+        uiPermissionsCargados: {
+            handler(nuevo) {
+                if (nuevo && Object.keys(nuevo).length > 0) {
+                    this.precargarDatos();
+                }
+            },
+            deep: true,
+            immediate: true
         }
     }
 })
