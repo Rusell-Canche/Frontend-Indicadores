@@ -68,6 +68,33 @@ export const RolService = {
         }
     },
 
+    /** 
+     * Crea un nuevo rol 
+     **/
+    async createRol(rol: Rol) {
+        // Actualizamos el estado del servicio
+        rolState.loading = true;
+        rolState.error = null;
+
+        try {
+            // Intentamos crear el rol
+            const { response } = await rolApi.createRol(rol);
+
+            // Refrescamos los roles
+            await this.fetchRoles();
+
+            // Retornamos la respuesta
+            return response;
+        } catch (error: any) {
+
+            console.error("Error al crear el rol")
+            throw error;
+        } finally {
+            // DEjamos de cargar
+            rolState.loading = false;
+        }
+    },
+
     /**
      * Elimina un rol en especifico
      * @returns Exito o no
@@ -87,7 +114,7 @@ export const RolService = {
             // Retornamos la respuesta
             return response;
         } catch (error: any) {
-            
+
             console.error("Error al borrar el rol")
             throw error;
         } finally {

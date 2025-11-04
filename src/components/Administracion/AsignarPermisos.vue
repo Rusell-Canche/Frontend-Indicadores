@@ -166,11 +166,8 @@ interface PermisoGrupo {
  * @property {PermisoGrupo[]} permisos.denied - Permisos denegados
  */
 interface PermisosFinales {
-    ui_permissions: UiPermissions;
-    permisos: {
-        allowed: PermisoGrupo[];
-        denied: PermisoGrupo[];
-    };
+    allowed: PermisoGrupo[];
+    denied: PermisoGrupo[];
 }
 
 /**
@@ -257,7 +254,7 @@ export default defineComponent({
         }
     },
 
-    emits: ['update:permisos'],
+    emits: ['update:permisos', 'update:uiPermissions'],
 
     methods: {
         /**
@@ -346,10 +343,7 @@ export default defineComponent({
                 ...procesarPermisos(this.permisosIndividuales.denied.documento, 'documento')
             ];
 
-            return {
-                ui_permissions: this.uiPermissions,
-                permisos: { allowed, denied }
-            };
+            return { allowed, denied };
         },
 
         precargarDatos() {
@@ -454,10 +448,6 @@ export default defineComponent({
         // Ahora sí, precargar valores
         this.precargarDatos();
     },
-    emitirPermisos() {
-        const resultado = this.getPermisosFinales();
-        this.$emit('update:permisos', resultado);
-    },
     watch: {
         permisosGlobales: {
             handler() {
@@ -474,7 +464,7 @@ export default defineComponent({
         },
         uiPermissions: {
             handler() {
-                this.$emit('update:permisos', this.getPermisosFinales());
+                this.$emit('update:uiPermissions', this.uiPermissions);
             },
             deep: true
         },

@@ -37,16 +37,8 @@
                   <span class="input-group-text">
                     <i class="fas fa-tag"></i>
                   </span>
-                  <input
-                    v-solo-texto
-                    v-model="nombre"
-                    type="text"
-                    id="nombre"
-                    name="nombre"
-                    class="form-control"
-                    required
-                    placeholder="ej: super_usuario, administrador"
-                  />
+                  <input v-solo-texto v-model="rol.nombre" type="text" id="nombre" name="nombre" class="form-control"
+                    required placeholder="ej: super_usuario, administrador" />
                 </div>
                 <small class="form-text text-muted">
                   Se recomienda usar snake_case (ej: super_usuario)
@@ -58,32 +50,33 @@
                   <span class="input-group-text">
                     <i class="fas fa-align-left"></i>
                   </span>
-                  <input
-                    v-solo-texto
-                    v-model="descripcion"
-                    type="text"
-                    id="descripcion"
-                    name="descripcion"
-                    class="form-control"
-                    required
-                    placeholder="Describe las funciones de este rol"
-                  />
+                  <input v-solo-texto v-model="rol.descripcion" type="text" id="descripcion" name="descripcion"
+                    class="form-control" required placeholder="Describe las funciones de este rol" />
                 </div>
               </div>
             </div>
           </div>
 
-          <AsignarPermisos v-model:permisos="permisos"/>
+          <AsignarPermisos v-model:permisos="rol.permisos" v-model:uiPermissions="rol.ui_permissions" />
+
+          <div class="medico-footer">
+            <button type="submit" class="btn btn-save">
+              <i class="fas fa-save me-2"></i>
+              Crear Rol
+            </button>
+          </div>
         </form>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Swal from 'sweetalert2'
 import axios from 'axios'
 import AsignarPermisos from '@/components/Administracion/AsignarPermisos.vue';
+import type { Rol } from '@/models/rol';
+import { RolService, rolState } from '@/services/Administracion/rol.service';
 
 export default {
   components: {
@@ -91,17 +84,19 @@ export default {
   },
   data() {
     return {
-      // Campos básicos del rol
-      nombre: '',
-      descripcion: '',
+      RolService,
+      rolState,
 
-      // Permisos del rol
-      permisos: [],
-
-      // Recursos y acciones disponibles
-      recursos: [],
-      acciones: [],
-      selectedResource: '',
+      // Objeto rol
+      rol: {
+        nombre: '',
+        descripcion: '',
+        permisos: {
+          allowed: [],
+          denied: [],
+        },
+        ui_permissions: {},
+      } as Rol,
 
       // Estados de la UI
       isHovered: false,
@@ -109,253 +104,72 @@ export default {
 
       // Para funcionalidad wildcard
       wildcardActionId: null,
-
     }
   },
   computed: {
-    canSubmit() {
-      return this.nombre.trim() && this.descripcion.trim() && this.permisos.length > 0
-    },
+
   },
   async mounted() {
 
   },
   methods: {
 
-    // Obtener nombre del recurso por ID
-    getResourceName(resourceId) {
-      const recurso = this.recursos.find((r) => r.id === resourceId)
-      return recurso ? recurso.nombre : 'Recurso no encontrado'
-    },
-
-    // Obtener descripción del recurso por ID
-    getResourceDescription(resourceId) {
-      const recurso = this.recursos.find((r) => r.id === resourceId)
-      return recurso ? recurso.descripcion : ''
-    },
-
-    // Obtener icono según la acción
-    getActionIcon(actionName) {
-      const iconMap = {
-        '*': 'fas fa-star',
-        crear: 'fas fa-plus',
-        leer: 'fas fa-eye',
-        actualizar: 'fas fa-edit',
-        eliminar: 'fas fa-trash',
-      }
-      return iconMap[actionName] || 'fas fa-cog'
-    },
-
-    // Capitalizar primera letra
-    capitalizeFirst(str) {
-      if (!str) return ''
-      return str.charAt(0).toUpperCase() + str.slice(1)
-    },
-
-    // Verificar si tiene permiso wildcard
-    hasWildcardPermission(acciones) {
-      return this.wildcardActionId && acciones.includes(this.wildcardActionId)
-    },
-
-    // Agregar recurso con permisos
-    addResourcePermission() {
-      if (!this.selectedResource) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Atención',
-          text: 'Debe seleccionar un recurso',
-        })
-        return
-      }
-
-      // Verificar si el recurso ya está asignado
-      const exists = this.permisos.find((p) => p.recurso === this.selectedResource)
-      if (exists) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Atención',
-          text: 'Este recurso ya ha sido asignado',
-        })
-        return
-      }
-
-      // Buscar el recurso seleccionado
-      const recurso = this.recursos.find((r) => r.id === this.selectedResource)
-
-      // Crear objeto de permisos
-      let accionesDefault = []
-
-      // Si el recurso es "*" (permisos totales), activar todas las acciones
-      if (
-        recurso &&
-        recurso.nombre === '*' &&
-        recurso.descripcion === 'Permisos en todas las tablas'
-      ) {
-        accionesDefault = this.acciones.map((accion) => accion.id)
-      }
-
-      // Agregar el permiso
-      this.permisos.push({
-        recurso: this.selectedResource,
-        acciones: [...accionesDefault],
-      })
-
-      // Limpiar la selección
-      this.selectedResource = ''
-    },
-
-    // Remover recurso asignado
-    removeResourcePermission(index) {
-      this.permisos.splice(index, 1)
-    },
-
-    // Evento de cambio de recurso
-    onResourceChange() {
-      // Lógica adicional si es necesaria
-    },
-
     // Alternar vista previa
     togglePreview() {
       this.showPreview = !this.showPreview
     },
 
-    // Obtener JSON de vista previa
-    getPreviewJson() {
-      const previewData = {
-        nombre: this.nombre || 'nombre_del_rol',
-        descripcion: this.descripcion || 'Descripción del rol',
-        permisos: this.permisos,
-      }
-      return JSON.stringify(previewData, null, 2)
-    },
-
-    // Limpiar formulario
-    resetForm() {
-      this.nombre = ''
-      this.descripcion = ''
-      this.permisos = []
-      this.selectedResource = ''
-      this.showPreview = false
-    },
-
     // Enviar formulario
     async submitForm() {
-      // Validaciones
-      if (!this.nombre.trim()) {
-        Swal.fire({
-          icon: 'error',
-          title: '¡Error!',
-          text: 'El nombre del rol es obligatorio',
-        })
-        return
-      }
 
-      if (!this.descripcion.trim()) {
-        Swal.fire({
-          icon: 'error',
-          title: '¡Error!',
-          text: 'La descripción del rol es obligatoria',
-        })
-        return
-      }
-
-      if (this.permisos.length === 0) {
-        Swal.fire({
-          icon: 'error',
-          title: '¡Error!',
-          text: 'Debe asignar al menos un permiso al rol',
-        })
-        return
-      }
-
-      // Validar que cada permiso tenga al menos una acción
-      const permisosVacios = this.permisos.filter((p) => p.acciones.length === 0)
-      if (permisosVacios.length > 0) {
-        Swal.fire({
-          icon: 'error',
-          title: '¡Error!',
-          text: 'Todos los recursos deben tener al menos una acción seleccionada',
-        })
-        return
-      }
-
-      // Confirmación
+      // Preguntamos si se quiere guardar el rol
       const result = await Swal.fire({
         title: '¿Estás seguro?',
-        text: `¿Quieres crear el rol "${this.nombre}"?`,
+        text: `¿Quieres crear el rol "${this.rol.nombre}"?`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Sí, crear',
         cancelButtonText: 'Cancelar',
       })
 
-      if (result.isConfirmed) {
-        // Crear el JSON con el formato requerido
-        const formData = {
-          nombre: this.nombre.trim(),
-          descripcion: this.descripcion.trim(),
-          permisos: this.permisos.map((p) => ({
-            recurso: p.recurso,
-            acciones: p.acciones,
-          })),
-        }
-
-        // Mostrar el JSON en consola para verificar
-        console.log('JSON a enviar:', JSON.stringify(formData, null, 2))
-
-        try {
-          const token = localStorage.getItem('apiToken')
-          const response = await axios.post('http://127.0.0.1:8000/api/roles', formData, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          })
-
-          Swal.fire({
-            icon: 'success',
-            title: '¡Rol creado!',
-            text: `El rol "${this.nombre}" ha sido creado exitosamente`,
-          }).then(() => {
-            this.resetForm()
-          })
-
-          // Mostrar respuesta del servidor
-          console.log('Respuesta del servidor:', response.data)
-        } catch (error) {
-          console.error('Error al crear rol:', error)
-
-          let errorMessage = 'Hubo un error al crear el rol.'
-
-          if (error.response && error.response.data) {
-            if (error.response.data.message) {
-              errorMessage = error.response.data.message
-            } else if (error.response.data.errors) {
-              const errors = error.response.data.errors
-              if (errors.nombre) {
-                errorMessage = 'El nombre del rol ya existe o no es válido.'
-              }
-            }
-          }
-
-          Swal.fire({
-            icon: 'error',
-            title: '¡Error!',
-            text: errorMessage,
-          })
-        }
+      if (result.isDenied || result.isDismissed) {
+        return null;
       }
-    },
+
+      // Intentamos guardar el rol
+      try {
+
+        // Intentamos mandar el rol
+        await this.RolService.createRol(this.rol);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Rol creado!',
+          text: `El rol "${this.rol.nombre}" ha sido creado exitosamente`,
+        }).then(() => {
+          // Nothing
+        })
+      } catch (error: any) {
+
+        // Errores genericos
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo eliminar el rol. Inténtalo nuevamente.',
+          icon: 'error'
+        });
+      }
+
+    }
   },
 
   watch: {
-        permisos: {
-            handler() {
-                console.log('PErmisos nuevos', this.permisos);
-            },
-            deep: true
-        }
-    }
+    rol: {
+      handler() {
+
+      },
+      deep: true
+    },
+    
+  },
 }
 </script>
 
@@ -613,7 +427,7 @@ export default {
   transform: translateY(-1px);
 }
 
-.custom-checkbox:checked ~ .checkmark {
+.custom-checkbox:checked~.checkmark {
   background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   border-color: #047857;
   box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
@@ -632,7 +446,7 @@ export default {
   transform: rotate(45deg);
 }
 
-.custom-checkbox:checked ~ .checkmark:after {
+.custom-checkbox:checked~.checkmark:after {
   display: block;
 }
 
@@ -819,10 +633,12 @@ export default {
 
 /* Animaciones */
 @keyframes shimmer {
+
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
+
   50% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
   }

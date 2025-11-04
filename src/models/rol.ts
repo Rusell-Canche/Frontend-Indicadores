@@ -7,7 +7,7 @@ import type { Accion } from "./accion";
  */
 export interface Rol {
   /** Identificador único del rol */
-  id: string;
+  id?: string;
 
   /** Nombre del rol */
   nombre: string;

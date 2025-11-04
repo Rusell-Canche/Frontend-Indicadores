@@ -179,6 +179,9 @@ export default {
             icon: 'success',
             timer: 2000
           });
+
+          this.roles = this.rolState.roles;
+          
         } catch (error: any) {
 
           if (error.response?.status === 409) {
