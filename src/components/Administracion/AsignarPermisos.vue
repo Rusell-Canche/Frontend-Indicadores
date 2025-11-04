@@ -45,7 +45,7 @@
                                     <div class="acciones">
                                         <label v-for="accion in acciones" :key="accion.id" class="me-3">
                                             <input type="checkbox" :value="accion.id"
-                                                v-model="permisosGlobales[recurso.id]" />
+                                                v-model="permisosGlobales[modoSeleccionado][recurso.id]" />
                                             {{ accion.nombre }}
                                         </label>
                                     </div>
@@ -79,7 +79,7 @@
                                         <div class="acciones">
                                             <label v-for="accion in acciones" :key="accion.id" class="me-3">
                                                 <input type="checkbox" :value="accion.id"
-                                                    v-model="permisosIndividuales[tipoSeleccionado][plantilla?.id]" />
+                                                    v-model="permisosIndividuales[modoSeleccionado][tipoSeleccionado][plantilla?.id]" />
                                                 {{ accion.nombre }}
                                             </label>
                                         </div>
@@ -91,9 +91,6 @@
                 </TabPanel>
             </TabPanels>
         </Tabs>
-        <button @click="console.log(getPermisosFinales())" class="btn btn-primary">
-            Ver permisos generados
-        </button>
     </div>
 </template>
 
@@ -115,6 +112,77 @@ import type { Recurso } from '@/models/recurso';
 import type { Accion } from '@/models/accion';
 import type { Plantilla } from '@/models/plantilla';
 
+/**
+ * Interfaz para los permisos de interfaz de usuario
+ * @property {boolean} Indicadores - Permiso para módulo de Indicadores
+ * @property {boolean} Plantillas - Permiso para módulo de Plantillas
+ * @property {boolean} Documentos - Permiso para módulo de Documentos
+ * @property {boolean} Reportes - Permiso para módulo de Reportes
+ * @property {boolean} Estadisticas - Permiso para módulo de Estadísticas
+ */
+interface UiPermissions {
+    Indicadores: boolean;
+    Plantillas: boolean;
+    Documentos: boolean;
+    Reportes: boolean;
+    Estadisticas: boolean;
+}
+
+/**
+ * Interfaz para permisos globales a nivel de ruta
+ * @property {Record<string, string[]>} allowed - Permisos permitidos por recurso
+ * @property {Record<string, string[]>} denied - Permisos denegados por recurso
+ */
+interface PermisosGlobales {
+    allowed: Record<string, string[]>;
+    denied: Record<string, string[]>;
+}
+
+/**
+ * Interfaz para permisos individuales a nivel de registro
+ * @property {Record<'plantilla' | 'documento', Record<string, string[]>>} allowed - Permisos permitidos por tipo
+ * @property {Record<'plantilla' | 'documento', Record<string, string[]>>} denied - Permisos denegados por tipo
+ */
+interface PermisosIndividuales {
+    allowed: Record<'plantilla' | 'documento', Record<string, string[]>>;
+    denied: Record<'plantilla' | 'documento', Record<string, string[]>>;
+}
+
+/**
+ * Interfaz para grupo de permisos
+ * @property {string} recurso - Identificador del recurso
+ * @property {string[]} acciones - Lista de acciones permitidas/denegadas
+ */
+interface PermisoGrupo {
+    recurso: string;
+    acciones: string[];
+}
+
+/**
+ * Interfaz para la estructura final de permisos
+ * @property {UiPermissions} ui_permissions - Permisos de interfaz de usuario
+ * @property {Object} permisos - Permisos de recursos
+ * @property {PermisoGrupo[]} permisos.allowed - Permisos permitidos
+ * @property {PermisoGrupo[]} permisos.denied - Permisos denegados
+ */
+interface PermisosFinales {
+    ui_permissions: UiPermissions;
+    permisos: {
+        allowed: PermisoGrupo[];
+        denied: PermisoGrupo[];
+    };
+}
+
+/**
+ * Componente para asignar permisos de manera granular a usuarios o roles
+ * 
+ * @remarks
+ * Este componente permite configurar permisos en tres niveles:
+ * - Permisos de módulos UI
+ * - Permisos globales de acciones
+ * - Permisos individuales por registro
+ * 
+ */
 export default defineComponent({
     name: 'AsignarPermisos',
     components: {
@@ -130,123 +198,172 @@ export default defineComponent({
     },
     data() {
         return {
-            /** Comunicacion con el estado del servicio de recursos */
+            /** Comunicación con el estado del servicio de recursos */
             recursoState,
+            /** Comunicación con el estado del servicio de acciones */
             accionesState,
+            /** Comunicación con el estado del servicio de plantillas */
             plantillaState,
-            /** Lista de recursos */
+            /** Lista de recursos disponibles */
             recursos: [] as Recurso[],
-
-            /**LIsta de acciones */
+            /** Lista de acciones disponibles */
             acciones: [] as Accion[],
-
-            /** Lista de plantillas */
+            /** Lista de plantillas disponibles */
             plantillas: [] as Plantilla[],
-
+            /** Permisos de interfaz de usuario por módulo */
             uiPermissions: {
                 'Indicadores': false,
                 'Plantillas': false,
                 'Documentos': false,
                 'Reportes': false,
                 'Estadisticas': false
-            },
-
-            permisosGlobales: {} as Record<string, string[]>,
+            } as UiPermissions,
+            /** Permisos globales organizados por modo (allowed/denied) */
+            permisosGlobales: {
+                allowed: {},
+                denied: {},
+            } as PermisosGlobales,
+            /** Permisos individuales organizados por modo y tipo */
             permisosIndividuales: {
-                plantilla: {},
-                documento: {}
-            } as Record<'plantilla' | 'documento', Record<string, string[]>>,
-
-            tipoSeleccionado: 'plantilla',
-            modoSeleccionado: 'allowed'
+                allowed: { plantilla: {}, documento: {} },
+                denied: { plantilla: {}, documento: {} }
+            } as PermisosIndividuales,
+            /** Tipo de recurso seleccionado para permisos individuales */
+            tipoSeleccionado: 'plantilla' as 'plantilla' | 'documento',
+            /** Modo de asignación seleccionado (permitir/negar) */
+            modoSeleccionado: 'allowed' as 'allowed' | 'denied'
         }
     },
 
     props: {
+        permisos: {
+            type: Object,
+            required: false,
+            default: () => ({})
+        }
     },
 
-    emits: [],
+    emits: ['update:permisos'],
 
     methods: {
-        getPermisosFinales() {
-            const allowed: { recurso: string; acciones: string[] }[] = [];
+        /**
+         * Inicializa los datos necesarios para el componente
+         * @async
+         * @returns {Promise<void>}
+         */
+        async inicializarDatos(): Promise<void> {
+            await Promise.all([
+                RecursoService.fetchRecursos(),
+                AccionService.fetchAcciones(),
+                PlantillaService.fetchPlantillas()
+            ]);
 
-            // Permisos globales
-            for (const [recurso, acciones] of Object.entries(this.permisosGlobales)) {
-                if (acciones.length) allowed.push({ recurso, acciones });
-            }
+            this.recursos = recursoState.recursos ?? [];
+            this.acciones = accionesState.acciones ?? [];
+            this.plantillas = plantillaState.plantillas ?? [];
 
-            // Permisos individuales — con prefijo según tipo
-            for (const tipo of ['plantilla', 'documento']) {
-                for (const [recurso, acciones] of Object.entries(this.permisosIndividuales[tipo])) {
-                    if (acciones.length) {
-                        allowed.push({
-                            recurso: `${tipo}:${recurso}`, // prefijo
-                            acciones
-                        });
-                    }
-                }
-            }
+            this.inicializarPermisos();
+        },
+
+        /**
+        * Inicializa las estructuras de permisos
+        * @returns {void}
+        */
+        inicializarPermisos(): void {
+            this.inicializarPermisosGlobales();
+            this.inicializarPermisosIndividuales();
+        },
+
+        /**
+         * Inicializa los permisos globales con arrays vacíos para cada recurso
+         * @returns {void}
+         */
+        inicializarPermisosGlobales(): void {
+            this.recursos.forEach(recurso => {
+                this.permisosGlobales.allowed[recurso.id] = [];
+                this.permisosGlobales.denied[recurso.id] = [];
+            });
+        },
+        /**
+         * Inicializa los permisos individuales con arrays vacíos para cada plantilla
+         * @returns {void}
+         */
+        inicializarPermisosIndividuales(): void {
+            const tipos = ['plantilla', 'documento'] as const;
+            const modos = ['allowed', 'denied'] as const;
+
+            tipos.forEach(tipo => {
+                modos.forEach(modo => {
+                    this.plantillas.forEach(plantilla => {
+                        if (!this.permisosIndividuales[modo][tipo][plantilla.id]) {
+                            this.permisosIndividuales[modo][tipo][plantilla.id] = [];
+                        }
+                    });
+                });
+            });
+        },
+
+        /**
+         * Genera la estructura final de permisos para su envío al backend
+         * @returns {PermisosFinales} Estructura completa de permisos
+         */
+        getPermisosFinales(): PermisosFinales {
+            const procesarPermisos = (
+                permisos: Record<string, string[]>,
+                prefix: string = ''
+            ): PermisoGrupo[] => {
+                return Object.entries(permisos)
+                    .filter(([_, acciones]) => acciones.length > 0)
+                    .map(([recurso, acciones]) => ({
+                        recurso: prefix ? `${prefix}:${recurso}` : recurso,
+                        acciones
+                    }));
+            };
+
+            const allowed: PermisoGrupo[] = [
+                ...procesarPermisos(this.permisosGlobales.allowed),
+                ...procesarPermisos(this.permisosIndividuales.allowed.plantilla, 'plantilla'),
+                ...procesarPermisos(this.permisosIndividuales.allowed.documento, 'documento')
+            ];
+
+            const denied: PermisoGrupo[] = [
+                ...procesarPermisos(this.permisosGlobales.denied),
+                ...procesarPermisos(this.permisosIndividuales.denied.plantilla, 'plantilla'),
+                ...procesarPermisos(this.permisosIndividuales.denied.documento, 'documento')
+            ];
 
             return {
                 ui_permissions: this.uiPermissions,
-                permisos: {
-                    allowed,
-                    denied: []
-                }
+                permisos: { allowed, denied }
             };
-        },
-
+        }
     },
 
     async mounted() {
-        /**COnseguimos los recursos del sistema */
-        await RecursoService.fetchRecursos();
-        this.recursos = recursoState.recursos ?? [];
-
-        await AccionService.fetchAcciones();
-        this.acciones = accionesState.acciones ?? [];
-
-        await PlantillaService.fetchPlantillas();
-        this.plantillas = plantillaState.plantillas ?? [];
-
-        this.recursos.forEach(r => {
-            this.permisosGlobales[r.id] = [];
-        });
-
-        const nuevosIndividuales = { plantilla: {}, documento: {} } as Record<'plantilla' | 'documento', Record<string, string[]>>;
-
-        this.plantillas.forEach(p => {
-            nuevosIndividuales.plantilla[p.id] = [];
-            nuevosIndividuales.documento[p.id] = [];
-        });
-
-        this.permisosIndividuales = nuevosIndividuales;
-
-
+        await this.inicializarDatos();
     },
-
+    emitirPermisos() {
+        const resultado = this.getPermisosFinales();
+        this.$emit('update:permisos', resultado);
+    },
     watch: {
-        uiPermissions: {
-            handler(newVal) {
-                //console.log('uiPermissions cambiado:', newVal);
-            },
-            deep: true, // ← Necesario para objetos
-            immediate: true // ← Ejecuta inmediatamente al montar
-        },
         permisosGlobales: {
-            handler(newVal) {
-                //console.log('permisosGlobales cambiado:', newVal);
+            handler() {
+                this.$emit('update:permisos', this.getPermisosFinales());
             },
-            deep: true,
-            immediate: true
+            deep: true
         },
         permisosIndividuales: {
-            handler(newVal) {
-                console.log('permisosIndividuales cambiado:', newVal);
+            handler() {
+                this.$emit('update:permisos', this.getPermisosFinales());
             },
-            deep: true,
-            immediate: true
+            deep: true
+        },
+        uiPermissions: {
+            handler() {
+                this.$emit('update:permisos', this.getPermisosFinales());
+            },
+            deep: true
         }
     }
 })

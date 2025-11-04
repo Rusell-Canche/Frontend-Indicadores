@@ -73,7 +73,7 @@
             </div>
           </div>
 
-          <AsignarPermisos/>
+          <AsignarPermisos v-model:permisos="permisos"/>
         </form>
       </div>
     </div>
@@ -109,6 +109,7 @@ export default {
 
       // Para funcionalidad wildcard
       wildcardActionId: null,
+
     }
   },
   computed: {
@@ -117,60 +118,9 @@ export default {
     },
   },
   async mounted() {
-    await this.loadRecursos()
-    await this.loadAcciones()
+
   },
   methods: {
-    // Cargar recursos desde la API
-    async loadRecursos() {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/recursos', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.data.success) {
-          this.recursos = response.data.recursos
-        }
-      } catch (error) {
-        console.error('Error al cargar recursos:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los recursos disponibles',
-        })
-      }
-    },
-
-    // Cargar acciones desde la API
-    async loadAcciones() {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/acciones', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.data.success) {
-          this.acciones = response.data.acciones
-          // Buscar el ID de la acción "*" (wildcard)
-          const wildcardAction = this.acciones.find((accion) => accion.nombre === '*')
-          if (wildcardAction) {
-            this.wildcardActionId = wildcardAction.id
-          }
-        }
-      } catch (error) {
-        console.error('Error al cargar acciones:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar las acciones disponibles',
-        })
-      }
-    },
 
     // Obtener nombre del recurso por ID
     getResourceName(resourceId) {
@@ -397,6 +347,15 @@ export default {
       }
     },
   },
+
+  watch: {
+        permisos: {
+            handler() {
+                console.log('PErmisos nuevos', this.permisos);
+            },
+            deep: true
+        }
+    }
 }
 </script>
 
