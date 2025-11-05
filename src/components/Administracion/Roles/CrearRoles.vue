@@ -73,7 +73,6 @@
 
 <script lang="ts">
 import Swal from 'sweetalert2'
-import axios from 'axios'
 import AsignarPermisos from '@/components/Administracion/AsignarPermisos.vue';
 import type { Rol } from '@/models/rol';
 import { RolService, rolState } from '@/services/Administracion/rol.service';
@@ -153,7 +152,7 @@ export default {
         // Errores genericos
         Swal.fire({
           title: 'Error',
-          text: 'No se pudo eliminar el rol. Inténtalo nuevamente.',
+          text: 'No se pudo crear el rol.',
           icon: 'error'
         });
       }

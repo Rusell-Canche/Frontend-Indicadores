@@ -64,7 +64,16 @@ export const RolService = {
         } catch (error) {
             console.error("Error al obtener el rol", error);
 
-            return null;
+            const emptyRol = {
+                nombre: '',
+                descripcion: '',
+                permisos: {
+                    allowed: [],
+                    denied: []
+                },
+                ui_permissions: {},
+            } as Rol;
+            return emptyRol;
         }
     },
 
@@ -91,6 +100,29 @@ export const RolService = {
             throw error;
         } finally {
             // DEjamos de cargar
+            rolState.loading = false;
+        }
+    },
+
+    /** 
+     * Actualiza un rol
+     */
+    async updateRol(rol: Rol) {
+        // Actualizamos el estado del servicio
+        rolState.loading = true;
+        rolState.error = null;
+
+        // INtentamos actualizar el rol
+        try {
+            const { response } = await rolApi.updateRol(rol);
+
+            await this.fetchRoles();
+
+            return response;
+        } catch (error: any) {
+            console.error('Error al actualizar el rol')
+            throw error;
+        } finally {
             rolState.loading = false;
         }
     },

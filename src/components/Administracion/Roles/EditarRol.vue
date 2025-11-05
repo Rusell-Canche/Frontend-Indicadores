@@ -37,7 +37,7 @@
                   <span class="input-group-text">
                     <i class="fas fa-tag"></i>
                   </span>
-                  <input v-solo-texto v-model="nombre" type="text" id="nombre" name="nombre" class="form-control"
+                  <input v-solo-texto v-model="rol.nombre" type="text" id="nombre" name="nombre" class="form-control"
                     required placeholder="ej: super_usuario, administrador" />
                 </div>
                 <small class="form-text text-muted">
@@ -50,7 +50,7 @@
                   <span class="input-group-text">
                     <i class="fas fa-align-left"></i>
                   </span>
-                  <input v-solo-texto v-model="descripcion" type="text" id="descripcion" name="descripcion"
+                  <input v-solo-texto v-model="rol.descripcion" type="text" id="descripcion" name="descripcion"
                     class="form-control" required placeholder="Describe las funciones de este rol" />
                 </div>
               </div>
@@ -58,9 +58,17 @@
           </div>
 
           <AsignarPermisos 
-            v-model:permisos="permisos"
-            :uiPermissionsCargados="uiPermissionsCargados"
-            :permisosCargados="permisosCargados"/>
+            v-model:permisos="rol.permisos"
+            v-model:uiPermissions="rol.ui_permissions" 
+            :uiPermissionsCargados="rol.ui_permissions"
+            :permisosCargados="rol.permisos" />
+
+          <div class="medico-footer">
+            <button type="submit" class="btn btn-save">
+              <i class="fas fa-save me-2"></i>
+              Actualizar Rol
+            </button>
+          </div>
         </form>
       </div>
     </div>
@@ -69,10 +77,9 @@
 
 <script lang="ts">
 import Swal from 'sweetalert2'
-import axios from 'axios'
 import AsignarPermisos from '@/components/Administracion/AsignarPermisos.vue';
 import type { Rol } from '@/models/rol';
-import { RolService } from '@/services/Administracion/rol.service';
+import { RolService, rolState } from '@/services/Administracion/rol.service';
 
 export default {
   components: {
@@ -80,78 +87,72 @@ export default {
   },
   data() {
     return {
+      RolService,
+      rolState,
 
       /** El rol seleccionado actual */
-      rol: null as Rol | null,
-
-      // Campos básicos del rol
-      nombre: '',
-      descripcion: '',
-
-      // Permisos del rol
-      permisos: [],
-
-      // Recursos y acciones disponibles
-      recursos: [],
-      acciones: [],
-      selectedResource: '',
-
-      // Estados de la UI
-      isHovered: false,
-      showPreview: false,
-
-      // Para funcionalidad wildcard
-      wildcardActionId: null,
-      id: '0' as string,
-
-      uiPermissionsCargados: {} as any,
-      permisosCargados: {} as  any,
+      rol: {
+        id: '',
+        nombre: '',
+        descripcion: '',
+        permisos: {
+          allowed: [],
+          denied: []
+        },
+        ui_permissions: {},
+      } as Rol,
     }
   },
   computed: {
-    canSubmit() {
-      return this.nombre.trim() && this.descripcion.trim() && this.permisos.length > 0
-    },
+
   },
   async mounted() {
-    // Intentamos recuperar la ID del rol
-    this.id = this.$route.params.id;
-    this.rol = await RolService.fetchRol(this.id);
-
-    this.formatear(this.rol);
-  },
-  methods: {
-
-    // Evento de cambio de recurso
-    onResourceChange() {
-      // Lógica adicional si es necesaria
-    },
-
-    // Enviar formulario
-    async submitForm() {
-      
-    },
-
-    /** Formatea el objeto rol a variables que usa el formulario */
-    formatear(rol: Rol) {
-      if(rol) {
-        this.nombre = rol?.nombre;
-        this.descripcion = rol?.descripcion;
-
-        this.uiPermissionsCargados = rol.ui_permissions;
-        this.permisosCargados = rol.permisos;
-      }
+    if (this.$route.params.id) {
+      // Obtenemos la id del rol y conseguimos el rol completo
+      this.rol.id = this.$route.params.id as string;
+      this.rol = await RolService.fetchRol(this.rol.id);
     }
   },
+  methods: {
+    // Enviar formulario
+    async submitForm() {
+      // Preguntamos si se quiere actualizar el rol
+      const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: `¿Quieres actualizar el rol "${this.rol.nombre}"?`,
+        icon: 'question',
+        showCancelButton: false,
+        confirmButtonText: 'Sí, crear',
+        cancelButtonText: 'Cancelar',
+      })
 
-  watch: {
-    permisos: {
-      handler() {
-        
-      },
-      deep: true
+      if (result.isDenied || result.isDismissed) {
+        return null;
+      }
+
+      // INtentamos actualizar el rol
+      try {
+        // Manadamos el rol 
+        await this.RolService.updateRol(this.rol);
+
+        Swal.fire({
+          icon: 'success',
+          title: '¡Rol creado!',
+          text: `El rol "${this.rol.nombre}" ha sido actualizado exitosamente`,
+        }).then(() => {
+          this.$router.push({ name: 'VerRoles' })
+        })
+      } catch (error: any) {
+
+        // Errores genericos
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo actualizar el rol. Inténtalo nuevamente.',
+          icon: 'error'
+        });
+      }
     },
-  }
+  },
 }
 </script>
 

@@ -18,6 +18,13 @@ export interface CreateRolResponse {
   rol: Rol;
 }
 
+/** Maneja la respuesta de actualizar rol */
+export interface UpdateRolResponse {
+  status: number;
+  message: string;
+  rol: Rol;
+}
+
 /** Obtener todos los roles */
 export const getRoles = () => api.get<Rol[]>('/roles')
 
@@ -26,6 +33,9 @@ export const getRol = (rolID: string) => api.get<Rol>(`/roles/${rolID}`)
 
 /** Crea un rol en especifico */
 export const createRol = (rol: Rol) => api.post<CreateRolResponse>(`/roles`, rol)
+
+/** Actualiza un rol en especifico */
+export const updateRol = (rol: Rol) => api.put<UpdateRolResponse>(`/roles/${rol.id}`, rol)
 
 /** Elimina un rol */
 export const deleteRol = (rolID: string) => api.delete<DeleteRolResponse>(`/roles/${rolID}`) 
