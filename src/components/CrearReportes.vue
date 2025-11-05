@@ -1736,16 +1736,54 @@ export default {
         return startY
       }
 
-      // Título de la sección de subformulario
+      // Título de la sección de subformulario/tabla
       doc.setFontSize(12)
       doc.setFont(undefined, 'bold')
       doc.text(this.formatFieldName(campoSubform), 20, startY)
       startY += 8
 
-      // Obtener la definición del campo para conocer su estructura
+      // Obtener la definición del campo
       const campoDef = this.getCampoDefinition(campoSubform)
 
-      if (!campoDef || campoDef.type !== 'subform') {
+      if (!campoDef) {
+        return startY
+      }
+
+      // **MANEJO ESPECIAL PARA TABLAS**
+      if (campoDef.type === 'tabla' && campoDef.tableConfig) {
+        // Para tablas, crear una tabla completa con todos los registros
+        const columnas = campoDef.tableConfig.campos.map((campo) => campo.name)
+        const filas = valorSubform.map((item) => {
+          return columnas.map((columna) => {
+            const campoCfg = campoDef.tableConfig.campos.find((c) => c.name === columna)
+            return this.formatearValorParaPDF(item[columna], campoCfg || { type: 'string' })
+          })
+        })
+
+        autoTable(doc, {
+          startY: startY,
+          head: [columnas],
+          body: filas,
+          theme: 'grid',
+          styles: {
+            fontSize: 8,
+            cellPadding: 3,
+            lineColor: [200, 200, 200],
+          },
+          headStyles: {
+            fillColor: [70, 130, 180],
+            textColor: 255,
+            fontStyle: 'bold',
+          },
+          margin: { left: 25, right: 20 },
+          tableWidth: 'auto',
+        })
+
+        return doc.lastAutoTable.finalY + 10
+      }
+
+      // **CÓDIGO ORIGINAL PARA SUBFORMULARIOS**
+      if (campoDef.type !== 'subform') {
         return startY
       }
 
@@ -1814,14 +1852,26 @@ export default {
       return startY
     },
     // Agrega estos métodos auxiliares
-    esCampoSubformulario(campoPath) {
-      const campoDef = this.getCampoDefinition(campoPath)
-      return campoDef && campoDef.type === 'subform'
+    esCampoSubformulario(campo) {
+      const campoDef = this.getCampoDefinition(campo)
+      return campoDef && (campoDef.type === 'subform' || campoDef.type === 'tabla')
     },
 
     obtenerSubcamposParaReporte(campoDef, subItem, nivel) {
       const subcampos = []
 
+      // Si es una tabla
+      if (campoDef.type === 'tabla' && campoDef.tableConfig) {
+        campoDef.tableConfig.campos.forEach((campo) => {
+          const valor = subItem[campo.name]
+          if (valor !== null && valor !== undefined && valor !== '') {
+            subcampos.push([campo.name, this.formatearValorParaPDF(valor, campo)])
+          }
+        })
+        return subcampos
+      }
+
+      // Si es un subformulario
       if (!campoDef.subcampos || !Array.isArray(campoDef.subcampos)) {
         return subcampos
       }
@@ -2259,9 +2309,17 @@ export default {
     // Método para obtener subcampos disponibles
     obtenerSubcamposDisponibles(campoSubform) {
       const campoDef = this.getCampoDefinition(campoSubform)
+
+      // Si es una tabla, retornar los campos configurados
+      if (campoDef && campoDef.type === 'tabla' && campoDef.tableConfig) {
+        return campoDef.tableConfig.campos.map((campo) => campo.name)
+      }
+
+      // Si es un subformulario, retornar los subcampos
       if (campoDef && campoDef.subcampos) {
         return campoDef.subcampos.map((subcampo) => subcampo.name)
       }
+
       return []
     },
   },
