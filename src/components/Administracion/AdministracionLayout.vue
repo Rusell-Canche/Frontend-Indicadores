@@ -17,11 +17,10 @@
     <div class="tabs-navigation">
       <div class="tabs-container">
         <div class="tabs-header">
-          <div
-            class="tab"
-            :class="{ active: $route.name === 'usuarios' }"
-            @click="$router.push({ name: 'usuarios' })"
-          >
+          <div class="tab" :class="{
+            active: ['usuarios', 'CrearUsuarios', 'EditarUsuarios'].includes($route.name)
+          }"
+            @click="$router.push({ name: 'usuarios' })">
             <div class="tab-icon">
               <i class="fas fa-user-friends"></i>
             </div>
@@ -30,11 +29,9 @@
               <span class="tab-description">Visualiza los usuarios que se han creado</span>
             </div>
           </div>
-          <div
-            class="tab"
-            :class="{ active: $route.name === 'VerRoles' }"
-            @click="$router.push({ name: 'VerRoles' })"
-          >
+          <div class="tab" :class="{
+            active: ['VerRoles', 'CrearRol', 'EditarRol'].includes($route.name)
+          }" @click="$router.push({ name: 'VerRoles' })">
             <div class="tab-icon">
               <i class="fas fa-user-friends"></i>
             </div>
@@ -72,10 +69,18 @@ export default {
   },
   computed: {
     indicatorStyle() {
-      // Calcula el índice según la ruta activa
-      const tabNames = ['VerUsuarios', 'VerRoles']
-      const index = tabNames.indexOf(this.$route.name)
-      const width = 100 / tabNames.length
+      const tabs = [
+        { names: ['usuarios', 'CrearUsuarios', 'EditarUsuarios'] },
+        { names: ['VerRoles', 'CrearRol', 'EditarRol'] },
+      ]
+
+      // Encuentra el índice de la pestaña actual
+      const index = tabs.findIndex(tab =>
+        tab.names.includes(this.$route.name)
+      )
+
+      const width = 100 / tabs.length
+
       return {
         transform: `translateX(${index * 100}%)`,
         width: `${width}%`,
@@ -328,10 +333,12 @@ export default {
 
 /* Animación de shimmer */
 @keyframes shimmer {
+
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
+
   50% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
   }
