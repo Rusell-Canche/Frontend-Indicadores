@@ -19,8 +19,8 @@
         <div class="tabs-header">
           <div
             class="tab"
-            :class="{ active: $route.name === 'VerUsuarios' }"
-            @click="$router.push({ name: 'VerUsuarios' })"
+            :class="{ active: $route.name === 'usuarios' }"
+            @click="$router.push({ name: 'usuarios' })"
           >
             <div class="tab-icon">
               <i class="fas fa-user-friends"></i>
@@ -66,8 +66,8 @@
 export default {
   mounted() {
     // Si la ruta actual es exactamente '/Usuarios', redirigir a CrearUsuarios
-    if (this.$route.path === '/Usuarios') {
-      this.$router.replace('/Usuarios/CrearUsuarios')
+    if (this.$route.path === '/administracion') {
+      this.$router.push({ name: 'usuarios' })
     }
   },
   computed: {
