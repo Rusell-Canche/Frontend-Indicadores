@@ -228,7 +228,8 @@ export default defineComponent({
             /** Tipo de recurso seleccionado para permisos individuales */
             tipoSeleccionado: 'plantilla' as 'plantilla' | 'documento',
             /** Modo de asignación seleccionado (permitir/negar) */
-            modoSeleccionado: 'allowed' as 'allowed' | 'denied'
+            modoSeleccionado: 'allowed' as 'allowed' | 'denied',
+            idComodin: '',
         }
     },
 
@@ -291,6 +292,23 @@ export default defineComponent({
          */
         inicializarPermisosGlobales(): void {
             this.recursos.forEach(recurso => {
+                /** 
+                 * Para que la opcion comodin funcione en plantillas/documentos
+                 * necesitamos agregar una plantilla falsa con la id del comodin cuando la encontremos
+                 */
+                if (recurso.nombre == "Comodin") {
+                    const plantillaComodin: Plantilla = {
+                        id: recurso.id,
+                        nombre_plantilla: recurso.nombre,
+                        nombre_modelo: recurso.clave || "comodin_modelo",
+                        nombre_coleccion: "comodin_coleccion",
+                        creada_por: "sistema",
+                        secciones: recurso.descripcion || "Permisos globales"
+                    };
+
+                    // Agregamos la plantilla comodin al inicio de las plantillas
+                    this.plantillas.unshift(plantillaComodin);
+                }
                 this.permisosGlobales.allowed[recurso.id] = [];
                 this.permisosGlobales.denied[recurso.id] = [];
             });
