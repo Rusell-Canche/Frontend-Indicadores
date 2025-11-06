@@ -8,7 +8,7 @@
             <i class="fas fa-users me-3"></i>
             Adminstración de usuarios
           </h1>
-          <p class="main-subtitle">PLACEHOLDER</p>
+          <p class="main-subtitle"> </p>
         </div>
       </div>
     </div>
@@ -25,8 +25,8 @@
               <i class="fas fa-user-friends"></i>
             </div>
             <div class="tab-content-text">
-              <span class="tab-title">Ver usuarios</span>
-              <span class="tab-description">Visualiza los usuarios que se han creado</span>
+              <span class="tab-title">Usuarios</span>
+              <span class="tab-description"> </span>
             </div>
           </div>
           <div class="tab" :class="{
@@ -37,7 +37,7 @@
             </div>
             <div class="tab-content-text">
               <span class="tab-title">Roles</span>
-              <span class="tab-description"> - </span>
+              <span class="tab-description"> </span>
             </div>
           </div>
           <!-- Indicador deslizante mejorado -->
@@ -267,7 +267,7 @@ export default {
 }
 
 .tab-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   line-height: 1.2;
   margin-bottom: 0.25rem;

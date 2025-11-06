@@ -31,7 +31,7 @@
             </div>
           </div>
           <div class="col-md-6 d-flex justify-content-end">
-            <button type="button" class="btn btn-primary me-2" @click="$router.push({ name: 'CrearRol' })">
+            <button type="button" class="btn btn-primary me-2" @click="$router.push({ name: 'CrearRoles' })">
               <i class="fas fa-plus me-2"></i>
               Crear rol
             </button>

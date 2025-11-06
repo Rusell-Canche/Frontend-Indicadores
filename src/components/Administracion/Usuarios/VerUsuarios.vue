@@ -10,23 +10,18 @@
           </div>
           <div class="header-title-section">
             <h3>Gestión de Usuarios</h3>
-            <p class="header-subtitle">Administra los usuarios del sistema</p>
+            <p class="header-subtitle"> </p>
           </div>
-        </div>
-        <div class="header-actions">
-          <button class="btn btn-primary" @click="loadUsuarios">
-            <i class="fas fa-sync-alt me-2"></i>
-            Actualizar
-          </button>
         </div>
       </div>
 
-      <!-- Body con el diseño moderno -->
+      <!-- Cuerpo de la pagina -->
       <div class="medico-body">
+
         <!-- Barra de búsqueda -->
-        <div class="search-section mb-4">
+        <div class="mb-4">
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-10">
               <div class="input-group modern-input">
                 <span class="input-group-text">
                   <i class="fas fa-search"></i>
@@ -35,25 +30,15 @@
                   v-model="searchTerm"
                   type="text"
                   class="form-control"
-                  placeholder="Buscar por nombre, email o estado..."
+                  placeholder="Buscar por nombre o email..."
                 />
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="d-flex gap-2">
-                <select v-model="filterGenero" class="form-control">
-                  <option value="">Todos los géneros</option>
-                  <option value="masculino">Masculino</option>
-                  <option value="femenino">Femenino</option>
-                  <option value="otro">Otro</option>
-                </select>
-                <select v-model="filterEscolaridad" class="form-control">
-                  <option value="">Todas las escolaridades</option>
-                  <option value="Licenciatura">Licenciatura</option>
-                  <option value="Maestría">Maestría</option>
-                  <option value="Doctorado">Doctorado</option>
-                </select>
-              </div>
+            <div class="col-md-2 d-flex">
+                <button type="button" class="btn btn-primary" @click="$router.push({ name: 'CrearRol' })">
+                  <i class="fas fa-plus me-2"></i>
+                  Crear rol
+                </button>
             </div>
           </div>
         </div>
