@@ -280,7 +280,7 @@
                   <div v-else-if="getCampoDefinition(campo)?.type === 'tabla'" class="file-badges">
                     <Button
                       icon="fa-solid  fa-magnifying-glass"
-                      @click=" this.mostrarModalTabla = true; this.tablaDinamica=getPrettyFieldValue(slotProps.data, campo); console.log('Tabla dinámica:', this.tablaDinamica);"
+                      @click=" this.mostrarModalTabla = true;campoTablaActual = campo; this.tablaDinamica=getPrettyFieldValue(slotProps.data, campo); console.log('Tabla dinámica:', this.tablaDinamica);"
                       text
                       severity="info"
                       size="small"
@@ -485,7 +485,7 @@
 
 
 <!--Modal para mostrar Archivos Multimedia-->
-<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);" aria-modal="true" role="dialog" @click.self="cerrarModal">
+<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="z-index:1060;background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);" aria-modal="true" role="dialog" @click.self="cerrarModal">
   <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1100px;">
     <div class="modal-content">
       
@@ -674,16 +674,30 @@
       <!-- Body -->
       <div class="modal-body text-center">
 
-           <!-- Tabla PrimeVue -->
-        <DataTable v-if="tablaDinamica && tablaDinamica.length" :value="tablaDinamica" showGridlines responsiveLayout="scroll">
-          <Column
-            v-for="key in Object.keys(tablaDinamica[0]).filter(k => k !== '_documentId')"
-            :key="key"
-            :field="key"
-            :header="key"
-          >
-          </Column>
-        </DataTable>
+           <DataTable v-if="tablaDinamica && tablaDinamica.length" :value="tablaDinamica" showGridlines responsiveLayout="scroll">
+  <Column
+    v-for="colDef in getCampoDefinition(campoTablaActual)?.tableConfig?.campos || []"
+    :key="colDef.name"
+    :field="colDef.name"
+    :header="colDef.name"
+  >
+    <template #body="slotProps">
+      <div v-if="colDef.type === 'file'" class="file-badges">
+        <Button
+          icon="fa-solid fa-eye"
+          @click="mostrarModalImagen = true; archivo = slotProps.data[colDef.name]"
+          text
+          severity="info"
+          size="small"
+          v-tooltip="'Ver Archivo'"
+        />
+      </div>
+      <span v-else>
+        {{ slotProps.data[colDef.name] }}
+      </span>
+    </template>
+  </Column>
+</DataTable>
 
       </div>
 
@@ -737,6 +751,7 @@ export default {
       //para mostrar la tabla dinamica
       tablaDinamica:null,
       mostrarModalTabla: false,
+      campoTablaActual:null,
 
       //para mostrar la imagen de archivo
        currentSlide: 0,
@@ -970,9 +985,6 @@ export default {
   
   irASlide(index) {
     this.currentSlide = index;
-    const carousel = document.getElementById('multimediaCarousel');
-    const bsCarousel = new bootstrap.Carousel(carousel);
-    bsCarousel.to(index);
   },
   
   cerrarModalImagen() {
