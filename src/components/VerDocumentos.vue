@@ -508,20 +508,6 @@
           data-bs-ride="false"
         >
           
-          <!-- Indicadores -->
-          <div class="carousel-indicators" v-if="archivosArray.length > 1">
-            <button 
-              v-for="(item, index) in archivosArray" 
-              :key="index"
-              type="button" 
-              data-bs-target="#multimediaCarousel" 
-              :data-bs-slide-to="index" 
-              :class="{ active: index === currentSlide }"
-              :aria-current="index === currentSlide ? 'true' : 'false'"
-              :aria-label="'Slide ' + (index + 1)"
-            ></button>
-          </div>
-
           <!-- Contenido del carrusel -->
           <div class="carousel-inner">
             <div 
@@ -590,11 +576,11 @@
           </div>
 
           <!-- Controles Previous/Next -->
-          <button v-if="archivosArray.length > 1" class="carousel-control-prev" type="button" data-bs-target="#multimediaCarousel" data-bs-slide="prev">
+          <button v-if="archivosArray.length > 1" class="carousel-control-prev" type="button" @click="irASlide(currentSlide - 1)">
             <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: invert(1);"></span>
             <span class="visually-hidden">Anterior</span>
           </button>
-          <button v-if="archivosArray.length > 1" class="carousel-control-next" type="button" data-bs-target="#multimediaCarousel" data-bs-slide="next">
+          <button v-if="archivosArray.length > 1" class="carousel-control-next" type="button"  @click="irASlide(currentSlide + 1)">
             <span class="carousel-control-next-icon" aria-hidden="true" style="filter: invert(1);"></span>
             <span class="visually-hidden">Siguiente</span>
           </button>
@@ -983,8 +969,14 @@ export default {
     return ruta.split('/').pop();
   },
   
-  irASlide(index) {
-    this.currentSlide = index;
+ irASlide(index) {
+    if (index < 0) {
+      this.currentSlide = this.archivosArray.length - 1;
+    } else if (index >= this.archivosArray.length) {
+      this.currentSlide = 0;
+    } else {
+      this.currentSlide = index;
+    }
   },
   
   cerrarModalImagen() {
