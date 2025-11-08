@@ -1,4 +1,4 @@
-import type { Accion } from "./accion";
+import type { PermisosRaw, PermisosHydrated, UiPermissions } from '@/models/permisos/types';
 
 /**
  * Representa un Rol de usuario.
@@ -16,34 +16,8 @@ export interface Rol {
   descripcion: string;
 
   /** Permisos para acceder a recursos */
-  permisos?: {
-    /** Recursos permitidos */
-    allowed?: {
-      /** Recurso */
-      recurso?: {
-        /** NOmbre del recurso */
-        nombre?: string,
-        /** ID del recurso */
-        id: string,
-        /** Descripcion del recurso */
-        descripcion?: string,
-      };
-      /** Acciones permitidas sobre el recurso */
-      acciones: Accion[];
-    }[];
-    /** Recursos denegados */
-    denied?: {
-      /** Nombre del recurso */
-      recurso: string;
-      /** Acciones denegadas sobre el recurso */
-      acciones: string[];
-    }[];
-  };
-
-  /** Permisos para vistas del frontend */
-  ui_permissions?: {
-    [key: string]: boolean;
-  };
+  permisos?: PermisosRaw | PermisosHydrated;
+  ui_permissions?: UiPermissions;
 
   /** Fecha de creación */
   created_at?: string;

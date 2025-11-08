@@ -105,70 +105,31 @@ import Accordion from 'primevue/accordion';
 import AccordionPanel from 'primevue/accordionpanel';
 import AccordionHeader from 'primevue/accordionheader';
 import AccordionContent from 'primevue/accordioncontent';
+
+/* Servicios para obtener informacion */
 import { RecursoService, recursoState } from '../../services/Administracion/recurso.service';
 import { AccionService, accionesState } from '@/services/Administracion/accion.service';
 import { PlantillaService, plantillaState } from '@/services/Administracion/plantilla.service';
+
+/* Modelos base */
 import type { Recurso } from '@/models/recurso';
 import type { Accion } from '@/models/accion';
 import type { Plantilla } from '@/models/plantilla';
 
-/**
- * Interfaz para los permisos de interfaz de usuario
- * @property {boolean} Indicadores - Permiso para módulo de Indicadores
- * @property {boolean} Plantillas - Permiso para módulo de Plantillas
- * @property {boolean} Documentos - Permiso para módulo de Documentos
- * @property {boolean} Reportes - Permiso para módulo de Reportes
- * @property {boolean} Estadisticas - Permiso para módulo de Estadísticas
- */
-interface UiPermissions {
-    indicadores: boolean;
-    plantillas: boolean;
-    documentos: boolean;
-    reportes: boolean;
-    estadisticas: boolean;
-}
+/* Modelos de permisos */
+import type {
+    PermisosMaybeHydrated,
+    PermisosGlobalesState,
+    PermisosIndividualesState,
+    UiPermissions,
+    PermisosRaw
+} from '@/models/permisos';
 
-/**
- * Interfaz para permisos globales a nivel de ruta
- * @property {Record<string, string[]>} allowed - Permisos permitidos por recurso
- * @property {Record<string, string[]>} denied - Permisos denegados por recurso
- */
-interface PermisosGlobales {
-    allowed: Record<string, string[]>;
-    denied: Record<string, string[]>;
-}
-
-/**
- * Interfaz para permisos individuales a nivel de registro
- * @property {Record<'plantilla' | 'documento', Record<string, string[]>>} allowed - Permisos permitidos por tipo
- * @property {Record<'plantilla' | 'documento', Record<string, string[]>>} denied - Permisos denegados por tipo
- */
-interface PermisosIndividuales {
-    allowed: Record<'plantilla' | 'documento', Record<string, string[]>>;
-    denied: Record<'plantilla' | 'documento', Record<string, string[]>>;
-}
-
-/**
- * Interfaz para grupo de permisos
- * @property {string} recurso - Identificador del recurso
- * @property {string[]} acciones - Lista de acciones permitidas/denegadas
- */
-interface PermisoGrupo {
-    recurso: string;
-    acciones: string[];
-}
-
-/**
- * Interfaz para la estructura final de permisos
- * @property {UiPermissions} ui_permissions - Permisos de interfaz de usuario
- * @property {Object} permisos - Permisos de recursos
- * @property {PermisoGrupo[]} permisos.allowed - Permisos permitidos
- * @property {PermisoGrupo[]} permisos.denied - Permisos denegados
- */
-interface PermisosFinales {
-    allowed: PermisoGrupo[];
-    denied: PermisoGrupo[];
-}
+import {
+    loadPermisosToState,
+    buildPermisosRaw,
+    hydratePermisos
+} from '@/services/Administracion/utils';
 
 /**
  * Componente para asignar permisos de manera granular a usuarios o roles
@@ -209,27 +170,29 @@ export default defineComponent({
             plantillas: [] as Plantilla[],
             /** Permisos de interfaz de usuario por módulo */
             uiPermissions: {
-                'indicadores': false,
-                'plantillas': false,
-                'documentos': false,
-                'reportes': false,
-                'estadisticas': false
+                indicadores: false,
+                plantillas: false,
+                documentos: false,
+                reportes: false,
+                estadisticas: false
             } as UiPermissions,
+
             /** Permisos globales organizados por modo (allowed/denied) */
             permisosGlobales: {
                 allowed: {},
                 denied: {},
-            } as PermisosGlobales,
+            } as PermisosGlobalesState,
             /** Permisos individuales organizados por modo y tipo */
             permisosIndividuales: {
                 allowed: { plantilla: {}, documento: {} },
                 denied: { plantilla: {}, documento: {} }
-            } as PermisosIndividuales,
-            /** Tipo de recurso seleccionado para permisos individuales */
+            } as PermisosIndividualesState,
+
+            recursosMap: {} as Record<string, Recurso>,
+            accionesMap: {} as Record<string, Accion>,
+
             tipoSeleccionado: 'plantilla' as 'plantilla' | 'documento',
-            /** Modo de asignación seleccionado (permitir/negar) */
             modoSeleccionado: 'allowed' as 'allowed' | 'denied',
-            idComodin: '',
         }
     },
 
@@ -242,16 +205,15 @@ export default defineComponent({
 
         /** Permisos descargados al momento de editar (sin formatear) */
         permisosCargados: {
-            type: Object,
+            type: Object as () => PermisosMaybeHydrated | undefined,
             required: false,
-            default: () => ({})
+            default: () => undefined
         },
 
-        /** Permisos de UI descargados al momento de editar (sin formatear) */
         uiPermissionsCargados: {
-            type: Object,
+            type: Object as () => UiPermissions | undefined,
             required: false,
-            default: () => ({})
+            default: () => undefined
         }
     },
 
@@ -274,7 +236,13 @@ export default defineComponent({
             this.acciones = accionesState.acciones ?? [];
             this.plantillas = plantillaState.plantillas ?? [];
 
+            // construir maps para hidratación rápida
+            this.recursosMap = (this.recursos || []).reduce((acc: any, r: Recurso) => { acc[r.id] = r; return acc; }, {});
+            this.accionesMap = (this.acciones || []).reduce((acc: any, a: Accion) => { acc[a.id] = a; return acc; }, {});
+
             this.inicializarPermisos();
+
+            await nextTick();
         },
 
         /**
@@ -334,34 +302,11 @@ export default defineComponent({
 
         /**
          * Genera la estructura final de permisos para su envío al backend
-         * @returns {PermisosFinales} Estructura completa de permisos
+         * @returns {PermisosRaw} Estructura completa de permisos
          */
-        getPermisosFinales(): PermisosFinales {
-            const procesarPermisos = (
-                permisos: Record<string, string[]>,
-                prefix: string = ''
-            ): PermisoGrupo[] => {
-                return Object.entries(permisos)
-                    .filter(([_, acciones]) => acciones.length > 0)
-                    .map(([recurso, acciones]) => ({
-                        recurso: prefix ? `${prefix}:${recurso}` : recurso,
-                        acciones
-                    }));
-            };
-
-            const allowed: PermisoGrupo[] = [
-                ...procesarPermisos(this.permisosGlobales.allowed),
-                ...procesarPermisos(this.permisosIndividuales.allowed.plantilla, 'plantilla'),
-                ...procesarPermisos(this.permisosIndividuales.allowed.documento, 'documento')
-            ];
-
-            const denied: PermisoGrupo[] = [
-                ...procesarPermisos(this.permisosGlobales.denied),
-                ...procesarPermisos(this.permisosIndividuales.denied.plantilla, 'plantilla'),
-                ...procesarPermisos(this.permisosIndividuales.denied.documento, 'documento')
-            ];
-
-            return { allowed, denied };
+        getPermisosFinales(): PermisosRaw {
+            // devuelve siempre la forma RAW que espera el backend
+            return buildPermisosRaw(this.permisosGlobales, this.permisosIndividuales);
         },
 
         precargarDatos() {
@@ -376,85 +321,20 @@ export default defineComponent({
                 }
             }
 
-            // Recurremos permisosEspecificos precargados
-            // Suponiendo que this.permisosCargados ya tiene el JSON que mostraste
-            if (this.permisosCargados) {
-                // Recorremos los permisos permitidos (allowed)
-                if (this.permisosCargados.allowed) {
-                    this.permisosCargados.allowed.forEach((permiso: any) => {
-                        const recurso = permiso.recurso;
-                        const acciones = permiso.acciones?.map((a: any) => a.id) || [];
+            // si no hay permisos cargados, nothing
+            if (!this.permisosCargados) return;
 
-                        switch (recurso.tipo) {
-                            // 🔹 Permisos globales (rutas)
-                            case 'ruta': {
-                                if (!this.permisosGlobales.allowed[recurso.id]) {
-                                    this.permisosGlobales.allowed[recurso.id] = [];
-                                }
-                                this.permisosGlobales.allowed[recurso.id].push(...acciones);
-                                break;
-                            }
 
-                            case 'plantilla': {
-                                // Determinamos si es de plantilla o documento
-                                const tipo = recurso.tipo.toLowerCase().includes('plantilla')
-                                    ? 'plantilla'
-                                    : 'documento';
+            // Mandamos los permisos detallados para transformalos mas sencillos
+            const { permisosGlobales, permisosIndividuales } = loadPermisosToState(this.permisosCargados);
 
-                                if (!this.permisosIndividuales.allowed[tipo][recurso.id]) {
-                                    this.permisosIndividuales.allowed[tipo][recurso.id] = [];
-                                }
-                                this.permisosIndividuales.allowed[tipo][recurso.id].push(...acciones);
-                                break;
-                            }
 
-                            case 'documento': {
-                                // Determinamos si es de plantilla o documento
-                                const tipo = recurso.tipo.toLowerCase().includes('documento')
-                                    ? 'documento'
-                                    : 'plantilla';
-
-                                if (!this.permisosIndividuales.allowed[tipo][recurso.id]) {
-                                    this.permisosIndividuales.allowed[tipo][recurso.id] = [];
-                                }
-
-                                this.permisosIndividuales.allowed[tipo][recurso.id].push(...acciones);
-                                break;
-                            }
-                        }
-                    });
-                }
-
-                // Si tienes denegados también, puedes hacer lo mismo pero con denied
-                if (this.permisosCargados.denied) {
-                    this.permisosCargados.denied.forEach((permiso: any) => {
-                        const recurso = permiso.recurso;
-                        const acciones = permiso.acciones?.map((a: any) => a.id) || [];
-
-                        switch (recurso.tipo) {
-                            case 'ruta': {
-                                if (!this.permisosGlobales.denied[recurso.id]) {
-                                    this.permisosGlobales.denied[recurso.id] = [];
-                                }
-                                this.permisosGlobales.denied[recurso.id].push(...acciones);
-                                break;
-                            }
-                            case 'comodín': {
-                                const tipo = recurso.nombre.toLowerCase().includes('plantilla')
-                                    ? 'plantilla'
-                                    : 'documento';
-
-                                if (!this.permisosIndividuales.denied[tipo][recurso.id]) {
-                                    this.permisosIndividuales.denied[tipo][recurso.id] = [];
-                                }
-                                this.permisosIndividuales.denied[tipo][recurso.id].push(...acciones);
-                                break;
-                            }
-                        }
-                    });
-                }
-            }
-
+            // Remplazamos los estados internos
+            this.permisosGlobales = { ...this.permisosGlobales, ...permisosGlobales };
+            this.permisosIndividuales = {
+                allowed: { ...this.permisosIndividuales.allowed, ...permisosIndividuales.allowed },
+                denied: { ...this.permisosIndividuales.denied, ...permisosIndividuales.denied }
+            };
         }
     },
 
@@ -469,14 +349,14 @@ export default defineComponent({
     watch: {
         permisosGlobales: {
             handler() {
-                this.$emit('update:permisos', this.getPermisosFinales());
-                //
+                // Emitimos RAW (siempre)
+                this.$emit('update:permisos', buildPermisosRaw(this.permisosGlobales, this.permisosIndividuales));
             },
             deep: true
         },
         permisosIndividuales: {
             handler() {
-                this.$emit('update:permisos', this.getPermisosFinales());
+                this.$emit('update:permisos', buildPermisosRaw(this.permisosGlobales, this.permisosIndividuales));
             },
             deep: true
         },

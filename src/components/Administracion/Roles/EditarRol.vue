@@ -57,11 +57,9 @@
             </div>
           </div>
 
-          <AsignarPermisos 
-            v-model:permisos="rol.permisos"
-            v-model:uiPermissions="rol.ui_permissions" 
-            :uiPermissionsCargados="rol.ui_permissions"
-            :permisosCargados="rol.permisos" />
+          <AsignarPermisos v-model:permisos="rol.permisos" v-model:uiPermissions="rol.ui_permissions"
+            :uiPermissionsCargados="uiPermissionsCargados" :permisosCargados="permisosCargados" />
+          />
 
           <div class="medico-footer">
             <button type="submit" class="btn btn-save">
@@ -101,6 +99,9 @@ export default {
         },
         ui_permissions: {},
       } as Rol,
+
+      uiPermissionsCargados: {} as any,
+      permisosCargados: {} as any,
     }
   },
   computed: {
@@ -111,6 +112,12 @@ export default {
       // Obtenemos la id del rol y conseguimos el rol completo
       this.rol.id = this.$route.params.id as string;
       this.rol = await RolService.fetchRol(this.rol.id);
+
+      if (this.rol) {
+
+        this.uiPermissionsCargados = this.rol.ui_permissions;
+        this.permisosCargados = this.rol.permisos;
+      }
     }
   },
   methods: {
