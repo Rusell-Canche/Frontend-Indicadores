@@ -26,19 +26,17 @@
                 <span class="input-group-text">
                   <i class="fas fa-search"></i>
                 </span>
-                <input
-                  v-model="searchTerm"
-                  type="text"
-                  class="form-control"
-                  placeholder="Buscar por nombre o email..."
-                />
+                <input v-model="searchTerm" type="text" class="form-control"
+                  placeholder="Buscar por nombre o email..." />
               </div>
             </div>
             <div class="col-md-2 d-flex">
-                <button type="button" class="btn btn-primary" @click="$router.push({ name: 'CrearRol' })">
+              <router-link :to="{ name: 'CrearUsuarios' }">
+                <button type="button" class="btn btn-primary">
                   <i class="fas fa-plus me-2"></i>
-                  Crear rol
+                  Crear usuario
                 </button>
+              </router-link>
             </div>
           </div>
         </div>
@@ -66,18 +64,10 @@
                 <p class="usuario-email">{{ usuario.email }}</p>
               </div>
               <div class="usuario-actions">
-                <button
-                  class="btn btn-sm btn-outline-primary"
-                  @click="editUsuario(usuario)"
-                  title="Editar usuario"
-                >
+                <button class="btn btn-sm btn-edit" @click="editUsuario(usuario)" title="Editar usuario">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button
-                  class="btn btn-sm btn-outline-danger"
-                  @click="deleteUsuario(usuario)"
-                  title="Eliminar usuario"
-                >
+                <button class="btn btn-sm btn-delete" @click="deleteUsuario(usuario)" title="Eliminar usuario">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -125,11 +115,7 @@
               <div class="detail-section" v-if="usuario.permisos && usuario.permisos.length > 0">
                 <h6><i class="fas fa-shield-alt me-2"></i>Permisos</h6>
                 <div class="permisos-list">
-                  <div
-                    v-for="permiso in usuario.permisos"
-                    :key="permiso.recurso"
-                    class="permiso-item"
-                  >
+                  <div v-for="permiso in usuario.permisos" :key="permiso.recurso" class="permiso-item">
                     <div class="permiso-header">
                       <strong>{{ getResourceName(permiso.recurso) }}</strong>
                     </div>
@@ -173,31 +159,18 @@
                   <i class="fas fa-angle-left"></i>
                 </button>
               </li>
-              <li
-                v-for="page in visiblePages"
-                :key="page"
-                class="page-item"
-                :class="{ active: currentPage === page }"
-              >
+              <li v-for="page in visiblePages" :key="page" class="page-item" :class="{ active: currentPage === page }">
                 <button class="page-link" @click="currentPage = page">
                   {{ page }}
                 </button>
               </li>
               <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                <button
-                  class="page-link"
-                  @click="currentPage++"
-                  :disabled="currentPage === totalPages"
-                >
+                <button class="page-link" @click="currentPage++" :disabled="currentPage === totalPages">
                   <i class="fas fa-angle-right"></i>
                 </button>
               </li>
               <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                <button
-                  class="page-link"
-                  @click="currentPage = totalPages"
-                  :disabled="currentPage === totalPages"
-                >
+                <button class="page-link" @click="currentPage = totalPages" :disabled="currentPage === totalPages">
                   <i class="fas fa-angle-double-right"></i>
                 </button>
               </li>
@@ -212,12 +185,8 @@
     </div>
 
     <!-- Modal para editar usuario -->
-    <div
-      v-if="showEditModal"
-      class="modal fade show d-block"
-      tabindex="-1"
-      style="background-color: rgba(0, 0, 0, 0.5)"
-    >
+    <div v-if="showEditModal" class="modal fade show d-block" tabindex="-1"
+      style="background-color: rgba(0, 0, 0, 0.5)">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
@@ -238,50 +207,24 @@
                 <div class="row g-3">
                   <div class="col-md-6">
                     <label class="form-label">Nombre*</label>
-                    <input
-                      v-model="editingUsuario.nombre"
-                      type="text"
-                      class="form-control"
-                      required
-                    />
+                    <input v-model="editingUsuario.nombre" type="text" class="form-control" required />
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Apellido Paterno*</label>
-                    <input
-                      v-model="editingUsuario.apellido_paterno"
-                      type="text"
-                      class="form-control"
-                      required
-                    />
+                    <input v-model="editingUsuario.apellido_paterno" type="text" class="form-control" required />
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Apellido Materno*</label>
-                    <input
-                      v-model="editingUsuario.apellido_materno"
-                      type="text"
-                      class="form-control"
-                      required
-                    />
+                    <input v-model="editingUsuario.apellido_materno" type="text" class="form-control" required />
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Email*</label>
-                    <input
-                      v-model="editingUsuario.email"
-                      type="email"
-                      class="form-control"
-                      required
-                    />
+                    <input v-model="editingUsuario.email" type="email" class="form-control" required />
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Edad*</label>
-                    <input
-                      v-model.number="editingUsuario.edad"
-                      type="number"
-                      class="form-control"
-                      required
-                      min="18"
-                      max="100"
-                    />
+                    <input v-model.number="editingUsuario.edad" type="number" class="form-control" required min="18"
+                      max="100" />
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Género*</label>
@@ -293,21 +236,11 @@
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Estado*</label>
-                    <input
-                      v-model="editingUsuario.estado"
-                      type="text"
-                      class="form-control"
-                      required
-                    />
+                    <input v-model="editingUsuario.estado" type="text" class="form-control" required />
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Ocupación*</label>
-                    <input
-                      v-model="editingUsuario.ocupacion"
-                      type="text"
-                      class="form-control"
-                      required
-                    />
+                    <input v-model="editingUsuario.ocupacion" type="text" class="form-control" required />
                   </div>
                   <div class="col-md-12">
                     <label class="form-label">Escolaridad*</label>
@@ -659,6 +592,34 @@ export default {
 </script>
 
 <style scoped>
+/** --- BOTONES --- */
+
+/* Eliminar */
+.btn-delete {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+}
+
+/* Editar */
+.btn-edit {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+/* Editar */
+
 /* Estilos base del diseño moderno */
 .card {
   border-radius: 20px;
@@ -1183,10 +1144,12 @@ export default {
 
 /* Animaciones */
 @keyframes shimmer {
+
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
+
   50% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
   }

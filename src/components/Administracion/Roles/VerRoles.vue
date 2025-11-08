@@ -31,7 +31,7 @@
             </div>
           </div>
           <div class="col-md-6 d-flex justify-content-end">
-            <button type="button" class="btn btn-primary me-2" @click="$router.push({ name: 'CrearRoles' })">
+            <button type="button" class="btn btn-primary me-2" @click="$router.push({ name: 'CrearRol' })">
               <i class="fas fa-plus me-2"></i>
               Crear rol
             </button>
@@ -72,7 +72,7 @@
                 <i class="fas fa-eye me-1" />
                 Ver
               </button>
-              <router-link :to="{name: 'EditarRol', params: { id: rol.id }}" class=" btn btn-sm btn-edit"> <i
+              <router-link :to="{ name: 'EditarRol', params: { id: rol.id } }" class=" btn btn-sm btn-edit"> <i
                   class="fas fa-edit me-1" />
                 Editar </router-link>
               <button @click="eliminarRol(rol)" class="btn btn-sm btn-delete">
@@ -171,7 +171,8 @@ export default {
 
       if (respuesta.isConfirmed) {
         try {
-          await RolService.deleteRol(rol.id);
+
+          await RolService.deleteRol(rol.id!);
 
           Swal.fire({
             title: 'Eliminado',
@@ -181,7 +182,7 @@ export default {
           });
 
           this.roles = this.rolState.roles;
-          
+
         } catch (error: any) {
 
           if (error.response?.status === 409) {
