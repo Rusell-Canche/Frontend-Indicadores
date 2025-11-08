@@ -990,6 +990,7 @@ export default {
   cerrarModalImagen() {
     this.mostrarModalImagen = false;
     this.currentSlide = 0;
+    this.archivo = null
   },
     // ========== MÉTODOS EXISTENTES ==========
     getStatusSeverity(estado) {
@@ -1074,12 +1075,7 @@ export default {
       this.tablaDinamica = null
     },
 
-    cerrarModalImagen() {
-      this.mostrarModalImagen = false
-      this.archivo = null
-      
-    },
-
+  
     cerrarTodosLosModales() {
       console.log('=== CERRANDO TODOS LOS MODALES ===')
       this.modalStack = []
@@ -1790,6 +1786,8 @@ editarDocumento(documento) {
 
   mounted() {
     this.getColecciones()
+    
+    
   },
 }
 </script>
