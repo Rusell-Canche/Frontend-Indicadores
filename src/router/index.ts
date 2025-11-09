@@ -26,8 +26,8 @@ import HistorialEstadisticas from '@/components/HistorialEstadisticas.vue'
 import Forbidden from '@/components/Forbidden.vue'
 
 import AdministracionLayout from '../components/Administracion/AdministracionLayout.vue'
-import VerUsuarios from '@/components/Administracion/Usuarios/VerUsuarios.vue'
-import CrearUsuarios from '@/components/Administracion/Usuarios/CrearUsuarios.vue'
+import UsuariosLista from '@/components/Administracion/Usuarios/UsuariosLista.vue'
+import UsuarioCrear from '@/components/Administracion/Usuarios/UsuarioCrear.vue'
 import RolCrear from '@/components/Administracion/Roles/RolCrear.vue'
 import RolesLista from '@/components/Administracion/Roles/RolesLista.vue'
 import RolEditar from '@/components/Administracion/Roles/RolEditar.vue'
@@ -180,19 +180,19 @@ const router = createRouter({
                 {
                   path: '',
                   name: 'usuarios',
-                  component: VerUsuarios,
+                  component: UsuariosLista,
                   meta: { title: 'Usuarios' },
                 },
                 {
                   path: 'crear',
                   name: 'CrearUsuarios',
-                  component: CrearUsuarios,
+                  component: UsuarioCrear,
                   meta: { title: 'Crear Usuario' },
                 },
                 {
                   path: ':id/editar',
                   name: 'EditarUsuarios',
-                  component: CrearUsuarios,
+                  component: UsuarioCrear,
                   meta: { title: 'Editar Usuario' },
                 },
               ],
