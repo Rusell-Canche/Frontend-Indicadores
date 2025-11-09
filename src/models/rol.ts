@@ -1,27 +1,27 @@
-import type { PermisosRaw, PermisosHydrated, UiPermissions } from '@/models/permisos/types';
+import type { PermisosRaw, PermisosHydrated, UiPermissions } from '@/models/permisos'
 
 /**
  * Representa un Rol de usuario.
- * 
+ *
  * @public
  */
 export interface Rol {
-  /** Identificador único del rol */
-  id?: string;
+    /** Identificador único del rol */
+    id?: string
 
-  /** Nombre del rol */
-  nombre: string;
+    /** Nombre del rol */
+    nombre: string
 
-  /** Descripción del rol */
-  descripcion: string;
+    /** Descripción del rol */
+    descripcion: string
 
-  /** Permisos para acceder a recursos */
-  permisos?: PermisosRaw | PermisosHydrated;
-  ui_permissions?: UiPermissions;
+    /** Permisos para acceder a recursos */
+    permisos?: PermisosRaw | PermisosHydrated
+    ui_permissions?: UiPermissions
 
-  /** Fecha de creación */
-  created_at?: string;
+    /** Fecha de creación */
+    created_at?: string
 
-  /** Fecha de actualización */
-  updated_at?: string;
+    /** Fecha de actualización */
+    updated_at?: string
 }

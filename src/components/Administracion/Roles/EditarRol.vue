@@ -18,11 +18,6 @@
       <!-- Body con el diseño moderno -->
       <div class="medico-body">
         <form @submit.prevent="submitForm">
-          <!-- Nota de campos requeridos -->
-          <div class="alert alert-info mb-4">
-            <i class="fas fa-info-circle me-2"></i>
-            Completa la información básica y asigna los permisos necesarios para el rol
-          </div>
 
           <!-- Sección de información básica del rol -->
           <div class="form-section">
@@ -59,7 +54,6 @@
 
           <AsignarPermisos v-model:permisos="rol.permisos" v-model:uiPermissions="rol.ui_permissions"
             :uiPermissionsCargados="uiPermissionsCargados" :permisosCargados="permisosCargados" />
-          />
 
           <div class="medico-footer">
             <button type="submit" class="btn btn-save">
@@ -78,6 +72,7 @@ import Swal from 'sweetalert2'
 import AsignarPermisos from '@/components/Administracion/AsignarPermisos.vue';
 import type { Rol } from '@/models/rol';
 import { RolService, rolState } from '@/services/Administracion/rol.service';
+import type { PermisoGrupoHydrated, PermisosHydrated, UiPermissions } from '@/models/permisos';
 
 export default {
   components: {
@@ -94,19 +89,17 @@ export default {
         nombre: '',
         descripcion: '',
         permisos: {
-          allowed: [],
-          denied: []
+          allowed: {},
+          denied: {}
         },
         ui_permissions: {},
       } as Rol,
 
-      uiPermissionsCargados: {} as any,
-      permisosCargados: {} as any,
+      uiPermissionsCargados: {} as UiPermissions,
+      permisosCargados: {} as PermisosHydrated,
     }
   },
-  computed: {
 
-  },
   async mounted() {
     if (this.$route.params.id) {
       // Obtenemos la id del rol y conseguimos el rol completo
@@ -115,8 +108,8 @@ export default {
 
       if (this.rol) {
 
-        this.uiPermissionsCargados = this.rol.ui_permissions;
-        this.permisosCargados = this.rol.permisos;
+        this.uiPermissionsCargados = this.rol.ui_permissions || {};
+        this.permisosCargados = this.rol.permisos as PermisosHydrated;
       }
     }
   },
@@ -129,12 +122,12 @@ export default {
         text: `¿Quieres actualizar el rol "${this.rol.nombre}"?`,
         icon: 'question',
         showCancelButton: false,
-        confirmButtonText: 'Sí, crear',
+        confirmButtonText: 'Sí, actualizar',
         cancelButtonText: 'Cancelar',
       })
 
       if (result.isDenied || result.isDismissed) {
-        return null;
+        return;
       }
 
       // INtentamos actualizar el rol
@@ -144,12 +137,12 @@ export default {
 
         Swal.fire({
           icon: 'success',
-          title: '¡Rol creado!',
+          title: '¡Rol actualizado!',
           text: `El rol "${this.rol.nombre}" ha sido actualizado exitosamente`,
         }).then(() => {
           this.$router.push({ name: 'VerRoles' })
         })
-      } catch (error: any) {
+      } catch (error) {
 
         // Errores genericos
         Swal.fire({

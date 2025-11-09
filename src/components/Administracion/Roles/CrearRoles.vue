@@ -40,9 +40,6 @@
                   <input v-solo-texto v-model="rol.nombre" type="text" id="nombre" name="nombre" class="form-control"
                     required placeholder="ej: super_usuario, administrador" />
                 </div>
-                <small class="form-text text-muted">
-                  Se recomienda usar snake_case (ej: super_usuario)
-                </small>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Descripción*</label>
@@ -75,7 +72,7 @@
 import Swal from 'sweetalert2'
 import AsignarPermisos from '@/components/Administracion/AsignarPermisos.vue';
 import type { Rol } from '@/models/rol';
-import { RolService, rolState } from '@/services/Administracion/rol.service';
+import { RolService } from '@/services/Administracion/rol.service';
 
 export default {
   components: {
@@ -84,40 +81,18 @@ export default {
   data() {
     return {
       RolService,
-      rolState,
 
       // Objeto rol
       rol: {
+        id: '',
         nombre: '',
         descripcion: '',
-        permisos: {
-          allowed: [],
-          denied: [],
-        },
-        ui_permissions: {},
+        permisos: { allowed: [], denied: [] }, // shape inicial
+        ui_permissions: {}
       } as Rol,
-
-      // Estados de la UI
-      isHovered: false,
-      showPreview: false,
-
-      // Para funcionalidad wildcard
-      wildcardActionId: null,
     }
   },
-  computed: {
-
-  },
-  async mounted() {
-
-  },
   methods: {
-
-    // Alternar vista previa
-    togglePreview() {
-      this.showPreview = !this.showPreview
-    },
-
     // Enviar formulario
     async submitForm() {
 
@@ -132,7 +107,7 @@ export default {
       })
 
       if (result.isDenied || result.isDismissed) {
-        return null;
+        return;
       }
 
       // Intentamos guardar el rol
@@ -140,14 +115,15 @@ export default {
 
         // Intentamos mandar el rol
         await this.RolService.createRol(this.rol);
+
         Swal.fire({
           icon: 'success',
           title: '¡Rol creado!',
           text: `El rol "${this.rol.nombre}" ha sido creado exitosamente`,
         }).then(() => {
-          // Nothing
+          this.$router.push({ name: 'VerRoles' })
         })
-      } catch (error: any) {
+      } catch (error) {
 
         // Errores genericos
         Swal.fire({
@@ -158,16 +134,6 @@ export default {
       }
 
     }
-  },
-
-  watch: {
-    rol: {
-      handler() {
-
-      },
-      deep: true
-    },
-    
   },
 }
 </script>

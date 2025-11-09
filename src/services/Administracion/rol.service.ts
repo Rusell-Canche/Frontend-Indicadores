@@ -1,9 +1,9 @@
-import { reactive } from 'vue';
+import { reactive } from 'vue'
 import * as rolApi from '@/services/api/roles.api'
 import type { Rol } from '@/models/rol'
 
 /**
- * 
+ * Interfaz para el estado del servicio de roles
  */
 interface RolState {
     roles: Rol[] | null
@@ -12,118 +12,128 @@ interface RolState {
 }
 
 /**
- * 
+ * Maneja el estado del servicio
  */
 export const rolState = reactive<RolState>({
     roles: null,
     loading: false,
-    error: null
-});
+    error: null,
+})
 
 /**
- * 
+ *
  */
 export const RolService = {
-
-    /** 
-     * Consigue todos los roles existentes
+    /**
+     * Consigue todos los roles y actualiza el estado
      * @returns Lista de roles
+     * @throws Error
      */
-    async fetchRoles() {
+    async fetchRoles(silent = false): Promise<void> {
+        if (!silent) rolState.loading = true
+        rolState.error = null
+
         try {
             // Obtenemos la respuesta de la api
-            const { data } = await rolApi.getRoles();
+            const response = await rolApi.getRoles()
 
             // Separamos los roles de la respuesta
-            const roles: Rol[] = data.roles;
+            const roles: Rol[] = response.data.roles
 
             // Refrescamos el rolState
-            rolState.roles = roles;
+            rolState.roles = roles
         } catch (error) {
-            console.error("Error al obtener los roles:", error)
-            rolState.roles = [];
+            const errorMessage =
+                error instanceof Error ? error.message : 'Error desconocido al obtener roles'
+            rolState.error = errorMessage
+            rolState.roles = null
+            throw error
         } finally {
-            // nothing
+            if (!silent) rolState.loading = false
         }
     },
 
     /**
-     * Consigue un rol en especifico
+     * Consigue un rol en especifico y lo retorna
+     * @returns Rol
+     * @throws Error si no se puede obtener el rol
      */
 
-    async fetchRol(rolID: string) {
+    async fetchRol(rolID: string): Promise<Rol> {
+        rolState.loading = true
+        rolState.error = null
         try {
             // Obtenemos la respuesta de la api
-            const { data } = await rolApi.getRol(rolID);
+            const response = await rolApi.getRol(rolID)
 
             // Separamos el rol de la respuesta
-            const rol: Rol = data.rol;
+            const rol: Rol = response.data.rol
 
             // Retornamos el rol
-            return rol;
+            return rol
         } catch (error) {
-            console.error("Error al obtener el rol", error);
+            const errorMessage =
+                error instanceof Error ? error.message : 'Error desconocido al obtener el rol'
+            rolState.error = errorMessage
 
-            const emptyRol = {
-                nombre: '',
-                descripcion: '',
-                permisos: {
-                    allowed: [],
-                    denied: []
-                },
-                ui_permissions: {},
-            } as Rol;
-            return emptyRol;
+            throw error
+        } finally {
+            rolState.loading = false
         }
     },
 
-    /** 
-     * Crea un nuevo rol 
+    /**
+     * Crea un nuevo rol
+     * Tambien actualiza el estado
      **/
     async createRol(rol: Rol) {
         // Actualizamos el estado del servicio
-        rolState.loading = true;
-        rolState.error = null;
+        rolState.loading = true
+        rolState.error = null
 
         try {
             // Intentamos crear el rol
-            const { response } = await rolApi.createRol(rol);
+            const response = await rolApi.createRol(rol)
 
             // Refrescamos los roles
-            await this.fetchRoles();
+            await this.fetchRoles()
 
             // Retornamos la respuesta
-            return response;
-        } catch (error: any) {
-
-            console.error("Error al crear el rol")
-            throw error;
+            return response
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error al crear el rol'
+            rolState.error = errorMessage
+            console.error('Error al crear el rol:', error)
+            throw error
         } finally {
-            // DEjamos de cargar
-            rolState.loading = false;
+            // Dejamos de cargar
+            rolState.loading = false
         }
     },
 
-    /** 
+    /**
      * Actualiza un rol
      */
     async updateRol(rol: Rol) {
         // Actualizamos el estado del servicio
-        rolState.loading = true;
-        rolState.error = null;
+        rolState.loading = true
+        rolState.error = null
 
         // INtentamos actualizar el rol
         try {
-            const { response } = await rolApi.updateRol(rol);
+            const response = await rolApi.updateRol(rol)
 
-            await this.fetchRoles();
+            await this.fetchRoles()
 
-            return response;
-        } catch (error: any) {
-            console.error('Error al actualizar el rol')
-            throw error;
+            return response
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : 'Error al actualizar el rol'
+            rolState.error = errorMessage
+            console.error('Error al actualizar el rol:', error)
+            throw error
         } finally {
-            rolState.loading = false;
+            rolState.loading = false
         }
     },
 
@@ -133,25 +143,21 @@ export const RolService = {
      */
     async deleteRol(rolID: string) {
         // Actualizamos estados del servicio
-        rolState.loading = true;
-        rolState.error = null;
+        rolState.loading = true
+        rolState.error = null
 
         try {
             // Intentamos eliminar el rol
-            const { response } = await rolApi.deleteRol(rolID);
-
-            // Refrescamos los roles
-            await this.fetchRoles();
-
-            // Retornamos la respuesta
-            return response;
-        } catch (error: any) {
-
-            console.error("Error al borrar el rol")
-            throw error;
+            const response = await rolApi.deleteRol(rolID)
+            await this.fetchRoles()
+            return response
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error al eliminar el rol'
+            rolState.error = errorMessage
+            console.error(`Error al borrar el rol ${rolID}:`, error)
+            throw error
         } finally {
-            // DEjamos de cargar
-            rolState.loading = false;
+            rolState.loading = false
         }
-    }
+    },
 }

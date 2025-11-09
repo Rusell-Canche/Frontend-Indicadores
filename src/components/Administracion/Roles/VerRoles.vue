@@ -38,8 +38,14 @@
           </div>
         </div>
 
+        <!-- Error -->
+        <div v-if="rolState.error" class="alert alert-danger" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{ rolState.error }}
+        </div>
+
         <!-- Estado de carga -->
-        <div v-if="loading" class="text-center py-5">
+        <div v-if="rolState.loading" class="text-center py-5">
           <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Cargando...</span>
           </div>
@@ -47,8 +53,8 @@
         </div>
 
         <!-- Lista de roles -->
-        <div class="rol-grid">
-          <div v-for="rol in roles" :key="rol.id" class="rol-card">
+        <div v-else-if="rolesFiltrados.length > 0" class="rol-grid">
+          <div v-for="rol in rolesFiltrados" :key="rol.id" class="rol-card">
             <!-- Header del rol -->
             <div class="rol-card-header">
               <div class="rol-icon">
@@ -82,6 +88,13 @@
             </div>
           </div>
         </div>
+
+        <!-- Sin resultados -->
+        <div v-else class="text-center py-5">
+          <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+          <p class="text-muted">No se encontraron roles</p>
+        </div>
+
         <ModalVistaRol :visible="modalVisible" :rolID="rolSeleccionado?.id" @close="cerrarModal" />
       </div>
     </div>
@@ -90,12 +103,10 @@
 
 <script lang="ts">
 import Swal from 'sweetalert2'
-import axios from 'axios'
 import type { Rol } from '@/models/rol'
 import { RolService, rolState } from '@/services/Administracion/rol.service'
 
 import ModalVistaRol from './ModalVistaRol.vue'
-import { ref } from 'vue'
 
 export default {
   components: {
@@ -109,40 +120,19 @@ export default {
       /** Para comunicarse con el estado del servicio de los roles */
       rolState,
 
-      /** Lista de roles */
-      roles: [] as Rol[],
-
       /** El rol seleccionado actualmente */
       rolSeleccionado: null as Rol | null,
 
       // Filtros
       searchTerm: '',
-
-      // Estados
-      loading: false,
-      expandedRoles: [],
-
-      // Datos auxiliares
-      recursos: [],
-      acciones: [],
-
-      // Edición
-      editingRole: null,
-      editForm: {
-        nombre: '',
-        descripcion: '',
-        permisos: [],
-        selectedResource: '',
-      },
     }
   },
-  computed: {
-
-  },
   async mounted() {
-
-    await RolService.fetchRoles(); // trae y actualiza automáticamente el state
-    this.roles = rolState.roles || []
+    try {
+      await RolService.fetchRoles()
+    } catch (error) {
+      console.error('Error al cargar roles:', error)
+    }
   },
   methods: {
     /** Ajusta variables necesarias para mostrar el modal */
@@ -181,27 +171,49 @@ export default {
             timer: 2000
           });
 
-          this.roles = this.rolState.roles;
+        } catch (error) {
+          // Manejo de errores específicos
+          if (error && typeof error === 'object' && 'response' in error) {
+            const axiosError = error as { response?: { status?: number } }
 
-        } catch (error: any) {
-
-          if (error.response?.status === 409) {
-            Swal.fire({
-              title: 'Error',
-              text: 'Este rol esta siendo usado por usuarios. No se pudo eliminar.',
-              icon: 'error'
-            })
-          } else {
-            // Errores genericos
-            Swal.fire({
-              title: 'Error',
-              text: 'No se pudo eliminar el rol. Inténtalo nuevamente.',
-              icon: 'error'
-            });
+            if (axiosError.response?.status === 409) {
+              Swal.fire({
+                title: 'Error',
+                text: 'Este rol está siendo usado por usuarios. No se pudo eliminar.',
+                icon: 'error'
+              })
+              return
+            }
           }
+
+          // Error genérico
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudo eliminar el rol. Inténtalo nuevamente.',
+            icon: 'error'
+          })
         }
       }
     },
+  },
+
+  computed: {
+    /**
+     * Filtra los roles según el término de búsqueda
+     */
+    rolesFiltrados(): Rol[] {
+      if (!rolState.roles) return []
+
+      if (!this.searchTerm.trim()) {
+        return rolState.roles
+      }
+
+      const termino = this.searchTerm.toLowerCase().trim()
+      return rolState.roles.filter(rol =>
+        rol.nombre?.toLowerCase().includes(termino) ||
+        rol.descripcion?.toLowerCase().includes(termino)
+      )
+    }
   },
 }
 </script>
