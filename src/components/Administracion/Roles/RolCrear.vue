@@ -54,7 +54,7 @@
             </div>
           </div>
 
-          <AsignarPermisos v-model:permisos="rol.permisos" v-model:uiPermissions="rol.ui_permissions" />
+          <EditarPermisos v-model:permisos="rol.permisos" v-model:uiPermissions="rol.ui_permissions" />
 
           <div class="medico-footer">
             <button type="submit" class="btn btn-save">
@@ -70,13 +70,14 @@
 
 <script lang="ts">
 import Swal from 'sweetalert2'
-import AsignarPermisos from '@/components/Administracion/AsignarPermisos.vue';
+import EditarPermisos from '@/components/Administracion/EditarPermisos.vue';
 import type { Rol } from '@/models/rol';
 import { RolService } from '@/services/Administracion/rol.service';
 
+
 export default {
   components: {
-    AsignarPermisos,
+    EditarPermisos,
   },
   data() {
     return {

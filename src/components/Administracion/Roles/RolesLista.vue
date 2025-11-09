@@ -95,7 +95,7 @@
           <p class="text-muted">No se encontraron roles</p>
         </div>
 
-        <ModalVistaRol :visible="modalVisible" :rolID="rolSeleccionado?.id" @close="cerrarModal" />
+        <ModalVerRol :visible="modalVisible" :rolID="rolSeleccionado?.id" @close="cerrarModal" />
       </div>
     </div>
   </div>
@@ -106,11 +106,11 @@ import Swal from 'sweetalert2'
 import type { Rol } from '@/models/rol'
 import { RolService, rolState } from '@/services/Administracion/rol.service'
 
-import ModalVistaRol from './ModalVistaRol.vue'
+import ModalVerRol from './ModalVerRol.vue'
 
 export default {
   components: {
-    ModalVistaRol
+    ModalVerRol
   },
   data() {
     return {

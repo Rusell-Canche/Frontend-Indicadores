@@ -25,8 +25,8 @@
                     <div v-if="rol?.permisos?.allowed" class="form-section">
                         <h1 class="section-title">Permisos concedidos</h1>
                         <div v-for="permiso in rol?.permisos?.allowed" class="form-section mt-1">
-                            <h2 class="form-label">{{ permiso?.recurso?.nombre }}</h2>
-                            <span class="section-title">{{ permiso?.recurso?.descripcion }}</span>
+                            <h2 class="form-label">{{ permiso.recurso.nombre }}</h2>
+                            <span class="section-title">{{ permiso.recurso.descripcion }}</span>
                             <div>
                                 <ol>
                                     <li v-for="accion in permiso?.acciones">
@@ -55,7 +55,7 @@ import type { Rol } from '@/models/rol'
 import { RolService } from '@/services/Administracion/rol.service'
 
 export default defineComponent({
-    name: 'ModalVistaRol',
+    name: 'ModalVerRol',
     data() {
         return {
             /** El rol seleccionado actual */

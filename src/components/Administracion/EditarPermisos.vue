@@ -142,7 +142,7 @@ import {
  * 
  */
 export default defineComponent({
-    name: 'AsignarPermisos',
+    name: 'EditarPermisos',
     components: {
         Tabs,
         TabList,

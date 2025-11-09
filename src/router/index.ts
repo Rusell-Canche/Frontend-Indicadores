@@ -20,7 +20,6 @@ import VerReportes from '@/components/VerReportes.vue'
 import CrearReportes from '@/components/CrearReportes.vue'
 import VerEjes from '@/components/VerEjes.vue'
 import CrearEjes from '@/components/CrearEjes.vue'
-import AsignarPermisos from '@/components/AsignarPermisos.vue'
 import Estadisticas from '@/components/Estadisticas.vue'
 import VerEstadisticas from '@/components/VerEstadisticas.vue'
 import HistorialEstadisticas from '@/components/HistorialEstadisticas.vue'
@@ -29,9 +28,9 @@ import Forbidden from '@/components/Forbidden.vue'
 import AdministracionLayout from '../components/Administracion/AdministracionLayout.vue'
 import VerUsuarios from '@/components/Administracion/Usuarios/VerUsuarios.vue'
 import CrearUsuarios from '@/components/Administracion/Usuarios/CrearUsuarios.vue'
-import CrearRoles from '@/components/Administracion/Roles/CrearRoles.vue'
-import VerRoles from '@/components/Administracion/Roles/VerRoles.vue'
-import EditarRol from '@/components/Administracion/Roles/EditarRol.vue'
+import RolCrear from '@/components/Administracion/Roles/RolCrear.vue'
+import RolesLista from '@/components/Administracion/Roles/RolesLista.vue'
+import RolEditar from '@/components/Administracion/Roles/RolEditar.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -206,19 +205,19 @@ const router = createRouter({
                   path: '',
                   name: 'VerRoles',
                   meta: { title: 'Ver Roles' },
-                  component: VerRoles,
+                  component: RolesLista,
                 },
                 {
                   path: 'crear',
                   name: 'CrearRol',
                   meta: { title: 'Crear Roles' },
-                  component: CrearRoles,
+                  component: RolCrear,
                 },
                 {
                   path: ':id/editar',
                   name: 'EditarRol',
                   meta: { title: 'Editar Rol' },
-                  component: EditarRol,
+                  component: RolEditar,
                 },
               ],
             },

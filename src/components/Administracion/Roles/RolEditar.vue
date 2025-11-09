@@ -52,7 +52,7 @@
             </div>
           </div>
 
-          <AsignarPermisos v-model:permisos="rol.permisos" v-model:uiPermissions="rol.ui_permissions"
+          <EditarPermisos v-model:permisos="rol.permisos" v-model:uiPermissions="rol.ui_permissions"
             :uiPermissionsCargados="uiPermissionsCargados" :permisosCargados="permisosCargados" />
 
           <div class="medico-footer">
@@ -69,14 +69,14 @@
 
 <script lang="ts">
 import Swal from 'sweetalert2'
-import AsignarPermisos from '@/components/Administracion/AsignarPermisos.vue';
+import EditarPermisos from '@/components/Administracion/EditarPermisos.vue';
 import type { Rol } from '@/models/rol';
 import { RolService, rolState } from '@/services/Administracion/rol.service';
 import type { PermisoGrupoHydrated, PermisosHydrated, UiPermissions } from '@/models/permisos';
 
 export default {
   components: {
-    AsignarPermisos,
+    EditarPermisos,
   },
   data() {
     return {
