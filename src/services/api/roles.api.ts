@@ -1,5 +1,5 @@
 //roles.api.ts
-// @ts-ignore: Sin archivo de declaracion para '@/services/api'
+// @ts-expect-error: Sin archivo de declaracion para '@/services/api'
 import api from '@/services/api'
 import type { Rol } from '@/models/rol'
 
