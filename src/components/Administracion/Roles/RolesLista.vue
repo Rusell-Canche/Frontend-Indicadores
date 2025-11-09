@@ -143,7 +143,7 @@ export default {
 
     /** Ajusta variables necesarias para cerrar el modal */
     cerrarModal() {
-      this.rolSeleccionado = null,
+      this.rolSeleccionado = null
         this.modalVisible = false
     },
 

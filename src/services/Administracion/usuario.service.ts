@@ -39,7 +39,7 @@ export const UsuarioService = {
 
             // Separamos los usuarios de la respuesta
             const usuarios: Usuario[] = response.data.usuarios
-
+            
             // Refrescamos el usuario state
             usuarioState.usuarios = usuarios
         } catch (error) {
