@@ -7,14 +7,11 @@ import Cargarindicadores from '@/components/Cargarindicadores.vue'
 import CrearIndicador from '@/components/CrearIndicador.vue'
 import Plantillas from '../components/Plantillas.vue'
 import Documentos from '../components/Documentos.vue'
-import Usuarios from '../components/Usuarios.vue'
 import Ejes from '../components/Ejes.vue'
 import VerPlantillas from '@/components/VerPlantillas.vue'
 import CrearPlantillas from '@/components/CrearPlantillas.vue'
 import CrearDocumentos from '@/components/CrearDocumentos.vue'
 import VerDocumentos from '@/components/VerDocumentos.vue'
-import VerUsuarios from '@/components/VerUsuarios.vue'
-import CrearUsuarios from '@/components/CrearUsuarios.vue'
 import Bienvenida from '@/components/Bienvenida.vue'
 import EditarIndicador from '@/components/EditarIndicador.vue'
 import ConfigurarIndicador from '@/components/ConfigurarIndicador.vue'
@@ -23,13 +20,18 @@ import VerReportes from '@/components/VerReportes.vue'
 import CrearReportes from '@/components/CrearReportes.vue'
 import VerEjes from '@/components/VerEjes.vue'
 import CrearEjes from '@/components/CrearEjes.vue'
-import CrearRoles from '@/components/CrearRoles.vue'
-import AsignarPermisos from '@/components/AsignarPermisos.vue'
-import VerRoles from '@/components/VerRoles.vue'
 import Estadisticas from '@/components/Estadisticas.vue'
 import VerEstadisticas from '@/components/VerEstadisticas.vue'
 import HistorialEstadisticas from '@/components/HistorialEstadisticas.vue'
 import Forbidden from '@/components/Forbidden.vue'
+
+import AdministracionLayout from '../components/Administracion/AdministracionLayout.vue'
+import UsuariosLista from '@/components/Administracion/Usuarios/UsuariosLista.vue'
+import UsuarioCrear from '@/components/Administracion/Usuarios/UsuarioCrear.vue'
+import RolCrear from '@/components/Administracion/Roles/RolCrear.vue'
+import RolesLista from '@/components/Administracion/Roles/RolesLista.vue'
+import RolEditar from '@/components/Administracion/Roles/RolEditar.vue'
+import UsuarioEditar from '@/components/Administracion/Usuarios/UsuarioEditar.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -49,7 +51,7 @@ const router = createRouter({
           path: 'Bienvenida',
           name: 'Bienvenida',
           component: Bienvenida,
-          meta: { title: 'Bienvenida' }
+          meta: { title: 'Bienvenida' },
         },
         {
           path: '/Indicador',
@@ -57,7 +59,7 @@ const router = createRouter({
           component: Indicador,
           meta: {
             title: 'Indicadores',
-            modulo: 'indicadores'
+            modulo: 'indicadores',
           },
           children: [
             {
@@ -73,14 +75,14 @@ const router = createRouter({
                   name: 'editar-indicador',
                   component: EditarIndicador,
                   props: true,
-                  meta: { title: 'Editar Indicador' }
+                  meta: { title: 'Editar Indicador' },
                 },
                 {
                   path: 'configurar/:id',
                   name: 'configurar-indicador',
                   component: ConfigurarIndicador,
                   props: true,
-                  meta: { title: 'Configurar Indicador' }
+                  meta: { title: 'Configurar Indicador' },
                 },
               ],
             },
@@ -88,13 +90,13 @@ const router = createRouter({
               path: 'CargarIndicador',
               name: 'CargarIndicador',
               component: Cargarindicadores,
-              meta: { title: 'Cargar Indicadores', }
+              meta: { title: 'Cargar Indicadores' },
             },
             {
               path: 'CrearIndicador',
               name: 'CrearIndicador',
               component: CrearIndicador,
-              meta: { title: 'Crear Indicador' }
+              meta: { title: 'Crear Indicador' },
             },
           ],
         },
@@ -104,20 +106,20 @@ const router = createRouter({
           component: Plantillas,
           meta: {
             title: 'Plantillas',
-            modulo: 'plantillas'
+            modulo: 'plantillas',
           },
           children: [
             {
               path: 'VerPlantillas',
               name: 'VerPlantillas',
               component: VerPlantillas,
-              meta: { title: 'Ver Plantillas' }
+              meta: { title: 'Ver Plantillas' },
             },
             {
               path: 'CrearPlantillas',
               name: 'CrearPlantillas',
               component: CrearPlantillas,
-              meta: { title: 'Crear Plantilla' }
+              meta: { title: 'Crear Plantilla' },
             },
           ],
         },
@@ -127,20 +129,20 @@ const router = createRouter({
           component: Documentos,
           meta: {
             title: 'Documentos',
-            modulo: 'documentos'
+            modulo: 'documentos',
           },
           children: [
             {
               path: 'VerDocumentos',
               name: 'VerDocumentos',
               component: VerDocumentos,
-              meta: { title: 'Ver Documentos' }
+              meta: { title: 'Ver Documentos' },
             },
             {
               path: 'CrearDocumentos',
               name: 'CrearDocumentos',
               component: CrearDocumentos,
-              meta: { title: 'Crear Documento' }
+              meta: { title: 'Crear Documento' },
             },
           ],
         },
@@ -150,7 +152,7 @@ const router = createRouter({
           component: Ejes,
           meta: {
             title: 'Ejes',
-            module: 'ejes'
+            module: 'ejes',
           },
           children: [
             {
@@ -168,43 +170,57 @@ const router = createRouter({
           ],
         },
         {
-          path: '/Usuarios',
-          name: 'Usuarios',
-          component: Usuarios,
-          meta: {
-            title: 'Usuarios',
-            modulo: 'usuarios'
-          },
+          path: '/administracion',
+          name: 'Administracion',
+          component: AdministracionLayout,
           children: [
+            // SUBMODULO USUARIOS//
             {
-              path: 'VerUsuarios',
-              name: 'VerUsuarios',
-              component: VerUsuarios,
-              meta: { title: 'Ver Usuarios' },
+              path: 'usuarios',
+              children: [
+                {
+                  path: '',
+                  name: 'VerUsuarios',
+                  component: UsuariosLista,
+                  meta: { title: 'Usuarios' },
+                },
+                {
+                  path: 'crear',
+                  name: 'CrearUsuarios',
+                  component: UsuarioCrear,
+                  meta: { title: 'Crear Usuario' },
+                },
+                {
+                  path: ':id/editar',
+                  name: 'EditarUsuario',
+                  component: UsuarioEditar,
+                  meta: { title: 'Editar Usuario' },
+                },
+              ],
             },
+            // SUBMODULO DE ROLES //
             {
-              path: 'CrearUsuarios',
-              name: 'CrearUsuarios',
-              component: CrearUsuarios,
-              meta: { title: 'Crear Usuario' },
-            },
-            {
-              path: 'CrearRoles',
-              name: 'CrearRoles',
-              meta: { title: 'Crear Roles' },
-              component: CrearRoles,
-            },
-            {
-              path: 'AsignarPermisos',
-              name: 'AsignarPermisos',
-              meta: { title: 'Asignar Permisos' },
-              component: AsignarPermisos,
-            },
-            {
-              path: 'VerRoles',
-              name: 'VerRoles',
-              meta: { title: 'Ver Roles' },
-              component: VerRoles,
+              path: 'roles',
+              children: [
+                {
+                  path: '',
+                  name: 'VerRoles',
+                  meta: { title: 'Ver Roles' },
+                  component: RolesLista,
+                },
+                {
+                  path: 'crear',
+                  name: 'CrearRol',
+                  meta: { title: 'Crear Roles' },
+                  component: RolCrear,
+                },
+                {
+                  path: ':id/editar',
+                  name: 'EditarRol',
+                  meta: { title: 'Editar Rol' },
+                  component: RolEditar,
+                },
+              ],
             },
           ],
         },
@@ -213,7 +229,7 @@ const router = createRouter({
           name: 'Reportes',
           meta: {
             title: 'Reportes',
-            modulo: 'reportes'
+            modulo: 'reportes',
           },
           component: Reportes,
           children: [
@@ -237,7 +253,7 @@ const router = createRouter({
           component: Estadisticas,
           meta: {
             title: 'Estadísticas',
-            modulo: 'estadisticas'
+            modulo: 'estadisticas',
           },
           children: [
             {
@@ -260,8 +276,8 @@ const router = createRouter({
       path: '/forbidden',
       name: 'Forbidden',
       component: Forbidden,
-      meta: { title: 'Prohibido' }
-    }
+      meta: { title: 'Prohibido' },
+    },
   ],
 })
 

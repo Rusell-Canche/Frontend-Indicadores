@@ -6,9 +6,9 @@
         <div class="header-left">
           <h1 class="main-title">
             <i class="fas fa-users me-3"></i>
-            Usuarios
+            Adminstración de usuarios
           </h1>
-          <p class="main-subtitle">Sistema de gestión de usuarios</p>
+          <p class="main-subtitle"> </p>
         </div>
       </div>
     </div>
@@ -17,69 +17,27 @@
     <div class="tabs-navigation">
       <div class="tabs-container">
         <div class="tabs-header">
-          <div
-            class="tab"
-            :class="{ active: $route.name === 'CrearUsuarios' }"
-            @click="$router.push({ name: 'CrearUsuarios' })"
-          >
-            <div class="tab-icon">
-              <i class="fas fa-user-plus"></i>
-            </div>
-            <div class="tab-content-text">
-              <span class="tab-title">Crear usuario</span>
-              <span class="tab-description">Crea un usuario para el sistema</span>
-            </div>
-          </div>
-          <div
-            class="tab"
-            :class="{ active: $route.name === 'CrearRoles' }"
-            @click="$router.push({ name: 'CrearRoles' })"
-          >
-            <div class="tab-icon">
-              <i class="fas fa-user-plus"></i>
-            </div>
-            <div class="tab-content-text">
-              <span class="tab-title">Crear Roles</span>
-              <span class="tab-description">Crea los roles del sistema</span>
-            </div>
-          </div>
-          <div
-            class="tab"
-            :class="{ active: $route.name === 'AsignarPermisos' }"
-            @click="$router.push({ name: 'AsignarPermisos' })"
-          >
-            <div class="tab-icon">
-              <i class="fas fa-user-plus"></i>
-            </div>
-            <div class="tab-content-text">
-              <span class="tab-title">Asignar Permisos</span>
-              <span class="tab-description">Asignale Permisos y Recursos a un usuario</span>
-            </div>
-          </div>
-          <div
-            class="tab"
-            :class="{ active: $route.name === 'VerUsuarios' }"
-            @click="$router.push({ name: 'VerUsuarios' })"
-          >
+          <div class="tab" :class="{
+            active: ['VerUsuarios', 'CrearUsuarios', 'EditarUsuarios'].includes($route.name)
+          }"
+            @click="$router.push({ name: 'VerUsuarios' })">
             <div class="tab-icon">
               <i class="fas fa-user-friends"></i>
             </div>
             <div class="tab-content-text">
-              <span class="tab-title">Ver usuarios</span>
-              <span class="tab-description">Visualiza los usuarios que se han creado</span>
+              <span class="tab-title">Usuarios</span>
+              <span class="tab-description"> </span>
             </div>
           </div>
-          <div
-            class="tab"
-            :class="{ active: $route.name === 'VerRoles' }"
-            @click="$router.push({ name: 'VerRoles' })"
-          >
+          <div class="tab" :class="{
+            active: ['VerRoles', 'CrearRol', 'EditarRol'].includes($route.name)
+          }" @click="$router.push({ name: 'VerRoles' })">
             <div class="tab-icon">
               <i class="fas fa-user-friends"></i>
             </div>
             <div class="tab-content-text">
-              <span class="tab-title">Ver Roles</span>
-              <span class="tab-description">Visualiza los roles que se han creado</span>
+              <span class="tab-title">Roles</span>
+              <span class="tab-description"> </span>
             </div>
           </div>
           <!-- Indicador deslizante mejorado -->
@@ -105,16 +63,24 @@
 export default {
   mounted() {
     // Si la ruta actual es exactamente '/Usuarios', redirigir a CrearUsuarios
-    if (this.$route.path === '/Usuarios') {
-      this.$router.replace('/Usuarios/CrearUsuarios')
+    if (this.$route.path === '/administracion') {
+      this.$router.push({ name: 'VerUsuarios' })
     }
   },
   computed: {
     indicatorStyle() {
-      // Calcula el índice según la ruta activa
-      const tabNames = ['CrearUsuarios', 'CrearRoles', 'AsignarPermisos', 'VerUsuarios', 'VerRoles']
-      const index = tabNames.indexOf(this.$route.name)
-      const width = 100 / tabNames.length
+      const tabs = [
+        { names: ['VerUsuarios', 'CrearUsuarios', 'EditarUsuarios'] },
+        { names: ['VerRoles', 'CrearRol', 'EditarRol'] },
+      ]
+
+      // Encuentra el índice de la pestaña actual
+      const index = tabs.findIndex(tab =>
+        tab.names.includes(this.$route.name)
+      )
+
+      const width = 100 / tabs.length
+
       return {
         transform: `translateX(${index * 100}%)`,
         width: `${width}%`,
@@ -301,7 +267,7 @@ export default {
 }
 
 .tab-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   line-height: 1.2;
   margin-bottom: 0.25rem;
@@ -367,10 +333,12 @@ export default {
 
 /* Animación de shimmer */
 @keyframes shimmer {
+
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
+
   50% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
   }
