@@ -95,7 +95,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, nextTick } from 'vue'
+import { defineComponent, nextTick } from 'vue'
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';

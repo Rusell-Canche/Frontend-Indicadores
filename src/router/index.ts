@@ -31,6 +31,7 @@ import UsuarioCrear from '@/components/Administracion/Usuarios/UsuarioCrear.vue'
 import RolCrear from '@/components/Administracion/Roles/RolCrear.vue'
 import RolesLista from '@/components/Administracion/Roles/RolesLista.vue'
 import RolEditar from '@/components/Administracion/Roles/RolEditar.vue'
+import UsuarioEditar from '@/components/Administracion/Usuarios/UsuarioEditar.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -191,8 +192,8 @@ const router = createRouter({
                 },
                 {
                   path: ':id/editar',
-                  name: 'EditarUsuarios',
-                  component: UsuarioCrear,
+                  name: 'EditarUsuario',
+                  component: UsuarioEditar,
                   meta: { title: 'Editar Usuario' },
                 },
               ],

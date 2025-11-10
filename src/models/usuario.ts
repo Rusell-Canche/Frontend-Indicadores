@@ -30,7 +30,7 @@ export interface Usuario {
     /**Escolaridad */
     escolaridad: string,
     /** Roles */
-    roles: Rol[]
+    roles: Rol[] | string[]
     /** Permisos para acceder a recursos */
     permisos?: PermisosRaw | PermisosHydrated
     ui_permissions?: UiPermissions

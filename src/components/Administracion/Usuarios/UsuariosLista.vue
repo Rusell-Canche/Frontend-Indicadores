@@ -72,13 +72,14 @@
                                 <p class="usuario-email">{{ usuario.email }}</p>
                             </div>
                             <div class="usuario-actions">
-                                <!--<button
+                                <router-link :to="{ name: 'EditarUsuario', params: {id: usuario.id }}">
+                                <button
                                     class="btn btn-sm btn-edit"
-                                    @click="usuario"
+
                                     title="Editar usuario"
                                 >
                                     <i class="fas fa-edit"></i>
-                                </button>-->
+                                </button></router-link>
                                 <button
                                     class="btn btn-sm btn-delete"
                                     @click="deleteUsuario(usuario)"
