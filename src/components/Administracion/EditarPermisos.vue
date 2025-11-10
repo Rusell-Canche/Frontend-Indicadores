@@ -174,7 +174,8 @@ export default defineComponent({
                 plantillas: false,
                 documentos: false,
                 reportes: false,
-                estadisticas: false
+                estadisticas: false,
+                usuarios: false,
             } as UiPermissions,
 
             /** Permisos globales organizados por modo (allowed/denied) */
