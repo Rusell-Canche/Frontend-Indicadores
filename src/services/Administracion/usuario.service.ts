@@ -39,7 +39,7 @@ export const UsuarioService = {
 
             // Separamos los usuarios de la respuesta
             const usuarios: Usuario[] = response.data.usuarios
-            
+
             // Refrescamos el usuario state
             usuarioState.usuarios = usuarios
         } catch (error) {
@@ -50,6 +50,32 @@ export const UsuarioService = {
             throw error
         } finally {
             if (!silent) usuarioState.loading = false
+        }
+    },
+
+    /**
+     * Crea un nuevo usuario y actualiza el estado de usuarios
+     */
+    async createUsuario(usuario: Usuario) {
+        usuarioState.loading = true
+        usuarioState.error = null
+
+        try {
+            // Intentamos crear el usuarios
+            const response = await usuarioApi.createUsuario(usuario)
+
+            // Refrescamos los usuarios
+            await this.fetchUsuarios(true)
+
+            // Retornamos la respuesta
+            return response
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error al crear el rol'
+            usuarioState.error = errorMessage
+            console.error('Error al crear el rol:', error)
+            throw error
+        } finally {
+            usuarioState.loading = false
         }
     },
 }

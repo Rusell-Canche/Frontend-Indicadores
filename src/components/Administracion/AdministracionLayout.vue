@@ -18,9 +18,9 @@
       <div class="tabs-container">
         <div class="tabs-header">
           <div class="tab" :class="{
-            active: ['usuarios', 'CrearUsuarios', 'EditarUsuarios'].includes($route.name)
+            active: ['VerUsuarios', 'CrearUsuarios', 'EditarUsuarios'].includes($route.name)
           }"
-            @click="$router.push({ name: 'usuarios' })">
+            @click="$router.push({ name: 'VerUsuarios' })">
             <div class="tab-icon">
               <i class="fas fa-user-friends"></i>
             </div>
@@ -64,13 +64,13 @@ export default {
   mounted() {
     // Si la ruta actual es exactamente '/Usuarios', redirigir a CrearUsuarios
     if (this.$route.path === '/administracion') {
-      this.$router.push({ name: 'usuarios' })
+      this.$router.push({ name: 'VerUsuarios' })
     }
   },
   computed: {
     indicatorStyle() {
       const tabs = [
-        { names: ['usuarios', 'CrearUsuarios', 'EditarUsuarios'] },
+        { names: ['VerUsuarios', 'CrearUsuarios', 'EditarUsuarios'] },
         { names: ['VerRoles', 'CrearRol', 'EditarRol'] },
       ]
 

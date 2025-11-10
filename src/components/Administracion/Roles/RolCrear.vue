@@ -125,7 +125,7 @@ export default {
           this.$router.push({ name: 'VerRoles' })
         })
       } catch (error) {
-
+        console.log(error)
         // Errores genericos
         Swal.fire({
           title: 'Error',

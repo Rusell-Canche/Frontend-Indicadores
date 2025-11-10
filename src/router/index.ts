@@ -179,7 +179,7 @@ const router = createRouter({
               children: [
                 {
                   path: '',
-                  name: 'usuarios',
+                  name: 'VerUsuarios',
                   component: UsuariosLista,
                   meta: { title: 'Usuarios' },
                 },
