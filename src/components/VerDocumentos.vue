@@ -660,30 +660,16 @@
       <!-- Body -->
       <div class="modal-body text-center">
 
-           <DataTable v-if="tablaDinamica && tablaDinamica.length" :value="tablaDinamica" showGridlines responsiveLayout="scroll">
-  <Column
-    v-for="colDef in getCampoDefinition(campoTablaActual)?.tableConfig?.campos || []"
-    :key="colDef.name"
-    :field="colDef.name"
-    :header="colDef.name"
-  >
-    <template #body="slotProps">
-      <div v-if="colDef.type === 'file'" class="file-badges">
-        <Button
-          icon="fa-solid fa-eye"
-          @click="mostrarModalImagen = true; archivo = slotProps.data[colDef.name]"
-          text
-          severity="info"
-          size="small"
-          v-tooltip="'Ver Archivo'"
-        />
-      </div>
-      <span v-else>
-        {{ slotProps.data[colDef.name] }}
-      </span>
-    </template>
-  </Column>
-</DataTable>
+           <!-- Tabla PrimeVue -->
+        <DataTable v-if="tablaDinamica && tablaDinamica.length" :value="tablaDinamica" showGridlines responsiveLayout="scroll">
+          <Column
+            v-for="key in Object.keys(tablaDinamica[0]).filter(k => k !== '_documentId')"
+            :key="key"
+            :field="key"
+            :header="key"
+          >
+          </Column>
+        </DataTable>
 
       </div>
 
@@ -697,7 +683,6 @@
     </div>
   </div>
 </div>
-
 
   </div>
 </template>
