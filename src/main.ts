@@ -19,7 +19,6 @@ import SoloCorreo from './directives/SoloCorreo.js'
 const app = createApp(App)
 
 const DEFAULT_TITLE = 'Vue';
-
 // Cambiar el título de la página según la ruta
 router.afterEach((to) => {
     // Use next tick to handle router history correctly
@@ -47,7 +46,7 @@ router.beforeEach((to) => {
 
   // Si la ruta no tiene meta.modulo, se deja pasar (no esta protegida)
   if (!to.meta?.modulo) {
-
+    console.log('Ruta no protegida, acceso permitido');
     return true;
   }
 
@@ -58,6 +57,7 @@ router.beforeEach((to) => {
   const tienePermiso = uiPermissions[modulo];
 
   if (tienePermiso) {
+    console.log(`Acceso concedido al módulo: ${modulo}`);
     return true;
   } else {
     console.warn(`Acceso denegado al módulo: ${modulo}`);

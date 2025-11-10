@@ -87,11 +87,11 @@
         <li
           v-if="hasPermission('usuarios')"
           class="navigation-item"
-          :class="{ active: $route.path.includes('/administracion') }"
-          @click="navigateTo('/administracion')"
+          :class="{ active: $route.path.includes('/Usuarios') }"
+          @click="navigateTo('/Usuarios')"
         >
           <i class="fas fa-users"></i>
-          <span>Administración</span>
+          <span>Usuarios</span>
         </li>
       </ul>
       <button class="logout-button" @click="showLogoutModal = true">
