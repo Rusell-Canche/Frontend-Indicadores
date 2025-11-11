@@ -38,8 +38,7 @@
                     <i class="fas fa-user"></i>
                   </span>
                   <input
-                    v-solo-texto
-                    v-model="nombre"
+                    v-model="usuario.nombre"
                     type="text"
                     id="nombre"
                     name="nombre"
@@ -56,8 +55,7 @@
                     <i class="fas fa-user"></i>
                   </span>
                   <input
-                    v-solo-texto
-                    v-model="apellido_paterno"
+                    v-model="usuario.apellido_paterno"
                     type="text"
                     id="apellido_paterno"
                     name="apellido_paterno"
@@ -74,8 +72,7 @@
                     <i class="fas fa-user"></i>
                   </span>
                   <input
-                    v-solo-texto
-                    v-model="apellido_materno"
+                    v-model="usuario.apellido_materno"
                     type="text"
                     id="apellido_materno"
                     name="apellido_materno"
@@ -92,8 +89,7 @@
                     <i class="fas fa-envelope"></i>
                   </span>
                   <input
-                    v-solo-correo
-                    v-model="email"
+                    v-model="usuario.email"
                     type="email"
                     id="email"
                     name="email"
@@ -110,7 +106,7 @@
                     <i class="fas fa-calendar-alt"></i>
                   </span>
                   <input
-                    v-model.number="edad"
+                    v-model.number="usuario.edad"
                     type="number"
                     id="edad"
                     name="edad"
@@ -128,7 +124,7 @@
                   <span class="input-group-text">
                     <i class="fas fa-venus-mars"></i>
                   </span>
-                  <select v-model="genero" id="genero" name="genero" class="form-control" required>
+                  <select v-model="usuario.genero" id="genero" name="genero" class="form-control" required>
                     <option value="">Seleccione el género</option>
                     <option value="masculino">Masculino</option>
                     <option value="femenino">Femenino</option>
@@ -144,8 +140,7 @@
                     <i class="fas fa-map-marker-alt"></i>
                   </span>
                   <input
-                    v-solo-texto
-                    v-model="estado"
+                    v-model="usuario.estado"
                     type="text"
                     id="estado"
                     name="estado"
@@ -162,8 +157,7 @@
                     <i class="fas fa-briefcase"></i>
                   </span>
                   <input
-                    v-solo-text
-                    v-model="ocupacion"
+                    v-model="usuario.ocupacion"
                     type="text"
                     id="ocupacion"
                     name="ocupacion"
@@ -180,7 +174,7 @@
                     <i class="fas fa-graduation-cap"></i>
                   </span>
                   <select
-                    v-model="escolaridad"
+                    v-model="usuario.escolaridad"
                     id="escolaridad"
                     name="escolaridad"
                     class="form-control"
@@ -210,7 +204,7 @@
                     <i class="fas fa-lock"></i>
                   </span>
                   <input
-                    v-model="password"
+                    v-model="usuario.password"
                     type="password"
                     id="password"
                     name="password"
@@ -240,102 +234,6 @@
             </div>
           </div>
 
-          <!-- Sección de recursos y permisos MODIFICADA -->
-          <div class="form-section">
-            <h6 class="section-title">
-              <i class="fas fa-shield-alt me-2"></i>
-              Recursos y Permisos
-            </h6>
-
-            <!-- Selector de recurso -->
-            <div class="row g-3 mb-4">
-              <div class="col-md-6">
-                <label class="form-label">Seleccionar Recurso</label>
-                <div class="input-group modern-input">
-                  <span class="input-group-text">
-                    <i class="fas fa-database"></i>
-                  </span>
-                  <select
-                    v-model="selectedResource"
-                    class="form-control"
-                    @change="onResourceChange"
-                  >
-                    <option value="">Seleccione un recurso</option>
-                    <option v-for="recurso in recursos" :key="recurso.id" :value="recurso.id">
-                      {{ recurso.nombre }} - {{ recurso.descripcion }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6 d-flex align-items-end">
-                <button
-                  type="button"
-                  class="btn btn-primary"
-                  @click="addResourcePermission"
-                  :disabled="!selectedResource"
-                >
-                  <i class="fas fa-plus me-2"></i>
-                  Agregar Recurso
-                </button>
-              </div>
-            </div>
-
-            <!-- Lista de recursos asignados -->
-            <div v-if="resourcePermissions.length > 0" class="assigned-resources">
-              <h6 class="mb-3">
-                <i class="fas fa-list me-2"></i>
-                Recursos Asignados
-              </h6>
-
-              <div
-                v-for="(resourcePerm, index) in resourcePermissions"
-                :key="index"
-                class="resource-permission-card mb-3"
-              >
-                <div class="resource-header">
-                  <div class="resource-info">
-                    <h6 class="resource-name">
-                      {{ getResourceName(resourcePerm.recurso) }}
-                    </h6>
-                    <p class="resource-description">
-                      {{ getResourceDescription(resourcePerm.recurso) }}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-danger"
-                    @click="removeResourcePermission(index)"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-
-                <!-- Grid de permisos dinámico -->
-                <div class="permissions-grid">
-                  <div v-for="accion in acciones" :key="accion.id" class="permission-item">
-                    <label class="checkbox-container">
-                      <input
-                        type="checkbox"
-                        class="custom-checkbox"
-                        v-model="resourcePerm.acciones"
-                        :value="accion.id"
-                        :disabled="hasWildcardPermission(resourcePerm.acciones)"
-                      />
-                      <span class="checkmark"></span>
-                      <div class="permission-content">
-                        <span class="permission-title">
-                          <i :class="getActionIcon(accion.nombre)" class="me-2"></i>
-                          {{ capitalizeFirst(accion.nombre) }}
-                        </span>
-                        <span class="permission-description">{{ accion.descripcion }}</span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Sección de roles -->
           <div class="form-section">
             <h6 class="section-title">
@@ -343,41 +241,34 @@
               Roles del Usuario
             </h6>
             <div class="roles-container">
-              <div v-for="role in availableRoles" :key="role.id" class="role-item">
+              <div v-for="rol in rolState.roles" :key="rol.id" class="role-item">
                 <label class="checkbox-container">
                   <input
                     type="checkbox"
                     class="custom-checkbox"
-                    :id="`role_${role.id}`"
-                    :value="role.id"
-                    v-model="selectedRoles"
+                    :id="`role_${rol.id}`"
+                    :value="rol.id"
+                    v-model="usuario.roles"
                   />
                   <span class="checkmark"></span>
                   <div class="role-content">
-                    <span class="role-title">{{ role.nombre }}</span>
-                    <span class="role-description">{{ role.descripcion }}</span>
+                    <span class="role-title">{{ rol.nombre }}</span>
+                    <span class="role-description">{{ rol.descripcion }}</span>
                   </div>
                 </label>
               </div>
             </div>
           </div>
 
+          <editar-permisos v-model:permisos="usuario.permisos" v-model:ui-permissions="usuario.ui_permissions"/>
+
           <!-- Footer con botones -->
           <div class="medico-footer">
-            <button type="button" class="btn btn-cancel" @click="resetForm">
-              <i class="fas fa-eraser me-2"></i>
-              Limpiar Formulario
-            </button>
             <button
               type="submit"
               class="btn btn-save"
-              @mouseenter="isHovered = true"
-              @mouseleave="isHovered = false"
             >
-              <span v-if="!isHovered" class="default-icon"
-                ><i class="fas fa-user-plus me-2"></i
-              ></span>
-              <span v-else class="hover-icon"><i class="fas fa-user-check me-2"></i></span>
+              <span class="hover-icon"><i class="fas fa-user-check me-2"/></span>
               Registrar Usuario
             </button>
           </div>
@@ -387,265 +278,58 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Swal from 'sweetalert2'
-import axios from 'axios'
-
+import EditarPermisos from '../EditarPermisos.vue';
+import type { Usuario } from '@/models/usuario';
+import type { Rol } from '@/models/rol';
+import { UsuarioService } from '@/services/Administracion/usuario.service';
+import { RolService, rolState } from '@/services/Administracion/rol.service';
 export default {
+  components: {
+    EditarPermisos
+  },
   data() {
     return {
-      // Campos básicos
+      RolService,
+      rolState,
+      UsuarioService,
+
+      usuario: {
       nombre: '',
       apellido_materno: '',
       apellido_paterno: '',
       email: '',
       password: '',
-      confirm_password: '',
-
-      // Nuevos campos requeridos
-      edad: null,
+            edad: 0,
       genero: '',
       estado: '',
       ocupacion: '',
       escolaridad: '',
+      roles: [],
+      permisos: { allowed: [], denied: []},
+      ui_permissions: {}
+      } as Usuario,
 
-      isHovered: false,
+      roles: [] as Rol[],
+      // Campos básicos
 
-      // Propiedades para recursos
-      recursos: [],
-      selectedResource: '',
-      resourcePermissions: [],
+      confirm_password: '',
 
-      // Propiedades para roles dinámicos
-      availableRoles: [],
-      selectedRoles: [],
-
-      // Propiedades para acciones dinámicas
-      acciones: [],
       wildcardActionId: null, // ID de la acción "*"
     }
   },
   async mounted() {
-    await this.loadRecursos()
-    await this.loadRoles()
-    await this.loadAcciones()
+    try {
+      await RolService.fetchRoles();
+
+    } catch(error) {
+      console.log(error)
+    }
   },
   methods: {
-    // Método para cargar recursos desde la API
-    async loadRecursos() {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/recursos', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.data.success) {
-          this.recursos = response.data.recursos
-        }
-      } catch (error) {
-        console.error('Error al cargar recursos:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los recursos disponibles',
-        })
-      }
-    },
-
-    // Método para cargar roles desde la API
-    async loadRoles() {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/roles', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.data.success) {
-          this.availableRoles = response.data.roles
-        }
-      } catch (error) {
-        console.error('Error al cargar roles:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los roles disponibles',
-        })
-      }
-    },
-
-    // Método para cargar acciones desde la API
-    async loadAcciones() {
-      try {
-        const token = localStorage.getItem('apiToken')
-        const response = await axios.get('http://127.0.0.1:8000/api/acciones', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.data.success) {
-          this.acciones = response.data.acciones
-          // Buscar el ID de la acción "*" (wildcard)
-          const wildcardAction = this.acciones.find((accion) => accion.nombre === '*')
-          if (wildcardAction) {
-            this.wildcardActionId = wildcardAction.id
-          }
-        }
-      } catch (error) {
-        console.error('Error al cargar acciones:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar las acciones disponibles',
-        })
-      }
-    },
-
-    // Método para obtener el nombre del recurso por ID
-    getResourceName(resourceId) {
-      const recurso = this.recursos.find((r) => r.id === resourceId)
-      return recurso ? recurso.nombre : 'Recurso no encontrado'
-    },
-
-    // Método para obtener la descripción del recurso por ID
-    getResourceDescription(resourceId) {
-      const recurso = this.recursos.find((r) => r.id === resourceId)
-      return recurso ? recurso.descripcion : ''
-    },
-
-    // Método para obtener el icono según la acción
-    getActionIcon(actionName) {
-      const iconMap = {
-        '*': 'fas fa-star',
-        crear: 'fas fa-plus',
-        leer: 'fas fa-eye',
-        actualizar: 'fas fa-edit',
-        eliminar: 'fas fa-trash',
-      }
-      return iconMap[actionName] || 'fas fa-cog'
-    },
-
-    // Método para capitalizar primera letra
-    capitalizeFirst(str) {
-      if (!str) return ''
-      return str.charAt(0).toUpperCase() + str.slice(1)
-    },
-
-    // Método para verificar si tiene permiso wildcard
-    hasWildcardPermission(acciones) {
-      return this.wildcardActionId && acciones.includes(this.wildcardActionId)
-    },
-
-    // Método llamado cuando cambia la selección de recurso
-    onResourceChange() {},
-
-    // Método para agregar un recurso con permisos
-    addResourcePermission() {
-      if (!this.selectedResource) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Atención',
-          text: 'Debe seleccionar un recurso',
-        })
-        return
-      }
-
-      // Verificar si el recurso ya está asignado
-      const exists = this.resourcePermissions.find((rp) => rp.recurso === this.selectedResource)
-      if (exists) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Atención',
-          text: 'Este recurso ya ha sido asignado',
-        })
-        return
-      }
-
-      // Buscar el recurso seleccionado
-      const recurso = this.recursos.find((r) => r.id === this.selectedResource)
-
-      // Crear objeto de permisos con el nuevo formato
-      let accionesDefault = []
-
-      // Si el recurso es "*" (permisos totales), activar todas las acciones
-      if (
-        recurso &&
-        recurso.nombre === '*' &&
-        recurso.descripcion === 'Permisos en todas las tablas'
-      ) {
-        accionesDefault = this.acciones.map((accion) => accion.id)
-      }
-
-      // Agregar el recurso con el nuevo formato
-      this.resourcePermissions.push({
-        recurso: this.selectedResource,
-        acciones: [...accionesDefault],
-      })
-
-      // Limpiar la selección
-      this.selectedResource = ''
-    },
-
-    // Método para remover un recurso asignado
-    removeResourcePermission(index) {
-      this.resourcePermissions.splice(index, 1)
-    },
-
-    resetForm() {
-      this.nombre = ''
-      this.apellido_materno = ''
-      this.apellido_paterno = ''
-      this.email = ''
-      this.password = ''
-      this.confirm_password = ''
-      this.edad = null
-      this.genero = ''
-      this.estado = ''
-      this.ocupacion = ''
-      this.escolaridad = ''
-      this.selectedRoles = []
-      this.selectedResource = ''
-      this.resourcePermissions = []
-    },
-
     // Método submitForm con el nuevo formato de JSON
     async submitForm() {
-      // Verificación de todos los campos obligatorios
-      if (
-        !this.nombre ||
-        !this.apellido_materno ||
-        !this.apellido_paterno ||
-        !this.email ||
-        !this.password ||
-        !this.confirm_password ||
-        !this.edad ||
-        !this.genero ||
-        !this.estado ||
-        !this.ocupacion ||
-        !this.escolaridad
-      ) {
-        Swal.fire({
-          icon: 'error',
-          title: '¡Error!',
-          text: 'Todos los campos son obligatorios',
-        })
-        return
-      }
-
-      // Verificación de coincidencia de contraseñas
-      if (this.password !== this.confirm_password) {
-        Swal.fire({
-          icon: 'error',
-          title: '¡Error!',
-          text: 'Las contraseñas no coinciden',
-        })
-        return
-      }
-
       // Confirmación de creación del usuario
       const result = await Swal.fire({
         title: '¿Estás seguro?',
@@ -656,68 +340,29 @@ export default {
         cancelButtonText: 'Cancelar',
       })
 
-      // Proceder con la creación del usuario si se confirma
-      if (result.isConfirmed) {
-        // Crear el JSON
-        const formData = {
-          email: this.email,
-          password: this.password,
-          roles: [...this.selectedRoles],
-          nombre: this.nombre,
-          apellido_paterno: this.apellido_paterno,
-          apellido_materno: this.apellido_materno,
-          edad: this.edad,
-          genero: this.genero,
-          estado: this.estado,
-          ocupacion: this.ocupacion,
-          escolaridad: this.escolaridad,
-          permisos: this.resourcePermissions.map((rp) => ({
-            recurso: rp.recurso,
-            acciones: rp.acciones,
-          })),
-        }
+            if (result.isDenied || result.isDismissed) {
+        return;
+      }
 
-        // Mostrar el JSON en consola para verificar
-        console.log('JSON a enviar:', JSON.stringify(formData, null, 2))
+      // Intentamos registrar el usuario
+      try {
+        await this.UsuarioService.createUsuario(this.usuario)
 
-        try {
-          const token = localStorage.getItem('apiToken')
-          const response = await axios.post('http://127.0.0.1:8000/api/register', formData, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          Swal.fire({
-            icon: 'success',
-            title: '¡Usuario creado!',
-            text: response.data.message,
-          }).then(() => {
-            this.resetForm()
-          })
-        } catch (error) {
-          if (error.response && error.response.data && error.response.data.errors) {
-            const errors = error.response.data.errors
-            let errorMessage = 'Hubo un error al crear el usuario.'
-
-            if (errors.email && errors.email.length > 0) {
-              errorMessage = 'El correo electrónico ya está en uso.'
-            } else if (errors.password && errors.password.length > 0) {
-              errorMessage = 'La contraseña no cumple con los requisitos.'
-            }
-
-            Swal.fire({
-              icon: 'error',
-              title: '¡Error!',
-              text: errorMessage,
-            })
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: '¡Error!',
-              text: 'Hubo un error al crear el usuario. Por favor, inténtalo de nuevo.',
-            })
-          }
-        }
+                Swal.fire({
+          icon: 'success',
+          title: 'Usuario creado!',
+          text: `El usuario "${this.usuario.nombre}" ha sido creado exitosamente`,
+        }).then(() => {
+          this.$router.push({ name: 'VerUsuarios' })
+        })
+      } catch (error) {
+        console.log(error)
+        // Errores genericos
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo crear el usuario.',
+          icon: 'error'
+        });
       }
     },
   },
