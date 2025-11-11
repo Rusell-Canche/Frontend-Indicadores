@@ -656,22 +656,48 @@
         </h5>
         <button type="button" class="btn-close" @click="cerrarModalTabla" aria-label="Close"></button>
       </div>
+<!-- Body -->
+<div class="modal-body text-center">
 
-      <!-- Body -->
-      <div class="modal-body text-center">
+  <!-- Tabla Dinámica Unificada -->
+  <DataTable
+    v-if="tablaDinamica && tablaDinamica.length"
+    :value="tablaDinamica"
+    showGridlines
+    responsiveLayout="scroll"
+  >
+    <Column
+      v-for="key in Object.keys(tablaDinamica[0]).filter(k => k !== '_documentId')"
+      :key="key"
+      :field="key"
+      :header="key"
+    >
+    
+      <template #body="slotProps">
+        <!-- Buscar el campo correspondiente dentro de la definición -->
+        <template
+          v-if="getCampoDefinition(campoTablaActual)?.tableConfig?.campos?.find(c => c.name === key)?.type === 'file'"
+        >
+          <div class="file-badges">
+            <Button
+              icon="fa-solid fa-eye"
+              @click="mostrarModalImagen = true; archivo = slotProps.data[key]"
+              text
+              severity="info"
+              size="small"
+              v-tooltip="'Ver Archivo'"
+            />
+          </div>
+        </template>
+        <template v-else>
+          {{ slotProps.data[key] }}
+        </template>
+      </template>
+    </Column>
+  </DataTable>
 
-           <!-- Tabla PrimeVue -->
-        <DataTable v-if="tablaDinamica && tablaDinamica.length" :value="tablaDinamica" showGridlines responsiveLayout="scroll">
-          <Column
-            v-for="key in Object.keys(tablaDinamica[0]).filter(k => k !== '_documentId')"
-            :key="key"
-            :field="key"
-            :header="key"
-          >
-          </Column>
-        </DataTable>
+</div>
 
-      </div>
 
       <!-- Footer -->
       <div class="modal-footer">
