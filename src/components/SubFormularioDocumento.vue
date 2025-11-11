@@ -846,49 +846,60 @@ export default {
 
     // Métodos para tablas dinámicas
     async abrirModalTabla(campo) {
-      this.tablaActual = campo
-      this.modalTablaVisible = true
-      this.busquedaTabla = '' // Resetear búsqueda
-      this.paginaActual = 1 // Resetear a primera página
+  this.tablaActual = campo
+  this.modalTablaVisible = true
+  this.busquedaTabla = '' // Resetear búsqueda
+  this.paginaActual = 1 // Resetear a primera página
 
-      // Para crear nuevo: inicializar vacío o cargar lo que ya se seleccionó en esta sesión
-      this.tablaSeleccionada = [...(this.datosTemporales[campo.name] || [])]
+  try {
+    const token = localStorage.getItem('apiToken')
+    const api = (await import('@/services/api')).default
 
-      try {
-        const token = localStorage.getItem('apiToken')
-        const api = (await import('@/services/api')).default
+    const response = await api.get(`/plantillas/${campo.tableConfig.plantillaId}/secciones`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
 
-        const response = await api.get(`/plantillas/${campo.tableConfig.plantillaId}/secciones`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+    const seccion = response.data?.secciones?.find(
+      (s) => s.nombre === campo.tableConfig.seccion,
+    )
+    
+    if (seccion && seccion.fields) {
+      const documentosResponse = await api.get(`/documentos/${campo.tableConfig.plantillaId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
 
-        const seccion = response.data?.secciones?.find(
-          (s) => s.nombre === campo.tableConfig.seccion,
-        )
-        if (seccion && seccion.fields) {
-          const documentosResponse = await api.get(`/documentos/${campo.tableConfig.plantillaId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
+      this.datosTablaDisponibles = this.procesarDatosParaTabla(
+        documentosResponse.data,
+        seccion,
+        campo.tableConfig.campos,
+      )
 
-          this.datosTablaDisponibles = this.procesarDatosParaTabla(
-            documentosResponse.data,
-            seccion,
-            campo.tableConfig.campos,
+      // Maneja ambos casos (crear y editar)
+      const datosGuardados = this.datosTemporales[campo.name] || []
+      
+      if (datosGuardados.length > 0) {
+        // Verificar si son objetos completos o solo IDs
+        const primerElemento = datosGuardados[0]
+        
+        if (primerElemento && typeof primerElemento === 'object' && primerElemento._documentId) {
+          // Caso CREAR: Ya tenemos objetos completos
+          this.tablaSeleccionada = [...datosGuardados]
+        } else {
+          // Caso EDITAR: Solo tenemos IDs, necesitamos reconstruir los objetos
+          this.tablaSeleccionada = this.datosTablaDisponibles.filter((fila) => 
+            datosGuardados.includes(fila._documentId)
           )
-
-          // Solo si hay IDs guardados, reconstruir la selección
-          const idsGuardados = this.datosTemporales[campo.name] || []
-          if (idsGuardados.length > 0) {
-            this.tablaSeleccionada = this.datosTablaDisponibles.filter((fila) =>
-              idsGuardados.includes(fila._documentId),
-            )
-          }
         }
-      } catch (error) {
-        console.error('Error al cargar datos de tabla:', error)
-        this.mostrarError('No se pudieron cargar los datos para la tabla')
+      } else {
+        // No hay datos guardados
+        this.tablaSeleccionada = []
       }
-    },
+    }
+  } catch (error) {
+    console.error('Error al cargar datos de tabla:', error)
+    this.mostrarError('No se pudieron cargar los datos para la tabla')
+  }
+},
 
     procesarDatosParaTabla(documentos, seccion, camposConfigurados) {
       const datosProcesados = []
