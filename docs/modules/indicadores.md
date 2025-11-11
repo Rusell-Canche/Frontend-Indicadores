@@ -1,56 +1,19 @@
-# Módulo de Indicadores
+# 📊 Módulo de Indicadores
 
-El módulo de indicadores permite gestionar los indicadores del sistema de forma completa.
+## Descripción
 
-## Funcionalidades
+Módulo para la gestión de indicadores del sistema.
 
-### Ver Indicadores
-Lista todos los indicadores del sistema con opciones de búsqueda y filtrado.
+## Componentes
 
-**Ruta:** `/Indicador/ver-indicadores`
+### VerIndicadores
+**Ubicación:** `resources/js/components/VerIndicadores.vue`
 
-**Componente:** `VerIndicadores.vue`
+**Descripción:** Componente para [describir funcionalidad]
 
-**Permisos requeridos:** `indicadores`
-
-### Crear Indicador
-Formulario para crear nuevos indicadores.
-
-**Ruta:** `/Indicador/CrearIndicador`
-
-**Componente:** `CrearIndicador.vue`
-
-### Editar Indicador
-Permite modificar un indicador existente.
-
-**Ruta:** `/Indicador/ver-indicadores/editar/:id`
-
-**Componente:** `EditarIndicador.vue`
-
-**Props:**
-- `id` (string) - ID del indicador a editar
-
-### Configurar Indicador
-Configuración avanzada del indicador.
-
-**Ruta:** `/Indicador/ver-indicadores/configurar/:id`
-
-**Componente:** `ConfigurarIndicador.vue`
-
-### Cargar Indicadores
-Carga masiva de indicadores desde archivo.
-
-**Ruta:** `/Indicador/CargarIndicador`
-
-**Componente:** `Cargarindicadores.vue`
-
-## Ejemplo de uso
 ```vue
 <template>
-  <div>
-    <h1>Mis Indicadores</h1>
-    <VerIndicadores />
-  </div>
+  <VerIndicadores />
 </template>
 
 <script setup>
@@ -58,11 +21,71 @@ import VerIndicadores from '@/components/VerIndicadores.vue'
 </script>
 ```
 
-## API
+### CrearIndicador
+**Ubicación:** `resources/js/components/CrearIndicador.vue`
 
-### Endpoints principales
+**Descripción:** Componente para [describir funcionalidad]
 
-- `GET /api/indicadores` - Lista de indicadores
-- `POST /api/indicadores` - Crear indicador
-- `PUT /api/indicadores/:id` - Actualizar indicador
-- `DELETE /api/indicadores/:id` - Eliminar indicador
+```vue
+<template>
+  <CrearIndicador />
+</template>
+
+<script setup>
+import CrearIndicador from '@/components/CrearIndicador.vue'
+</script>
+```
+
+### EditarIndicador
+**Ubicación:** `resources/js/components/EditarIndicador.vue`
+
+**Descripción:** Componente para [describir funcionalidad]
+
+```vue
+<template>
+  <EditarIndicador />
+</template>
+
+<script setup>
+import EditarIndicador from '@/components/EditarIndicador.vue'
+</script>
+```
+
+### ConfigurarIndicador
+**Ubicación:** `resources/js/components/ConfigurarIndicador.vue`
+
+**Descripción:** Componente para [describir funcionalidad]
+
+```vue
+<template>
+  <ConfigurarIndicador />
+</template>
+
+<script setup>
+import ConfigurarIndicador from '@/components/ConfigurarIndicador.vue'
+</script>
+```
+
+### Cargarindicadores
+**Ubicación:** `resources/js/components/Cargarindicadores.vue`
+
+**Descripción:** Componente para [describir funcionalidad]
+
+```vue
+<template>
+  <Cargarindicadores />
+</template>
+
+<script setup>
+import Cargarindicadores from '@/components/Cargarindicadores.vue'
+</script>
+```
+
+
+## Rutas
+
+- `/Indicador`
+
+## Permisos requeridos
+
+- Módulo: `indicadores`
