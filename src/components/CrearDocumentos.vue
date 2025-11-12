@@ -126,7 +126,18 @@
                           </button>
                         </td>
                         <td v-for="columna in tablaActual.tableConfig.campos" :key="columna.name">
-                          {{ obtenerValorCampo(fila, columna.name) || '-' }}
+                          <div v-if="columna.type === 'file'">
+                            <button
+                    icon="fa-solid fa-eye"
+                    @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name) || '-' "
+                    text
+                    severity="info"
+                    size="small"
+                    v-tooltip="'Ver Archivo'"
+                  />
+                          </div>
+                          <div v-else>{{ obtenerValorCampo(fila, columna.name) || '-' }}</div>
+                          
                         </td>
                       </tr>
                     </tbody>
@@ -587,6 +598,14 @@
                 Crear Documento
               </button>
             </div>
+            
+<!-- Aquí insertas tu modal -->
+    <VistaArchivos
+      :mostrar="mostrarModalImagen"
+      :archivos="archivo"
+      @cerrar="mostrarModalImagen = false"
+    />
+
           </form>
         </div>
       </div>
@@ -595,14 +614,16 @@
 </template>
 
 <script>
+import VistaArchivos from './VistaArchivos.vue'
 import api from '@/services/api'
 import Swal from 'sweetalert2'
 import SubFormularioDocumento from './SubFormularioDocumento.vue'
 
 export default {
-  components: { SubFormularioDocumento },
+  components: { SubFormularioDocumento,VistaArchivos },
   data() {
     return {
+      archivo:"",
       plantillas: [],
       selectedPlantilla: null,
       camposPlantilla: [],

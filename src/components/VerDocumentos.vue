@@ -261,7 +261,7 @@
                   <div v-if="getCampoDefinition(campo)?.type === 'file'" class="file-badges">
                     <Button
                       icon="fa-solid  fa-eye"
-                      @click=" this.mostrarModalImagen = true; this.archivo=getPrettyFieldValue(slotProps.data, campo);"
+                      @click=" this.mostrarModalImagen = true; console.log(this.archivo=getPrettyFieldValue(slotProps.data, campo));"
                       text
                       severity="info"
                       size="small"
@@ -482,10 +482,19 @@
 </div>
 
 
+ <!-- Aquí insertas tu modal -->
+    <VistaArchivos
+      :mostrar="mostrarModalImagen"
+      :archivos="archivo"
+      @cerrar="mostrarModalImagen = false"
+    />
+  
+
+
 
 
 <!--Modal para mostrar Archivos Multimedia-->
-<div v-if="mostrarModalImagen" class="modal fade show d-block" tabindex="-1" style="z-index:1060;background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);" aria-modal="true" role="dialog" @click.self="cerrarModal">
+<div v-if="mostrarModalIm" class="modal fade show d-block" tabindex="-1" style="z-index:1060;background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);" aria-modal="true" role="dialog" @click.self="cerrarModal">
   <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1100px;">
     <div class="modal-content">
       
@@ -714,6 +723,7 @@
 </template>
 
 <script>
+import VistaArchivos from "./VistaArchivos.vue";
 import Galleria from 'primevue/galleria'
 import api, { storage } from '@/services/api'
 import axios from 'axios'
@@ -732,6 +742,7 @@ export default {
   name: 'VerDocumentos',
 
   components: {
+    VistaArchivos,
     Galleria,
     EditDocumentModal,
     DataTable,
@@ -751,10 +762,10 @@ export default {
       campoTablaActual:"",
 
       //para mostrar la imagen de archivo
-       currentSlide: 0,
+      currentSlide: 0,
       mostrarModalImagen: false,
       archivo:null,
-       carouselInstance: null,
+      carouselInstance: null,
       // Por estas que manejan múltiples niveles:
       modalStack: [], // Array que contiene información de cada modal abierto
       currentModalLevel: -1, // Índice del modal actual
@@ -786,8 +797,8 @@ export default {
 
       // Estados de carga
       loading: {
-        colecciones: false,
-        documentos: false,
+      colecciones: false,
+      documentos: false,
       },
       // Filtros dinámicos
       filtroActivo: {
