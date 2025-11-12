@@ -138,6 +138,27 @@
             </div>
           </div>
 
+          <!-- Seccion de tipo de indicador a que lugar pertenenece -->
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-folder me-2"></i>
+              Tipo de Indicador
+            </h6>            
+              <div class="col-md-12">
+                <label class="form-label">Indicador*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-folder"></i>
+                  </span>
+                  <select v-model="nuevoIndicador.tipoIndicador" class="form-select" required>
+                    <option value="">Seleccione un Tipo</option>
+                    <option value="Planeacion">Planeación</option>
+                    <option value="Subdireccion">Subdirección</option>
+                  </select>
+                </div>
+              </div>
+          </div>
+
           <!-- seccion para agregar una fecha_inicio y fecha_fin a los indicadores -->
           <div class="form-section">
             <h6 class="section-title">
@@ -214,6 +235,7 @@ export default {
         numero: 0,
         denominador: 0,
         departamento: '',
+        tipoIndicador: '',
         fecha_inicio: '',
         fecha_fin: '',
       },
@@ -231,6 +253,7 @@ export default {
         this.nuevoIndicador.denominador === null ||
         this.nuevoIndicador.denominador === '' ||
         !this.nuevoIndicador.departamento.trim() ||
+        !this.nuevoIndicador.tipoIndicador.trim() ||
         !this.nuevoIndicador.fecha_inicio ||
         !this.nuevoIndicador.fecha_fin
       ) {
@@ -253,6 +276,7 @@ export default {
               <p><strong>Numero:</strong> ${this.nuevoIndicador.numero}</p>
               <p><strong>Denominador:</strong> ${this.nuevoIndicador.denominador}</p>
               <p><strong>Departamento:</strong> ${this.nuevoIndicador.departamento}</p>
+              <p><strong>Tipo:</strong> ${this.nuevoIndicador.tipoIndicador}</p>
               <p><strong>Fecha de Inicio:</strong> ${this.nuevoIndicador.fecha_inicio}</p>
               <p><strong>Fecha de Fin:</strong> ${this.nuevoIndicador.fecha_fin}</p>
             </div>
@@ -287,6 +311,7 @@ export default {
         indicadorFormData.append('numero', this.nuevoIndicador.numero)
         indicadorFormData.append('denominador', this.nuevoIndicador.denominador)
         indicadorFormData.append('departamento', this.nuevoIndicador.departamento)
+        indicadorFormData.append('tipoIndicador', this.nuevoIndicador.tipoIndicador)
         indicadorFormData.append('fecha_inicio', this.nuevoIndicador.fecha_inicio)
         indicadorFormData.append('fecha_fin', this.nuevoIndicador.fecha_fin)
 
@@ -344,6 +369,9 @@ export default {
         numero: 0,
         denominador: 0,
         departamento: '',
+        tipoIndicador: '',
+        fecha_inicio: '',
+        fecha_fin: '',
       }
     },
   },
