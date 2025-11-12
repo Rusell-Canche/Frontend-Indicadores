@@ -142,6 +142,26 @@
             </div>
           </div>
 
+          <div class="form-section">
+            <h6 class="section-title">
+              <i class="fas fa-folder me-2"></i>
+              Tipo de Indicador
+            </h6>
+              <div class="col-md-12">
+                <label class="form-label">Indicador*</label>
+                <div class="input-group modern-input">
+                  <span class="input-group-text">
+                    <i class="fas fa-folder"></i>
+                  </span>
+                  <select v-model="indicadorEditForm.tipoIndicador" class="form-select" required>
+                    <option value="">Seleccione un Tipo</option>
+                    <option value="Planeacion">Planeación</option>
+                    <option value="Subdireccion">Subdirección</option>
+                  </select>
+                </div>
+              </div>
+          </div>
+
           <!-- seccion para agregar una fecha_inicio y fecha_fin a los indicadores -->
           <div class="form-section">
             <h6 class="section-title">
@@ -284,6 +304,7 @@ export default {
         actividad: '',
         causa: '',
         accion: '',
+        tipoIndicador: '',
         fecha_inicio: '',
         fecha_fin: '',
       },
@@ -321,6 +342,7 @@ export default {
               denominador: indicador.denominador,
               _idProyecto: indicador._idProyecto,
               departamento: indicador.departamento || '',
+              tipoIndicador: indicador.tipoIndicador || '',
               actividad: indicador.actividad || '',
               causa: indicador.causa || '',
               accion: indicador.accion || '',
@@ -356,6 +378,7 @@ export default {
           denominador: this.indicadorEditForm.denominador,
           _idProyecto: this.indicadorEditForm._idProyecto,
           departamento: this.indicadorEditForm.departamento,
+          tipoIndicador: this.indicadorEditForm.tipoIndicador,
           actividad: this.indicadorEditForm.actividad,
           causa: this.indicadorEditForm.causa,
           accion: this.indicadorEditForm.accion,
