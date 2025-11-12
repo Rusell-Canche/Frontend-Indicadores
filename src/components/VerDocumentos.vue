@@ -748,7 +748,7 @@ export default {
       //para mostrar la tabla dinamica
       tablaDinamica:null,
       mostrarModalTabla: false,
-      campoTablaActual:null,
+      campoTablaActual:"",
 
       //para mostrar la imagen de archivo
        currentSlide: 0,
