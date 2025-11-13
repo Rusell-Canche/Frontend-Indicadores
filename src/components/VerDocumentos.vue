@@ -280,7 +280,7 @@
                   <div v-else-if="getCampoDefinition(campo)?.type === 'tabla'" class="file-badges">
                     <Button
                       icon="fa-solid  fa-magnifying-glass"
-                      @click=" this.mostrarModalTabla = true;campoTablaActual = campo; this.tablaDinamica=getPrettyFieldValue(slotProps.data, campo); console.log('Tabla dinámica:', this.tablaDinamica);"
+                      @click=" this.mostrarModalTabla = true;campoTablaActual = campo; this.tablaDinamica=getPrettyFieldValue(slotProps.data, campo);"
                       text
                       severity="info"
                       size="small"
@@ -435,7 +435,7 @@
                 <span v-else-if="subcampo.type === 'tabla'">
                   <Button
                     icon="fa-solid fa-magnifying-glass"
-                    @click="mostrarModalTabla = true; tablaDinamica = getPrettySubcampoValue(slotProps.data, subcampo.name);"
+                    @click="mostrarModalTabla = true; campoTablaActual = subcampo.name;   tablaDinamica = getPrettySubcampoValue(slotProps.data, subcampo.name);"
                     text
                     severity="info"
                     size="small"
@@ -489,170 +489,6 @@
       @cerrar="mostrarModalImagen = false"
     />
   
-
-
-
-
-<!--Modal para mostrar Archivos Multimedia-->
-<div v-if="mostrarModalIm" class="modal fade show d-block" tabindex="-1" style="z-index:1060;background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);" aria-modal="true" role="dialog" @click.self="cerrarModal">
-  <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1100px;">
-    <div class="modal-content">
-      
-      <!-- Header -->
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="fas fa-file me-2"></i> Archivos Multimedia
-        </h5>
-        <button type="button" class="btn-close" @click="cerrarModalImagen" aria-label="Close"></button>
-      </div>
-
-      <!-- Body -->
-      <div class="modal-body p-0">
-      
-        <!-- Carrusel de Bootstrap con ref y evento -->
-        <div 
-          id="multimediaCarousel" 
-          ref="multimediaCarousel"
-          class="carousel slide" 
-          data-bs-ride="false"
-        >
-          
-          <!-- Contenido del carrusel -->
-          <div class="carousel-inner">
-            <div 
-              v-for="(item, index) in archivosArray" 
-              :key="index"
-              :class="['carousel-item', { active: index === currentSlide }]"
-            >
-              <div class="d-flex align-items-center justify-content-center" style="min-height: 500px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 20px;">
-                
-                <!-- Imagen -->
-                <img 
-                  v-if="esImagen(item)"
-                  :src="`http://127.0.0.1:8000/storage/${item}`"
-                  class="d-block"
-                  style="max-width: 100%; max-height: 500px; width: auto; height: auto; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);"
-                  alt="Imagen"
-                />
-
-                <!-- PDF -->
-                <div v-else-if="esPDF(item)" class="w-100" style="height: 500px;">
-                  <iframe 
-                    :src="`http://127.0.0.1:8000/storage/${item}`"
-                    style="width: 100%; height: 100%; border: none; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);"
-                    type="application/pdf"
-                  ></iframe>
-                </div>
-
-                <!-- Video -->
-                <video 
-                  v-else-if="esVideo(item)"
-                  controls
-                  class="d-block"
-                  style="max-width: 100%; max-height: 500px; width: auto; height: auto; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);"
-                >
-                  <source :src="`http://127.0.0.1:8000/storage/${item}`" :type="obtenerTipoVideo(item)">
-                  Tu navegador no soporta el elemento de video.
-                </video>
-
-                <!-- Audio -->
-                <div v-else-if="esAudio(item)" class="w-100 text-center">
-                  <div class="mb-4">
-                    <i class="fas fa-music" style="font-size: 80px; color: #6c757d;"></i>
-                  </div>
-                  <audio 
-                    controls
-                    class="w-100"
-                    style="max-width: 600px; border-radius: 8px;"
-                  >
-                    <source :src="`http://127.0.0.1:8000/storage/${item}`" :type="obtenerTipoAudio(item)">
-                    Tu navegador no soporta el elemento de audio.
-                  </audio>
-                  <div class="mt-3 text-muted">
-                    <small>{{ obtenerNombreArchivo(item) }}</small>
-                  </div>
-                </div>
-
-                <!-- Archivo no reconocido -->
-                <div v-else class="text-center">
-                  <i class="fas fa-file" style="font-size: 80px; color: #6c757d;"></i>
-                  <p class="mt-3 text-muted">Sin archivos</p>
-                
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          <!-- Controles Previous/Next -->
-          <button v-if="archivosArray.length > 1" class="carousel-control-prev" type="button" @click="irASlide(currentSlide - 1)">
-            <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: invert(1);"></span>
-            <span class="visually-hidden">Anterior</span>
-          </button>
-          <button v-if="archivosArray.length > 1" class="carousel-control-next" type="button"  @click="irASlide(currentSlide + 1)">
-            <span class="carousel-control-next-icon" aria-hidden="true" style="filter: invert(1);"></span>
-            <span class="visually-hidden">Siguiente</span>
-          </button>
-        </div>
-
-        <!-- Miniaturas -->
-        <div v-if="archivosArray.length > 1" class="p-3 bg-light border-top" style="overflow-x: auto; white-space: nowrap;">
-          <div class="d-inline-flex gap-2">
-            <div 
-              v-for="(item, index) in archivosArray" 
-              :key="index"
-              class="thumbnail-item"
-              :class="{ 'active': index === currentSlide }"
-              @click="irASlide(index)"
-              style="cursor: pointer; display: inline-block;"
-            >
-              <div 
-                style="width: 100px; height: 75px; border-radius: 8px; overflow: hidden; border: 3px solid; transition: all 0.3s ease;"
-                :style="{ borderColor: index === currentSlide ? '#0d6efd' : 'transparent' }"
-              >
-                <!-- Miniatura imagen -->
-                <img 
-                  v-if="esImagen(item)"
-                  :src="`http://127.0.0.1:8000/storage/${item}`"
-                  style="width: 100%; height: 100%; object-fit: cover;"
-                  alt="miniatura"
-                />
-                <!-- Icono PDF -->
-                <div v-else-if="esPDF(item)" class="d-flex align-items-center justify-content-center h-100 bg-danger bg-opacity-10">
-                  <i class="fas fa-file-pdf" style="font-size: 32px; color: #dc3545;"></i>
-                </div>
-                <!-- Icono Video -->
-                <div v-else-if="esVideo(item)" class="d-flex align-items-center justify-content-center h-100 bg-primary bg-opacity-10">
-                  <i class="fas fa-video" style="font-size: 32px; color: #0d6efd;"></i>
-                </div>
-                <!-- Icono Audio -->
-                <div v-else-if="esAudio(item)" class="d-flex align-items-center justify-content-center h-100 bg-success bg-opacity-10">
-                  <i class="fas fa-music" style="font-size: 32px; color: #198754;"></i>
-                </div>
-                <!-- Icono genérico -->
-                <div v-else class="d-flex align-items-center justify-content-center h-100 bg-secondary bg-opacity-10">
-                  <i class="fas fa-file" style="font-size: 32px; color: #6c757d;"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" @click="cerrarModalImagen">
-          <i class="fas fa-times me-2"></i>Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-
-
 <!-- Modal: Vista Tabla dinámica -->
 <div v-if="mostrarModalTabla" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);" aria-modal="true" role="dialog" @click.self="cerrarModal">
   <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -685,7 +521,7 @@
       <template #body="slotProps">
         <!-- Buscar el campo correspondiente dentro de la definición -->
         <template
-          v-if="getCampoDefinition(campoTablaActual)?.tableConfig?.campos?.find(c => c.name === key)?.type === 'file'"
+          v-if="(getCampoDefinition(campoTablaActual) || currentSubformDefinition?.subcampos?.find(s => s.name === campoTablaActual))?.tableConfig?.campos?.find(c => c.name === key)?.type === 'file'"
         >
           <div class="file-badges">
             <Button
@@ -1122,6 +958,7 @@ export default {
       }
 
       return valor
+
     },
 
     // ========== API CALLS ==========
@@ -1347,9 +1184,7 @@ export default {
      * Busca la definición de un campo (MÉTODO MEJORADO)
      */
     getCampoDefinition(fieldPath) {
-      console.log('=== BUSCANDO DEFINICIÓN DE CAMPO ===')
-      console.log('Campo/Path buscado:', fieldPath)
-
+      
       if (!this.camposPlantilla?.secciones) {
         console.log('No hay secciones en camposPlantilla')
         return null
