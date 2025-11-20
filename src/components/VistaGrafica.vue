@@ -152,7 +152,8 @@ if (campo.type === 'tabla') {
    clases += ' TablaDiv'
   const innerCampos = campo.campos || (campo.tableConfig && campo.tableConfig.campos) || []
   innerCampos.forEach((subcampo) => {
-    html += this.renderCampo({ name: subcampo, type: 'text' }, nivel + 1)
+    html += this.renderCampo(subcampo, nivel + 1)
+
   })
 }
 
