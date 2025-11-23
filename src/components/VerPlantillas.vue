@@ -1090,7 +1090,7 @@ vistaCompacta: false,
           await this.cargarSeccionesTabla()
           this.tablaSeccionSeleccionada = campo.tableConfig.seccion
           await this.onTablaSeccionSeleccionada()
-          this.tablaCamposSeleccionados = [...campo.tableConfig.campos]
+          this.tablaCamposSeleccionados = campo.tableConfig.campos.map(c => typeof c === 'string' ? c : c.name)
           
         }
       } catch (error) {
@@ -1151,26 +1151,35 @@ vistaCompacta: false,
     },
 
 
-    aplicarConfiguracionTabla() {
-      if (!this.configuracionTablaValida) return
+   aplicarConfiguracionTabla() {
+  if (!this.configuracionTablaValida) return
 
-      this.campoTablaActual.tableConfig = {
-        plantillaId: this.tablaPlantillaSeleccionada,
-        plantillaNombre: this.getNombrePlantillaDataSource(this.tablaPlantillaSeleccionada),
-        seccion: this.tablaSeccionSeleccionada,
-        campos: [...this.tablaCamposSeleccionados],
-      }
+  // ✅ Construye objetos { name, type } a partir de los nombres seleccionados
+  const camposConTipos = this.tablaCamposSeleccionados.map((campoNombre) => {
+    const campoEncontrado = this.tablaCamposDisponibles.find((c) => c.name === campoNombre)
+    return {
+      name: campoNombre,
+      type: campoEncontrado ? campoEncontrado.type : 'string',
+    }
+  })
 
-      this.cerrarModalTabla()
+  this.campoTablaActual.tableConfig = {
+    plantillaId: this.tablaPlantillaSeleccionada,
+    plantillaNombre: this.getNombrePlantillaDataSource(this.tablaPlantillaSeleccionada),
+    seccion: this.tablaSeccionSeleccionada,
+    campos: camposConTipos, // ✅ SIEMPRE objetos, nunca strings
+  }
 
-      Swal.fire({
-        icon: 'success',
-        title: 'Configuración aplicada',
-        text: `Tabla configurada con ${this.tablaCamposSeleccionados.length} columnas`,
-        timer: 2000,
-        showConfirmButton: false,
-      })
-    },
+  this.cerrarModalTabla()
+
+  Swal.fire({
+    icon: 'success',
+    title: 'Configuración aplicada',
+    text: `Tabla configurada con ${this.tablaCamposSeleccionados.length} columnas`,
+    timer: 2000,
+    showConfirmButton: false,
+  })
+},
   
 async submitEditForm() {
   const token = localStorage.getItem('apiToken')
