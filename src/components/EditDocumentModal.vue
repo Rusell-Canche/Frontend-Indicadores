@@ -783,8 +783,10 @@
 
         data() {
             return {
+                //VARIABLES PARA EL MODAL DE IMAGEN
                 mostrarModalImagen: false, // Para controlar si se muestra el modal
                 archivo: null,            // Para pasar el archivo al modal
+                // Datos de subformularios
                 archivosSubformularios: {},
                 // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
                 fileMapping: {},

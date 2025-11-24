@@ -26,12 +26,18 @@
               <!-- Renderizar subcampo normal -->
               <template v-if="subcampo.type !== 'subform' && subcampo.type !== 'tabla'">
                 <template v-if="subcampo.type === 'file'">
-                  {{ fila[subcampo.name]?.name || 'Sin archivo' }}
+                  <button type="button"
+                    class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
+                    @click="mostrarModalImagen = true; archivo = fila[subcampo.name]"
+                    v-tooltip="'Ver Archivo'"
+                    style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
+                  </button>
                 </template>
                 <template v-else-if="subcampo.type === 'select' && !isManualSelect(subcampo)">
                   {{
-                    subcampo.options.find((opt) => opt.campoGuardar === fila[subcampo.name])
-                      ?.campoMostrar || fila[subcampo.name]
+                  subcampo.options.find((opt) => opt.campoGuardar === fila[subcampo.name])
+                  ?.campoMostrar || fila[subcampo.name]
                   }}
                 </template>
                 <template v-else>
@@ -49,30 +55,19 @@
 
               <!-- Botón para abrir modal del subformulario anidado -->
               <template v-else>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-primary"
+                <button type="button" class="btn btn-sm btn-outline-primary"
                   @click="abrirModalSubformulario(index, subcampo.name, subcampo)"
-                  :title="`Ver/Editar ${subcampo.alias || subcampo.name}`"
-                >
+                  :title="`Ver/Editar ${subcampo.alias || subcampo.name}`">
                   <i class="fa-solid fa-magnifying-glass me-1"></i>
                   <span class="d-none d-md-inline">Ver/Editar</span>
                 </button>
               </template>
             </td>
             <td class="text-center">
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-secondary me-2"
-                @click="editarEntrada(index)"
-              >
+              <button type="button" class="btn btn-sm btn-outline-secondary me-2" @click="editarEntrada(index)">
                 <i class="fas fa-edit"></i>
               </button>
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-danger"
-                @click="eliminarEntrada(index)"
-              >
+              <button type="button" class="btn btn-sm btn-outline-danger" @click="eliminarEntrada(index)">
                 <i class="fas fa-trash-alt"></i>
               </button>
             </td>
@@ -141,54 +136,35 @@
                           <span class="input-group-text">
                             <i class="fas fa-file"></i>
                           </span>
-                          <input
-                            type="file"
-                            class="form-control"
-                            :id="`subform_${campo.name}_${subcampo.name}`"
-                            @change="onCambioArchivo($event, subcampo.name)"
-                            multiple
-                            :key="fileInputKey"
-                          />
+                          <input type="file" class="form-control" :id="`subform_${campo.name}_${subcampo.name}`"
+                            @change="onCambioArchivo($event, subcampo.name)" multiple :key="fileInputKey" />
                         </div>
                       </div>
 
                       <!-- Vista previa de archivos -->
-                      <div
-                        v-if="
+                      <div v-if="
                           archivosSubformulario[subcampo.name] &&
                           archivosSubformulario[subcampo.name].length > 0
-                        "
-                        class="file-preview mt-3"
-                      >
+                        " class="file-preview mt-3">
                         <h6 class="preview-title">
                           Archivos seleccionados ({{
-                            archivosSubformulario[subcampo.name].length
+                          archivosSubformulario[subcampo.name].length
                           }}):
                         </h6>
                         <div class="d-flex flex-wrap gap-3">
-                          <div
-                            class="file-item"
-                            v-for="(file, index) in archivosSubformulario[subcampo.name]"
-                            :key="index"
-                          >
+                          <div class="file-item" v-for="(file, index) in archivosSubformulario[subcampo.name]"
+                            :key="index">
                             <div class="file-content">
                               <div v-if="isImageFile(file)" class="file-thumbnail">
-                                <img
-                                  :src="getThumbnailUrl(file)"
-                                  alt="Miniatura"
-                                  class="img-fluid"
-                                />
+                                <img :src="getThumbnailUrl(file)" alt="Miniatura" class="img-fluid" />
                               </div>
                               <div v-else class="file-icon">
                                 <i class="fas fa-file-alt"></i>
                               </div>
                               <span class="file-name">{{ file.name }}</span>
                             </div>
-                            <button
-                              type="button"
-                              class="delete-button"
-                              @click="removeArchivoSubcampo(subcampo.name, index)"
-                            >
+                            <button type="button" class="delete-button"
+                              @click="removeArchivoSubcampo(subcampo.name, index)">
                               <i class="fas fa-times"></i>
                             </button>
                           </div>
@@ -196,11 +172,8 @@
 
                         <!-- Botón para limpiar todos los archivos -->
                         <div class="mt-3">
-                          <button
-                            type="button"
-                            class="btn btn-outline-danger btn-sm"
-                            @click="clearAllArchivosSubcampo(subcampo.name)"
-                          >
+                          <button type="button" class="btn btn-outline-danger btn-sm"
+                            @click="clearAllArchivosSubcampo(subcampo.name)">
                             <i class="fas fa-trash me-1"></i>
                             Limpiar todos los archivos
                           </button>
@@ -217,13 +190,8 @@
                         <span class="input-group-text">
                           <i class="fas fa-hashtag"></i>
                         </span>
-                        <input
-                          type="number"
-                          class="form-control"
-                          v-model="datosTemporales[subcampo.name]"
-                          :required="subcampo.required"
-                          placeholder="Ingrese un valor numérico"
-                        />
+                        <input type="number" class="form-control" v-model="datosTemporales[subcampo.name]"
+                          :required="subcampo.required" placeholder="Ingrese un valor numérico" />
                       </div>
                     </div>
 
@@ -235,18 +203,9 @@
                         <span v-if="subcampo.required" class="text-danger">*</span>
                       </label>
                       <div class="checkbox-container d-block">
-                        <div
-                          class="form-check mb-2"
-                          v-for="(option, index) in subcampo.options"
-                          :key="index"
-                        >
-                          <input
-                            class="form-check-input"
-                            type="checkbox"
-                            :id="subcampo.name + '_' + index"
-                            :value="getSaveValue(option, subcampo)"
-                            v-model="datosTemporales[subcampo.name]"
-                          />
+                        <div class="form-check mb-2" v-for="(option, index) in subcampo.options" :key="index">
+                          <input class="form-check-input" type="checkbox" :id="subcampo.name + '_' + index"
+                            :value="getSaveValue(option, subcampo)" v-model="datosTemporales[subcampo.name]" />
                           <label class="form-check-label" :for="subcampo.name + '_' + index">
                             {{ getDisplayValue(option, subcampo) }}
                           </label>
@@ -267,36 +226,23 @@
                         <span class="input-group-text">
                           <i class="fas fa-list-ul"></i>
                         </span>
-                        <select
-                          class="form-select"
-                          v-model="datosTemporales[subcampo.name]"
-                          :required="subcampo.required"
-                        >
+                        <select class="form-select" v-model="datosTemporales[subcampo.name]"
+                          :required="subcampo.required">
                           <option value="" disabled selected>Seleccione una opción</option>
                           <template v-if="isManualSelect(subcampo)">
-                            <option
-                              v-for="(option, index) in subcampo.options"
-                              :key="index"
-                              :value="option"
-                            >
+                            <option v-for="(option, index) in subcampo.options" :key="index" :value="option">
                               {{ option }}
                             </option>
                           </template>
                           <template v-else>
-                            <option
-                              v-for="(option, index) in subcampo.options"
-                              :key="index"
-                              :value="option.campoGuardar"
-                            >
+                            <option v-for="(option, index) in subcampo.options" :key="index"
+                              :value="option.campoGuardar">
                               {{ option.campoMostrar }}
                             </option>
                           </template>
                         </select>
                       </div>
-                      <div
-                        v-if="!isManualSelect(subcampo) && subcampo.dataSource"
-                        class="form-text mt-1"
-                      >
+                      <div v-if="!isManualSelect(subcampo) && subcampo.dataSource" class="form-text mt-1">
                         <small class="text-info">
                           <i class="fas fa-database me-1"></i>
                           Datos de: {{ subcampo.dataSource.plantillaNombre }} -
@@ -315,12 +261,8 @@
                         <span class="input-group-text">
                           <i class="fas fa-calendar-alt"></i>
                         </span>
-                        <input
-                          type="date"
-                          class="form-control"
-                          v-model="datosTemporales[subcampo.name]"
-                          :required="subcampo.required || subcampo.filterable"
-                        />
+                        <input type="date" class="form-control" v-model="datosTemporales[subcampo.name]"
+                          :required="subcampo.required || subcampo.filterable" />
                       </div>
                     </div>
 
@@ -334,13 +276,8 @@
                         <span class="input-group-text">
                           <i class="fas fa-font"></i>
                         </span>
-                        <input
-                          type="text"
-                          class="form-control"
-                          v-model="datosTemporales[subcampo.name]"
-                          :required="subcampo.required"
-                          placeholder="Ingrese texto"
-                        />
+                        <input type="text" class="form-control" v-model="datosTemporales[subcampo.name]"
+                          :required="subcampo.required" placeholder="Ingrese texto" />
                       </div>
                     </div>
                   </template>
@@ -352,22 +289,15 @@
                       <span v-if="subcampo.required" class="text-danger">*</span>
                     </label>
 
-                    <button
-                      type="button"
-                      class="btn btn-outline-primary mb-3"
-                      @click="abrirModalTabla(subcampo)"
-                    >
+                    <button type="button" class="btn btn-outline-primary mb-3" @click="abrirModalTabla(subcampo)">
                       <i class="fas fa-plus me-2"></i>
                       Seleccionar datos para la tabla
                     </button>
 
                     <!-- Vista previa de IDs seleccionados -->
-                    <div
-                      v-if="
+                    <div v-if="
                         datosTemporales[subcampo.name] && datosTemporales[subcampo.name].length > 0
-                      "
-                      class="alert alert-success"
-                    >
+                      " class="alert alert-success">
                       <i class="fas fa-check-circle me-2"></i>
                       {{ datosTemporales[subcampo.name].length }} registro(s) seleccionado(s)
                     </div>
@@ -384,11 +314,8 @@
                       <span v-if="subcampo.required" class="text-danger">*</span>
                     </label>
                     <div class="d-flex align-items-center">
-                      <button
-                        type="button"
-                        class="btn btn-outline-primary me-3"
-                        @click="abrirModalSubformularioDesdeModal(subcampo.name, subcampo)"
-                      >
+                      <button type="button" class="btn btn-outline-primary me-3"
+                        @click="abrirModalSubformularioDesdeModal(subcampo.name, subcampo)">
                         <i class="fa-solid fa-magnifying-glass me-2"></i>
                         Ver/Editar {{ subcampo.alias || subcampo.name }}
                       </button>
@@ -432,25 +359,15 @@
                 <p class="header-subtitle">Subformulario anidado</p>
               </div>
             </div>
-            <button
-              type="button"
-              @click="cerrarModalSubformulario"
-              class="close-button"
-              aria-label="Close"
-            >
+            <button type="button" @click="cerrarModalSubformulario" class="close-button" aria-label="Close">
               <i class="fas fa-times"></i>
             </button>
           </div>
 
           <!-- Body del modal de subformulario -->
           <div class="medico-body modal-body-custom">
-            <SubFormularioDocumento
-              v-if="subformularioActual"
-              :campo="subformularioActual"
-              :valor="valoresSubformulario"
-              @actualizar="actualizarValoresSubformulario"
-              :nivel="nivel + 1"
-            />
+            <SubFormularioDocumento v-if="subformularioActual" :campo="subformularioActual"
+              :valor="valoresSubformulario" @actualizar="actualizarValoresSubformulario" :nivel="nivel + 1" />
           </div>
 
           <!-- Footer del modal de subformulario -->
@@ -498,13 +415,8 @@
                   <span class="input-group-text">
                     <i class="fas fa-search"></i>
                   </span>
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="busquedaTabla"
-                    placeholder="Buscar en los datos disponibles..."
-                    @keyup.enter="paginaActual = 1"
-                  />
+                  <input type="text" class="form-control" v-model="busquedaTabla"
+                    placeholder="Buscar en los datos disponibles..." @keyup.enter="paginaActual = 1" />
                 </div>
               </div>
               <div class="col-md-6 d-flex justify-content-between align-items-center">
@@ -514,46 +426,26 @@
                 </div>
                 <div class="d-flex gap-2 align-items-center">
                   <label class="form-label mb-0 me-2">Mostrar:</label>
-                  <select
-                    v-model="elementosPorPagina"
-                    class="form-select form-select-sm"
-                    style="width: auto"
-                  >
+                  <select v-model="elementosPorPagina" class="form-select form-select-sm" style="width: auto">
                     <option value="5">5</option>
                   </select>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    @click="paginaActual = 1"
-                    :disabled="paginaActual === 1"
-                  >
+                  <button type="button" class="btn btn-sm btn-outline-secondary" @click="paginaActual = 1"
+                    :disabled="paginaActual === 1">
                     <i class="fas fa-angle-double-left"></i>
                   </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    @click="paginaActual--"
-                    :disabled="paginaActual === 1"
-                  >
+                  <button type="button" class="btn btn-sm btn-outline-secondary" @click="paginaActual--"
+                    :disabled="paginaActual === 1">
                     <i class="fas fa-chevron-left"></i>
                   </button>
                   <span class="mx-2 align-self-center">
                     Página {{ paginaActual }} de {{ totalPaginas }}
                   </span>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    @click="paginaActual++"
-                    :disabled="paginaActual >= totalPaginas"
-                  >
+                  <button type="button" class="btn btn-sm btn-outline-secondary" @click="paginaActual++"
+                    :disabled="paginaActual >= totalPaginas">
                     <i class="fas fa-chevron-right"></i>
                   </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    @click="paginaActual = totalPaginas"
-                    :disabled="paginaActual >= totalPaginas"
-                  >
+                  <button type="button" class="btn btn-sm btn-outline-secondary" @click="paginaActual = totalPaginas"
+                    :disabled="paginaActual >= totalPaginas">
                     <i class="fas fa-angle-double-right"></i>
                   </button>
                 </div>
@@ -577,19 +469,14 @@
                     <tbody>
                       <tr v-for="(fila, index) in datosPaginados" :key="index">
                         <td>
-                          <button
-                            type="button"
-                            class="btn btn-sm btn-success"
-                            @click="seleccionarFilaTabla(fila)"
+                          <button type="button" class="btn btn-sm btn-success" @click="seleccionarFilaTabla(fila)"
                             :disabled="
                               tablaSeleccionada.some((f) => f._documentId === fila._documentId)
-                            "
-                            :title="
+                            " :title="
                               tablaSeleccionada.some((f) => f._documentId === fila._documentId)
                                 ? 'Ya seleccionado'
                                 : 'Seleccionar'
-                            "
-                          >
+                            ">
                             <i class="fas fa-plus"></i>
                           </button>
                         </td>
@@ -610,12 +497,8 @@
               <div class="col-md-6">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                   <h6 class="mb-0">Datos seleccionados ({{ tablaSeleccionada.length }}):</h6>
-                  <button
-                    v-if="tablaSeleccionada.length > 0"
-                    type="button"
-                    class="btn btn-sm btn-outline-danger"
-                    @click="tablaSeleccionada = []"
-                  >
+                  <button v-if="tablaSeleccionada.length > 0" type="button" class="btn btn-sm btn-outline-danger"
+                    @click="tablaSeleccionada = []">
                     <i class="fas fa-trash me-1"></i> Limpiar todo
                   </button>
                 </div>
@@ -632,12 +515,8 @@
                     <tbody>
                       <tr v-for="(fila, index) in tablaSeleccionada" :key="index">
                         <td>
-                          <button
-                            type="button"
-                            class="btn btn-sm btn-danger"
-                            @click="deseleccionarFilaTabla(index)"
-                            title="Quitar selección"
-                          >
+                          <button type="button" class="btn btn-sm btn-danger" @click="deseleccionarFilaTabla(index)"
+                            title="Quitar selección">
                             <i class="fas fa-times"></i>
                           </button>
                         </td>
@@ -670,11 +549,18 @@
       </div>
     </div>
   </div>
+
+  <!-- MODAL PARA VER IMÁGENES -->
+  <VistaArchivos :mostrar="mostrarModalImagen" :archivos="archivo" @cerrar="mostrarModalImagen = false" />
 </template>
 
 <script>
+import VistaArchivos from "./VistaArchivos.vue"; 
 import api, { downloadStorageFile } from '@/services/api'
 export default {
+  components: {
+            VistaArchivos,
+        },
   name: 'SubFormularioDocumento',
   props: {
     campo: {
@@ -692,6 +578,10 @@ export default {
   },
   data() {
     return {
+      //VARIABLES PARA EL MODAL DE IMAGEN
+      mostrarModalImagen: false, // Para controlar si se muestra el modal
+      archivo: null,            // Para pasar el archivo al modal
+      
       filas: [...this.valor],
       mostrarModal: false,
       indiceEditando: -1,
