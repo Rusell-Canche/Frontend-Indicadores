@@ -323,18 +323,28 @@
                                                                     ) in tablaData[campo.name]"
                                                                     :key="index"
                                                                 >
-                                                                    <td
-                                                                        v-for="columna in campo
-                                                                            .tableConfig.campos"
-                                                                        :key="columna.name"
-                                                                    >
-                                                                        {{
-                                                                            obtenerValorCampo(
-                                                                                fila,
-                                                                                columna.name,
-                                                                            ) || '-'
-                                                                        }}
-                                                                    </td>
+                                                                    <td v-for="columna in campo.tableConfig.campos" :key="columna.name">
+  <!-- Verificamos directamente si el campo es de tipo 'file' -->
+  <div
+    v-if="columna.type === 'file'"
+    class="file-badges"
+  >
+      <button
+      type="button"
+      class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
+      @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name)"
+      v-tooltip="'Ver Archivo'"
+      style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;"
+    >
+      <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
+    </button>
+  </div>
+
+  <!-- Si no es file, mostramos el valor normal -->
+  <span v-else>
+    {{ obtenerValorCampo(fila, columna.name) || '-' }}
+  </span>
+</td>
                                                                     <td class="text-center">
                                                                         <button
                                                                             type="button"
@@ -717,9 +727,18 @@
             </div>
         </div>
     </div>
+<!-- Aquí insertas tu modal -->
+    <VistaArchivos
+      :mostrar="mostrarModalImagen"
+      :archivos="archivo"
+      @cerrar="mostrarModalImagen = false"
+    />
+  
 </template>
 
 <script>
+
+    import VistaArchivos from "./VistaArchivos.vue"; 
     import api, { downloadStorageFile } from '@/services/api'
     import axios from 'axios'
     import Swal from 'sweetalert2'
@@ -730,6 +749,7 @@
 
         components: {
             SubFormularioDocumento,
+            VistaArchivos,
         },
 
         props: {
@@ -763,6 +783,8 @@
 
         data() {
             return {
+                mostrarModalImagen: false, // Para controlar si se muestra el modal
+                archivo: null,            // Para pasar el archivo al modal
                 archivosSubformularios: {},
                 // Mapeo de archivos: {nombreCampo: {seccion, campo, tipo, ...}}
                 fileMapping: {},

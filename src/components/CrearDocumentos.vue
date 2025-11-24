@@ -599,18 +599,20 @@
               </button>
             </div>
             
-<!-- Aquí insertas tu modal -->
-    <VistaArchivos
-      :mostrar="mostrarModalImagen"
-      :archivos="archivo"
-      @cerrar="mostrarModalImagen = false"
-    />
+
 
           </form>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Aquí insertas tu modal -->
+    <VistaArchivos
+      :mostrar="mostrarModalImagen"
+      :archivos="archivo"
+      @cerrar="mostrarModalImagen = false"
+    />
 </template>
 
 <script>
@@ -623,7 +625,11 @@ export default {
   components: { SubFormularioDocumento,VistaArchivos },
   data() {
     return {
-      archivo:"",
+
+      //variables para modal de ver imagenes
+      mostrarModalImagen: false, // Para controlar si se muestra el modal
+      archivo: null,            // Para pasar el archivo al modal
+
       plantillas: [],
       selectedPlantilla: null,
       camposPlantilla: [],
