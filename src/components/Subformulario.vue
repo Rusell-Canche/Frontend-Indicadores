@@ -865,7 +865,9 @@ export default {
           await this.cargarSeccionesTabla()
           this.tablaSeccionSeleccionada = campo.tableConfig.seccion
           await this.onTablaSeccionSeleccionada()
-          this.tablaCamposSeleccionados = [...campo.tableConfig.campos]
+          this.tablaCamposSeleccionados = campo.tableConfig.campos.map(c => 
+  typeof c === 'string' ? c : c.name
+)
           await this.actualizarVistaPreviewTabla()
         }
       } catch (error) {
