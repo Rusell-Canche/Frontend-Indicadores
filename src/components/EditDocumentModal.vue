@@ -1917,7 +1917,7 @@
     }
 </script>
 
-<style scoped>
+<style>
     /* Header con el diseño moderno - CAMBIADO A GRIS */
     .medico-header {
         background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);

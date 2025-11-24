@@ -26,14 +26,14 @@
               <!-- Renderizar subcampo normal -->
               <template v-if="subcampo.type !== 'subform' && subcampo.type !== 'tabla'">
                 <template v-if="subcampo.type === 'file'">
-                  <button type="button"
-                    class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
-                    @click="mostrarModalImagen = true; archivo = fila[subcampo.name]"
-                    v-tooltip="'Ver Archivo'"
-                    style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;">
-                    <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
-                  </button>
-                </template>
+  <button type="button"
+    class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
+    @click="mostrarModalImagen = true; archivo = obtenerArchivosParaVista(fila[subcampo.name])"
+    v-tooltip="'Ver Archivo'"
+    style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;">
+    <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
+  </button>
+</template>
                 <template v-else-if="subcampo.type === 'select' && !isManualSelect(subcampo)">
                   {{
                   subcampo.options.find((opt) => opt.campoGuardar === fila[subcampo.name])
@@ -668,6 +668,20 @@ export default {
     },
   },
   methods: {
+    obtenerArchivosParaVista(archivos) {
+    // Si es un Proxy, manejarlo adecuadamente
+    if (archivos && typeof archivos === 'object') {
+      // Si es un array Proxy, devolver el array de Files
+      if (Array.isArray(archivos)) {
+        return archivos;
+      }
+      // Si es un solo File, devolverlo
+      if (archivos instanceof File) {
+        return [archivos];
+      }
+    }
+    return archivos;
+  },
     async onArchivoDesdeUrl(url, nombreSubcampo) {
       try {
         // Descargar el archivo desde la URL
