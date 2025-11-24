@@ -126,17 +126,20 @@
                           </button>
                         </td>
                         <td v-for="columna in tablaActual.tableConfig.campos" :key="columna.name">
-                          <div v-if="columna.type === 'file'">
-                            <button
-                    icon="fa-solid fa-eye"
-                    @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name) || '-' "
-                    text
-                    severity="info"
-                    size="small"
-                    v-tooltip="'Ver Archivo'"
-                  />
+                           <div v-if="columna.type === 'file'" class="file-badges">
+                            <button type="button"
+                              class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
+                              @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name)"
+                              v-tooltip="'Ver Archivo'"
+                              style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;">
+                              <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
+                            </button>
                           </div>
-                          <div v-else>{{ obtenerValorCampo(fila, columna.name) || '-' }}</div>
+
+                          <!-- Si no es file, mostramos el valor normal -->
+                          <span v-else>
+                            {{ obtenerValorCampo(fila, columna.name) || '-' }}
+                          </span>
                           
                         </td>
                       </tr>
@@ -185,7 +188,21 @@
                           </button>
                         </td>
                         <td v-for="columna in tablaActual.tableConfig.campos" :key="columna.name">
-                          {{ obtenerValorCampo(fila, columna.name) || '-' }}
+                           <div v-if="columna.type === 'file'" class="file-badges">
+                            <button type="button"
+                              class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
+                              @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name)"
+                              v-tooltip="'Ver Archivo'"
+                              style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;"
+                              >
+                              <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
+                            </button>
+                          </div>
+
+                          <!-- Si no es file, mostramos el valor normal -->
+                          <span v-else>
+                            {{ obtenerValorCampo(fila, columna.name) || '-' }}
+                          </span>
                         </td>
                       </tr>
                     </tbody>
@@ -348,7 +365,20 @@
                             <tbody>
                               <tr v-for="(fila, index) in tablaData[campo.name]" :key="index">
                                 <td v-for="columna in campo.tableConfig.campos" :key="columna.name">
-                                  {{ obtenerValorCampo(fila, columna.name) || '-' }}
+                                   <div v-if="columna.type === 'file'" class="file-badges">
+                            <button type="button"
+                              class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
+                              @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name)"
+                              v-tooltip="'Ver Archivo'"
+                              style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;">
+                              <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
+                            </button>
+                          </div>
+
+                          <!-- Si no es file, mostramos el valor normal -->
+                          <span v-else>
+                            {{ obtenerValorCampo(fila, columna.name) || '-' }}
+                          </span>
                                 </td>
                                 <td class="text-center">
                                   <button
@@ -598,7 +628,12 @@
                 Crear Documento
               </button>
             </div>
-            
+            <!-- Aquí insertas tu modal -->
+    <VistaArchivos
+      :mostrar="mostrarModalImagen"
+      :archivos="archivo"
+      @cerrar="mostrarModalImagen = false"
+    />
 
 
           </form>
@@ -607,12 +642,7 @@
     </div>
   </div>
 
-  <!-- Aquí insertas tu modal -->
-    <VistaArchivos
-      :mostrar="mostrarModalImagen"
-      :archivos="archivo"
-      @cerrar="mostrarModalImagen = false"
-    />
+  
 </template>
 
 <script>
