@@ -331,19 +331,19 @@
   >
       <button
       type="button"
-      class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
-      @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name)"
-      v-tooltip="'Ver Archivo'"
+                              class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
+                              @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name)"
+                              v-tooltip="'Ver Archivo'"
       style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;"
     >
-      <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
-    </button>
-  </div>
+                              <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
+                            </button>
+                          </div>
 
-  <!-- Si no es file, mostramos el valor normal -->
-  <span v-else>
-    {{ obtenerValorCampo(fila, columna.name) || '-' }}
-  </span>
+                          <!-- Si no es file, mostramos el valor normal -->
+                          <span v-else>
+                            {{ obtenerValorCampo(fila, columna.name) || '-' }}
+                          </span>
 </td>
                                                                     <td class="text-center">
                                                                         <button
@@ -619,10 +619,20 @@
                                                             .campos"
                                                         :key="columna.name"
                                                     >
-                                                        {{
-                                                            obtenerValorCampo(fila, columna.name) ||
-                                                            '-'
-                                                        }}
+                          <div v-if="columna.type === 'file'" class="file-badges">
+                            <button type="button"
+                              class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
+                              @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name)"
+                              v-tooltip="'Ver Archivo'"
+                              style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;">
+                              <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
+                            </button>
+                          </div>
+
+                          <!-- Si no es file, mostramos el valor normal -->
+                          <span v-else>
+                            {{ obtenerValorCampo(fila, columna.name) || '-' }}
+                          </span>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -688,10 +698,20 @@
                                                             .campos"
                                                         :key="columna.name"
                                                     >
-                                                        {{
-                                                            obtenerValorCampo(fila, columna.name) ||
-                                                            '-'
-                                                        }}
+                          <div v-if="columna.type === 'file'" class="file-badges">
+                            <button type="button"
+                              class="p-button p-component p-button-icon-only p-button-text p-button-info p-button-sm"
+                              @click="mostrarModalImagen = true; archivo = obtenerValorCampo(fila, columna.name)"
+                              v-tooltip="'Ver Archivo'"
+                              style="width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center;">
+                              <i class="fa-solid fa-eye" style="color: #3b82f6; font-size: 0.875rem;"></i>
+                            </button>
+                          </div>
+
+                          <!-- Si no es file, mostramos el valor normal -->
+                          <span v-else>
+                            {{ obtenerValorCampo(fila, columna.name) || '-' }}
+                          </span>
                                                     </td>
                                                 </tr>
                                             </tbody>
