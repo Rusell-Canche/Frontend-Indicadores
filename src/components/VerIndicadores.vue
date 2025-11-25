@@ -1,6 +1,6 @@
 <template>
   <!-- Sección simple para elegir fecha de inicio, fecha fin y tipo de indicador -->
-  <div class="date-filter-simple mb-3">
+  <div class="">
     <div class="filter-row">
       <div class="date-field">
         <label for="fechaInicio" class="date-label">Fecha Inicio:</label>
@@ -1865,8 +1865,6 @@ export default {
   }
 
   .filter-row {
-    flex-direction: column;
-    align-items: stretch;
     gap: 1rem;
   }
 
@@ -1909,7 +1907,7 @@ export default {
 @media (min-width: 992px) {
   .filter-row {
     justify-content: center;
-    max-width: 600px;
+    max-width: none; 
     margin: 0 auto;
   }
 
