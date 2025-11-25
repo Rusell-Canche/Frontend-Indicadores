@@ -1479,7 +1479,7 @@ export default {
 
 /* Header con el diseño moderno */
 .medico-header {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
   padding: 2rem;
   display: flex;
   justify-content: space-between;
@@ -1495,7 +1495,7 @@ export default {
   right: -50%;
   width: 100%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%) !important;
   animation: shimmer 3s ease-in-out infinite;
 }
 

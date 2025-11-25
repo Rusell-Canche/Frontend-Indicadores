@@ -1643,12 +1643,24 @@ editarDocumento(documento) {
 
 <style scoped>
 .medico-header{
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important; 
 }
 .modern-input .input-group-text{
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
 }
 .form-section::before{
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
 }
+.section-title {
+  color: #2c3e50 !important;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+.section-title i {
+  color: #6c757d;
+}
+
 </style>
