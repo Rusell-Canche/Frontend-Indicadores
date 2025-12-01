@@ -131,12 +131,10 @@
                                     Roles
                                 </h6>
                                 <div class="roles-tags">
-                                    <span
-                                        v-for="rol in usuario.roles"
-                                        :key="rol?.id"
-                                        class="role-tag"
-                                    >
-                                       {{ rol.nombre }}
+                                    <span v-for="rol in usuario.roles" 
+                                        :key="typeof rol === 'string' ? rol : rol.id"
+                                        class="role-tag">
+                                        {{ typeof rol === 'string' ? rol : rol.nombre }}
                                     </span>
                                 </div>
                             </div>
