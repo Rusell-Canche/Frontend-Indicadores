@@ -162,7 +162,7 @@ export default {
 
       const formData = new FormData()
       formData.append('excel_file', this.file)
-      formData.append('dependencia', this.selectedDependencia)
+      formData.append('tipoIndicador', this.selectedDependencia)
 
       this.isLoading = true
 
