@@ -69,6 +69,16 @@
           </div>
         </div>
 
+                <!-- Selección de dependencia -->
+        <div class="form-group mt-4">
+          <label for="dependencia" class="form-label fw-bold">Tipo de indicador:</label>
+          <select id="dependencia" v-model="selectedDependencia" class="form-select">
+            <option value="" disabled>Selecciona un tipo de indicador</option>
+            <option value="Subdireccion academica">Subdirección Académica</option>
+            <option value="Planeacion y presupuesto">Planeación y Presupuesto</option>
+          </select>
+        </div>
+
         <!-- Footer con botón -->
         <div class="medico-footer">
           <button
@@ -101,6 +111,7 @@ export default {
     return {
       file: null,
       isLoading: false,
+      selectedDependencia: '',
     }
   },
   methods: {
@@ -138,8 +149,20 @@ export default {
         return
       }
 
+            // Validar que se haya seleccionado una dependencia
+      if (!this.selectedDependencia) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Dependencia requerida',
+          text: 'Por favor selecciona un tipo de indicador',
+          confirmButtonColor: '#667eea',
+        })
+        return
+      }
+
       const formData = new FormData()
       formData.append('excel_file', this.file)
+      formData.append('dependencia', this.selectedDependencia)
 
       this.isLoading = true
 
