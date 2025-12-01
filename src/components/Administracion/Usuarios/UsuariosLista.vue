@@ -338,7 +338,7 @@
 
     /* Header con el diseño moderno */
     .medico-header {
-        background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+        background: linear-gradient(135deg, #047857 0%, #065f46 100%)!important;
         padding: 2rem;
         display: flex;
         justify-content: space-between;

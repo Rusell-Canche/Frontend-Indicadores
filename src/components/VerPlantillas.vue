@@ -1740,7 +1740,7 @@ getTipoTexto(tipo) {
 
 /* Header con el diseño moderno */
 .medico-header {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%)!important;
   padding: 2rem;
   display: flex;
   justify-content: space-between;

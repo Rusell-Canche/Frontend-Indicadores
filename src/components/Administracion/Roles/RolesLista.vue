@@ -11,7 +11,7 @@
           <div class="header-title-section">
             <h3>Gestión de Roles</h3>
             <p class="header-subtitle">
-              jjj
+              
             </p>
           </div>
         </div>
@@ -348,7 +348,7 @@ export default {
 
 /* Header con el diseño moderno - ACTUALIZADO CON PALETA VERDE */
 .medico-header {
-  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%)!important;
   padding: 2rem;
   display: flex;
   justify-content: space-between;

@@ -709,7 +709,7 @@ export default {
 
 /* Header con el diseño moderno */
 .medico-header {
-  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%);
+  background: linear-gradient(135deg, #ff8c00 0%, #ff7700 100%)!important;
   padding: 2rem;
   display: flex;
   justify-content: space-between;
