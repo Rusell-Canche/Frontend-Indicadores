@@ -74,8 +74,8 @@
           <label for="dependencia" class="form-label fw-bold">Tipo de indicador:</label>
           <select id="dependencia" v-model="selectedDependencia" class="form-select">
             <option value="" disabled>Selecciona un tipo de indicador</option>
-            <option value="Subdireccion academica">Subdirección Académica</option>
-            <option value="Planeacion y presupuesto">Planeación y Presupuesto</option>
+            <option value="Subdireccion">Subdirección Académica</option>
+            <option value="Planeacion">Planeación y Presupuesto</option>
           </select>
         </div>
 
