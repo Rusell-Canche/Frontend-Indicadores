@@ -72,7 +72,7 @@
                 <!-- Selección de dependencia -->
         <div class="form-group mt-4">
           <label for="dependencia" class="form-label fw-bold">Tipo de indicador:</label>
-          <select id="dependencia" v-model="selectedDependencia" class="form-select">
+          <select id="tipoIndicador" v-model="selectedDependencia" class="form-select">
             <option value="" disabled>Selecciona un tipo de indicador</option>
             <option value="Subdireccion">Subdirección Académica</option>
             <option value="Planeacion">Planeación y Presupuesto</option>
