@@ -11,10 +11,10 @@ import ConfirmationService from 'primevue/confirmationservice'
 import Tooltip from 'primevue/tooltip'
 
 //Importar las directivas
-import SoloNumeros from './directives/SoloNumeros.js' 
-import SoloTexto from './directives/SoloTexto.js'
-import SoloTextoYNumeros from './directives/SoloTextoYNumeros.js'
-import SoloCorreo from './directives/SoloCorreo.js'
+import SoloNumeros from './directives/SoloNumeros';
+import SoloCorreo from './directives/SoloCorreo';
+import SoloTexto from './directives/SoloTexto';
+import SoloTextoYNumeros from './directives/SoloTextoYNumeros';
 
 const app = createApp(App)
 

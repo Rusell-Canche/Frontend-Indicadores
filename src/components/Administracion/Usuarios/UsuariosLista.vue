@@ -72,14 +72,12 @@
                                 <p class="usuario-email">{{ usuario.email }}</p>
                             </div>
                             <div class="usuario-actions">
-                                <router-link :to="{ name: 'EditarUsuario', params: {id: usuario.id }}">
-                                <button
-                                    class="btn btn-sm btn-edit"
-
-                                    title="Editar usuario"
+                                <router-link
+                                    :to="{ name: 'EditarUsuario', params: { id: usuario.id } }"
                                 >
-                                    <i class="fas fa-edit"></i>
-                                </button></router-link>
+                                    <button class="btn btn-sm btn-edit" title="Editar usuario">
+                                        <i class="fas fa-edit"></i></button
+                                ></router-link>
                                 <button
                                     class="btn btn-sm btn-delete"
                                     @click="deleteUsuario(usuario)"
@@ -185,7 +183,7 @@
                 currentPage: 1,
                 itemsPerPage: 6,
                 showEditModal: false,
-                editingUsuario: null
+                editingUsuario: null,
             }
         },
         computed: {
@@ -202,13 +200,13 @@
 
                 const termino = this.searchTerm.toLowerCase().trim()
                 return usuarioState.usuarios.filter(
-                    usuario =>
+                    (usuario) =>
                         usuario.nombre?.toLowerCase().includes(termino) ||
                         usuario.apellido_paterno.toLowerCase().includes(termino) ||
                         usuario.apellido_materno.toLowerCase().includes(termino) ||
                         usuario.email.toLowerCase().includes(termino) ||
                         usuario.estado.toLowerCase().includes(termino) ||
-                        usuario.ocupacion.toLowerCase().includes(termino)
+                        usuario.ocupacion.toLowerCase().includes(termino),
                 )
             },
             /*filteredUsuarios() {
@@ -263,7 +261,7 @@
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
                     confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
+                    cancelButtonText: 'Cancelar',
                 })
 
                 if (result.isConfirmed) {
@@ -273,16 +271,16 @@
                             `http://127.0.0.1:8000/api/usuarios/${usuario.id}`,
                             {
                                 headers: {
-                                    Authorization: `Bearer ${token}`
-                                }
-                            }
+                                    Authorization: `Bearer ${token}`,
+                                },
+                            },
                         )
 
                         if (response.data.success) {
                             Swal.fire({
                                 icon: 'success',
                                 title: '¡Eliminado!',
-                                text: 'El usuario ha sido eliminado correctamente'
+                                text: 'El usuario ha sido eliminado correctamente',
                             })
 
                             // Actualizar la lista
@@ -293,11 +291,11 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: 'No se pudo eliminar el usuario'
+                            text: 'No se pudo eliminar el usuario',
                         })
                     }
                 }
-            }
+            },
         },
     }
 </script>
