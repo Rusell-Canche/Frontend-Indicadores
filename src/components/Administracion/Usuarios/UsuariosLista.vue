@@ -45,7 +45,7 @@
                 </div>
 
                 <!-- Loading state -->
-                <div v-if="loading" class="text-center py-5">
+                <div v-if="usuarioState.loading" class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
@@ -161,27 +161,20 @@
 
 <script lang="ts">
     import Swal from 'sweetalert2'
-    import axios from 'axios'
     import type { Usuario } from '@/models/usuario'
     import { UsuarioService, usuarioState } from '@/services/Administracion/usuario.service'
 
     export default {
         data() {
             return {
+                /** Comunicacion con el estado del servicio de los roles */
                 usuarioState,
+
+                /** El usuario seleccionado actualmente */
                 usuarioSeleccionado: null as Usuario | null,
+
+                /** El valor que se esta buscando actualmente */
                 searchTerm: '',
-                usuarios: [],
-                recursos: [],
-                roles: [],
-                acciones: [],
-                loading: false,
-                filterGenero: '',
-                filterEscolaridad: '',
-                currentPage: 1,
-                itemsPerPage: 6,
-                showEditModal: false,
-                editingUsuario: null,
             }
         },
         computed: {
@@ -207,44 +200,10 @@
                         usuario.ocupacion.toLowerCase().includes(termino),
                 )
             },
-            /*filteredUsuarios() {
-                let filtered = this.usuarios
-
-                // Filtrar por término de búsqueda
-                if (this.searchTerm) {
-                    const term = this.searchTerm.toLowerCase()
-                    filtered = filtered.filter(
-                        usuario =>
-                            usuario.nombre.toLowerCase().includes(term) ||
-                            usuario.apellido_paterno.toLowerCase().includes(term) ||
-                            usuario.apellido_materno.toLowerCase().includes(term) ||
-                            usuario.email.toLowerCase().includes(term) ||
-                            usuario.estado.toLowerCase().includes(term) ||
-                            usuario.ocupacion.toLowerCase().includes(term)
-                    )
-                }
-
-                // Filtrar por género (manejar mayúsculas y minúsculas)
-                if (this.filterGenero) {
-                    filtered = filtered.filter(
-                        usuario => usuario.genero.toLowerCase() === this.filterGenero.toLowerCase()
-                    )
-                }
-
-                // Filtrar por escolaridad
-                if (this.filterEscolaridad) {
-                    filtered = filtered.filter(
-                        usuario => usuario.escolaridad === this.filterEscolaridad
-                    )
-                }
-
-                return filtered
-            },*/
         },
         async mounted() {
             try {
                 await UsuarioService.fetchUsuarios()
-                console.log(usuarioState.usuarios)
             } catch (error) {
                 console.error('Error al cargar los usuarios:', error)
             }
@@ -257,33 +216,22 @@
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
                     confirmButtonText: 'Sí, eliminar',
                     cancelButtonText: 'Cancelar',
                 })
 
                 if (result.isConfirmed) {
                     try {
-                        const token = localStorage.getItem('apiToken')
-                        const response = await axios.delete(
-                            `http://127.0.0.1:8000/api/usuarios/${usuario.id}`,
-                            {
-                                headers: {
-                                    Authorization: `Bearer ${token}`,
-                                },
-                            },
-                        )
 
-                        if (response.data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '¡Eliminado!',
-                                text: 'El usuario ha sido eliminado correctamente',
-                            })
+                        await UsuarioService.deleteUsuario(usuario.id!)
+                        
 
-                            // Actualizar la lista
-                            //await this.loadUsuarios()
-                        }
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Eliminado!',
+                            text: 'El usuario ha sido eliminado correctamente',
+                        })
+                        
                     } catch (error) {
                         console.error('Error al eliminar usuario:', error)
                         Swal.fire({

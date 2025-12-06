@@ -1,6 +1,7 @@
 import { reactive } from 'vue'
 import * as usuarioApi from '@/services/api/usuario.api'
 import type { Usuario } from '@/models/usuario'
+import { rolState } from './rol.service'
 
 /**
  * Interfaz para el estado del servicio de usuarios
@@ -130,4 +131,31 @@ export const UsuarioService = {
             usuarioState.loading = false
         }
     },
+
+    /**
+     * Elimina un usuario en especifico
+     * @return Exito de la operacion
+     */
+    async deleteUsuario(usuarioID: string) {
+        // Actualizamos el estado del servicio
+        usuarioState.error = null
+
+        // Intentamos eliminar el usuario
+        try {
+            const response = await usuarioApi.deleteUsuario(usuarioID)
+            // Refrescamos los usuarios
+            usuarioState.loading = true
+            await this.fetchUsuarios()
+            
+            return response
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message: 'Error al eliminar el usuario'
+
+            usuarioState.error = errorMessage
+            console.error('Error al eliminar el usuario:', error)
+            throw error
+        } finally {
+            rolState.loading = false
+        }
+    }
 }
