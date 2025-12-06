@@ -264,6 +264,10 @@
 
           <!-- Footer con botones -->
           <div class="medico-footer">
+            <button type="button" class="btn btn-cancel" @click="cancelar()">
+              <i class="fas fa-times-circle me-2"></i>
+              Cancelar
+            </button>
             <button
               type="submit"
               class="btn btn-save"
@@ -365,6 +369,20 @@ export default {
         });
       }
     },
+    cancelar() {
+      Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'Los cambios no guardados se perderán.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, cancelar',
+        cancelButtonText: 'Seguir editando',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.$router.push({ name: 'VerUsuarios' });
+        }
+      });
+    }
   },
 }
 </script>
