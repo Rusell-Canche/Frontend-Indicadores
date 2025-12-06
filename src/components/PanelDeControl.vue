@@ -26,7 +26,7 @@
           <span>Indicadores</span>
         </li>
         
-        <!-- Ejes - solo si tiene permiso -->
+        <!-- Ejes - solo si tiene permiso 
         <li
           v-if="hasPermission('ejes')"
           class="navigation-item"
@@ -36,7 +36,7 @@
           <i class="fas fa-arrows-alt-v"></i>
           <span>Ejes</span>
         </li>
-        
+        -->
         <!-- Plantillas - solo si tiene permiso -->
         <li
           v-if="hasPermission('plantillas')"
